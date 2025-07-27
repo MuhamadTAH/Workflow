@@ -556,7 +556,46 @@ function Workflow() {
         return;
       }
 
-      alert(`✅ Bot token is valid!\n\nBot Name: ${bot.first_name}\nUsername: @${bot.username || 'N/A'}\nBot ID: ${bot.id}`);
+      // Update the node to use the actual bot ID instead of generated node ID
+      const actualBotId = bot.id.toString();
+      const oldNodeId = nodeId;
+      
+      // Update nodes array
+      setNodes(prevNodes => prevNodes.map(node => 
+        node.id === oldNodeId ? { ...node, id: actualBotId } : node
+      ));
+      
+      // Update connections to use new bot ID
+      setConnections(prevConnections => prevConnections.map(conn => ({
+        ...conn,
+        from: conn.from === oldNodeId ? actualBotId : conn.from,
+        to: conn.to === oldNodeId ? actualBotId : conn.to
+      })));
+      
+      // Update node configurations
+      setNodeConfigs(prevConfigs => {
+        const newConfigs = { ...prevConfigs };
+        if (newConfigs[oldNodeId]) {
+          newConfigs[actualBotId] = { ...newConfigs[oldNodeId] };
+          delete newConfigs[oldNodeId];
+        }
+        return newConfigs;
+      });
+      
+      // Update temp input values
+      setTempInputValues(prevValues => {
+        const newValues = { ...prevValues };
+        Object.keys(newValues).forEach(key => {
+          if (key.startsWith(`${oldNodeId}_`)) {
+            const fieldName = key.substring(oldNodeId.length + 1);
+            newValues[`${actualBotId}_${fieldName}`] = newValues[key];
+            delete newValues[key];
+          }
+        });
+        return newValues;
+      });
+      
+      alert(`✅ Bot token is valid!\n\nBot Name: ${bot.first_name}\nUsername: @${bot.username || 'N/A'}\nBot ID: ${bot.id}\n\n🔄 Node ID updated to use bot ID: ${actualBotId}`);
     } catch (error) {
       console.error('Error validating bot token:', error);
       alert('❌ Failed to validate bot token. Check your connection and try again.');
