@@ -89,10 +89,10 @@ function createValidationError(message, field = null) {
   return error;
 }
 
-// Telegram API error handler
-function handleTelegramError(error, context = {}) {
+// Generic API error handler
+function handleAPIError(error, apiType = 'unknown', context = {}) {
   logger.logError(error, {
-    type: 'telegram_api_error',
+    type: `${apiType}_api_error`,
     ...context
   });
 
@@ -101,7 +101,7 @@ function handleTelegramError(error, context = {}) {
     success: false,
     error: {
       message: error.message,
-      type: 'telegram_error',
+      type: `${apiType}_error`,
       ...context
     }
   };
@@ -141,7 +141,7 @@ module.exports = {
   asyncHandler,
   requestLogger,
   createValidationError,
-  handleTelegramError,
+  handleAPIError,
   handleWorkflowError,
   createRateLimitError
 };

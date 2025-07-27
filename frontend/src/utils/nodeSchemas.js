@@ -1,127 +1,6 @@
 // Node input/output schemas for data flow mapping
 export const nodeSchemas = {
-  'telegram-trigger': {
-    input: null, // Trigger nodes don't have inputs
-    output: {
-      message: {
-        message_id: "number",
-        from: {
-          id: "number",
-          is_bot: "boolean",
-          first_name: "string",
-          last_name: "string",
-          username: "string",
-          language_code: "string"
-        },
-        chat: {
-          id: "number",
-          first_name: "string",
-          last_name: "string",
-          username: "string",
-          type: "string"
-        },
-        date: "number",
-        text: "string"
-      },
-      update_id: "number"
-    },
-    parameters: {
-      botToken: { type: 'string', required: true, label: 'Bot Token' },
-      updateType: { 
-        type: 'select', 
-        required: true, 
-        label: 'Update Type',
-        options: [
-          { value: 'message', label: 'Any Message' },
-          { value: 'command', label: 'Specific Command' },
-          { value: 'callback_query', label: 'Callback Query' }
-        ]
-      },
-      command: { 
-        type: 'string', 
-        required: false, 
-        label: 'Command (with /)',
-        condition: { field: 'updateType', value: 'command' }
-      }
-    }
-  },
-  
-  'telegram-send': {
-    input: {
-      message: {
-        message_id: "number",
-        from: {
-          id: "number",
-          is_bot: "boolean",
-          first_name: "string",
-          last_name: "string",
-          username: "string",
-          language_code: "string"
-        },
-        chat: {
-          id: "number",
-          first_name: "string",
-          last_name: "string",
-          username: "string",
-          type: "string"
-        },
-        date: "number",
-        text: "string"
-      },
-      update_id: "number"
-    },
-    output: {
-      ok: "boolean",
-      result: {
-        message_id: "number",
-        from: {
-          id: "number",
-          is_bot: "boolean",
-          first_name: "string",
-          username: "string"
-        },
-        chat: {
-          id: "number",
-          type: "string"
-        },
-        date: "number",
-        text: "string"
-      }
-    },
-    parameters: {
-      botToken: { type: 'string', required: true, label: 'Bot Token' },
-      chatId: { 
-        type: 'string', 
-        required: true, 
-        label: 'Chat ID',
-        placeholder: '{{message.chat.id}} or @channel or 123456789',
-        supportTemplates: true
-      },
-      messageText: { 
-        type: 'textarea', 
-        required: true, 
-        label: 'Message Text',
-        placeholder: 'Hello {{message.from.first_name}}! You said: {{message.text}}',
-        supportTemplates: true
-      },
-      parseMode: { 
-        type: 'select', 
-        required: false, 
-        label: 'Parse Mode',
-        options: [
-          { value: '', label: 'None' },
-          { value: 'Markdown', label: 'Markdown' },
-          { value: 'HTML', label: 'HTML' }
-        ]
-      },
-      disableWebPagePreview: { 
-        type: 'boolean', 
-        required: false, 
-        label: 'Disable Web Page Preview',
-        default: false
-      }
-    }
-  }
+  // Telegram nodes removed - system now ready for other integrations
 };
 
 // Get available template variables from input data
@@ -154,14 +33,7 @@ export function getAvailableTemplates(nodeType, inputData = null) {
 // Get example value for a template path
 function getExampleValue(type, path) {
   const examples = {
-    'message.from.first_name': 'John',
-    'message.from.last_name': 'Doe',
-    'message.from.username': 'johndoe',
-    'message.chat.id': '-1001234567890',
-    'message.text': 'Hello bot!',
-    'message.message_id': '123',
-    'message.date': '1640995200',
-    'update_id': '987654321'
+    // Generic examples for future node types
   };
 
   if (examples[path]) {
