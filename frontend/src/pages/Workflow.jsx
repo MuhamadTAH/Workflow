@@ -680,7 +680,7 @@ Send a message to your bot @AI_MarketingTeambot and see it appear in Recent Mess
   }, []);
 
   // Register current workflow with backend engine
-  const registerCurrentWorkflowWithEngine = async () => {
+  const registerCurrentWorkflowWithEngine = async (baseUrl = null) => {
     const currentWorkflow = {
       id: Date.now(), // Use timestamp as ID for current session
       name: 'Current Workflow',
@@ -691,7 +691,15 @@ Send a message to your bot @AI_MarketingTeambot and see it appear in Recent Mess
 
     console.log('📝 Registering current workflow:', currentWorkflow);
 
-    const response = await fetch('/api/webhooks/register-workflow', {
+    // For production mode with custom baseUrl, register directly to that server
+    const isProductionMode = baseUrl && baseUrl !== window.location.origin;
+    const registrationUrl = isProductionMode 
+      ? `${baseUrl}/api/webhooks/register-workflow`
+      : '/api/webhooks/register-workflow';
+    
+    console.log(`📡 Registering workflow to: ${registrationUrl}`);
+
+    const response = await fetch(registrationUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -802,6 +810,10 @@ Send a message to your bot @AI_MarketingTeambot and see it appear in Recent Mess
       try {
         console.log(`🎧 Starting to listen for node ${nodeId}...`);
         
+        // Register the workflow first with the production backend
+        console.log('📝 Registering workflow for production mode...');
+        await registerCurrentWorkflowWithEngine(webhookBaseUrl);
+        
         const result = await registerTelegramWebhook(nodeId, botToken, updateType, command, webhookBaseUrl);
         if (result) {
           setListeningNodes(prev => new Set(prev).add(nodeId));
@@ -896,7 +908,15 @@ Send a message to your bot @AI_MarketingTeambot and see it appear in Recent Mess
     try {
       console.log(`🔗 Registering Telegram webhook for node ${nodeId}...`);
       
-      const response = await fetch('/api/webhooks/register-telegram-webhook', {
+      // For production mode with custom baseUrl, register directly to that server
+      const isProductionMode = baseUrl && baseUrl !== window.location.origin;
+      const registrationUrl = isProductionMode 
+        ? `${baseUrl}/api/webhooks/register-telegram-webhook`
+        : '/api/webhooks/register-telegram-webhook';
+      
+      console.log(`📡 Registering to: ${registrationUrl}`);
+      
+      const response = await fetch(registrationUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
