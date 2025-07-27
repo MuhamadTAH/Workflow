@@ -1,193 +1,511 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { nodeSchemas, validateNodeConfig } from '../utils/nodeSchemas';
-import '../styles.css';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
+import { tokenManager, workflowAPI } from '../api';
 
-function Workflow() {
+const Workflow = () => {
+  const canvasRef = useRef(null);
   const [nodes, setNodes] = useState([]);
   const [connections, setConnections] = useState([]);
-  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
-  const [isPanning, setIsPanning] = useState(false);
-  const [lastPanPoint, setLastPanPoint] = useState({ x: 0, y: 0 });
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [connectionStart, setConnectionStart] = useState(null);
-  const [tempConnection, setTempConnection] = useState(null);
-  const [selectedNodes, setSelectedNodes] = useState([]);
-  const [selectedConnections, setSelectedConnections] = useState([]);
-  const [isDraggingNode, setIsDraggingNode] = useState(false);
-  const [dragStartPoint, setDragStartPoint] = useState({ x: 0, y: 0 });
+  const [draggedNode, setDraggedNode] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null);
-  const [clipboard, setClipboard] = useState(null);
-  const [workflowName, setWorkflowName] = useState('Untitled Workflow');
+  const [selectedConnection, setSelectedConnection] = useState(null);
+  const [connecting, setConnecting] = useState(null);
+  const [canvasTransform, setCanvasTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const [nodeCounter, setNodeCounter] = useState(1);
+  const [copiedNode, setCopiedNode] = useState(null);
+  const [currentWorkflowId, setCurrentWorkflowId] = useState(null);
+  const [workflowName, setWorkflowName] = useState('');
   const [savedWorkflows, setSavedWorkflows] = useState([]);
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [showLoadDialog, setShowLoadDialog] = useState(false);
-  const [nodeConfigs, setNodeConfigs] = useState({});
-  const [configErrors, setConfigErrors] = useState({});
+  const [showLoadDropdown, setShowLoadDropdown] = useState(false);
+  const [saveStatus, setSaveStatus] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [configPanelNode, setConfigPanelNode] = useState(null);
+  const [nodeConfig, setNodeConfig] = useState({});
 
-  // Available node types (ready for future integrations)
-  const nodeTypes = {
-    // Node types can be added here when integrations are implemented
-    // Example: 'http-request': { label: 'HTTP Request', icon: '🌐', hasInput: true, hasOutput: true }
-  };
+  // Check authentication
+  if (!tokenManager.isLoggedIn()) {
+    return <Navigate to="/login" />;
+  }
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left - transform.x) / transform.scale;
-    const y = (e.clientY - rect.top - transform.y) / transform.scale;
-    
-    const nodeType = e.dataTransfer.getData('nodeType');
-    if (!nodeType || !nodeTypes[nodeType]) {
-      console.warn('Unknown node type:', nodeType);
-      return;
-    }
-    
-    const config = nodeTypes[nodeType];
-    const newNode = {
-      id: Date.now(),
-      type: nodeType,
-      x: x,
-      y: y,
-      label: config.label,
-      icon: config.icon,
-      hasInput: config.hasInput,
-      hasOutput: config.hasOutput
-    };
-    
-    setNodes(prev => [...prev, newNode]);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
-
-  // Register workflow with backend
-  const registerCurrentWorkflowWithEngine = async (baseUrl = null) => {
-    const currentWorkflow = {
-      id: Date.now(),
-      name: workflowName,
-      nodes: nodes,
-      connections: connections,
-      configs: nodeConfigs
-    };
-
-    console.log('📝 Registering workflow:', currentWorkflow);
-
-    const registrationUrl = baseUrl 
-      ? `${baseUrl}/api/webhooks/register-workflow`
-      : '/api/webhooks/register-workflow';
-
-    const response = await fetch(registrationUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(currentWorkflow)
-    });
-
-    const result = await response.json();
-    if (result.success) {
-      console.log('✅ Workflow registered successfully');
-      return true;
-    } else {
-      console.error('Failed to register workflow:', result.error);
-      throw new Error(result.error || 'Failed to register workflow');
-    }
-  };
-
-  const saveWorkflow = async (name) => {
-    const workflow = {
-      id: Date.now(),
-      name: name || workflowName,
-      nodes,
-      connections,
-      transform,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    
-    const saved = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
-    saved.push(workflow);
-    localStorage.setItem('savedWorkflows', JSON.stringify(saved));
-    
-    setSavedWorkflows(saved);
-    setWorkflowName(workflow.name);
-    setShowSaveDialog(false);
-
-    // Register workflow with backend
-    try {
-      await registerCurrentWorkflowWithEngine();
-    } catch (error) {
-      console.error('Error registering workflow with backend:', error);
-    }
-  };
-
-  const loadWorkflow = (workflow) => {
-    setNodes(workflow.nodes || []);
-    setConnections(workflow.connections || []);
-    setTransform(workflow.transform || { x: 0, y: 0, scale: 1 });
-    setWorkflowName(workflow.name);
-    setSelectedNodes([]);
-    setSelectedConnections([]);
-    setSelectedNode(null);
-    setShowLoadDialog(false);
+  // Generate unique node ID
+  const generateNodeId = () => {
+    const id = `node_${nodeCounter}`;
+    setNodeCounter(prev => prev + 1);
+    return id;
   };
 
   // Load saved workflows on component mount
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
-    setSavedWorkflows(saved);
+    loadSavedWorkflows();
   }, []);
 
-  const deleteSelectedItems = () => {
-    if (selectedNodes.length > 0) {
-      setNodes(prev => prev.filter(node => !selectedNodes.includes(node.id)));
-      setConnections(prev => prev.filter(conn => 
-        !selectedNodes.includes(conn.from) && !selectedNodes.includes(conn.to)
-      ));
-      setSelectedNodes([]);
-      setSelectedNode(null);
-    }
-    
-    if (selectedConnections.length > 0) {
-      setConnections(prev => prev.filter(conn => !selectedConnections.includes(conn.id)));
-      setSelectedConnections([]);
+  const loadSavedWorkflows = async () => {
+    try {
+      const response = await workflowAPI.getWorkflows();
+      setSavedWorkflows(response.data.workflows || []);
+    } catch (error) {
+      console.error('Failed to load workflows:', error);
     }
   };
 
-  // Handle keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        deleteSelectedItems();
+  // Save workflow function
+  const saveWorkflow = async () => {
+    if (!workflowName.trim()) {
+      const name = prompt('Enter workflow name:');
+      if (!name) return;
+      setWorkflowName(name);
+    }
+
+    setLoading(true);
+    setSaveStatus('Saving...');
+
+    try {
+      const workflowData = {
+        name: workflowName || 'Untitled Workflow',
+        description: '',
+        nodes: nodes,
+        connections: connections
+      };
+
+      let response;
+      if (currentWorkflowId) {
+        // Update existing workflow
+        response = await workflowAPI.updateWorkflow(currentWorkflowId, workflowData);
+      } else {
+        // Create new workflow
+        response = await workflowAPI.createWorkflow(workflowData);
+        setCurrentWorkflowId(response.data.workflow.id);
+      }
+
+      setSaveStatus('✅ Saved!');
+      setTimeout(() => setSaveStatus(''), 2000);
+      await loadSavedWorkflows();
+    } catch (error) {
+      console.error('Failed to save workflow:', error);
+      setSaveStatus('❌ Save failed');
+      setTimeout(() => setSaveStatus(''), 3000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load workflow function
+  const loadWorkflow = async (workflowId) => {
+    setLoading(true);
+    try {
+      const response = await workflowAPI.getWorkflow(workflowId);
+      const workflow = response.data.workflow;
+      
+      setNodes(workflow.data.nodes || []);
+      setConnections(workflow.data.connections || []);
+      setWorkflowName(workflow.name);
+      setCurrentWorkflowId(workflow.id);
+      setShowLoadDropdown(false);
+      
+      // Update node counter to avoid ID conflicts
+      const maxNodeNum = Math.max(
+        0,
+        ...(workflow.data.nodes || []).map(node => {
+          const match = node.id.match(/node_(\d+)/);
+          return match ? parseInt(match[1]) : 0;
+        })
+      );
+      setNodeCounter(maxNodeNum + 1);
+      
+      setSaveStatus('✅ Loaded!');
+      setTimeout(() => setSaveStatus(''), 2000);
+    } catch (error) {
+      console.error('Failed to load workflow:', error);
+      setSaveStatus('❌ Load failed');
+      setTimeout(() => setSaveStatus(''), 3000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Copy workflow JSON to clipboard
+  const copyWorkflowToClipboard = async () => {
+    const workflowData = {
+      name: workflowName || 'Untitled Workflow',
+      nodes: nodes,
+      connections: connections,
+      metadata: {
+        version: '1.0',
+        exportedAt: new Date().toISOString()
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedNodes, selectedConnections]);
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(workflowData, null, 2));
+      setSaveStatus('📋 Copied to clipboard!');
+      setTimeout(() => setSaveStatus(''), 2000);
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+      setSaveStatus('❌ Copy failed');
+      setTimeout(() => setSaveStatus(''), 3000);
+    }
+  };
+
+  // Create new workflow
+  const createNewWorkflow = () => {
+    setNodes([]);
+    setConnections([]);
+    setWorkflowName('');
+    setCurrentWorkflowId(null);
+    setNodeCounter(1);
+    setConfigPanelNode(null);
+    setSaveStatus('New workflow created');
+    setTimeout(() => setSaveStatus(''), 2000);
+  };
+
+  // Close configuration panel
+  const closeConfigPanel = () => {
+    setConfigPanelNode(null);
+    setNodeConfig({});
+  };
+
+  // Save node configuration
+  const saveNodeConfig = () => {
+    if (!configPanelNode) return;
+
+    setNodes(prev => prev.map(node => 
+      node.id === configPanelNode.id 
+        ? { 
+            ...node, 
+            config: nodeConfig,
+            label: nodeConfig.label || node.label
+          }
+        : node
+    ));
+    closeConfigPanel();
+  };
+
+  // Update node config field
+  const updateConfigField = (field, value) => {
+    setNodeConfig(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Handle dragging new node from palette onto canvas
+  const handlePaletteDragStart = (e, nodeType) => {
+    e.dataTransfer.setData('nodeType', nodeType);
+  };
+
+  const handleCanvasDrop = (e) => {
+    e.preventDefault();
+    const nodeType = e.dataTransfer.getData('nodeType');
+    if (!nodeType) return;
+
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    
+    // Convert screen coordinates to canvas coordinates
+    const canvasX = (e.clientX - rect.left - canvasTransform.x) / canvasTransform.scale;
+    const canvasY = (e.clientY - rect.top - canvasTransform.y) / canvasTransform.scale;
+
+    const newNode = {
+      id: generateNodeId(),
+      type: nodeType,
+      label: `${nodeType} ${nodeCounter}`,
+      x: canvasX,
+      y: canvasY,
+      width: 120,
+      height: 60
+    };
+
+    setNodes(prev => [...prev, newNode]);
+  };
+
+  const handleCanvasDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  // Handle node double click for configuration
+  const handleNodeDoubleClick = (node) => {
+    setConfigPanelNode(node);
+    setNodeConfig(node.config || {});
+  };
+
+  // Handle node dragging within canvas
+  const handleNodeMouseDown = (e, node) => {
+    e.stopPropagation();
+    
+    if (e.detail === 2) { // Double click
+      handleNodeDoubleClick(node);
+      return;
+    }
+
+    setSelectedNode(node.id);
+    setSelectedConnection(null);
+    setDraggedNode({
+      node,
+      offsetX: e.clientX - node.x * canvasTransform.scale - canvasTransform.x,
+      offsetY: e.clientY - node.y * canvasTransform.scale - canvasTransform.y
+    });
+  };
+
+  const handleMouseMove = useCallback((e) => {
+    if (draggedNode) {
+      const newX = (e.clientX - draggedNode.offsetX - canvasTransform.x) / canvasTransform.scale;
+      const newY = (e.clientY - draggedNode.offsetY - canvasTransform.y) / canvasTransform.scale;
+      
+      setNodes(prev => prev.map(node => 
+        node.id === draggedNode.node.id 
+          ? { ...node, x: newX, y: newY }
+          : node
+      ));
+    } else if (isPanning) {
+      const deltaX = e.clientX - panStart.x;
+      const deltaY = e.clientY - panStart.y;
+      
+      setCanvasTransform(prev => ({
+        ...prev,
+        x: prev.x + deltaX,
+        y: prev.y + deltaY
+      }));
+      
+      setPanStart({ x: e.clientX, y: e.clientY });
+    }
+  }, [draggedNode, isPanning, panStart, canvasTransform]);
+
+  const handleMouseUp = useCallback(() => {
+    setDraggedNode(null);
+    setIsPanning(false);
+    setConnecting(null);
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [handleMouseMove, handleMouseUp]);
+
+  // Handle canvas panning
+  const handleCanvasMouseDown = (e) => {
+    if (e.target === canvasRef.current || e.target.classList.contains('canvas-background')) {
+      setSelectedNode(null);
+      setSelectedConnection(null);
+      setIsPanning(true);
+      setPanStart({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  // Handle zoom
+  const handleWheel = (e) => {
+    e.preventDefault();
+    const delta = e.deltaY * -0.001;
+    const newScale = Math.max(0.1, Math.min(3, canvasTransform.scale + delta));
+    
+    setCanvasTransform(prev => ({
+      ...prev,
+      scale: newScale
+    }));
+  };
+
+  // Handle connection creation
+  const handlePortMouseDown = (e, nodeId, portType) => {
+    e.stopPropagation();
+    setConnecting({ nodeId, portType, startX: e.clientX, startY: e.clientY });
+  };
+
+  const handlePortMouseUp = (e, nodeId, portType) => {
+    e.stopPropagation();
+    if (connecting && connecting.nodeId !== nodeId) {
+      // Create connection
+      const newConnection = {
+        id: `conn_${Date.now()}`,
+        from: connecting.portType === 'output' ? connecting.nodeId : nodeId,
+        to: connecting.portType === 'output' ? nodeId : connecting.nodeId
+      };
+      
+      // Check if connection already exists
+      const exists = connections.some(conn => 
+        conn.from === newConnection.from && conn.to === newConnection.to
+      );
+      
+      if (!exists) {
+        setConnections(prev => [...prev, newConnection]);
+      }
+    }
+    setConnecting(null);
+  };
+
+  // Copy node function
+  const copyNode = (node) => {
+    setCopiedNode({
+      ...node,
+      id: null // Will be regenerated on paste
+    });
+  };
+
+  // Paste node function
+  const pasteNode = () => {
+    if (!copiedNode) return;
+    
+    const newNode = {
+      ...copiedNode,
+      id: generateNodeId(),
+      x: copiedNode.x + 20, // Offset to avoid overlap
+      y: copiedNode.y + 20
+    };
+    
+    setNodes(prev => [...prev, newNode]);
+    setSelectedNode(newNode.id);
+  };
+
+  // Delete key and copy/paste handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Check if we're typing in an input field
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      if (e.key === 'Delete') {
+        if (selectedNode) {
+          setNodes(prev => prev.filter(node => node.id !== selectedNode));
+          setConnections(prev => prev.filter(conn => 
+            conn.from !== selectedNode && conn.to !== selectedNode
+          ));
+          setSelectedNode(null);
+        } else if (selectedConnection) {
+          setConnections(prev => prev.filter(conn => conn.id !== selectedConnection));
+          setSelectedConnection(null);
+        }
+      } else if (e.ctrlKey && e.key === 'c') {
+        e.preventDefault();
+        if (selectedNode) {
+          const nodeToCopy = nodes.find(node => node.id === selectedNode);
+          if (nodeToCopy) {
+            copyNode(nodeToCopy);
+          }
+        }
+      } else if (e.ctrlKey && e.key === 'v') {
+        e.preventDefault();
+        pasteNode();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedNode, selectedConnection, nodes, copiedNode]);
+
+  // Get node position including transform
+  const getNodeScreenPosition = (node) => ({
+    x: node.x * canvasTransform.scale + canvasTransform.x,
+    y: node.y * canvasTransform.scale + canvasTransform.y
+  });
+
+  // Render connection line
+  const renderConnection = (connection) => {
+    const fromNode = nodes.find(n => n.id === connection.from);
+    const toNode = nodes.find(n => n.id === connection.to);
+    
+    if (!fromNode || !toNode) return null;
+
+    const fromPos = getNodeScreenPosition(fromNode);
+    const toPos = getNodeScreenPosition(toNode);
+    
+    const startX = fromPos.x + (fromNode.width * canvasTransform.scale);
+    const startY = fromPos.y + (fromNode.height * canvasTransform.scale / 2);
+    const endX = toPos.x;
+    const endY = toPos.y + (toNode.height * canvasTransform.scale / 2);
+
+    return (
+      <line
+        key={connection.id}
+        x1={startX}
+        y1={startY}
+        x2={endX}
+        y2={endY}
+        stroke={selectedConnection === connection.id ? "#3b82f6" : "#6b7280"}
+        strokeWidth="2"
+        markerEnd="url(#arrowhead)"
+        onClick={() => {
+          setSelectedConnection(connection.id);
+          setSelectedNode(null);
+        }}
+        style={{ cursor: 'pointer' }}
+      />
+    );
+  };
 
   return (
     <div className="workflow-container">
-      {/* Navigation Header */}
+      {/* Header */}
       <div className="workflow-header">
-        <div className="workflow-header-left">
-          <Link to="/" className="btn btn-secondary">← Back to Dashboard</Link>
-          <h1 className="workflow-title">{workflowName}</h1>
+        <div className="workflow-title-section">
+          <div className="workflow-title-row">
+            <h1>🔧 Workflow Builder</h1>
+            {workflowName && (
+              <span className="current-workflow-name">
+                "{workflowName}" {currentWorkflowId && <span className="workflow-id">#{currentWorkflowId}</span>}
+              </span>
+            )}
+            {saveStatus && <span className="save-status">{saveStatus}</span>}
+          </div>
+          <div className="shortcuts-info">
+            <span className="shortcut-tip">
+              💡 <strong>Ctrl+C</strong> copy • <strong>Ctrl+V</strong> paste • <strong>Del</strong> delete
+              {copiedNode && <span className="copied-indicator"> • 📋 Node copied!</span>}
+            </span>
+          </div>
         </div>
-        <div className="workflow-header-right">
+        <div className="workflow-controls">
           <button 
-            className="btn btn-secondary"
-            onClick={() => setShowLoadDialog(true)}
+            className="btn btn-primary" 
+            onClick={createNewWorkflow}
+            disabled={loading}
           >
-            📁 Load
+            ✨ New
           </button>
           <button 
-            className="btn btn-primary"
-            onClick={() => setShowSaveDialog(true)}
+            className="btn btn-secondary" 
+            onClick={saveWorkflow}
+            disabled={loading}
           >
-            💾 Save
+            {loading && saveStatus.includes('Saving') ? '⏳' : '💾'} Save
+          </button>
+          <div className="dropdown-container">
+            <button 
+              className="btn btn-secondary"
+              onClick={() => setShowLoadDropdown(!showLoadDropdown)}
+              disabled={loading}
+            >
+              📁 Load {savedWorkflows.length > 0 && `(${savedWorkflows.length})`}
+            </button>
+            {showLoadDropdown && (
+              <div className="dropdown-menu">
+                {savedWorkflows.length === 0 ? (
+                  <div className="dropdown-item disabled">No saved workflows</div>
+                ) : (
+                  savedWorkflows.map(workflow => (
+                    <div
+                      key={workflow.id}
+                      className="dropdown-item"
+                      onClick={() => loadWorkflow(workflow.id)}
+                    >
+                      <div className="workflow-item-name">{workflow.name}</div>
+                      <div className="workflow-item-date">
+                        {new Date(workflow.updatedAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+          <button 
+            className="btn btn-secondary"
+            onClick={copyWorkflowToClipboard}
+            disabled={loading}
+          >
+            📋 Copy JSON
           </button>
         </div>
       </div>
@@ -195,152 +513,249 @@ function Workflow() {
       <div className="workflow-main">
         {/* Node Palette */}
         <div className="node-palette">
-          <h3>Node Types</h3>
-          <div className="palette-section">
-            <h4>Available Integrations</h4>
-            <div className="palette-info">
-              <p>🚀 Ready for integrations!</p>
-              <p>Node types will appear here when integrations are added.</p>
-              <p>Supported node types: HTTP requests, database operations, file processing, and more.</p>
-            </div>
+          <h3>Nodes</h3>
+          <div
+            className="palette-node action-node"
+            draggable
+            onDragStart={(e) => handlePaletteDragStart(e, 'Action')}
+          >
+            🎯 Action
           </div>
         </div>
 
         {/* Canvas */}
         <div 
           className="workflow-canvas"
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          style={{
-            transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`
-          }}
+          ref={canvasRef}
+          onDrop={handleCanvasDrop}
+          onDragOver={handleCanvasDragOver}
+          onMouseDown={handleCanvasMouseDown}
+          onWheel={handleWheel}
         >
-          <div className="canvas-content">
-            {nodes.length === 0 && (
-              <div className="canvas-placeholder">
-                <h3>Welcome to Workflow Builder</h3>
-                <p>🎯 System is ready for integrations</p>
-                <p>Node types will be available when integrations are implemented</p>
-                <p>📖 Drag nodes from the palette to build workflows</p>
-              </div>
-            )}
-            
-            {/* Render nodes */}
-            {nodes.map(node => (
+          <div className="canvas-background" />
+          
+          {/* SVG for connections */}
+          <svg className="connections-svg">
+            <defs>
+              <marker
+                id="arrowhead"
+                markerWidth="10"
+                markerHeight="7"
+                refX="9"
+                refY="3.5"
+                orient="auto"
+              >
+                <polygon
+                  points="0 0, 10 3.5, 0 7"
+                  fill="#6b7280"
+                />
+              </marker>
+            </defs>
+            {connections.map(renderConnection)}
+          </svg>
+
+          {/* Nodes */}
+          {nodes.map(node => {
+            const screenPos = getNodeScreenPosition(node);
+            return (
               <div
                 key={node.id}
-                className={`workflow-node ${selectedNodes.includes(node.id) ? 'selected' : ''}`}
+                className={`workflow-node ${node.type.toLowerCase()}-node ${
+                  selectedNode === node.id ? 'selected' : ''
+                }`}
                 style={{
-                  left: node.x,
-                  top: node.y
+                  left: screenPos.x,
+                  top: screenPos.y,
+                  width: node.width * canvasTransform.scale,
+                  height: node.height * canvasTransform.scale,
+                  fontSize: `${12 * canvasTransform.scale}px`
                 }}
+                onMouseDown={(e) => handleNodeMouseDown(e, node)}
               >
-                <div className="node-header">
-                  <span className="node-icon">{node.icon}</span>
-                  <span className="node-label">{node.label}</span>
+                <div className="node-content">
+                  {node.label}
                 </div>
+                
+                {/* Input port */}
+                <div
+                  className="node-port input-port"
+                  onMouseDown={(e) => handlePortMouseDown(e, node.id, 'input')}
+                  onMouseUp={(e) => handlePortMouseUp(e, node.id, 'input')}
+                />
+                
+                {/* Output port */}
+                <div
+                  className="node-port output-port"
+                  onMouseDown={(e) => handlePortMouseDown(e, node.id, 'output')}
+                  onMouseUp={(e) => handlePortMouseUp(e, node.id, 'output')}
+                />
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
-        {/* Properties Panel */}
-        <div className="properties-panel">
-          {selectedNode ? (
-            <div>
-              <h3>Node Properties</h3>
-              <p>Select a node to configure its properties.</p>
-              <p>Configuration options will appear here based on the node type.</p>
-            </div>
-          ) : (
-            <div>
-              <h3>Workflow Builder</h3>
-              <div className="panel-section">
-                <h4>📊 System Status</h4>
-                <div className="status-grid">
-                  <div className="status-item">
-                    <span className="status-label">Nodes:</span>
-                    <span className="status-value">{nodes.length}</span>
-                  </div>
-                  <div className="status-item">
-                    <span className="status-label">Connections:</span>
-                    <span className="status-value">{connections.length}</span>
-                  </div>
-                  <div className="status-item">
-                    <span className="status-label">Workflow:</span>
-                    <span className="status-value">{workflowName}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="panel-section">
-                <h4>🎯 Ready for Integration</h4>
-                <p>The workflow system is ready for adding integrations like:</p>
-                <ul>
-                  <li>🌐 HTTP/API requests</li>
-                  <li>📧 Email sending</li>
-                  <li>🗄️ Database operations</li>
-                  <li>📁 File processing</li>
-                  <li>🔄 Data transformations</li>
-                </ul>
-              </div>
-            </div>
-          )}
+        {/* Zoom Controls */}
+        <div className="zoom-controls">
+          <button 
+            className="zoom-btn"
+            onClick={() => setCanvasTransform(prev => ({
+              ...prev,
+              scale: Math.min(3, prev.scale + 0.1)
+            }))}
+          >
+            +
+          </button>
+          <span className="zoom-level">{Math.round(canvasTransform.scale * 100)}%</span>
+          <button 
+            className="zoom-btn"
+            onClick={() => setCanvasTransform(prev => ({
+              ...prev,
+              scale: Math.max(0.1, prev.scale - 0.1)
+            }))}
+          >
+            -
+          </button>
         </div>
       </div>
 
-      {/* Save Dialog */}
-      {showSaveDialog && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Save Workflow</h3>
-            <input 
-              type="text" 
-              placeholder="Workflow name"
-              defaultValue={workflowName}
-              onChange={(e) => setWorkflowName(e.target.value)}
-              autoFocus
-            />
-            <div className="modal-actions">
-              <button className="btn btn-secondary" onClick={() => setShowSaveDialog(false)}>
+      {/* Configuration Panel Modal */}
+      {configPanelNode && (
+        <div className="config-modal-overlay" onClick={closeConfigPanel}>
+          <div className="config-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="config-modal-header">
+              <h3>🔧 Configure Node: {configPanelNode.label}</h3>
+              <button className="close-btn" onClick={closeConfigPanel}>✕</button>
+            </div>
+            
+            <div className="config-modal-content">
+              {/* Left: Inputs */}
+              <div className="config-section config-inputs-section">
+                <h4>📥 Inputs</h4>
+                <div className="config-inputs">
+                  <div className="input-item">
+                    <div className="input-port">●</div>
+                    <span>Trigger Input</span>
+                  </div>
+                  <div className="input-item">
+                    <div className="input-port">●</div>
+                    <span>Data Input</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Middle: Parameters & Settings */}
+              <div className="config-section config-params-section">
+                <h4>⚙️ Parameters</h4>
+                <div className="config-form">
+                  <div className="form-group">
+                    <label>Node Label:</label>
+                    <input
+                      type="text"
+                      value={nodeConfig.label || configPanelNode.label || ''}
+                      onChange={(e) => updateConfigField('label', e.target.value)}
+                      placeholder="Enter node label"
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Description:</label>
+                    <textarea
+                      value={nodeConfig.description || ''}
+                      onChange={(e) => updateConfigField('description', e.target.value)}
+                      placeholder="Describe what this node does"
+                      rows="2"
+                    />
+                  </div>
+
+                  {configPanelNode.type === 'Action' && (
+                    <>
+                      <div className="form-group">
+                        <label>Action Type:</label>
+                        <select
+                          value={nodeConfig.actionType || 'webhook'}
+                          onChange={(e) => updateConfigField('actionType', e.target.value)}
+                        >
+                          <option value="webhook">Webhook</option>
+                          <option value="email">Send Email</option>
+                          <option value="database">Database Query</option>
+                          <option value="api">API Call</option>
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label>URL/Endpoint:</label>
+                        <input
+                          type="text"
+                          value={nodeConfig.url || ''}
+                          onChange={(e) => updateConfigField('url', e.target.value)}
+                          placeholder="https://api.example.com/webhook"
+                        />
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label>HTTP Method:</label>
+                          <select
+                            value={nodeConfig.method || 'POST'}
+                            onChange={(e) => updateConfigField('method', e.target.value)}
+                          >
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="DELETE">DELETE</option>
+                          </select>
+                        </div>
+                        <div className="form-group">
+                          <label>Timeout (ms):</label>
+                          <input
+                            type="number"
+                            value={nodeConfig.timeout || '5000'}
+                            onChange={(e) => updateConfigField('timeout', e.target.value)}
+                            placeholder="5000"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label>Request Body (JSON):</label>
+                        <textarea
+                          value={nodeConfig.requestBody || ''}
+                          onChange={(e) => updateConfigField('requestBody', e.target.value)}
+                          placeholder='{"message": "{{input.data}}"}'
+                          rows="3"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Right: Outputs */}
+              <div className="config-section config-outputs-section">
+                <h4>📤 Outputs</h4>
+                <div className="config-outputs">
+                  <div className="output-item">
+                    <span>Success Output</span>
+                    <div className="output-port">●</div>
+                  </div>
+                  <div className="output-item">
+                    <span>Error Output</span>
+                    <div className="output-port error">●</div>
+                  </div>
+                  <div className="output-item">
+                    <span>Data Output</span>
+                    <div className="output-port data">●</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="config-modal-footer">
+              <button className="btn btn-secondary" onClick={closeConfigPanel}>
                 Cancel
               </button>
-              <button className="btn btn-primary" onClick={() => saveWorkflow()}>
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Load Dialog */}
-      {showLoadDialog && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Load Workflow</h3>
-            <div className="workflow-list">
-              {savedWorkflows.length === 0 ? (
-                <p>No saved workflows found.</p>
-              ) : (
-                savedWorkflows.map(workflow => (
-                  <div key={workflow.id} className="workflow-item">
-                    <div className="workflow-info">
-                      <h4>{workflow.name}</h4>
-                      <small>{new Date(workflow.createdAt).toLocaleString()}</small>
-                    </div>
-                    <button 
-                      className="btn btn-small btn-primary"
-                      onClick={() => loadWorkflow(workflow)}
-                    >
-                      Load
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-            <div className="modal-actions">
-              <button className="btn btn-secondary" onClick={() => setShowLoadDialog(false)}>
-                Close
+              <button className="btn btn-primary" onClick={saveNodeConfig}>
+                💾 Save Configuration
               </button>
             </div>
           </div>
@@ -348,6 +763,6 @@ function Workflow() {
       )}
     </div>
   );
-}
+};
 
 export default Workflow;

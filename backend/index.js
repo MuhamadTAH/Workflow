@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const webhooksRoutes = require('./routes/webhooks');
+const workflowRoutes = require('./routes/workflows');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const logger = require('./services/logger');
 require('./db'); // Initialize database
@@ -17,6 +18,7 @@ app.use(express.json()); // Parse JSON bodies
 // Routes
 app.use('/api', authRoutes);
 app.use('/api/webhooks', webhooksRoutes);
+app.use('/api/workflows', workflowRoutes);
 
 // Test route
 app.get('/api/hello', (req, res) => {

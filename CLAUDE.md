@@ -355,3 +355,65 @@ Telegram Message → Trigger Node → Process Templates → Send Node → Telegr
 - Check browser and backend console for detailed logs
 
 This system represents a complete transition from a simple auth system to a sophisticated workflow automation platform with real-time Telegram integration.
+
+---
+
+# 🚀 PRODUCTION DEPLOYMENT SETUP (July 27, 2025)
+
+## GitHub Repository & Production Configuration
+
+### 📍 **Repository Information**
+- **GitHub URL**: https://github.com/MuhamadTAH/Workflow.git
+- **Branch**: main
+- **Owner**: MuhamadTAH
+
+### 🤖 **Telegram Bot Configuration**
+- **Bot Name**: AI Marketing Team
+- **Bot Username**: @AI_MarketingTeambot
+- **Bot Token**: `8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ`
+- **Bot ID**: 8148982414
+
+### 🌐 **Production Backend**
+- **Render URL**: https://workflow-lg9z.onrender.com
+- **Webhook Endpoint**: https://workflow-lg9z.onrender.com/api/webhooks/telegram
+- **Status**: ✅ Webhook registered with Telegram successfully
+
+### 🔧 **Backend Deployment Status**
+- **Latest Code**: Backend webhook routes implemented locally
+- **Production Sync**: ⚠️ **NEEDS DEPLOYMENT** - New webhook routes need to be pushed to GitHub and deployed to Render
+- **Required Updates**:
+  - `routes/webhooks.js` - Added Telegram webhook handling
+  - `services/telegramAPI.js` - Updated with webhook registration functions
+  - `index.js` - Already has webhook routes connected
+
+### 📦 **Deployment Requirements**
+1. **Push to GitHub**: All local changes need to be committed and pushed
+2. **Render Deployment**: Production backend will auto-deploy from GitHub
+3. **Environment Variables**: Ensure bot token is configured in Render environment
+
+### 🧪 **Testing Checklist**
+- ✅ Webhook registered with Telegram
+- ✅ Local backend has webhook routes
+- ⚠️ Production backend needs code deployment
+- ⚠️ Test live message to @AI_MarketingTeambot after deployment
+
+### 🛠 **Next Steps for Production**
+1. Commit and push all backend changes to GitHub
+2. Verify Render auto-deployment completes
+3. Test webhook endpoint: `GET https://workflow-lg9z.onrender.com/api/webhooks/telegram`
+4. Send test message to @AI_MarketingTeambot
+5. Verify message appears in backend logs
+
+### 💾 **Database & Storage**
+- **User Data**: SQLite database for authentication
+- **Workflow Data**: Database persistence implemented
+- **Message Logs**: Stored in `backend/logs/telegram-2025-07-27.log`
+- **Production**: All data persists on Render backend
+
+### 🔐 **Security Configuration**
+- **JWT Tokens**: Secure authentication system
+- **Telegram Webhook**: HTTPS endpoint with proper validation
+- **CORS**: Configured for frontend-backend communication
+- **Environment Variables**: Bot token and secrets properly managed
+
+This production setup enables real-time Telegram message processing with full workflow automation capabilities.

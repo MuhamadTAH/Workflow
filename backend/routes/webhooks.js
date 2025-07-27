@@ -3,6 +3,8 @@ const router = express.Router();
 const workflowEngine = require('../workflowEngine');
 const logger = require('../services/logger');
 const { asyncHandler } = require('../middleware/errorHandler');
+const fs = require('fs');
+const path = require('path');
 
 // Store for active workflow configurations (in production, use database)
 const workflowConfigs = new Map();
@@ -16,6 +18,60 @@ router.get('/test', (req, res) => {
     timestamp: new Date().toISOString() 
   });
 });
+
+// Telegram webhook endpoints
+// GET for testing if webhook is set
+router.get('/telegram', (req, res) => {
+  logger.info('Telegram webhook test endpoint accessed');
+  res.send('✅ Telegram webhook is live.');
+});
+
+// POST: Telegram webhook endpoint
+router.post('/telegram', asyncHandler(async (req, res) => {
+  const update = req.body;
+  const logPath = path.join(__dirname, '../logs/telegram-2025-07-27.log');
+  
+  try {
+    // Ensure logs directory exists
+    const logsDir = path.dirname(logPath);
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true });
+    }
+
+    // Save payload to file (for now this is your node "input")
+    fs.writeFileSync(logPath, JSON.stringify(update, null, 2));
+    
+    // Log to console
+    console.log('📥 Telegram message received:', update);
+    logger.logTelegramEvent('webhook', 'message_received', {
+      updateId: update.update_id,
+      messageId: update.message?.message_id,
+      chatId: update.message?.chat?.id,
+      text: update.message?.text
+    });
+
+    // Store the message for potential workflow processing
+    if (update.message) {
+      const messageData = {
+        updateId: update.update_id,
+        messageId: update.message.message_id,
+        chatId: update.message.chat.id,
+        text: update.message.text,
+        from: update.message.from,
+        date: update.message.date,
+        timestamp: new Date().toISOString()
+      };
+
+      // This will be your node input data
+      console.log('📦 Message data for node input:', messageData);
+    }
+
+    res.status(200).json({ ok: true, message: 'Message received successfully' });
+  } catch (error) {
+    logger.logError(error, { context: 'telegram_webhook' });
+    res.status(500).json({ ok: false, error: 'Failed to process message' });
+  }
+}));
 
 // Register workflow with backend engine
 router.post('/register-workflow', asyncHandler(async (req, res) => {

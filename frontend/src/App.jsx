@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import Workflow from './pages/Workflow';
 import Overview from './pages/Overview';
+import Workflow from './pages/Workflow';
 import { authAPI, tokenManager } from './api';
 import './styles.css';
 
@@ -133,8 +133,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/workflow" element={<Workflow />} />
         <Route path="/overview" element={<Overview />} />
+        <Route path="/workflow" element={<Workflow />} />
       </Routes>
     </Router>
   );

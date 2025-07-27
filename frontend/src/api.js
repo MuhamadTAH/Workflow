@@ -33,6 +33,24 @@ export const authAPI = {
   getProfile: () => api.get('/profile'),
 };
 
+// Workflow API functions
+export const workflowAPI = {
+  // Get all workflows for current user
+  getWorkflows: () => api.get('/workflows'),
+  
+  // Get specific workflow by ID
+  getWorkflow: (id) => api.get(`/workflows/${id}`),
+  
+  // Create new workflow
+  createWorkflow: (workflowData) => api.post('/workflows', workflowData),
+  
+  // Update existing workflow
+  updateWorkflow: (id, workflowData) => api.put(`/workflows/${id}`, workflowData),
+  
+  // Delete workflow
+  deleteWorkflow: (id) => api.delete(`/workflows/${id}`)
+};
+
 // Token management
 export const tokenManager = {
   setToken: (token) => localStorage.setItem('token', token),
