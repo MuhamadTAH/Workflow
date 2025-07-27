@@ -595,6 +595,16 @@ function Workflow() {
         return newValues;
       });
       
+      // Update selected node if it was the one being updated
+      if (selectedNode === oldNodeId) {
+        setSelectedNode(actualBotId);
+      }
+      
+      // Update selected nodes array if it contains the old node ID
+      setSelectedNodes(prevSelected => 
+        prevSelected.map(id => id === oldNodeId ? actualBotId : id)
+      );
+      
       alert(`✅ Bot token is valid!\n\nBot Name: ${bot.first_name}\nUsername: @${bot.username || 'N/A'}\nBot ID: ${bot.id}\n\n🔄 Node ID updated to use bot ID: ${actualBotId}`);
     } catch (error) {
       console.error('Error validating bot token:', error);
