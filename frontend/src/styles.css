@@ -247,6 +247,12 @@
   border-color: #2563eb;
 }
 
+.telegram-trigger-node {
+  background: linear-gradient(135deg, #0088cc 0%, #006699 100%);
+  color: white;
+  border-color: #0088cc;
+}
+
 .node-content {
   text-align: center;
   font-weight: 500;
@@ -474,6 +480,10 @@
   background: #10b981;
 }
 
+.output-port.telegram {
+  background: #0088cc;
+}
+
 .config-form {
   display: flex;
   flex-direction: column;
@@ -537,6 +547,105 @@
 
 .config-modal-footer .btn {
   padding: 0.75rem 1.5rem;
+}
+
+/* Telegram Trigger Node Specific Styles */
+.json-preview {
+  background: #1e293b;
+  color: #e2e8f0;
+  border-radius: 6px;
+  padding: 1rem;
+  font-size: 0.75rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #334155;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.output-preview, .input-preview {
+  margin-top: 1rem;
+}
+
+.output-preview h5 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.disabled-input {
+  background: #f9fafb !important;
+  color: #6b7280 !important;
+  cursor: not-allowed !important;
+}
+
+.form-help {
+  font-size: 0.7rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
+.webhook-status {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.status-indicators {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.status-indicator {
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.status-indicator.active {
+  background: #ecfdf5;
+  color: #059669;
+  border-color: #a7f3d0;
+}
+
+.input-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-small {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.btn-loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.node-palette h3 {
+  margin-bottom: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.node-palette h3:first-child {
+  margin-top: 0;
 }
 * {
   margin: 0;

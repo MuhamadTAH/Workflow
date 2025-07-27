@@ -23,6 +23,9 @@ const Workflow = () => {
   const [loading, setLoading] = useState(false);
   const [configPanelNode, setConfigPanelNode] = useState(null);
   const [nodeConfig, setNodeConfig] = useState({});
+  const [latestTelegramMessage, setLatestTelegramMessage] = useState(null);
+  const [webhookStatus, setWebhookStatus] = useState('');
+  const [isRegisteringWebhook, setIsRegisteringWebhook] = useState(false);
 
   // Check authentication
   if (!tokenManager.isLoggedIn()) {
@@ -186,6 +189,77 @@ const Workflow = () => {
   const updateConfigField = (field, value) => {
     setNodeConfig(prev => ({ ...prev, [field]: value }));
   };
+
+  // Auto-generate webhook URL for Telegram Trigger nodes
+  const generateWebhookUrl = (nodeId) => {
+    return `https://workflow-lg9z.onrender.com/api/webhooks/telegram-${nodeId}`;
+  };
+
+  // Register Telegram webhook
+  const handleRegisterWebhook = async () => {
+    if (!configPanelNode || !nodeConfig.botToken) {
+      setWebhookStatus('❌ Bot token is required');
+      return;
+    }
+
+    setIsRegisteringWebhook(true);
+    setWebhookStatus('🔄 Registering webhook...');
+
+    try {
+      const webhookUrl = generateWebhookUrl(configPanelNode.id);
+      const response = await fetch('https://workflow-lg9z.onrender.com/api/webhooks/register-telegram', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          botToken: nodeConfig.botToken,
+          nodeId: configPanelNode.id,
+          webhookUrl: webhookUrl
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setWebhookStatus('✅ Webhook registered successfully!');
+        updateConfigField('webhookRegistered', true);
+        updateConfigField('webhookUrl', webhookUrl);
+      } else {
+        setWebhookStatus(`❌ Failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Webhook registration error:', error);
+      setWebhookStatus('❌ Network error during registration');
+    } finally {
+      setIsRegisteringWebhook(false);
+      setTimeout(() => setWebhookStatus(''), 5000);
+    }
+  };
+
+  // Poll for latest Telegram message for this node
+  const pollLatestMessage = async () => {
+    if (!configPanelNode || configPanelNode.type !== 'TelegramTrigger') return;
+
+    try {
+      const response = await fetch(`https://workflow-lg9z.onrender.com/api/webhooks/latest-message/${configPanelNode.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.message) {
+          setLatestTelegramMessage(data.message);
+        }
+      }
+    } catch (error) {
+      console.error('Error polling latest message:', error);
+    }
+  };
+
+  // Poll for messages when config panel is open for Telegram Trigger
+  useEffect(() => {
+    if (configPanelNode && configPanelNode.type === 'TelegramTrigger') {
+      pollLatestMessage();
+      const interval = setInterval(pollLatestMessage, 3000); // Poll every 3 seconds
+      return () => clearInterval(interval);
+    }
+  }, [configPanelNode]);
 
   // Handle dragging new node from palette onto canvas
   const handlePaletteDragStart = (e, nodeType) => {
@@ -513,7 +587,16 @@ const Workflow = () => {
       <div className="workflow-main">
         {/* Node Palette */}
         <div className="node-palette">
-          <h3>Nodes</h3>
+          <h3>Trigger Nodes</h3>
+          <div
+            className="palette-node telegram-trigger-node"
+            draggable
+            onDragStart={(e) => handlePaletteDragStart(e, 'TelegramTrigger')}
+          >
+            📞 Telegram Trigger
+          </div>
+          
+          <h3>Action Nodes</h3>
           <div
             className="palette-node action-node"
             draggable
@@ -628,126 +711,241 @@ const Workflow = () => {
             </div>
             
             <div className="config-modal-content">
-              {/* Left: Inputs */}
-              <div className="config-section config-inputs-section">
-                <h4>📥 Inputs</h4>
-                <div className="config-inputs">
-                  <div className="input-item">
-                    <div className="input-port">●</div>
-                    <span>Trigger Input</span>
-                  </div>
-                  <div className="input-item">
-                    <div className="input-port">●</div>
-                    <span>Data Input</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Middle: Parameters & Settings */}
-              <div className="config-section config-params-section">
-                <h4>⚙️ Parameters</h4>
-                <div className="config-form">
-                  <div className="form-group">
-                    <label>Node Label:</label>
-                    <input
-                      type="text"
-                      value={nodeConfig.label || configPanelNode.label || ''}
-                      onChange={(e) => updateConfigField('label', e.target.value)}
-                      placeholder="Enter node label"
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Description:</label>
-                    <textarea
-                      value={nodeConfig.description || ''}
-                      onChange={(e) => updateConfigField('description', e.target.value)}
-                      placeholder="Describe what this node does"
-                      rows="2"
-                    />
-                  </div>
-
-                  {configPanelNode.type === 'Action' && (
-                    <>
-                      <div className="form-group">
-                        <label>Action Type:</label>
-                        <select
-                          value={nodeConfig.actionType || 'webhook'}
-                          onChange={(e) => updateConfigField('actionType', e.target.value)}
-                        >
-                          <option value="webhook">Webhook</option>
-                          <option value="email">Send Email</option>
-                          <option value="database">Database Query</option>
-                          <option value="api">API Call</option>
-                        </select>
+              {configPanelNode.type === 'TelegramTrigger' ? (
+                // Telegram Trigger Node Configuration
+                <>
+                  {/* Left: Output */}
+                  <div className="config-section config-outputs-section">
+                    <h4>📤 Output</h4>
+                    <div className="config-outputs">
+                      <div className="output-item">
+                        <span>Message Output</span>
+                        <div className="output-port telegram">●</div>
                       </div>
+                      <div className="output-item">
+                        <span>Success</span>
+                        <div className="output-port">●</div>
+                      </div>
+                    </div>
+                    <div className="output-preview">
+                      <h5>Latest Output:</h5>
+                      <pre className="json-preview">
+                        {latestTelegramMessage 
+                          ? JSON.stringify(latestTelegramMessage, null, 2)
+                          : '{\n  "waiting": "for message..."\n}'
+                        }
+                      </pre>
+                    </div>
+                  </div>
 
+                  {/* Middle: Parameters */}
+                  <div className="config-section config-params-section">
+                    <h4>⚙️ Parameters</h4>
+                    <div className="config-form">
                       <div className="form-group">
-                        <label>URL/Endpoint:</label>
+                        <label>Node Label:</label>
                         <input
                           type="text"
-                          value={nodeConfig.url || ''}
-                          onChange={(e) => updateConfigField('url', e.target.value)}
-                          placeholder="https://api.example.com/webhook"
+                          value={nodeConfig.label || configPanelNode.label || ''}
+                          onChange={(e) => updateConfigField('label', e.target.value)}
+                          placeholder="Telegram Trigger"
                         />
-                      </div>
-
-                      <div className="form-row">
-                        <div className="form-group">
-                          <label>HTTP Method:</label>
-                          <select
-                            value={nodeConfig.method || 'POST'}
-                            onChange={(e) => updateConfigField('method', e.target.value)}
-                          >
-                            <option value="GET">GET</option>
-                            <option value="POST">POST</option>
-                            <option value="PUT">PUT</option>
-                            <option value="DELETE">DELETE</option>
-                          </select>
-                        </div>
-                        <div className="form-group">
-                          <label>Timeout (ms):</label>
-                          <input
-                            type="number"
-                            value={nodeConfig.timeout || '5000'}
-                            onChange={(e) => updateConfigField('timeout', e.target.value)}
-                            placeholder="5000"
-                          />
-                        </div>
                       </div>
 
                       <div className="form-group">
-                        <label>Request Body (JSON):</label>
-                        <textarea
-                          value={nodeConfig.requestBody || ''}
-                          onChange={(e) => updateConfigField('requestBody', e.target.value)}
-                          placeholder='{"message": "{{input.data}}"}'
-                          rows="3"
+                        <label>Bot Token:</label>
+                        <input
+                          type="password"
+                          value={nodeConfig.botToken || '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ'}
+                          onChange={(e) => updateConfigField('botToken', e.target.value)}
+                          placeholder="Your Telegram Bot Token"
                         />
                       </div>
-                    </>
-                  )}
-                </div>
-              </div>
 
-              {/* Right: Outputs */}
-              <div className="config-section config-outputs-section">
-                <h4>📤 Outputs</h4>
-                <div className="config-outputs">
-                  <div className="output-item">
-                    <span>Success Output</span>
-                    <div className="output-port">●</div>
+                      <div className="form-group">
+                        <label>Webhook URL:</label>
+                        <input
+                          type="text"
+                          value={nodeConfig.webhookUrl || generateWebhookUrl(configPanelNode.id)}
+                          disabled
+                          className="disabled-input"
+                        />
+                        <small className="form-help">Auto-generated based on node ID</small>
+                      </div>
+
+                      <div className="form-group">
+                        <button 
+                          className={`btn ${isRegisteringWebhook ? 'btn-loading' : 'btn-primary'}`}
+                          onClick={handleRegisterWebhook}
+                          disabled={isRegisteringWebhook || !nodeConfig.botToken}
+                        >
+                          {isRegisteringWebhook ? '🔄 Registering...' : '📡 Register Webhook'}
+                        </button>
+                        {webhookStatus && (
+                          <div className="webhook-status">{webhookStatus}</div>
+                        )}
+                      </div>
+
+                      <div className="form-group">
+                        <label>Status:</label>
+                        <div className="status-indicators">
+                          <div className={`status-indicator ${nodeConfig.webhookRegistered ? 'active' : ''}`}>
+                            📡 Webhook {nodeConfig.webhookRegistered ? 'Registered' : 'Not Registered'}
+                          </div>
+                          <div className={`status-indicator ${latestTelegramMessage ? 'active' : ''}`}>
+                            📨 {latestTelegramMessage ? 'Message Received' : 'Waiting for Messages'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="output-item">
-                    <span>Error Output</span>
-                    <div className="output-port error">●</div>
+
+                  {/* Right: Input */}
+                  <div className="config-section config-inputs-section">
+                    <h4>📥 Input (Latest Message)</h4>
+                    <div className="input-preview">
+                      <pre className="json-preview">
+                        {latestTelegramMessage 
+                          ? JSON.stringify(latestTelegramMessage, null, 2)
+                          : '{\n  "status": "waiting",\n  "message": "Send a message to your bot"\n}'
+                        }
+                      </pre>
+                    </div>
+                    <div className="input-actions">
+                      <button 
+                        className="btn btn-secondary btn-small"
+                        onClick={pollLatestMessage}
+                      >
+                        🔄 Refresh
+                      </button>
+                    </div>
                   </div>
-                  <div className="output-item">
-                    <span>Data Output</span>
-                    <div className="output-port data">●</div>
+                </>
+              ) : (
+                // Regular Action Node Configuration
+                <>
+                  {/* Left: Inputs */}
+                  <div className="config-section config-inputs-section">
+                    <h4>📥 Inputs</h4>
+                    <div className="config-inputs">
+                      <div className="input-item">
+                        <div className="input-port">●</div>
+                        <span>Trigger Input</span>
+                      </div>
+                      <div className="input-item">
+                        <div className="input-port">●</div>
+                        <span>Data Input</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+
+                  {/* Middle: Parameters & Settings */}
+                  <div className="config-section config-params-section">
+                    <h4>⚙️ Parameters</h4>
+                    <div className="config-form">
+                      <div className="form-group">
+                        <label>Node Label:</label>
+                        <input
+                          type="text"
+                          value={nodeConfig.label || configPanelNode.label || ''}
+                          onChange={(e) => updateConfigField('label', e.target.value)}
+                          placeholder="Enter node label"
+                        />
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>Description:</label>
+                        <textarea
+                          value={nodeConfig.description || ''}
+                          onChange={(e) => updateConfigField('description', e.target.value)}
+                          placeholder="Describe what this node does"
+                          rows="2"
+                        />
+                      </div>
+
+                      {configPanelNode.type === 'Action' && (
+                        <>
+                          <div className="form-group">
+                            <label>Action Type:</label>
+                            <select
+                              value={nodeConfig.actionType || 'webhook'}
+                              onChange={(e) => updateConfigField('actionType', e.target.value)}
+                            >
+                              <option value="webhook">Webhook</option>
+                              <option value="email">Send Email</option>
+                              <option value="database">Database Query</option>
+                              <option value="api">API Call</option>
+                            </select>
+                          </div>
+
+                          <div className="form-group">
+                            <label>URL/Endpoint:</label>
+                            <input
+                              type="text"
+                              value={nodeConfig.url || ''}
+                              onChange={(e) => updateConfigField('url', e.target.value)}
+                              placeholder="https://api.example.com/webhook"
+                            />
+                          </div>
+
+                          <div className="form-row">
+                            <div className="form-group">
+                              <label>HTTP Method:</label>
+                              <select
+                                value={nodeConfig.method || 'POST'}
+                                onChange={(e) => updateConfigField('method', e.target.value)}
+                              >
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                                <option value="PUT">PUT</option>
+                                <option value="DELETE">DELETE</option>
+                              </select>
+                            </div>
+                            <div className="form-group">
+                              <label>Timeout (ms):</label>
+                              <input
+                                type="number"
+                                value={nodeConfig.timeout || '5000'}
+                                onChange={(e) => updateConfigField('timeout', e.target.value)}
+                                placeholder="5000"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="form-group">
+                            <label>Request Body (JSON):</label>
+                            <textarea
+                              value={nodeConfig.requestBody || ''}
+                              onChange={(e) => updateConfigField('requestBody', e.target.value)}
+                              placeholder='{"message": "{{input.data}}"}'
+                              rows="3"
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right: Outputs */}
+                  <div className="config-section config-outputs-section">
+                    <h4>📤 Outputs</h4>
+                    <div className="config-outputs">
+                      <div className="output-item">
+                        <span>Success Output</span>
+                        <div className="output-port">●</div>
+                      </div>
+                      <div className="output-item">
+                        <span>Error Output</span>
+                        <div className="output-port error">●</div>
+                      </div>
+                      <div className="output-item">
+                        <span>Data Output</span>
+                        <div className="output-port data">●</div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="config-modal-footer">
