@@ -250,9 +250,11 @@ class TelegramAPI {
   }
 
   // Helper method to generate webhook URL for a node
-  static generateWebhookUrl(baseUrl, nodeId) {
+  static generateWebhookUrl(baseUrl, botToken) {
     const cleanBaseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
-    return `${cleanBaseUrl}/api/webhooks/telegram-webhook/${nodeId}`;
+    // Extract bot ID from token (token format: BOTID:TOKEN)
+    const botId = botToken.split(':')[0];
+    return `${cleanBaseUrl}/api/webhooks/telegram-webhook/${botId}`;
   }
 
   // Test webhook connectivity by sending a test update

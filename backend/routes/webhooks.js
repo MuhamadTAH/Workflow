@@ -7,6 +7,8 @@ const { asyncHandler, createValidationError, handleTelegramError } = require('..
 
 // Store for active webhook configurations (in production, use database)
 const webhookConfigs = new Map();
+// Store for bot ID to node ID mapping
+const botIdToNodeId = new Map();
 
 // NEW: Store for Telegram-registered webhooks
 const activeWebhooks = new Map(); // nodeId -> webhook registration details
@@ -247,7 +249,7 @@ router.post('/register-telegram-webhook', asyncHandler(async (req, res) => {
   try {
     // Generate webhook URL
     const serverBaseUrl = baseUrl || `${req.protocol}://${req.get('host')}`;
-    const webhookUrl = TelegramAPI.generateWebhookUrl(serverBaseUrl, nodeId);
+    const webhookUrl = TelegramAPI.generateWebhookUrl(serverBaseUrl, botToken);
     
     // Validate webhook URL format
     const validation = TelegramAPI.validateWebhookUrl(webhookUrl);
@@ -305,14 +307,20 @@ router.post('/register-telegram-webhook', asyncHandler(async (req, res) => {
 
     // Store local webhook configuration
     const webhookPath = `telegram-webhook-${nodeId}`;
+    const botId = botToken.split(':')[0]; // Extract bot ID from token
+    
     webhookConfigs.set(nodeId, {
       nodeId,
       botToken,
+      botId,
       updateType,
       command,
       webhookPath,
       createdAt: new Date().toISOString()
     });
+    
+    // Store bot ID to node ID mapping
+    botIdToNodeId.set(botId, nodeId);
 
     // Register with WebhookManager
     const registration = WebhookManager.registerWebhook(nodeId, {
@@ -366,15 +374,22 @@ router.post('/register-telegram-webhook', asyncHandler(async (req, res) => {
 }));
 
 // Generic Telegram webhook handler
-router.post('/telegram-webhook/:nodeId', asyncHandler(async (req, res) => {
-  const { nodeId } = req.params;
+router.post('/telegram-webhook/:botId', asyncHandler(async (req, res) => {
+  const { botId } = req.params;
   
-  console.log(`🎯 Webhook received for node: ${nodeId}`);
+  console.log(`🎯 Webhook received for bot ID: ${botId}`);
   console.log(`📦 Request body:`, JSON.stringify(req.body, null, 2));
   
-  if (!nodeId) {
-    console.error('❌ No nodeId provided in webhook path');
+  if (!botId) {
+    console.error('❌ No botId provided in webhook path');
     return res.status(400).json({ error: 'Invalid webhook path' });
+  }
+  
+  // Get node ID from bot ID mapping
+  const nodeId = botIdToNodeId.get(botId);
+  if (!nodeId) {
+    console.error(`❌ No node mapping found for bot ID: ${botId}`);
+    return res.status(404).json({ error: 'Bot not configured' });
   }
   
   const telegramUpdate = req.body;
