@@ -939,6 +939,16 @@ Send a message to your bot @AI_MarketingTeambot and see it appear in Recent Mess
           message: result.message
         });
         return result;
+      } else if (response.status === 409) {
+        // 409 means webhook already registered - treat as success
+        console.log(`✅ Webhook already registered for node ${nodeId} - continuing...`);
+        console.log('📋 Existing webhook status:', result);
+        return { 
+          success: true, 
+          message: 'Webhook already registered',
+          existingWebhook: true,
+          status: result.status
+        };
       } else {
         console.error('❌ Failed to register Telegram webhook:', result);
         alert(`Failed to register webhook: ${result.error || result.message}`);
