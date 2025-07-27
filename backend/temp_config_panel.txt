@@ -1,0 +1,251 @@
+            <div className="config-content">
+              {(() => {
+                const node = nodes.find(n => n.id === selectedNode);
+                if (!node) return null;
+
+                const schema = nodeSchemas[node.type];
+                const config = getNodeConfig(selectedNode);
+                const errors = configErrors[selectedNode] || [];
+                const inputSchema = getNodeInputSchema(selectedNode, nodes, connections);
+                const templates = getNodeTemplates(selectedNode);
+
+                const renderParameterField = (paramName, paramSchema) => {
+                  const value = config[paramName] || '';
+                  const hasError = errors.some(err => err.includes(paramSchema.label));
+
+                  // Check conditional display
+                  if (paramSchema.condition) {
+                    const conditionField = paramSchema.condition.field;
+                    const conditionValue = paramSchema.condition.value;
+                    if (config[conditionField] !== conditionValue) {
+                      return null;
+                    }
+                  }
+
+                  switch (paramSchema.type) {
+                    case 'string':
+                      return (
+                        <div className="config-field" key={paramName}>
+                          <label>{paramSchema.label}{paramSchema.required && ' *'}:</label>
+                          <input
+                            type="text"
+                            className={`form-input ${hasError ? 'error' : ''}`}
+                            value={value}
+                            onChange={(e) => updateNodeConfig(selectedNode, paramName, e.target.value)}
+                            placeholder={paramSchema.placeholder || ''}
+                            style={hasError ? { borderColor: '#e53e3e' } : {}}
+                          />
+                          {paramSchema.supportTemplates && templates.length > 0 && (
+                            <div style={{ fontSize: '0.75rem', color: '#4a5568', marginTop: '0.25rem' }}>
+                              Available: {templates.slice(0, 3).map(t => `{{${t.path}}}`).join(', ')}
+                              {templates.length > 3 && '...'}
+                            </div>
+                          )}
+                        </div>
+                      );
+
+                    case 'textarea':
+                      return (
+                        <div className="config-field" key={paramName}>
+                          <label>{paramSchema.label}{paramSchema.required && ' *'}:</label>
+                          <textarea
+                            className={`form-input ${hasError ? 'error' : ''}`}
+                            value={value}
+                            onChange={(e) => updateNodeConfig(selectedNode, paramName, e.target.value)}
+                            placeholder={paramSchema.placeholder || ''}
+                            rows={4}
+                            style={hasError ? { borderColor: '#e53e3e' } : {}}
+                          />
+                          {paramSchema.supportTemplates && templates.length > 0 && (
+                            <div style={{ fontSize: '0.75rem', color: '#4a5568', marginTop: '0.25rem' }}>
+                              Templates: {templates.map(t => `{{${t.path}}}`).join(', ')}
+                            </div>
+                          )}
+                        </div>
+                      );
+
+                    case 'select':
+                      return (
+                        <div className="config-field" key={paramName}>
+                          <label>{paramSchema.label}{paramSchema.required && ' *'}:</label>
+                          <select
+                            className={`form-input ${hasError ? 'error' : ''}`}
+                            value={value}
+                            onChange={(e) => updateNodeConfig(selectedNode, paramName, e.target.value)}
+                            style={hasError ? { borderColor: '#e53e3e' } : {}}
+                          >
+                            <option value="">Select...</option>
+                            {paramSchema.options?.map(option => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+
+                    case 'boolean':
+                      return (
+                        <div className="config-field" key={paramName}>
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={value === true}
+                              onChange={(e) => updateNodeConfig(selectedNode, paramName, e.target.checked)}
+                              style={{ marginRight: '0.5rem' }}
+                            />
+                            {paramSchema.label}
+                          </label>
+                        </div>
+                      );
+
+                    default:
+                      return null;
+                  }
+                };
+
+                return (
+                  <div className="config-sections">
+                    {/* Input Section - LEFT */}
+                    <div className="config-panel-section">
+                      <h3>🔽 Input</h3>
+                      <div className="section-content">
+                        {schema?.input ? (
+                          <div>
+                            <div className="config-field">
+                              <label>Expected Input Schema:</label>
+                              <div className="json-display">
+                                {JSON.stringify(inputSchema || schema.input, null, 2)}
+                              </div>
+                            </div>
+                            {templates.length > 0 && (
+                              <div className="config-field">
+                                <label>Available Data:</label>
+                                <div style={{ 
+                                  background: '#f0f4f8', 
+                                  padding: '0.75rem', 
+                                  borderRadius: '6px',
+                                  fontSize: '0.8rem',
+                                  fontFamily: 'monospace'
+                                }}>
+                                  {templates.map(template => (
+                                    <div key={template.path}>
+                                      {`{{${template.path}}}`} → {template.type} ({template.example})
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            <p style={{ color: '#718096', fontStyle: 'italic', marginBottom: '1rem' }}>
+                              🔥 This is a trigger node - no input required
+                            </p>
+                            <div className="config-field">
+                              <label>Trigger receives data from:</label>
+                              <div style={{ 
+                                background: '#f0f4f8', 
+                                padding: '0.75rem', 
+                                borderRadius: '6px',
+                                fontSize: '0.9rem',
+                                color: '#4a5568'
+                              }}>
+                                {node.type === 'telegram-trigger' ? (
+                                  "🤖 Telegram webhook calls"
+                                ) : (
+                                  "External source or manual trigger"
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Parameters Section - MIDDLE */}
+                    <div className="config-panel-section">
+                      <h3>⚙️ Parameters & Settings</h3>
+                      <div className="section-content">
+                        {schema?.parameters ? (
+                          <div>
+                            {Object.entries(schema.parameters).map(([paramName, paramSchema]) => 
+                              renderParameterField(paramName, paramSchema)
+                            )}
+                            
+                            {errors.length > 0 && (
+                              <div className="error-message" style={{ marginTop: '1rem' }}>
+                                <strong>Configuration Errors:</strong>
+                                <ul style={{ margin: '0.5rem 0', paddingLeft: '1.5rem' }}>
+                                  {errors.map((error, index) => (
+                                    <li key={index}>{error}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {node.type === 'telegram-trigger' && config.botToken && (
+                              <div className="config-field">
+                                <button 
+                                  className="btn btn-primary"
+                                  onClick={() => registerTelegramWebhook(
+                                    selectedNode, 
+                                    config.botToken, 
+                                    config.updateType || 'message', 
+                                    config.command
+                                  )}
+                                  style={{ marginTop: '1rem' }}
+                                >
+                                  🔗 Register Webhook
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <p style={{ color: '#718096', fontStyle: 'italic' }}>
+                            No configuration parameters available
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Output Section - RIGHT */}
+                    <div className="config-panel-section">
+                      <h3>🔼 Output</h3>
+                      <div className="section-content">
+                        {schema?.output ? (
+                          <div>
+                            <div className="config-field">
+                              <label>Output Schema:</label>
+                              <div className="json-display">
+                                {JSON.stringify(schema.output, null, 2)}
+                              </div>
+                            </div>
+                            <div className="config-field">
+                              <label>Available for Next Nodes:</label>
+                              <div style={{ 
+                                background: '#f0f4f8', 
+                                padding: '0.75rem', 
+                                borderRadius: '6px',
+                                fontSize: '0.8rem',
+                                fontFamily: 'monospace'
+                              }}>
+                                {Object.entries(schema.output).map(([key, type]) => (
+                                  <div key={key}>
+                                    {`{{${key}}}`} → {typeof type === 'string' ? type : 'object'}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <p style={{ color: '#718096', fontStyle: 'italic' }}>
+                            This node doesn't produce output
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
