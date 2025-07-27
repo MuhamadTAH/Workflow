@@ -28,7 +28,7 @@ function Workflow() {
   const [tempInputValues, setTempInputValues] = useState({}); // Temporary input values
   const [listeningNodes, setListeningNodes] = useState(new Set()); // Track which nodes are listening
   const [recentMessages, setRecentMessages] = useState([]); // Store recent Telegram messages
-  const [ngrokStatus, setNgrokStatus] = useState('unknown'); // Track ngrok status
+  // Removed ngrok status tracking - using production backend directly
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -612,82 +612,37 @@ function Workflow() {
     }
   };
 
-  // Show ngrok setup guide
-  const showNgrokSetupGuide = () => {
-    const guide = `🚀 ngrok Setup Guide
+  // Show production setup guide
+  const showProductionSetupGuide = () => {
+    const guide = `🚀 Production Webhook Setup
 
-STEP 1: Install ngrok
-Option A - NPM: npm install -g ngrok
-Option B - Download: https://ngrok.com/download
+For Telegram webhooks, you need an HTTPS URL.
 
-STEP 2: Run ngrok
-Open a new terminal and run:
-→ ngrok http 3001
+✅ Using Render (Recommended):
+Your backend: https://workflow-lg9z.onrender.com
+Enter this URL in the webhook field above.
 
-STEP 3: Copy HTTPS URL
-You'll see output like:
-Forwarding: https://abc123.ngrok.io -> http://localhost:3001
+✅ Alternative Options:
+• Deploy to Vercel, Netlify, or other cloud platforms
+• Use your own domain with HTTPS certificate
 
-Copy the HTTPS URL (https://abc123.ngrok.io)
-
-STEP 4: Paste URL
-Come back here and paste it in the webhook URL field above.
-
-STEP 5: Start Listening
-Click "🎧 Start Listening for Messages" to register with Telegram.
-
-STEP 6: Test!
-Send a message to your bot @AI_MarketingTeambot and see it appear in Recent Messages!
-
-💡 Keep ngrok running while testing. The URL changes each restart (unless you have a paid account).`;
+💡 Telegram requires HTTPS - HTTP and localhost won't work!`;
 
     alert(guide);
     
-    // Optional: Try to detect if ngrok is running
+    // Auto-fill the Render URL if no webhook URL is set
     setTimeout(() => {
-      if (confirm('🔍 Want me to try detecting your ngrok URL automatically?')) {
-        detectNgrokUrl();
+      if (selectedNode && !getTempInputValue(selectedNode, 'webhookBaseUrl')) {
+        if (confirm('🔧 Want me to auto-fill your Render backend URL?')) {
+          handleTempInputChange(selectedNode, 'webhookBaseUrl', 'https://workflow-lg9z.onrender.com');
+          alert('✅ Auto-filled Render URL!\n\nhttps://workflow-lg9z.onrender.com');
+        }
       }
     }, 1000);
   };
 
-  // Simplified ngrok detection
-  const detectNgrokUrl = async () => {
-    try {
-      console.log('🔍 Attempting to detect ngrok URL...');
-      
-      const response = await fetch('http://127.0.0.1:4040/api/tunnels');
-      const data = await response.json();
-      
-      const tunnel = data.tunnels?.find(t => 
-        t.config?.addr === 'http://localhost:3001' && 
-        t.public_url?.startsWith('https://')
-      );
-      
-      if (tunnel?.public_url) {
-        const ngrokUrl = tunnel.public_url;
-        console.log('✅ Found ngrok URL:', ngrokUrl);
-        
-        if (selectedNode) {
-          handleTempInputChange(selectedNode, 'webhookBaseUrl', ngrokUrl);
-          alert(`✅ Auto-detected ngrok URL!\n\n${ngrokUrl}\n\nURL has been filled in automatically.`);
-        }
-        return ngrokUrl;
-      } else {
-        alert('❌ No ngrok tunnel found.\n\nMake sure ngrok is running with:\nngrok http 3001');
-        return null;
-      }
-    } catch (error) {
-      console.error('Could not detect ngrok:', error);
-      alert('❌ Could not auto-detect ngrok.\n\nMake sure ngrok is running and try the manual setup.');
-      return null;
-    }
-  };
-
-  // Simplified ngrok status check
-  useEffect(() => {
-    setNgrokStatus('unknown');
-  }, []);
+  // Production backend is always available at the Render URL
+  // No need for ngrok detection when using deployed backend
 
   // Register current workflow with backend engine
   const registerCurrentWorkflowWithEngine = async (baseUrl = null) => {
@@ -802,7 +757,7 @@ Send a message to your bot @AI_MarketingTeambot and see it appear in Recent Mess
     } else {
       // Production mode - real webhook registration
       if (!webhookBaseUrl) {
-        alert('Please enter your ngrok URL first!\n\n1. Run: ngrok http 3001\n2. Copy the https://xxx.ngrok.io URL\n3. Paste it in the webhook URL field');
+        alert('Please enter your webhook URL first!\n\n✅ Recommended: https://workflow-lg9z.onrender.com\n\nOr use your own HTTPS domain/server.');
         return;
       }
 
@@ -813,7 +768,7 @@ Send a message to your bot @AI_MarketingTeambot and see it appear in Recent Mess
       }
 
       if (webhookBaseUrl.includes('localhost')) {
-        alert('❌ Webhook URL cannot contain localhost\n\nTelegram needs a public URL. Use ngrok or deploy to a server.');
+        alert('❌ Webhook URL cannot contain localhost\n\nTelegram needs a public URL. Use https://workflow-lg9z.onrender.com or deploy to a server.');
         return;
       }
 
@@ -832,7 +787,7 @@ Send a message to your bot @AI_MarketingTeambot and see it appear in Recent Mess
         }
       } catch (error) {
         console.error('Failed to start listening:', error);
-        alert('❌ Failed to start listening. Check your bot token and ngrok URL.');
+        alert('❌ Failed to start listening. Check your bot token and webhook URL.');
       }
     }
   };
@@ -1710,26 +1665,26 @@ Send a message to your bot @AI_MarketingTeambot and see it appear in Recent Mess
                               
                               {getTempInputValue(selectedNode, 'devMode') === 'production' && (
                                 <>
-                                  <label>Public Webhook URL (ngrok/domain):</label>
+                                  <label>Public Webhook URL (HTTPS):</label>
                                   <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
                                     <input 
                                       type="text"
                                       className="form-input" 
-                                      placeholder="https://your-ngrok-url.ngrok.io or your domain"
+                                      placeholder="https://workflow-lg9z.onrender.com"
                                       value={getTempInputValue(selectedNode, 'webhookBaseUrl')}
                                       onChange={(e) => handleTempInputChange(selectedNode, 'webhookBaseUrl', e.target.value)}
                                       style={{ flex: 1 }}
                                     />
                                     <button 
                                       className="btn btn-secondary"
-                                      onClick={() => showNgrokSetupGuide()}
+                                      onClick={() => showProductionSetupGuide()}
                                       style={{ width: 'auto', padding: '0.5rem 1rem', fontSize: '0.8rem' }}
                                     >
-                                      🚀 Setup ngrok
+                                      🚀 Setup Guide
                                     </button>
                                   </div>
                                   <small style={{ color: '#718096', fontSize: '0.8rem', display: 'block' }}>
-                                    📖 Telegram requires HTTPS and public domains. Click "Setup ngrok" for help!
+                                    📖 Telegram requires HTTPS and public domains. Click "Setup Guide" for help!
                                   </small>
                                 </>
                               )}
@@ -1743,7 +1698,7 @@ Send a message to your bot @AI_MarketingTeambot and see it appear in Recent Mess
                                 }}>
                                   <strong>🏠 Local Testing Mode</strong>
                                   <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem' }}>
-                                    Simulates Telegram messages without needing ngrok. Perfect for development!
+                                    Simulates Telegram messages without needing external webhooks. Perfect for development!
                                   </p>
                                 </div>
                               )}
@@ -1761,7 +1716,7 @@ Send a message to your bot @AI_MarketingTeambot and see it appear in Recent Mess
                               }}>
                                 {getTempInputValue(selectedNode, 'webhookBaseUrl') ? 
                                   `${getTempInputValue(selectedNode, 'webhookBaseUrl')}/api/webhooks/telegram-webhook/${node.id}` :
-                                  'Enter ngrok URL above to see webhook URL'
+                                  'Enter webhook URL above to see full webhook URL'
                                 }
                               </div>
                               <small style={{ color: '#718096', fontSize: '0.8rem' }}>
