@@ -66,6 +66,39 @@ export const connectionsAPI = {
   disconnect: (platform) => api.delete(`/connections/${platform}`)
 };
 
+// Shop API functions
+export const shopAPI = {
+  // Get user's shop
+  getMyShop: () => api.get('/shops/my-shop'),
+  
+  // Create new shop
+  createShop: (shopData) => api.post('/shops', shopData),
+  
+  // Update shop
+  updateShop: (shopId, shopData) => api.put(`/shops/${shopId}`, shopData),
+  
+  // Get shop products
+  getShopProducts: (shopName) => api.get(`/shops/${shopName}/products`),
+  
+  // Add product to shop
+  addProduct: (shopName, productData) => api.post(`/shops/${shopName}/products`, productData),
+  
+  // Update product
+  updateProduct: (productId, productData) => api.put(`/products/${productId}`, productData),
+  
+  // Delete product
+  deleteProduct: (productId) => api.delete(`/products/${productId}`)
+};
+
+// Public Shop API functions
+export const publicShopAPI = {
+  // Get public shop data
+  getShop: (shopName) => api.get(`/public/shop/${shopName}`),
+  
+  // Get public shop products
+  getShopProducts: (shopName) => api.get(`/public/shop/${shopName}/products`)
+};
+
 // Token management
 export const tokenManager = {
   setToken: (token) => localStorage.setItem('token', token),

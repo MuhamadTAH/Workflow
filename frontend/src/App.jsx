@@ -5,6 +5,7 @@ import Signup from './pages/Signup';
 import Overview from './pages/Overview';
 import Workflow from './pages/Workflow';
 import Connections from './pages/Connections';
+import ShopDashboard from './pages/ShopDashboard';
 import { authAPI, tokenManager } from './api';
 import './styles.css';
 
@@ -79,6 +80,9 @@ function Home() {
             <Link to="/connections" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
               🔗 Connections
             </Link>
+            <Link to="/shop" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+              🛍️ My Shop
+            </Link>
             <button 
               onClick={callBackend} 
               disabled={testLoading}
@@ -140,6 +144,7 @@ function App() {
         <Route path="/overview" element={<Overview />} />
         <Route path="/workflow" element={<Workflow />} />
         <Route path="/connections" element={<Connections />} />
+        <Route path="/shop" element={<ShopDashboard />} />
       </Routes>
     </Router>
   );
