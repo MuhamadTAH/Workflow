@@ -4,6 +4,8 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const webhooksRoutes = require('./routes/webhooks');
 const workflowRoutes = require('./routes/workflows');
+const agentRoutes = require('./routes/agent');
+const connectionsRoutes = require('./routes/connections');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const logger = require('./services/logger');
 require('./db'); // Initialize database
@@ -19,6 +21,8 @@ app.use(express.json()); // Parse JSON bodies
 app.use('/api', authRoutes);
 app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/workflows', workflowRoutes);
+app.use('/api/agent', agentRoutes);
+app.use('/api/connections', connectionsRoutes);
 
 // Test route
 app.get('/api/hello', (req, res) => {

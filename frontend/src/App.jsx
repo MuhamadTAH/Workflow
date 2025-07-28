@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Overview from './pages/Overview';
 import Workflow from './pages/Workflow';
+import Connections from './pages/Connections';
 import { authAPI, tokenManager } from './api';
 import './styles.css';
 
@@ -75,6 +76,9 @@ function Home() {
             <Link to="/workflow" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
               🔧 Workflow Builder
             </Link>
+            <Link to="/connections" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+              🔗 Connections
+            </Link>
             <button 
               onClick={callBackend} 
               disabled={testLoading}
@@ -135,6 +139,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/overview" element={<Overview />} />
         <Route path="/workflow" element={<Workflow />} />
+        <Route path="/connections" element={<Connections />} />
       </Routes>
     </Router>
   );

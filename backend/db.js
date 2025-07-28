@@ -29,6 +29,32 @@ db.serialize(() => {
       console.log('✅ Users table ready');
     }
   });
+
+  // Create social_connections table if it doesn't exist
+  db.run(`
+    CREATE TABLE IF NOT EXISTS social_connections (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      platform TEXT NOT NULL,
+      access_token TEXT,
+      refresh_token TEXT,
+      token_expires_at DATETIME,
+      platform_user_id TEXT,
+      platform_username TEXT,
+      platform_profile_url TEXT,
+      connected_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      is_active BOOLEAN DEFAULT 1,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE(user_id, platform)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating social_connections table:', err);
+    } else {
+      console.log('✅ Social connections table ready');
+    }
+  });
 });
 
 module.exports = db;

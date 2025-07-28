@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'https://workflow-lg9z.onrender.com/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -49,6 +49,21 @@ export const workflowAPI = {
   
   // Delete workflow
   deleteWorkflow: (id) => api.delete(`/workflows/${id}`)
+};
+
+// Connections API functions
+export const connectionsAPI = {
+  // Get all user connections
+  getConnections: () => api.get('/connections'),
+  
+  // Get connection status for all platforms
+  getStatus: () => api.get('/connections/status'),
+  
+  // Connect to a platform
+  connect: (platform) => api.post(`/connections/${platform}`),
+  
+  // Disconnect from a platform
+  disconnect: (platform) => api.delete(`/connections/${platform}`)
 };
 
 // Token management
