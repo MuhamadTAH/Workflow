@@ -68,7 +68,12 @@ function ShopDashboard() {
       setSuccessMessage('Shop created successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to create shop');
+      console.error('Shop creation error:', error);
+      const errorMessage = error.response?.data?.message || 
+                          error.response?.statusText || 
+                          error.message || 
+                          'Failed to create shop';
+      setError(`Error: ${errorMessage}`);
     } finally {
       setFormLoading(false);
     }
