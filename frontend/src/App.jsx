@@ -3,8 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-ro
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Overview from './pages/Overview';
-import Workflow from './pages/Workflow';
 import Connections from './pages/Connections';
+import WorkflowBuilder from './pages/WorkflowBuilder';
+import WorkflowNode from './pages/workflownode/WorkflowNode';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import PublicShop from './pages/PublicShop';
@@ -97,8 +98,11 @@ function Home() {
             <Link to="/overview" className="btn btn-primary" style={{ textDecoration: 'none' }}>
               🎯 My Workflows
             </Link>
-            <Link to="/workflow" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+            <Link to="/workflow-builder" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
               🔧 Workflow Builder
+            </Link>
+            <Link to="/workflownode" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+              🚀 WorkflowNode
             </Link>
             <Link to="/connections" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
               🔗 Connections
@@ -174,8 +178,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/overview" element={<Overview />} />
-        <Route path="/workflow" element={<Workflow />} />
         <Route path="/connections" element={<Connections />} />
+        <Route path="/workflow-builder" element={<WorkflowBuilder />} />
+        <Route path="/workflownode" element={<WorkflowNode />} />
         <Route path="/shop" element={<ShopDashboard />} />
         <Route path="/shop/add-product" element={<AddProduct />} />
         <Route path="/shop/manage-products" element={<ManageProducts />} />

@@ -29,7 +29,11 @@
       "Bash(mv:*)",
       "Bash(timeout 3 npm start)",
       "Bash(find:*)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(git rm:*)",
+      "Bash(npx tailwindcss init:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(del NUL)"
     ],
     "deny": []
   }

@@ -4,17 +4,29 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  esbuild: {
+    loader: "jsx",
+    include: /src\/.*\.[jt]sx?$/,
+    exclude: []
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      loader: {
+        '.js': 'jsx',
+      },
+    },
+  },
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'https://workflow-lg9z.onrender.com',
         changeOrigin: true,
-        secure: false
+        secure: true
       },
       '/uploads': {
-        target: 'http://localhost:3001',
+        target: 'https://workflow-lg9z.onrender.com',
         changeOrigin: true,
-        secure: false
+        secure: true
       }
     }
   }

@@ -1,3 +1,8 @@
+/*
+=================================================================
+FRONTEND FILE: src/components/Sidebar.js (UPDATED)
+=================================================================
+*/
 import React from 'react';
 
 const DraggableNode = ({ nodeInfo }) => {
@@ -26,6 +31,7 @@ const Sidebar = ({ onSave, onRestore, onActivate, onDeactivate }) => {
         <div className="mb-4 font-bold text-lg text-gray-700">Nodes</div>
         <div className="text-gray-500 mb-6">Drag nodes to the canvas to build your workflow.</div>
 
+        {/* NEW: Added the Model Node to the sidebar */}
         <DraggableNode 
           nodeInfo={{ 
               label: 'Model Node', 
@@ -115,7 +121,7 @@ const Sidebar = ({ onSave, onRestore, onActivate, onDeactivate }) => {
           }} 
         />
 
-        {/* Logic Nodes */}
+        {/* Logic Nodes from N8N Integration */}
         <div className="mt-6 mb-4 font-bold text-lg text-gray-700">Logic Nodes</div>
         <DraggableNode 
           nodeInfo={{ 
