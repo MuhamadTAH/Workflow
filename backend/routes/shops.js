@@ -53,7 +53,7 @@ router.get('/my-shop', verifyToken, (req, res) => {
             productCount: shop.product_count,
             createdAt: shop.created_at,
             updatedAt: shop.updated_at,
-            shopUrl: `https://workflow-lg9z.onrender.com/shop/${shop.shop_name}`
+            shopUrl: `http://localhost:5174/shop/${shop.shop_name}`
           }
         });
       }
@@ -136,7 +136,7 @@ router.post('/', verifyToken, (req, res) => {
                 contactValue,
                 productCount: 0,
                 createdAt: new Date().toISOString(),
-                shopUrl: `https://workflow-lg9z.onrender.com/shop/${shopName}`
+                shopUrl: `http://localhost:5174/shop/${shopName}`
               }
             });
           }
@@ -250,6 +250,8 @@ router.get('/:shopName/products', verifyToken, (req, res) => {
               description: p.description,
               price: parseFloat(p.price),
               imageUrl: p.image_url,
+              videos: p.videos ? JSON.parse(p.videos) : [],
+              isVisible: p.is_visible === 1,
               createdAt: p.created_at,
               updatedAt: p.updated_at
             }))
@@ -267,7 +269,7 @@ router.get('/:shopName/products', verifyToken, (req, res) => {
 router.post('/:shopName/products', verifyToken, (req, res) => {
   try {
     const { shopName } = req.params;
-    const { title, description, price, imageUrl } = req.body;
+    const { title, description, price, imageUrl, videos } = req.body;
 
     // Validate input
     if (!title || !price) {
@@ -291,8 +293,8 @@ router.post('/:shopName/products', verifyToken, (req, res) => {
 
       // Add product
       db.run(
-        'INSERT INTO products (shop_id, title, description, price, image_url) VALUES (?, ?, ?, ?, ?)',
-        [shop.id, title, description || null, parseFloat(price), imageUrl || null],
+        'INSERT INTO products (shop_id, title, description, price, image_url, videos) VALUES (?, ?, ?, ?, ?, ?)',
+        [shop.id, title, description || null, parseFloat(price), imageUrl || null, videos ? JSON.stringify(videos) : null],
         function(err) {
           if (err) {
             console.error('Database error:', err);
@@ -313,6 +315,71 @@ router.post('/:shopName/products', verifyToken, (req, res) => {
         }
       );
     });
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/shops/public/:shopName - Public shop view (no authentication required)
+router.get('/public/:shopName', (req, res) => {
+  try {
+    const { shopName } = req.params;
+    
+    // Get shop details with products
+    db.get(
+      `SELECT 
+        s.id,
+        s.shop_name,
+        s.shop_display_name as displayName,
+        s.description,
+        s.contact_method as contactMethod,
+        s.contact_value as contactValue,
+        s.created_at as createdAt
+      FROM shops s 
+      WHERE s.shop_name = ? AND s.is_active = 1`,
+      [shopName],
+      (err, shop) => {
+        if (err) {
+          console.error('Database error:', err);
+          return res.status(500).json({ message: 'Server error' });
+        }
+
+        if (!shop) {
+          return res.status(404).json({ message: 'Shop not found' });
+        }
+
+        // Get shop products
+        db.all(
+          `SELECT 
+            id,
+            title,
+            description,
+            price,
+            image_url as imageUrl,
+            created_at as createdAt
+          FROM products 
+          WHERE shop_id = ? AND is_active = 1 AND is_visible = 1
+          ORDER BY created_at DESC`,
+          [shop.id],
+          (productErr, products) => {
+            if (productErr) {
+              console.error('Products database error:', productErr);
+              return res.status(500).json({ message: 'Server error' });
+            }
+
+            res.json({
+              shop: {
+                ...shop,
+                shopUrl: `http://localhost:5174/shop/${shop.shop_name}`,
+                productCount: products.length
+              },
+              products: products || []
+            });
+          }
+        );
+      }
+    );
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({ message: 'Server error' });

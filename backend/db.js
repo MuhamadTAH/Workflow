@@ -90,6 +90,7 @@ db.serialize(() => {
       price DECIMAL(10,2) NOT NULL,
       image_url TEXT,
       is_active BOOLEAN DEFAULT 1,
+      is_visible BOOLEAN DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (shop_id) REFERENCES shops(id)
@@ -99,6 +100,22 @@ db.serialize(() => {
       console.error('❌ Error creating products table:', err);
     } else {
       console.log('✅ Products table ready');
+      
+      // Add videos column to existing products table if it doesn't exist
+      db.run(`ALTER TABLE products ADD COLUMN videos TEXT`, (err) => {
+        if (err && !err.message.includes('duplicate column')) {
+          console.error('❌ Error adding videos column:', err);
+        }
+      });
+      
+      // Add is_visible column to existing products table if it doesn't exist
+      db.run(`ALTER TABLE products ADD COLUMN is_visible BOOLEAN DEFAULT 1`, (alterErr) => {
+        if (alterErr && !alterErr.message.includes('duplicate column name')) {
+          console.error('❌ Error adding is_visible column:', alterErr);
+        } else if (!alterErr) {
+          console.log('✅ Added is_visible column to products table');
+        }
+      });
     }
   });
 });

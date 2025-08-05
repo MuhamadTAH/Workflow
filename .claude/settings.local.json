@@ -16,7 +16,20 @@
       "Bash(git pull:*)",
       "Bash(rm:*)",
       "Bash(npx kill-port:*)",
-      "Bash(del \"C:\\Users\\tarqm\\Documents\\APP\\frontend\\src\\pages\\Workflow.jsx\")"
+      "Bash(del \"C:\\Users\\tarqm\\Documents\\APP\\frontend\\src\\pages\\Workflow.jsx\")",
+      "WebFetch(domain:localhost)",
+      "Bash(/dev/null)",
+      "Bash(grep:*)",
+      "WebFetch(domain:docs.n8n.io)",
+      "Bash(sqlite3:*)",
+      "Bash(ls:*)",
+      "Bash(cp:*)",
+      "Bash(cmd /c:*)",
+      "Bash(powershell:*)",
+      "Bash(mv:*)",
+      "Bash(timeout 3 npm start)",
+      "Bash(find:*)",
+      "Bash(true)"
     ],
     "deny": []
   }

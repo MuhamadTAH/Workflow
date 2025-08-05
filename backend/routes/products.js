@@ -24,14 +24,15 @@ const verifyToken = (req, res, next) => {
 router.put('/:id', verifyToken, (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, price, imageUrl } = req.body;
+    const { title, description, price, imageUrl, isVisible, videos } = req.body;
 
-    // Validate input
-    if (!title || !price) {
-      return res.status(400).json({ message: 'Product title and price are required' });
+    // Validate input - only require validation if title and price are provided
+    // This allows for partial updates (like just isVisible)
+    if (title !== undefined && !title) {
+      return res.status(400).json({ message: 'Product title cannot be empty' });
     }
 
-    if (isNaN(price) || price <= 0) {
+    if (price !== undefined && (isNaN(price) || price <= 0)) {
       return res.status(400).json({ message: 'Price must be a positive number' });
     }
 
@@ -56,12 +57,47 @@ router.put('/:id', verifyToken, (req, res) => {
           return res.status(403).json({ message: 'Access denied' });
         }
 
+        // Build dynamic update query based on provided fields
+        const updateFields = [];
+        const updateValues = [];
+        
+        if (title !== undefined) {
+          updateFields.push('title = ?');
+          updateValues.push(title);
+        }
+        if (description !== undefined) {
+          updateFields.push('description = ?');
+          updateValues.push(description || null);
+        }
+        if (price !== undefined) {
+          updateFields.push('price = ?');
+          updateValues.push(parseFloat(price));
+        }
+        if (imageUrl !== undefined) {
+          updateFields.push('image_url = ?');
+          updateValues.push(imageUrl || null);
+        }
+        if (videos !== undefined) {
+          updateFields.push('videos = ?');
+          updateValues.push(videos ? JSON.stringify(videos) : null);
+        }
+        if (isVisible !== undefined) {
+          updateFields.push('is_visible = ?');
+          updateValues.push(isVisible ? 1 : 0);
+        }
+        
+        // Always update the timestamp
+        updateFields.push('updated_at = CURRENT_TIMESTAMP');
+        updateValues.push(id); // Add ID at the end for WHERE clause
+        
+        if (updateFields.length === 1) { // Only timestamp update
+          return res.status(400).json({ message: 'No fields to update' });
+        }
+
         // Update product
         db.run(
-          `UPDATE products 
-           SET title = ?, description = ?, price = ?, image_url = ?, updated_at = CURRENT_TIMESTAMP
-           WHERE id = ?`,
-          [title, description || null, parseFloat(price), imageUrl || null, id],
+          `UPDATE products SET ${updateFields.join(', ')} WHERE id = ?`,
+          updateValues,
           function(err) {
             if (err) {
               console.error('Database error:', err);
@@ -72,16 +108,21 @@ router.put('/:id', verifyToken, (req, res) => {
               return res.status(404).json({ message: 'Product not found' });
             }
 
+            // Return updated fields
+            const updatedProduct = {
+              id: parseInt(id),
+              updatedAt: new Date().toISOString()
+            };
+            
+            if (title !== undefined) updatedProduct.title = title;
+            if (description !== undefined) updatedProduct.description = description;
+            if (price !== undefined) updatedProduct.price = parseFloat(price);
+            if (imageUrl !== undefined) updatedProduct.imageUrl = imageUrl;
+            if (isVisible !== undefined) updatedProduct.isVisible = isVisible;
+
             res.json({
               message: 'Product updated successfully',
-              product: {
-                id: parseInt(id),
-                title,
-                description,
-                price: parseFloat(price),
-                imageUrl,
-                updatedAt: new Date().toISOString()
-              }
+              product: updatedProduct
             });
           }
         );

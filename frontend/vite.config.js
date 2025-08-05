@@ -7,9 +7,14 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://workflow-lg9z.onrender.com',
+        target: 'http://localhost:3001',
         changeOrigin: true,
-        secure: true
+        secure: false
+      },
+      '/uploads': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false
       }
     }
   }

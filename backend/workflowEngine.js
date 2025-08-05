@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { TelegramAPI, TemplateProcessor } = require('./services/telegramAPI');
+const aiAgent = require('./services/aiAgent');
 const logger = require('./services/logger');
 const { handleWorkflowError, handleTelegramError } = require('./middleware/errorHandler');
 
@@ -237,6 +238,9 @@ class WorkflowEngine {
             data: inputData
           };
 
+        case 'AIAgent':
+          return await this.executeAIAgentNode(node, inputData, execution);
+
         default:
           logger.warn(`Unknown node type: ${node.type}`, {
             nodeId: node.id,
@@ -407,6 +411,99 @@ class WorkflowEngine {
       active: Array.from(activeExecutions.values()),
       history: executionHistory.slice(-20) // Last 20
     };
+  }
+
+  // Execute AI Agent Node
+  async executeAIAgentNode(node, inputData, execution) {
+    try {
+      logger.info(`🤖 Executing AI Agent node: ${node.label}`, {
+        nodeId: node.id,
+        executionId: execution.id
+      });
+
+      // Get node configuration with defaults
+      const nodeConfig = node.config || {};
+      const config = {
+        model: nodeConfig.model || 'claude-3-haiku-20240307',
+        systemPrompt: nodeConfig.systemPrompt || 'You are a helpful AI assistant processing workflow data.',
+        maxTokens: nodeConfig.maxTokens || 1024,
+        enableMemory: nodeConfig.enableMemory || false,
+        enableTools: nodeConfig.enableTools || false,
+        ...nodeConfig
+      };
+
+      // Prepare input message
+      let message = '';
+      if (typeof inputData === 'string') {
+        message = inputData;
+      } else if (inputData && inputData.message) {
+        // From Telegram trigger
+        message = inputData.message.text || JSON.stringify(inputData);
+      } else if (inputData) {
+        // Generic object input
+        message = JSON.stringify(inputData, null, 2);
+      } else {
+        message = 'No input data provided';
+      }
+
+      // Create session ID for memory
+      const sessionId = `workflow_${execution.id}_${node.id}`;
+
+      logger.debug('🤖 AI Agent processing message:', {
+        messageLength: message.length,
+        sessionId,
+        enableMemory: config.enableMemory,
+        enableTools: config.enableTools,
+        nodeId: node.id
+      });
+
+      // Call AI Agent service
+      const agentResult = await aiAgent.chat(message, sessionId);
+
+      if (agentResult.response) {
+        logger.info('✅ AI Agent completed successfully', {
+          nodeId: node.id,
+          responseLength: agentResult.response.length,
+          toolsUsed: agentResult.toolsUsed || [],
+          executionId: execution.id
+        });
+
+        return {
+          success: true,
+          data: {
+            response: agentResult.response,
+            model: config.model,
+            tokensUsed: agentResult.tokensUsed || null,
+            toolsUsed: agentResult.toolsUsed || [],
+            memory: agentResult.memory || null,
+            sessionId: agentResult.sessionId,
+            timestamp: new Date().toISOString(),
+            inputData: inputData,
+            nodeConfig: config
+          }
+        };
+      } else {
+        throw new Error('AI Agent returned no response');
+      }
+
+    } catch (error) {
+      logger.error('❌ AI Agent node execution failed:', {
+        error: error.message,
+        nodeId: node.id,
+        executionId: execution.id
+      });
+
+      return {
+        success: false,
+        error: error.message,
+        data: {
+          error: error.message,
+          timestamp: new Date().toISOString(),
+          nodeId: node.id,
+          inputData: inputData
+        }
+      };
+    }
   }
 }
 

@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
-import { tokenManager, shopAPI } from '../api';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { tokenManager, shopAPI } from '../../../api';
 import { FaStore, FaPlus, FaEdit, FaEye, FaCopy, FaWhatsapp, FaTelegram, FaEnvelope } from 'react-icons/fa';
+import ShopLayout from '../components/ShopLayout/ShopLayout';
+import './ShopDashboard.css';
 
 function ShopDashboard() {
+  const navigate = useNavigate();
   const [shop, setShop] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -29,8 +32,10 @@ function ShopDashboard() {
   }, []);
 
   const loadShop = async () => {
+    console.log('Loading shop data...');
     try {
       const response = await shopAPI.getMyShop();
+      console.log('Shop API response:', response);
       setShop(response.data.shop);
       if (response.data.shop) {
         setFormData({
@@ -43,8 +48,10 @@ function ShopDashboard() {
       }
     } catch (error) {
       console.error('Error loading shop:', error);
-      setError('Failed to load shop data');
+      setError('Unable to connect to backend. Please check if the server is running.');
+      setShop(null);
     } finally {
+      console.log('Setting loading to false');
       setLoading(false);
     }
   };
@@ -143,26 +150,33 @@ function ShopDashboard() {
     return (
       <div className="loading">
         <div>Loading your shop...</div>
+        <div style={{ marginTop: '1rem', fontSize: '0.9rem', color: '#6b7280' }}>
+          If this takes too long, the backend might be starting up...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="shop-dashboard">
-      <div className="shop-dashboard-container">
-        <div className="shop-dashboard-header">
-          <h1 className="shop-dashboard-title">
-            <FaStore className="shop-icon" />
-            My Shop
-          </h1>
-          <p className="shop-dashboard-subtitle">
-            Manage your online store and products
-          </p>
-        </div>
+    <ShopLayout title="My Shop" subtitle="Manage your online store and products">
+      <div>
 
         {error && (
           <div className="error-message">
             {error}
+            {error.includes('Unable to connect') && (
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => {
+                  setError('');
+                  setLoading(true);
+                  loadShop();
+                }}
+                style={{ marginLeft: '1rem', padding: '0.5rem 1rem' }}
+              >
+                Try Again
+              </button>
+            )}
           </div>
         )}
 
@@ -303,14 +317,12 @@ function ShopDashboard() {
                   >
                     <FaEdit /> Edit Shop
                   </button>
-                  <a 
-                    href={shop.shopUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
+                  <button
                     className="btn btn-primary"
+                    onClick={() => setSuccessMessage('Public shop page coming next! Your URL will be: ' + shop.shopUrl + ' (Development Mode)')}
                   >
                     <FaEye /> View Shop
-                  </a>
+                  </button>
                 </div>
               </div>
 
@@ -409,15 +421,24 @@ function ShopDashboard() {
             <div className="quick-actions">
               <h3>Quick Actions</h3>
               <div className="action-buttons">
-                <button className="action-btn">
+                <button 
+                  className="action-btn"
+                  onClick={() => navigate('/shop/add-product')}
+                >
                   <FaPlus />
                   <span>Add Product</span>
                 </button>
-                <button className="action-btn">
+                <button 
+                  className="action-btn"
+                  onClick={() => setSuccessMessage('Product Management feature coming next! (Development Mode)')}
+                >
                   <FaEdit />
                   <span>Manage Products</span>
                 </button>
-                <button className="action-btn">
+                <button 
+                  className="action-btn"
+                  onClick={() => setSuccessMessage('Analytics feature coming soon! (Development Mode)')}
+                >
                   <FaEye />
                   <span>View Analytics</span>
                 </button>
@@ -426,7 +447,7 @@ function ShopDashboard() {
           </div>
         )}
       </div>
-    </div>
+    </ShopLayout>
   );
 }
 

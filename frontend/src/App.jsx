@@ -5,7 +5,21 @@ import Signup from './pages/Signup';
 import Overview from './pages/Overview';
 import Workflow from './pages/Workflow';
 import Connections from './pages/Connections';
-import ShopDashboard from './pages/ShopDashboard';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import PublicShop from './pages/PublicShop';
+// Import shop components using the modular router
+import { 
+  ShopDashboard, 
+  AddProduct, 
+  ManageProducts, 
+  Analytics as ShopAnalytics,
+  ViewStore,
+  Categories,
+  Privacy as ShopPrivacy,
+  Terms as ShopTerms
+} from './pages/shop';
+import ProductDetail from './pages/shop/product-detail/ProductDetail';
 import { authAPI, tokenManager } from './api';
 import './styles.css';
 
@@ -19,17 +33,26 @@ function Home() {
     const fetchProfile = async () => {
       try {
         if (tokenManager.isLoggedIn()) {
+          console.log('Fetching user profile...');
           const response = await authAPI.getProfile();
           setUser(response.data.user);
+          console.log('Profile loaded:', response.data.user);
         }
       } catch (error) {
+        console.error('Profile fetch error:', error);
         tokenManager.removeToken();
       } finally {
         setLoading(false);
       }
     };
-
-    fetchProfile();
+    const timeout = setTimeout(() => {
+      console.log('Profile fetch timeout - setting loading to false');
+      setLoading(false);
+    }, 3000);
+    fetchProfile().then(() => {
+      clearTimeout(timeout);
+    });
+    return () => clearTimeout(timeout);
   }, []);
 
   const callBackend = async () => {
@@ -95,6 +118,15 @@ function Home() {
             </button>
           </div>
 
+          <div className="legal-links" style={{ marginTop: '2rem', textAlign: 'center' }}>
+            <Link to="/privacy" className="legal-link" style={{ textDecoration: 'none', marginRight: '2rem' }}>
+              🛡️ Privacy Policy
+            </Link>
+            <Link to="/terms" className="legal-link" style={{ textDecoration: 'none' }}>
+              📄 Terms of Service
+            </Link>
+          </div>
+
           {message && (
             <div className={message.includes('❌') ? 'error-message' : 'success-message'} style={{ marginTop: '1rem' }}>
               {message}
@@ -145,6 +177,17 @@ function App() {
         <Route path="/workflow" element={<Workflow />} />
         <Route path="/connections" element={<Connections />} />
         <Route path="/shop" element={<ShopDashboard />} />
+        <Route path="/shop/add-product" element={<AddProduct />} />
+        <Route path="/shop/manage-products" element={<ManageProducts />} />
+        <Route path="/shop/product/:productId" element={<ProductDetail />} />
+        <Route path="/shop/analytics" element={<ShopAnalytics />} />
+        <Route path="/shop/view-store" element={<ViewStore />} />
+        <Route path="/shop/categories" element={<Categories />} />
+        <Route path="/shop/privacy" element={<ShopPrivacy />} />
+        <Route path="/shop/terms" element={<ShopTerms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/shop/:shopName" element={<PublicShop />} />
       </Routes>
     </Router>
   );
