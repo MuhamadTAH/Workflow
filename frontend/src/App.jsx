@@ -5,7 +5,7 @@ import Signup from './pages/Signup';
 import Overview from './pages/Overview';
 import Connections from './pages/Connections';
 import WorkflowBuilder from './pages/WorkflowBuilder';
-import WorkflowNode from './pages/workflownode/WorkflowNode';
+// import WorkflowNode from './pages/workflownode/WorkflowNode'; // Removed - using WorkflowBuilder instead
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import PublicShop from './pages/PublicShop';
@@ -101,9 +101,6 @@ function Home() {
             <Link to="/workflow-builder" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
               🔧 Workflow Builder
             </Link>
-            <Link to="/workflownode" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
-              🚀 WorkflowNode
-            </Link>
             <Link to="/connections" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
               🔗 Connections
             </Link>
@@ -180,7 +177,7 @@ function App() {
         <Route path="/overview" element={<Overview />} />
         <Route path="/connections" element={<Connections />} />
         <Route path="/workflow-builder" element={<WorkflowBuilder />} />
-        <Route path="/workflownode" element={<WorkflowNode />} />
+        {/* <Route path="/workflownode" element={<WorkflowNode />} /> */}
         <Route path="/shop" element={<ShopDashboard />} />
         <Route path="/shop/add-product" element={<AddProduct />} />
         <Route path="/shop/manage-products" element={<ManageProducts />} />
