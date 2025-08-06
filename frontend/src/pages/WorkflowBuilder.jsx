@@ -1,10 +1,8 @@
 import React from 'react';
-import WorkflowApp from './workflow/frontend/src/App.js';
+import WorkflowApp from '../components/workflownode/App.js';
 
-// Import the necessary CSS files for the workflow system
-import './workflow/frontend/src/packages/node-system/CustomNode.css';
-import './workflow/frontend/src/packages/config-panel/ConfigPanel.css';
-import './workflow/frontend/src/styles/ChatbotPanel.css';
+// Import the necessary CSS files for the WorkflowNode system
+import '../styles/workflownode/CustomLogicNode.css';
 
 const WorkflowBuilder = () => {
   return (
