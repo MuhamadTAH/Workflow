@@ -1,0 +1,32 @@
+{
+  "name": "workflowbuilder-platform",
+  "version": "1.0.0",
+  "description": "Professional workflow automation platform with Telegram integration",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=frontend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "start:backend": "npm start --workspace=backend",
+    "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend",
+    "build": "npm run build --workspace=frontend",
+    "lint": "npm run lint --workspace=frontend"
+  },
+  "keywords": [
+    "workflow",
+    "automation", 
+    "telegram",
+    "social-media",
+    "react",
+    "nodejs"
+  ],
+  "author": "WorkflowBuilder Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MuhamadTAH/Workflownode.git"
+  }
+}

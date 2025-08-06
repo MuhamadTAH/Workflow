@@ -39,7 +39,9 @@
       "Bash(start /B npm run dev)",
       "Bash(del \"C:\\Users\\tarqm\\Documents\\APP\\frontend\\src\\pages\\workflow\\frontend\\src\\packages\\node-system\\CustomNode.css\")",
       "Bash(timeout 10 npm run dev)",
-      "Bash(timeout 15 npm run dev)"
+      "Bash(timeout 15 npm run dev)",
+      "Bash(timeout 5 npm run dev)",
+      "Bash(start /B npm start)"
     ],
     "deny": []
   }
