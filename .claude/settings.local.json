@@ -37,7 +37,9 @@
       "Bash(set PORT=3000)",
       "Bash(del tailwind.config.js)",
       "Bash(start /B npm run dev)",
-      "Bash(del \"C:\\Users\\tarqm\\Documents\\APP\\frontend\\src\\pages\\workflow\\frontend\\src\\packages\\node-system\\CustomNode.css\")"
+      "Bash(del \"C:\\Users\\tarqm\\Documents\\APP\\frontend\\src\\pages\\workflow\\frontend\\src\\packages\\node-system\\CustomNode.css\")",
+      "Bash(timeout 10 npm run dev)",
+      "Bash(timeout 15 npm run dev)"
     ],
     "deny": []
   }
