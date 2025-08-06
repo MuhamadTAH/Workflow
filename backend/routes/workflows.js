@@ -4,6 +4,13 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const logger = require('../services/logger');
 
+// Import WorkflowNode controllers
+const { 
+  activateWorkflow, 
+  deactivateWorkflow, 
+  getWorkflowStatus 
+} = require('../controllers/workflowController');
+
 // Database setup
 const dbPath = path.join(__dirname, '..', 'database.sqlite');
 const db = new sqlite3.Database(dbPath);
@@ -256,5 +263,16 @@ router.delete('/:id', verifyToken, (req, res) => {
     }
   );
 });
+
+// NEW ROUTES FROM WORKFLOWNODE - Advanced workflow execution
+
+// POST /api/workflows/:id/activate - Activate workflow for automatic execution
+router.post('/:id/activate', activateWorkflow);
+
+// POST /api/workflows/:id/deactivate - Deactivate workflow  
+router.post('/:id/deactivate', deactivateWorkflow);
+
+// GET /api/workflows/:id/status - Get workflow execution status
+router.get('/:id/status', getWorkflowStatus);
 
 module.exports = router;

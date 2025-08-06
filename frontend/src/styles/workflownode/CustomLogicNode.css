@@ -1,0 +1,157 @@
+/*
+=================================================================
+FILE: frontend/src/styles/CustomLogicNode.css (CORRECTED)
+=================================================================
+This file now uses the correct original node styling from the main
+workflow system to match the expected appearance.
+*/
+.custom-node-ai {
+  background-color: #f0f0f0 !important;
+  border: 1px solid #d1d1d1 !important;
+  border-radius: 40px !important;
+  width: 300px !important;
+  font-family: 'Helvetica Neue', sans-serif !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.react-flow__node-custom.selected .custom-node-ai {
+  border: 2px solid #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2) !important;
+}
+
+.custom-node-ai .node-content {
+  padding: 15px 20px !important;
+}
+
+.custom-node-ai .node-header {
+  display: flex !important;
+  align-items: center !important;
+  margin-bottom: 8px !important;
+}
+
+.custom-node-ai .node-icon {
+  font-size: 20px !important;
+  margin-right: 12px !important;
+  color: #6b21a8 !important;
+}
+
+.custom-node-ai .node-label {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #333 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.custom-node-ai .node-description {
+  font-size: 13px !important;
+  color: #555 !important;
+  line-height: 1.4 !important;
+}
+
+.custom-node-ai .react-flow__handle {
+  border-radius: 50% !important;
+  background: #fff !important;
+  border: 2px solid #555 !important;
+  width: 20px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.custom-node-ai .react-flow__handle::after {
+    content: '+' !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    color: #555 !important;
+}
+
+.custom-node-ai .handle-left {
+  width: 12px !important;
+  height: 40px !important;
+  background: #888 !important;
+  border-radius: 4px 0 0 4px !important;
+  border: 1px solid #777 !important;
+  left: -13px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+.custom-node-ai .handle-left::after {
+    content: '' !important;
+}
+
+.custom-node-ai .handle-right {
+  right: -11px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+.custom-node-ai .bottom-handles {
+    display: flex !important;
+    justify-content: space-evenly !important;
+    padding: 10px 15px 15px 15px !important;
+    border-top: 1px solid #e0e0e0 !important;
+    margin-top: 10px !important;
+}
+
+.custom-node-ai .handle-group {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.custom-node-ai .handle-label {
+    font-size: 11px !important;
+    font-weight: bold !important;
+    color: #555 !important;
+}
+
+.custom-node-ai .handle-bottom {
+    position: relative !important;
+    transform: none !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+}
+
+/* Handle colors for different nodes */
+.handle-true { background-color: #22c55e !important; }
+.handle-false { background-color: #ef4444 !important; }
+.handle-loop { background-color: #8b5cf6 !important; }
+.handle-done { background-color: #6b7280 !important; }
+
+.handle-label {
+  position: absolute !important;
+  font-size: 10px !important;
+  font-weight: bold !important;
+  color: #6b7280 !important;
+}
+
+.handle-label-right {
+  right: -50px !important;
+}
+
+.handle-label-left {
+  left: -50px !important;
+  text-align: right !important;
+}
+
+/* Vertical alignment for labels */
+.handle-label[style*="25%"] { top: calc(25% - 7px) !important; }
+.handle-label[style*="30%"] { top: calc(30% - 7px) !important; }
+.handle-label[style*="50%"] { top: calc(50% - 7px) !important; }
+.handle-label[style*="70%"] { top: calc(70% - 7px) !important; }
+.handle-label[style*="75%"] { top: calc(75% - 7px) !important; }
+
+/* Label colors for different nodes */
+.handle-label-true { color: #16a34a !important; }
+.handle-label-false { color: #dc2626 !important; }
+.handle-label-loop { color: #7c3aed !important; }
+.handle-label-done { color: #4b5563 !important; }

@@ -33,7 +33,11 @@
       "Bash(git rm:*)",
       "Bash(npx tailwindcss init:*)",
       "Bash(npm uninstall:*)",
-      "Bash(del NUL)"
+      "Bash(del NUL)",
+      "Bash(set PORT=3000)",
+      "Bash(del tailwind.config.js)",
+      "Bash(start /B npm run dev)",
+      "Bash(del \"C:\\Users\\tarqm\\Documents\\APP\\frontend\\src\\pages\\workflow\\frontend\\src\\packages\\node-system\\CustomNode.css\")"
     ],
     "deny": []
   }

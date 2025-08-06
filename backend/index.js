@@ -10,6 +10,8 @@ const shopsRoutes = require('./routes/shops');
 const productsRoutes = require('./routes/products');
 const publicRoutes = require('./routes/public');
 const uploadsRoutes = require('./routes/uploads');
+// NEW ROUTES FROM WORKFLOWNODE
+const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const logger = require('./services/logger');
 require('./db'); // Initialize database
@@ -34,6 +36,8 @@ app.use('/api/shops', shopsRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/uploads', uploadsRoutes);
+// NEW ROUTES FROM WORKFLOWNODE
+app.use('/api/nodes', nodesRoutes);
 
 // Test route
 app.get('/api/hello', (req, res) => {
