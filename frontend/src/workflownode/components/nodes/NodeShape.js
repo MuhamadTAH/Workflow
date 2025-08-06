@@ -111,11 +111,11 @@ const NodeShape = ({ data = {}, nodeHeight, totalInputHandles, totalOutputHandle
         );
       }
     } else {
-      // Standard single output
+      // Standard single output with a plus icon, as per the new design
       handles.push(
-        <Handle key="output-main" type="source" position={Position.Right} 
-                id="output-main" style={{ top: '50%' }} 
-                className="handle-main" />
+        <Handle key="output-main" type="source" position={Position.Right} id="output-main" style={{ top: '50%' }} className="handle-main">
+          +
+        </Handle>
       );
     }
     
@@ -136,7 +136,7 @@ const NodeShape = ({ data = {}, nodeHeight, totalInputHandles, totalOutputHandle
       {/* NODE CONTENT */}
       <div className="node-content">
         <div className="node-header">
-          {data.icon && <div className="node-icon">{data.icon}</div>}
+          {data.icon && <i className={`fa-solid ${data.icon} node-icon ${data.color || ''}`}></i>}
           <div className="node-label">{data.label || data.type || 'Node'}</div>
         </div>
         {data.description && (

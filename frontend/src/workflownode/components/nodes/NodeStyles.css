@@ -64,9 +64,11 @@ This file contains the complete visual styling for all workflow nodes.
     margin-right: 8px;
     color: #4f46e5;
     flex-shrink: 0;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 16px;
-    text-align: center;
+    height: 16px;
   }
   
   .custom-node-ai .node-label {
