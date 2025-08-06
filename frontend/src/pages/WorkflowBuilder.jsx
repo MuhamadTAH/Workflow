@@ -1,8 +1,8 @@
 import React from 'react';
-import WorkflowApp from '../components/workflownode/App.js';
+import WorkflowApp from '../workflownode';
 
-// Import the necessary CSS files for the WorkflowNode system
-import '../styles/workflownode/CustomLogicNode.css';
+// Import the WorkflowNode styles
+import '../workflownode/styles';
 
 const WorkflowBuilder = () => {
   return (
