@@ -2,7 +2,7 @@ import React from 'react';
 import WorkflowApp from '../workflownode';
 
 // Import the WorkflowNode styles
-import '../workflownode/styles';
+import '../workflownode/styles/index.css';
 
 const WorkflowBuilder = () => {
   return (

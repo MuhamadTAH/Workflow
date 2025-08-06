@@ -21,7 +21,7 @@ import Sidebar from './Sidebar';
 import { CustomLogicNode } from '../nodes';
 import { ConfigPanel } from '../panels';
 import { getId } from '../../utils';
-import '../../styles';
+import '../../styles/index.css';
 
 // Register the custom node type so ReactFlow knows how to render it.
 const nodeTypes = { custom: CustomLogicNode };
