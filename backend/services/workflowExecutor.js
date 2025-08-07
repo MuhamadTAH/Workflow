@@ -11,6 +11,7 @@ const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
 const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
+const ChatResponseNode = require('../nodes/actions/chatResponseNode');
 
 class WorkflowExecutor {
     constructor() {
@@ -305,6 +306,10 @@ class WorkflowExecutor {
             
             case 'telegramSendMessage':
                 return await telegramSendMessageNode.execute(nodeConfig, inputData, connectedNodes);
+            
+            case 'chatResponse':
+                const chatResponseInstance = new ChatResponseNode(nodeConfig);
+                return await chatResponseInstance.execute(inputData);
             
             default:
                 throw new Error(`Unsupported node type: ${nodeConfig.type}`);

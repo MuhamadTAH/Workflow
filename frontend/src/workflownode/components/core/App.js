@@ -38,6 +38,17 @@ const App = () => {
   const [lastSaved, setLastSaved] = useState(null);
   const [currentWorkflowId, setCurrentWorkflowId] = useState(null);
 
+  // Generate a unique, readable workflow ID (moved to top to fix hoisting issue)
+  const generateWorkflowId = useCallback(() => {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 8);
+    const cleanName = workflowName.toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')  // Remove special characters
+      .replace(/\s+/g, '-')         // Replace spaces with hyphens
+      .substring(0, 20);            // Limit length
+    return `${cleanName || 'workflow'}-${random}`;
+  }, [workflowName]);
+
   // Load workflow from URL parameter on component mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -128,17 +139,6 @@ const App = () => {
     setSelectedNode(null); // Close the panel
   };
 
-  // Generate a unique, readable workflow ID
-  const generateWorkflowId = useCallback(() => {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 8);
-    const cleanName = workflowName.toLowerCase()
-      .replace(/[^a-z0-9\s]/g, '')  // Remove special characters
-      .replace(/\s+/g, '-')         // Replace spaces with hyphens
-      .substring(0, 20);            // Limit length
-    return `${cleanName || 'workflow'}-${random}`;
-  }, [workflowName]);
-
   // Toolbar action handlers
   const handleSave = useCallback(() => {
     // Create workflow data to save
@@ -180,9 +180,54 @@ const App = () => {
     setLastSaved('just now');
     console.log('Workflow saved:', workflowData);
     
-    // Show success message
-    alert(`✅ Workflow "${workflowName}" saved successfully!`);
-  }, [workflowName, nodes, edges, currentWorkflowId]);
+    // Register workflow with backend for execution (if it has a chat trigger)
+    const hasChatTrigger = nodes.some(node => node.data.type === 'chatTrigger');
+    if (hasChatTrigger) {
+      try {
+        // Send workflow to backend for registration
+        const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : 'https://workflow-lg9z.onrender.com';
+        
+        fetch(`${baseUrl}/api/workflows/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            workflowId: workflowId,
+            workflow: {
+              nodes: nodes.map(node => ({
+                ...node,
+                data: {
+                  ...node.data,
+                  type: node.data.type === 'chatTrigger' ? 'trigger' : node.data.type // Map chatTrigger to trigger
+                }
+              })),
+              edges: edges
+            }
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            console.log(`✅ Workflow ${workflowId} registered for execution`);
+            alert(`✅ Workflow "${workflowName}" saved and activated for chat triggers!`);
+          } else {
+            console.warn('⚠️ Workflow saved but not registered:', data.error);
+            alert(`✅ Workflow "${workflowName}" saved successfully!`);
+          }
+        })
+        .catch(error => {
+          console.error('❌ Workflow registration failed:', error);
+          alert(`✅ Workflow "${workflowName}" saved successfully!`);
+        });
+      } catch (error) {
+        console.error('❌ Workflow registration error:', error);
+        alert(`✅ Workflow "${workflowName}" saved successfully!`);
+      }
+    } else {
+      alert(`✅ Workflow "${workflowName}" saved successfully!`);
+    }
+  }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId]);
 
   const handleExecute = useCallback(() => {
     setIsExecuting(true);

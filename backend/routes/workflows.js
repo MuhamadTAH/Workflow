@@ -11,6 +11,9 @@ const {
   getWorkflowStatus 
 } = require('../controllers/workflowController');
 
+// Import workflow executor
+const workflowExecutor = require('../services/workflowExecutor');
+
 // Database setup
 const dbPath = path.join(__dirname, '..', 'database.sqlite');
 const db = new sqlite3.Database(dbPath);
@@ -274,5 +277,72 @@ router.post('/:id/deactivate', deactivateWorkflow);
 
 // GET /api/workflows/:id/status - Get workflow execution status
 router.get('/:id/status', getWorkflowStatus);
+
+// POST /api/workflows/register - Register workflow for chat execution
+router.post('/register', (req, res) => {
+  try {
+    const { workflowId, workflow } = req.body;
+    
+    if (!workflowId || !workflow) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing workflowId or workflow data'
+      });
+    }
+
+    if (!workflow.nodes || !workflow.edges) {
+      return res.status(400).json({
+        success: false,
+        error: 'Workflow must contain nodes and edges'
+      });
+    }
+
+    // Check if workflow has a chat trigger
+    const hasTrigger = workflow.nodes.some(node => node.data.type === 'trigger');
+    if (!hasTrigger) {
+      return res.status(400).json({
+        success: false,
+        error: 'Workflow must contain a trigger node for execution'
+      });
+    }
+
+    console.log(`📝 Registering workflow ${workflowId} for execution`);
+    console.log('Workflow structure:', {
+      nodes: workflow.nodes.length,
+      edges: workflow.edges.length,
+      nodeTypes: workflow.nodes.map(n => n.data.type)
+    });
+
+    // Register workflow with executor
+    const success = workflowExecutor.registerWorkflow(workflowId, workflow, {});
+    
+    if (success) {
+      logger.info('Workflow registered for execution', { 
+        workflowId, 
+        nodeCount: workflow.nodes.length,
+        edgeCount: workflow.edges.length 
+      });
+      
+      res.json({
+        success: true,
+        message: `Workflow ${workflowId} registered successfully`,
+        workflowId
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to register workflow'
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Workflow registration error:', error.message);
+    logger.logError(error, { context: 'workflowRegistration' });
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
 
 module.exports = router;

@@ -98,19 +98,74 @@ router.post('/webhook/:workflowId', async (req, res) => {
             responseCallback: null
         });
 
-        // TODO: Integrate with actual workflow execution engine
-        // For now, simulate workflow processing
+        // Integrate with actual workflow execution engine
         console.log(`🔄 Triggering workflow ${workflowId} with data:`, workflowData);
 
-        // Simulate processing delay and response
-        setTimeout(() => {
-            // This would normally be called by the workflow execution engine
-            simulateWorkflowResponse(sessionId, {
-                type: 'text',
-                content: `Hello ${userName}! I received your message: "${message}". How can I help you today?`,
-                timestamp: new Date()
-            });
-        }, 1000);
+        try {
+            // Load the workflow from localStorage to get the actual nodes/edges
+            // In production, this would come from a database
+            const workflowExecutor = require('../services/workflowExecutor');
+            
+            // Check if this workflow is registered for execution
+            const workflowStatus = workflowExecutor.getWorkflowStatus(workflowId);
+            
+            if (!workflowStatus.isRegistered) {
+                console.log(`⚠️ Workflow ${workflowId} not registered - using simulation`);
+                // Fallback to simulation if workflow not registered
+                setTimeout(() => {
+                    simulateWorkflowResponse(sessionId, {
+                        type: 'text',
+                        content: `Hello ${userName}! I received your message: "${message}". This workflow isn't active yet - please save your workflow in the builder first.`,
+                        timestamp: new Date()
+                    });
+                }, 1000);
+            } else {
+                console.log(`✅ Workflow ${workflowId} is registered, executing...`);
+                
+                // Execute the workflow
+                setTimeout(async () => {
+                    try {
+                        const executionResult = await workflowExecutor.executeWorkflow(workflowId, workflowData);
+                        console.log('🎉 Workflow execution completed:', executionResult.status);
+                        
+                        // Extract response from execution result
+                        if (executionResult.finalOutput && executionResult.finalOutput.response) {
+                            // If workflow produced a response, use it
+                            const response = {
+                                type: 'text',
+                                content: executionResult.finalOutput.response,
+                                timestamp: new Date()
+                            };
+                            simulateWorkflowResponse(sessionId, response);
+                        } else {
+                            // Default response if no output
+                            simulateWorkflowResponse(sessionId, {
+                                type: 'text',
+                                content: `✅ Workflow executed successfully! Final output: ${JSON.stringify(executionResult.finalOutput).substring(0, 200)}...`,
+                                timestamp: new Date()
+                            });
+                        }
+                    } catch (workflowError) {
+                        console.error('❌ Workflow execution failed:', workflowError.message);
+                        simulateWorkflowResponse(sessionId, {
+                            type: 'text',
+                            content: `❌ Workflow execution failed: ${workflowError.message}`,
+                            timestamp: new Date()
+                        });
+                    }
+                }, 500);
+            }
+        } catch (error) {
+            console.error('❌ Workflow integration error:', error.message);
+            // Fallback to simulation on error
+            setTimeout(() => {
+                simulateWorkflowResponse(sessionId, {
+                    type: 'text',
+                    content: `Hello ${userName}! I received your message: "${message}". There was an issue with workflow execution.`,
+                    timestamp: new Date()
+                });
+            }, 1000);
+        }
 
         res.json({
             success: true,

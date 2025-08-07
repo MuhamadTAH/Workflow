@@ -130,7 +130,9 @@ const DashboardChatbot = () => {
   // Send message to workflow webhook
   const sendToWorkflow = async (message, workflowId) => {
     try {
-      const response = await fetch(`https://workflow-lg9z.onrender.com/api/chat/webhook/${workflowId}`, {
+      // Try production first, fallback to local for testing
+      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : 'https://workflow-lg9z.onrender.com';
+      const response = await fetch(`${baseUrl}/api/chat/webhook/${workflowId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -157,7 +159,8 @@ const DashboardChatbot = () => {
   // Poll for workflow response
   const pollForResponse = async (sessionId) => {
     try {
-      const response = await fetch(`https://workflow-lg9z.onrender.com/api/chat/session/${sessionId}/messages`);
+      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : 'https://workflow-lg9z.onrender.com';
+      const response = await fetch(`${baseUrl}/api/chat/session/${sessionId}/messages`);
       if (response.ok) {
         const data = await response.json();
         if (data.pendingResponses && data.pendingResponses.length > 0) {
