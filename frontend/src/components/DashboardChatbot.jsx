@@ -105,18 +105,25 @@ const DashboardChatbot = () => {
   // Check if input looks like a webhook URL
   const isWebhookUrl = (text) => {
     return text.includes('workflow-lg9z.onrender.com/api/chat/webhook/') ||
+           text.includes('localhost:3001/api/chat/webhook/') ||
            text.includes('/api/chat/webhook/') ||
+           text.includes('http://') || 
+           text.includes('https://') ||
            text.match(/[a-z0-9\-]+\/[a-z0-9\-]+/); // matches workflow-id patterns
   };
 
   // Extract workflow ID from webhook URL
   const extractWorkflowId = (webhookUrl) => {
-    // Handle full URLs
+    // Handle full URLs (localhost and production)
     let match = webhookUrl.match(/\/api\/chat\/webhook\/([^\/?&]+)/);
     if (match) return match[1];
     
-    // Handle partial URLs (just the workflow ID part)
+    // Handle production URLs
     match = webhookUrl.match(/workflow-lg9z\.onrender\.com\/api\/chat\/webhook\/([^\/?&]+)/);
+    if (match) return match[1];
+    
+    // Handle localhost URLs
+    match = webhookUrl.match(/localhost:3001\/api\/chat\/webhook\/([^\/?&]+)/);
     if (match) return match[1];
     
     // Handle just workflow ID
@@ -132,7 +139,16 @@ const DashboardChatbot = () => {
     try {
       // Try production first, fallback to local for testing
       const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : 'https://workflow-lg9z.onrender.com';
-      const response = await fetch(`${baseUrl}/api/chat/webhook/${workflowId}`, {
+      const webhookUrl = `${baseUrl}/api/chat/webhook/${workflowId}`;
+      
+      console.log('🚀 Sending message to workflow:', {
+        message,
+        workflowId,
+        webhookUrl,
+        sessionId
+      });
+      
+      const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -145,13 +161,19 @@ const DashboardChatbot = () => {
         })
       });
 
+      console.log('📡 Webhook response:', response.status, response.statusText);
+
       if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Webhook response data:', data);
         // Poll for response
         setTimeout(() => pollForResponse(sessionId), 1000);
       } else {
-        addBotMessage("❌ Failed to send message to workflow. Please check the webhook URL.", []);
+        console.error('❌ Webhook request failed:', response.status, response.statusText);
+        addBotMessage(`❌ Failed to send message to workflow. Status: ${response.status}`, []);
       }
     } catch (error) {
+      console.error('❌ Webhook request error:', error);
       addBotMessage("❌ Error connecting to workflow: " + error.message, []);
     }
   };
@@ -187,18 +209,23 @@ const DashboardChatbot = () => {
 
     // Check if user is trying to connect webhook
     if (isWebhookUrl(inputMessage)) {
+      console.log('🔍 Webhook URL detected:', inputMessage);
       const workflowId = extractWorkflowId(inputMessage);
+      console.log('🔍 Extracted workflow ID:', workflowId);
+      
       if (workflowId) {
         setConnectedWorkflowId(workflowId);
         addBotMessage(
           `✅ **Connected to workflow!**\n\nWorkflow ID: \`${workflowId}\`\n\n🤖 I'm now intelligent! Send me messages and I'll process them through your workflow.\n\n💬 **Try saying something...**`,
           []
         );
+        console.log('✅ Connected to workflow ID:', workflowId);
       } else {
         addBotMessage(
-          "❌ Invalid webhook URL format.\n\n📝 **Expected format:**\n\`https://workflow-lg9z.onrender.com/api/chat/webhook/your-workflow-id\`",
+          "❌ Invalid webhook URL format.\n\n📝 **Expected format:**\n\`https://workflow-lg9z.onrender.com/api/chat/webhook/your-workflow-id\` or \`http://localhost:3001/api/chat/webhook/your-workflow-id\`",
           [{ text: "❓ How to get webhook?", action: "webhook_help" }]
         );
+        console.log('❌ Failed to extract workflow ID from:', inputMessage);
       }
       setInputMessage('');
       return;

@@ -26,9 +26,15 @@ class ChatResponseNode {
             console.log(`💬 Chat Response executing for node ${this.id}`);
             console.log('Input data:', inputData);
 
-            // Validate input data
-            if (!inputData || !inputData.sessionId) {
-                throw new Error('No session ID provided');
+            // Validate input data and extract session ID
+            let sessionId;
+            if (inputData && inputData.sessionId) {
+                sessionId = inputData.sessionId;
+            } else if (inputData && inputData.session && inputData.session.id) {
+                sessionId = inputData.session.id;
+            } else {
+                console.error('❌ No session ID found in input data:', JSON.stringify(inputData, null, 2));
+                throw new Error('No session ID provided in input data');
             }
 
             // Determine response content
@@ -60,7 +66,7 @@ class ChatResponseNode {
             };
 
             // Send response via API
-            const response = await this.sendChatResponse(inputData.sessionId, responseData);
+            const response = await this.sendChatResponse(sessionId, responseData);
 
             if (!response.success) {
                 throw new Error(response.error || 'Failed to send chat response');
@@ -71,7 +77,7 @@ class ChatResponseNode {
             return {
                 success: true,
                 nodeId: this.id,
-                sessionId: inputData.sessionId,
+                sessionId: sessionId,
                 messageId: response.messageId,
                 sentContent: responseContent,
                 outputs: {

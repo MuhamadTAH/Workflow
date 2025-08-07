@@ -515,7 +515,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
                                     <div className="webhook-url-container">
                                         <input 
                                             type="text" 
-                                            value={formData.workflowId ? `https://workflow-lg9z.onrender.com/api/chat/webhook/${formData.workflowId}` : 'Generating webhook URL...'} 
+                                            value={formData.workflowId ? `${process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : 'https://workflow-lg9z.onrender.com'}/api/chat/webhook/${formData.workflowId}` : 'Generating webhook URL...'} 
                                             readOnly 
                                             className="webhook-url-input"
                                             style={{ 
