@@ -1424,9 +1424,18 @@ input, textarea, select {
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #ffffff; /* Clean white background by default */
   min-height: 100vh;
   color: #333;
+}
+
+/* Apply purple gradient only to specific pages */
+.auth-page body,
+.connections-page,
+.privacy-page,
+.terms-page,
+.overview-page {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 /* Override default React styles */

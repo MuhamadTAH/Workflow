@@ -141,6 +141,12 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
       mergeMode: node.data.mergeMode || 'append',
       batchSize: node.data.batchSize || 1,
       fields: node.data.fields || [{ key: '', value: '' }],
+      // Chat trigger specific fields
+      filterKeywords: node.data.filterKeywords || [],
+      allowedDomains: node.data.allowedDomains || [],
+      requireUserInfo: node.data.requireUserInfo || false,
+      autoRespond: node.data.autoRespond || false,
+      autoResponseMessage: node.data.autoResponseMessage || 'Thank you for your message. We\'ll get back to you soon!',
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -483,6 +489,114 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
                                     </div>
                                 ))}
                                 <button onClick={handleAddDataField} className="add-field-btn"><i className="fa-solid fa-plus mr-2"></i> Add Field</button>
+                            </div>
+                        )}
+
+                        {node.data.type === 'chatTrigger' && (
+                            <div className="form-group mt-6">
+                                <label>Webhook Configuration</label>
+                                <div className="form-group">
+                                    <label htmlFor="workflowId">Workflow ID</label>
+                                    <input 
+                                        type="text" 
+                                        name="workflowId" 
+                                        id="workflowId" 
+                                        value={formData.workflowId} 
+                                        readOnly 
+                                        className="readonly-input"
+                                        style={{ backgroundColor: '#f0f7ff', color: '#2563eb', fontWeight: '500', border: '2px solid #bfdbfe' }}
+                                        placeholder="Auto-generated workflow ID"
+                                    />
+                                    <p className="text-sm text-green-600 mt-2">✅ Automatically generated unique ID for your webhook</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="webhookUrl">🔗 Ready-to-Use Webhook URL</label>
+                                    <div className="webhook-url-container">
+                                        <input 
+                                            type="text" 
+                                            value={formData.workflowId ? `https://workflow-lg9z.onrender.com/api/chat/webhook/${formData.workflowId}` : 'Generating webhook URL...'} 
+                                            readOnly 
+                                            className="webhook-url-input"
+                                            style={{ 
+                                                backgroundColor: '#f0fdf4', 
+                                                color: '#15803d', 
+                                                fontFamily: 'monospace',
+                                                fontSize: '13px',
+                                                border: '2px solid #bbf7d0',
+                                                padding: '12px'
+                                            }}
+                                        />
+                                        <button 
+                                            type="button" 
+                                            onClick={() => {
+                                                const url = `https://workflow-lg9z.onrender.com/api/chat/webhook/${formData.workflowId}`;
+                                                navigator.clipboard.writeText(url).then(() => {
+                                                    // Optional: show success feedback
+                                                    const btn = document.querySelector('.copy-btn');
+                                                    const originalText = btn.innerHTML;
+                                                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                                                    btn.style.backgroundColor = '#16a34a';
+                                                    setTimeout(() => {
+                                                        btn.innerHTML = originalText;
+                                                        btn.style.backgroundColor = '#2563eb';
+                                                    }, 2000);
+                                                });
+                                            }}
+                                            className="copy-btn"
+                                            disabled={!formData.workflowId}
+                                            style={{
+                                                backgroundColor: '#2563eb',
+                                                color: 'white',
+                                                border: 'none',
+                                                padding: '12px 16px',
+                                                borderRadius: '8px',
+                                                fontWeight: '600'
+                                            }}
+                                        >
+                                            <i className="fa-solid fa-copy"></i> Copy URL
+                                        </button>
+                                    </div>
+                                    <p className="text-sm text-blue-600 mt-2">📋 <strong>Ready to use:</strong> Copy this complete URL and paste it directly into your website's chat widget configuration. No modifications needed!</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="filterKeywords">Filter Keywords (Optional)</label>
+                                    <ExpressionInput name="filterKeywords" value={formData.filterKeywords.join(', ')} onChange={(e) => setFormData(prev => ({ ...prev, filterKeywords: e.target.value.split(',').map(k => k.trim()).filter(k => k) }))} inputData={inputData} placeholder="support, help, question" />
+                                    <p className="text-sm text-gray-500 mt-2">Only trigger workflow for messages containing these keywords</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="allowedDomains">Allowed Domains (Optional)</label>
+                                    <ExpressionInput name="allowedDomains" value={formData.allowedDomains.join(', ')} onChange={(e) => setFormData(prev => ({ ...prev, allowedDomains: e.target.value.split(',').map(d => d.trim()).filter(d => d) }))} inputData={inputData} placeholder="yoursite.com, app.yoursite.com" />
+                                    <p className="text-sm text-gray-500 mt-2">Only allow messages from these domains</p>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Options</label>
+                                    <div className="toggle-option">
+                                        <label htmlFor="requireUserInfo" className="toggle-label">Require User Info</label>
+                                        <div className="toggle-switch">
+                                            <input type="checkbox" name="requireUserInfo" id="requireUserInfo" checked={formData.requireUserInfo} onChange={handleInputChange} />
+                                            <span className="slider"></span>
+                                        </div>
+                                    </div>
+                                    <div className="toggle-option mt-2">
+                                        <label htmlFor="autoRespond" className="toggle-label">Auto Respond</label>
+                                        <div className="toggle-switch">
+                                            <input type="checkbox" name="autoRespond" id="autoRespond" checked={formData.autoRespond} onChange={handleInputChange} />
+                                            <span className="slider"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {formData.autoRespond && (
+                                    <div className="form-group">
+                                        <label htmlFor="autoResponseMessage">Auto Response Message</label>
+                                        <ExpressionInput name="autoResponseMessage" value={formData.autoResponseMessage} onChange={handleInputChange} inputData={inputData} isTextarea={true} />
+                                        <p className="text-sm text-gray-500 mt-2">Message to send automatically when triggered</p>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
