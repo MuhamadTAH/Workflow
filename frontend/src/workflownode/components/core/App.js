@@ -77,7 +77,7 @@ const App = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const loadWorkflowId = urlParams.get('load');
     
-    if (loadWorkflowId) {
+    if (loadWorkflowId && currentWorkflowId !== loadWorkflowId) {
       const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
       const workflowToLoad = savedWorkflows.find(w => w.id === loadWorkflowId);
       
@@ -101,15 +101,19 @@ const App = () => {
         
         console.log('Workflow loaded:', workflowToLoad);
       }
-    } else {
-      // For new workflows, set initial state
+    } else if (!loadWorkflowId && !currentWorkflowId && lastSavedState === null) {
+      // For new workflows, set initial state only once
       setTimeout(() => {
-        const initialState = createStateSnapshot();
+        const initialState = JSON.stringify({
+          name: 'Untitled Workflow',
+          nodes: [],
+          edges: []
+        });
         setLastSavedState(initialState);
         setHasUnsavedChanges(false);
       }, 100);
     }
-  }, [setNodes, setEdges, createStateSnapshot]);
+  }, [setNodes, setEdges, currentWorkflowId, lastSavedState]);
 
   // Add beforeunload listener for unsaved changes warning
   useEffect(() => {
