@@ -10,6 +10,7 @@ const shopsRoutes = require('./routes/shops');
 const productsRoutes = require('./routes/products');
 const publicRoutes = require('./routes/public');
 const uploadsRoutes = require('./routes/uploads');
+const chatRoutes = require('./routes/chat');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
@@ -20,7 +21,26 @@ const app = express();
 
 // Middleware
 app.use(requestLogger); // Log all requests
-app.use(cors());
+
+// Enhanced logging middleware for debugging
+app.use((req, res, next) => {
+  console.log('🌐 INCOMING REQUEST:', {
+    method: req.method,
+    url: req.url,
+    origin: req.headers.origin,
+    userAgent: req.headers['user-agent']?.substring(0, 50),
+    timestamp: new Date().toISOString()
+  });
+  next();
+});
+
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 'http://localhost:5179', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  optionsSuccessStatus: 200
+}));
 app.use(express.json()); // Parse JSON bodies
 
 // Serve static files (uploaded images)
@@ -36,6 +56,7 @@ app.use('/api/shops', shopsRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/uploads', uploadsRoutes);
+app.use('/api/chat', chatRoutes);
 // NEW ROUTES FROM WORKFLOWNODE
 app.use('/api/nodes', nodesRoutes);
 
@@ -47,11 +68,43 @@ app.get('/api/hello', (req, res) => {
 // Test webhook route (for debugging)
 app.post('/api/test-webhook', (req, res) => {
   logger.debug('Test webhook received', { body: req.body });
+  console.log('🧪 TEST WEBHOOK HIT:', req.body);
   res.json({ 
     received: true, 
     data: req.body,
     timestamp: new Date().toISOString()
   });
+});
+
+// Debug route specifically for chat webhooks
+app.post('/api/chat/webhook/debug', (req, res) => {
+  console.log('🐛 DEBUG WEBHOOK HIT - Chat webhook working!');
+  console.log('Request body:', req.body);
+  res.json({
+    success: true,
+    message: 'Debug webhook hit successfully!',
+    receivedData: req.body,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Universal debug route to catch ALL webhook requests
+app.use('/api/chat/webhook/*', (req, res, next) => {
+  console.log('🔍 WEBHOOK REQUEST INTERCEPTED:', {
+    method: req.method,
+    url: req.url,
+    originalUrl: req.originalUrl,
+    params: req.params,
+    body: req.body,
+    headers: {
+      'content-type': req.headers['content-type'],
+      'user-agent': req.headers['user-agent'],
+      'origin': req.headers['origin'],
+      'referer': req.headers['referer']
+    },
+    timestamp: new Date().toISOString()
+  });
+  next();
 });
 
 // Debug route to check uploads

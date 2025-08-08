@@ -1,11 +1,19 @@
 # Claude Code Project Documentation
 
-## 🔄 DEPLOYMENT RULE
-**IMPORTANT**: Backend runs on Render production server. When making backend changes:
-1. Commit and push all changes to GitHub: https://github.com/MuhamadTAH/Workflownode.git
-2. Render auto-deploys from GitHub pushes
-3. Only run frontend locally: `cd frontend && npm run dev`
-4. Backend URL: https://workflow-lg9z.onrender.com
+## 🔄 DEPLOYMENT WORKFLOW
+**IMPORTANT**: Backend runs on Render production server. Frontend runs locally.
+
+### Development Process:
+1. **Frontend Development**: Run `cd frontend && npm run dev` (connects to production backend)
+2. **Make Changes**: Edit frontend/backend code as needed  
+3. **Commit Changes**: `git add . && git commit -m "description"`
+4. **Push to GitHub**: `git push origin main` → https://github.com/MuhamadTAH/Workflow.git
+5. **Auto-Deploy**: Render automatically deploys backend from GitHub pushes
+
+### URLs:
+- **Frontend**: http://localhost:5173+ (or auto-assigned port)
+- **Backend**: https://workflow-lg9z.onrender.com  
+- **GitHub**: https://github.com/MuhamadTAH/Workflow.git
 
 ## Project Overview
 Full-Stack Workflow Builder System with Telegram Integration (React + Express + SQLite)
@@ -20,6 +28,7 @@ Full-Stack Workflow Builder System with Telegram Integration (React + Express + 
 ✅ **COMPLETE SYSTEMS**:
 - Authentication system (signup/login/profile)
 - Visual workflow builder with drag-and-drop interface at `/workflow`
+- **Workflow Management System**: Save workflows → Auto-navigate to overview → Click to edit → Perfect loading
 - Telegram bot integration (@AI_MarketingTeambot) with webhook support
 - Social media connections page (OAuth-ready for 8 platforms)
 - WorkflowNode master control system with professional UI
@@ -35,7 +44,17 @@ Full-Stack Workflow Builder System with Telegram Integration (React + Express + 
 - **Visual Editor**: Drag-and-drop nodes from sidebar to canvas
 - **17+ Node Types**: Telegram, AI Agent, Social Media, Logic nodes (If/Switch/Filter/etc.)
 - **Real-time Config**: Instant parameter updates and connections
+- **Stay After Save**: Remains on workflow builder after saving (no auto-navigation)
+- **Perfect Loading**: Click workflow in overview → loads with all data intact
 - **Local/Production Modes**: Test workflows locally or with real Telegram messages
+
+### 2.1. Workflow Management (`/workflows`)
+- **Overview Page**: View all saved workflows in professional cards
+- **Real Data**: Loads from localStorage with status, node count, executions
+- **Click to Edit**: Seamless workflow loading via `?load={workflowId}` parameter
+- **Stay-on-Page**: After saving, remain on workflow builder (no auto-navigation)
+- **Unsaved Changes**: Smart detection with visual warnings and browser alerts
+- **Complete Cycle**: Save → Stay → Continue Working OR Navigate → Overview → Edit → Save
 
 ### 3. Telegram Integration
 - **Bot**: @AI_MarketingTeambot (Token: `8148982414:AAE...`)
@@ -130,7 +149,17 @@ social_connections: id, user_id, platform, access_token, refresh_token,
                    platform_profile_url, connected_at, updated_at, is_active
 ```
 
-## 🔧 Recent Critical Fixes (Aug 2025)
+## 🔧 Recent Critical Fixes & Improvements (Aug 2025)
+
+### Workflow Management System Enhancements (Aug 8, 2025)
+1. **Stay-on-Page After Save**: Removed automatic navigation to overview after saving workflows
+2. **Unsaved Changes Detection**: 
+   - Smart state comparison system tracks workflow name, nodes, and connections
+   - Visual indicators with orange "Unsaved changes" text and pulsing animation
+   - Enhanced save button shows "Save Changes" when unsaved changes exist
+3. **Browser Warning System**: Warns before leaving page with unsaved changes
+4. **Infinite Loop Fix**: Fixed "Maximum update depth exceeded" error when loading workflows
+5. **Stable Workflow Loading**: Proper state management prevents duplicate loads and white pages
 
 ### Node Visual System Perfection
 1. **Fixed Icons**: Removed debug code, added complete FontAwesome mapping for all 17+ node types
@@ -139,13 +168,16 @@ social_connections: id, user_id, platform, access_token, refresh_token,
 4. **Text Wrapping**: Fixed overflow issues, added proper word wrapping within node boundaries
 5. **Enhanced Visibility**: Improved icon contrast, size, and definition
 
-### Files Modified
-- `NodeShape.js` - Complete icon mapping system
+### Files Modified (Latest Updates)
+- `App.js` (workflownode) - Unsaved changes detection, infinite loop fix
+- `Toolbar.js` - Visual indicators for unsaved changes
+- `toolbar.css` - Styling for unsaved changes indicators
+- `WorkflowsOverview.jsx` - Real workflow data loading from localStorage
+- `App.jsx` (main) - Updated routing and dashboard navigation
+- `NodeShape.js` - Complete icon mapping system  
 - `NodeStyles.css` - Enhanced visibility & text wrapping
-- `styles.css` - Removed conflicting global styles
-- `App.js` - Fixed ReactFlow deprecation warnings
 
 ---
 
-*Current State: Production-ready workflow automation platform with professional node system, real Telegram integration, and complete social media framework*  
-*Last Updated: August 6, 2025*
+*Current State: Production-ready workflow automation platform with complete workflow management system, professional node system, real Telegram integration, and social media framework*  
+*Last Updated: August 8, 2025*
