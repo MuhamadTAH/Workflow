@@ -512,41 +512,56 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
                                     <button
                                         type="button"
                                         className="copy-btn w-full"
-                                        onClick={() => {
-                                            // Generate sample Telegram message data
-                                            const sampleData = {
-                                                update_id: 123456789,
-                                                message: {
-                                                    message_id: 1,
-                                                    from: {
-                                                        id: 987654321,
-                                                        is_bot: false,
-                                                        first_name: "John",
-                                                        username: "john_doe",
-                                                        language_code: "en"
-                                                    },
-                                                    chat: {
-                                                        id: 987654321,
-                                                        first_name: "John",
-                                                        username: "john_doe",
-                                                        type: "private"
-                                                    },
-                                                    date: Math.floor(Date.now() / 1000),
-                                                    text: "Hello, this is a test message!"
+                                        onClick={async () => {
+                                            if (!formData.botToken) {
+                                                alert('Please enter a bot token first');
+                                                return;
+                                            }
+                                            
+                                            try {
+                                                setTokenCheck({ status: 'checking', message: 'Fetching real messages...' });
+                                                
+                                                // Always use production backend
+                                                const API_BASE = 'https://workflow-lg9z.onrender.com';
+                                                const response = await fetch(`${API_BASE}/api/nodes/telegram-get-updates`, {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({ 
+                                                        token: formData.botToken,
+                                                        limit: 5,  // Get last 5 messages
+                                                        offset: -1 // Get recent messages
+                                                    })
+                                                });
+                                                
+                                                const result = await response.json();
+                                                
+                                                if (result.success && result.updates && result.updates.length > 0) {
+                                                    // Use the most recent message
+                                                    const latestUpdate = result.updates[result.updates.length - 1];
+                                                    setOutputData([latestUpdate]);
+                                                    setTokenCheck({ status: 'valid', message: `✅ Fetched ${result.updates.length} real message(s)` });
+                                                    
+                                                    console.log('✅ Real Telegram messages fetched:', result.updates);
+                                                    console.log('💡 Latest message loaded. Connect this trigger to another node and click GET.');
+                                                } else if (result.success && result.updates && result.updates.length === 0) {
+                                                    setTokenCheck({ status: 'invalid', message: '⚠️ No messages found. Send a message to your bot first.' });
+                                                    console.log('⚠️ No messages found in bot. Send a test message to your bot.');
+                                                } else {
+                                                    setTokenCheck({ status: 'invalid', message: result.error || 'Failed to fetch messages' });
+                                                    console.error('❌ Failed to fetch messages:', result.error);
                                                 }
-                                            };
-                                            
-                                            // Update the output data locally
-                                            setOutputData([sampleData]);
-                                            
-                                            console.log('✅ Sample Telegram message data generated:', sampleData);
-                                            console.log('💡 Now connect this trigger to another node and click GET on that node to see this data.');
+                                            } catch (error) {
+                                                setTokenCheck({ status: 'invalid', message: `Network error: ${error.message}` });
+                                                console.error('❌ Error fetching real messages:', error);
+                                            }
                                         }}
                                         style={{ backgroundColor: '#0088cc', color: 'white' }}
+                                        disabled={!formData.botToken}
                                     >
-                                        <i className="fa-solid fa-play mr-2"></i>Generate Sample Data
+                                        <i className="fa-solid fa-download mr-2"></i>
+                                        {tokenCheck.status === 'checking' && tokenCheck.message.includes('Fetching') ? 'Fetching...' : 'Get Real Messages'}
                                     </button>
-                                    <p className="text-sm text-gray-500 mt-2">Generate sample Telegram message data for testing downstream nodes.</p>
+                                    <p className="text-sm text-gray-500 mt-2">Fetch real messages sent to your Telegram bot for testing downstream nodes.</p>
                                 </div>
                             </div>
                         )}
