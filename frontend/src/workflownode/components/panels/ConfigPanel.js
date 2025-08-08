@@ -268,6 +268,46 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
   };
   
   const handleGetData = () => {
+    // Special handling for telegram trigger nodes that should fetch from their own output
+    if (node.data.type === 'telegramTrigger') {
+        if (outputData && outputData.length > 0) {
+            setInputData(outputData);
+            console.log('✅ Using telegram output data as input:', outputData);
+            return;
+        } else {
+            setInputData({ message: "No telegram data available. Click 'Fetch Messages' button first to get real telegram data." });
+            return;
+        }
+    }
+
+    // Special handling for telegramSendMessage nodes that can fetch from connected telegram triggers
+    if (node.data.type === 'telegramSendMessage') {
+        const incomingEdge = edges.find(edge => edge.target === node.id);
+        if (!incomingEdge) {
+            setInputData({ message: "Connect a Telegram Trigger node to get message data for this send node." });
+            return;
+        }
+        const sourceNode = nodes.find(n => n.id === incomingEdge.source);
+        if (!sourceNode) {
+            setInputData({ message: "Source node not found." });
+            return;
+        }
+        
+        // If connected to a telegram trigger, use its output data
+        if (sourceNode.data.type === 'telegramTrigger' && sourceNode.data.outputData) {
+            setInputData(sourceNode.data.outputData);
+            console.log('✅ Using telegram trigger data for send message:', sourceNode.data.outputData);
+            return;
+        } else if (sourceNode.data.outputData) {
+            setInputData(sourceNode.data.outputData);
+            console.log(`✅ Using data from '${sourceNode.data.label}':`, sourceNode.data.outputData);
+            return;
+        } else {
+            setInputData({ message: `Previous node (${sourceNode?.data.label || 'Unknown'}) has not been executed or has no output data.` });
+            return;
+        }
+    }
+
     // Special handling for merge node - collect data from all connected nodes
     if (node.data.type === 'merge') {
         const incomingEdges = edges.filter(edge => edge.target === node.id);
