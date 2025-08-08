@@ -169,4 +169,37 @@ router.post('/verify-claude', async (req, res) => {
   }
 });
 
+// TEMPORARY: AI Agent execution route (moved here due to routing issues)
+router.post('/run-ai-agent', async (req, res) => {
+  try {
+    const { node, inputData } = req.body;
+    
+    if (!node || node.type !== 'aiAgent') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid request - aiAgent node required' 
+      });
+    }
+
+    // Load the AI agent node
+    const aiAgentNode = require('../nodes/actions/aiAgentNode');
+    const result = await aiAgentNode.execute(node.config, inputData);
+    
+    return res.json({
+      success: true,
+      result: result,
+      nodeType: 'aiAgent',
+      executedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ AI Agent execution failed:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: `AI Agent execution failed: ${error.message}`,
+      nodeType: 'aiAgent',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

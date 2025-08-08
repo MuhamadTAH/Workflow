@@ -454,7 +454,14 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
     try {
         // Always use production backend (as per deployment setup)
         const API_BASE = 'https://workflow-lg9z.onrender.com';
-        const response = await fetch(`${API_BASE}/api/nodes/run-node`, {
+        
+        // Special handling for AI agent nodes due to routing issues
+        let endpoint = `${API_BASE}/api/nodes/run-node`;
+        if (node.data.type === 'aiAgent') {
+            endpoint = `${API_BASE}/api/run-ai-agent`;
+        }
+        
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
