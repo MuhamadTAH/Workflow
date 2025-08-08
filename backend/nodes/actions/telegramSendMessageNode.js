@@ -363,7 +363,8 @@ function processTemplates(text, inputData) {
             // Also create direct data entries for backwards compatibility
             if (nodeInfo.data && typeof nodeInfo.data === 'object') {
                 Object.keys(nodeInfo.data).forEach(key => {
-                    if (!(key in dataToProcess)) {
+                    // Priority: Give Telegram Trigger data priority over AI Agent data for common keys
+                    if (!(key in dataToProcess) || nodeInfo.nodeType === 'telegramTrigger') {
                         dataToProcess[key] = nodeInfo.data[key];
                     }
                 });

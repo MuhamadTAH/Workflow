@@ -145,7 +145,8 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
                     // Also create direct data entries for backwards compatibility
                     if (nodeInfo.data && typeof nodeInfo.data === 'object') {
                         Object.keys(nodeInfo.data).forEach(key => {
-                            if (!(key in dataToUse)) {
+                            // Priority: Give Telegram Trigger data priority over AI Agent data for common keys
+                            if (!(key in dataToUse) || nodeInfo.nodeType === 'telegramTrigger') {
                                 dataToUse[key] = nodeInfo.data[key];
                             }
                         });

@@ -134,23 +134,92 @@ function processTemplates(text, inputData) {
         return text;
     }
     
-    // Simple template processing - replace {{ key }} with data values
+    console.log('🤖 AI Agent processing templates in text:', text);
+    console.log('📊 Available input data:', JSON.stringify(inputData, null, 2));
+    
+    // Handle cascading data structure similar to telegram node
+    let dataToProcess;
+    if (Array.isArray(inputData) && inputData.length > 0 && inputData[0].nodeId) {
+        // This is cascading data structure - convert to flat object for template resolution
+        dataToProcess = {};
+        inputData.forEach(nodeInfo => {
+            // Create entries like "1. AI Agent" for easy template access
+            const nodeKey = `${nodeInfo.order}. ${nodeInfo.nodeLabel}`;
+            dataToProcess[nodeKey] = nodeInfo.data;
+            
+            // Also create direct data entries for backwards compatibility
+            if (nodeInfo.data && typeof nodeInfo.data === 'object') {
+                Object.keys(nodeInfo.data).forEach(key => {
+                    // Priority: Give Telegram Trigger data priority over AI Agent data for common keys
+                    if (!(key in dataToProcess) || nodeInfo.nodeType === 'telegramTrigger') {
+                        dataToProcess[key] = nodeInfo.data[key];
+                    }
+                });
+            }
+        });
+    } else {
+        // Use original data structure
+        dataToProcess = inputData;
+    }
+    
+    console.log('🤖 Processed data structure:', JSON.stringify(dataToProcess, null, 2));
+    
+    // Enhanced template processing - replace {{ key }} with data values
     return text.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, path) => {
         try {
-            const keys = path.trim().split('.');
-            let current = inputData;
+            const pathStr = path.trim();
+            const keys = pathStr.split('.');
+            
+            console.log(`🔍 AI Agent resolving path: ${pathStr}`);
+            
+            // Try direct path first (e.g., "message.text" or "1. Telegram Trigger.message.text")
+            let current = dataToProcess;
+            let found = true;
             
             for (const key of keys) {
                 if (current && typeof current === 'object' && key in current) {
                     current = current[key];
                 } else {
-                    return match; // Return original if path not found
+                    found = false;
+                    break;
                 }
             }
             
-            return typeof current === 'object' ? JSON.stringify(current) : String(current);
+            if (found) {
+                const result = typeof current === 'object' ? JSON.stringify(current) : String(current);
+                console.log(`✅ AI Agent direct path resolved: ${pathStr} = ${result}`);
+                return result;
+            }
+            
+            // If direct path fails, try to find in nested data (backwards compatibility)
+            if (typeof dataToProcess === 'object' && dataToProcess !== null) {
+                for (const [nodeKey, nodeData] of Object.entries(dataToProcess)) {
+                    if (typeof nodeData === 'object' && nodeData !== null) {
+                        let nestedCurrent = nodeData;
+                        let nestedFound = true;
+                        
+                        for (const key of keys) {
+                            if (nestedCurrent && typeof nestedCurrent === 'object' && key in nestedCurrent) {
+                                nestedCurrent = nestedCurrent[key];
+                            } else {
+                                nestedFound = false;
+                                break;
+                            }
+                        }
+                        
+                        if (nestedFound) {
+                            const result = typeof nestedCurrent === 'object' ? JSON.stringify(nestedCurrent) : String(nestedCurrent);
+                            console.log(`✅ AI Agent nested path resolved: ${pathStr} in ${nodeKey} = ${result}`);
+                            return result;
+                        }
+                    }
+                }
+            }
+            
+            console.log(`❌ AI Agent path not found: ${pathStr}`);
+            return match; // Return original if path not found anywhere
         } catch (error) {
-            console.warn(`Template processing error for ${match}:`, error.message);
+            console.warn(`❌ AI Agent template processing error for ${match}:`, error.message);
             return match;
         }
     });
