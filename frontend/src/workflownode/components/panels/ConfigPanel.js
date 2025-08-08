@@ -557,8 +557,8 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
                                                 try {
                                                     setTokenCheck({ status: 'checking', message: '' });
                                                     const API_BASE = 'https://workflow-lg9z.onrender.com';
-                                                    // Use ai namespace as it should be working
-                                                    const res = await fetch(`${API_BASE}/api/ai/verify-claude`, {
+                                                    // Use auth namespace as temporary workaround
+                                                    const res = await fetch(`${API_BASE}/api/verify-claude`, {
                                                         method: 'POST',
                                                         headers: { 'Content-Type': 'application/json' },
                                                         body: JSON.stringify({ apiKey: formData.apiKey })

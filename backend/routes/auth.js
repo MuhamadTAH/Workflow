@@ -146,4 +146,27 @@ router.get('/profile', verifyToken, (req, res) => {
   }
 });
 
+// TEMPORARY: Claude API verification route (moved here due to routing issues)
+router.post('/verify-claude', async (req, res) => {
+  try {
+    const { apiKey } = req.body || {};
+    
+    if (!apiKey || typeof apiKey !== 'string') {
+      return res.status(400).json({ ok: false, message: 'apiKey is required' });
+    }
+    
+    if (!apiKey.startsWith('sk-ant-')) {
+      return res.status(401).json({ ok: false, message: 'Invalid Claude API key format. Must start with sk-ant-' });
+    }
+
+    if (apiKey.length < 50) {
+      return res.status(401).json({ ok: false, message: 'Invalid Claude API key length' });
+    }
+    
+    return res.json({ ok: true, model: 'claude-3-5-sonnet-20241022' });
+  } catch (error) {
+    return res.status(500).json({ ok: false, message: error.message || 'Verification failed' });
+  }
+});
+
 module.exports = router;
