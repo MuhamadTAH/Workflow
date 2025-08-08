@@ -147,9 +147,50 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
       requireUserInfo: node.data.requireUserInfo || false,
       autoRespond: node.data.autoRespond || false,
       autoResponseMessage: node.data.autoResponseMessage || 'Thank you for your message. We\'ll get back to you soon!',
+      // Telegram trigger specific fields
+      botToken: node.data.botToken || '',
+      // Telegram send message fields
+      chatId: node.data.chatId || '{{message.chat.id}}',
+      messageType: node.data.messageType || 'text',
+      // text
+      messageText: node.data.messageText || 'Hello! This is a message from your bot.',
+      parseMode: node.data.parseMode || '',
+      disableWebPagePreview: node.data.disableWebPagePreview || false,
+      // photo
+      photoUrl: node.data.photoUrl || '',
+      photoCaption: node.data.photoCaption || '',
+      // video
+      videoUrl: node.data.videoUrl || '',
+      videoCaption: node.data.videoCaption || '',
+      videoDuration: node.data.videoDuration || '',
+      // audio
+      audioUrl: node.data.audioUrl || '',
+      audioCaption: node.data.audioCaption || '',
+      // voice
+      voiceUrl: node.data.voiceUrl || '',
+      // document
+      documentUrl: node.data.documentUrl || '',
+      // animation
+      animationUrl: node.data.animationUrl || '',
+      // sticker
+      stickerFileId: node.data.stickerFileId || '',
+      // location
+      latitude: node.data.latitude || '',
+      longitude: node.data.longitude || '',
+      locationHorizontalAccuracy: node.data.locationHorizontalAccuracy || '',
+      // contact
+      contactPhoneNumber: node.data.contactPhoneNumber || '',
+      contactFirstName: node.data.contactFirstName || '',
+      contactLastName: node.data.contactLastName || '',
+      // poll
+      pollQuestion: node.data.pollQuestion || '',
+      pollOptions: node.data.pollOptions || '',
+      // admin
+      banUserId: node.data.banUserId || '',
   });
   
   const [isLoading, setIsLoading] = useState(false);
+  const [tokenCheck, setTokenCheck] = useState({ status: 'idle', message: '' });
   const [activeTab, setActiveTab] = useState('parameters');
   const [inputData, setInputData] = useState(node.data.inputData || null);
   const [outputData, setOutputData] = useState(node.data.outputData || null);
@@ -416,6 +457,315 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
                                 ))}
                                 <button onClick={handleAddSwitchRule} className="add-field-btn"><i className="fa-solid fa-plus mr-2"></i> Add Routing Rule</button>
                                 <div className="form-group mt-6"><label>Options</label><div className="toggle-option"><label htmlFor="fallbackOutput" className="toggle-label">Fallback Output</label><div className="toggle-switch"><input type="checkbox" id="fallbackOutput" checked={formData.switchOptions.includes('fallbackOutput')} onChange={() => handleOptionToggle('fallbackOutput')} /><span className="slider"></span></div></div><div className="toggle-option mt-2"><label htmlFor="ignoreCaseSwitch" className="toggle-label">Ignore Case</label><div className="toggle-switch"><input type="checkbox" id="ignoreCaseSwitch" checked={formData.switchOptions.includes('ignoreCase')} onChange={() => handleOptionToggle('ignoreCase')} /><span className="slider"></span></div></div></div>
+                            </div>
+                        )}
+
+                        {node.data.type === 'telegramTrigger' && (
+                            <div className="form-group mt-6">
+                                <label htmlFor="botToken">Telegram Bot Token</label>
+                                <div className="flex" style={{ gap: '0.5rem', alignItems: 'center' }}>
+                                    <input
+                                        type="password"
+                                        name="botToken"
+                                        id="botToken"
+                                        value={formData.botToken}
+                                        onChange={handleInputChange}
+                                        placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+                                        style={{ flex: 1 }}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="copy-btn"
+                                        onClick={async () => {
+                                            try {
+                                                setTokenCheck({ status: 'checking', message: '' });
+                                                // Always use production backend (as per deployment setup)
+                                                const API_BASE = 'https://workflow-lg9z.onrender.com';
+                                                const res = await fetch(`${API_BASE}/api/nodes/validate-telegram-token`, {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({ token: formData.botToken })
+                                                });
+                                                const json = await res.json();
+                                                if (res.ok && json.success) {
+                                                    setTokenCheck({ status: 'valid', message: `@${json.bot?.username || 'bot'} (${json.bot?.first_name || ''})` });
+                                                } else {
+                                                    setTokenCheck({ status: 'invalid', message: json.error || 'Invalid token' });
+                                                }
+                                            } catch (e) {
+                                                setTokenCheck({ status: 'invalid', message: e.message || 'Validation failed' });
+                                            }
+                                        }}
+                                    >
+                                        {tokenCheck.status === 'checking' ? 'Checking…' : 'Check Token'}
+                                    </button>
+                                </div>
+                                {tokenCheck.status === 'valid' && (
+                                    <p className="text-sm" style={{ color: '#16a34a', marginTop: '0.5rem' }}>✅ Valid token: {tokenCheck.message}</p>
+                                )}
+                                {tokenCheck.status === 'invalid' && (
+                                    <p className="text-sm" style={{ color: '#dc2626', marginTop: '0.5rem' }}>❌ {tokenCheck.message}</p>
+                                )}
+                                <p className="text-sm text-gray-500 mt-2">Paste your bot token from BotFather and click Check to validate.</p>
+                                
+                                <div className="form-group mt-4">
+                                    <button
+                                        type="button"
+                                        className="copy-btn w-full"
+                                        onClick={() => {
+                                            // Generate sample Telegram message data
+                                            const sampleData = {
+                                                update_id: 123456789,
+                                                message: {
+                                                    message_id: 1,
+                                                    from: {
+                                                        id: 987654321,
+                                                        is_bot: false,
+                                                        first_name: "John",
+                                                        username: "john_doe",
+                                                        language_code: "en"
+                                                    },
+                                                    chat: {
+                                                        id: 987654321,
+                                                        first_name: "John",
+                                                        username: "john_doe",
+                                                        type: "private"
+                                                    },
+                                                    date: Math.floor(Date.now() / 1000),
+                                                    text: "Hello, this is a test message!"
+                                                }
+                                            };
+                                            
+                                            // Update the output data locally
+                                            setOutputData([sampleData]);
+                                            
+                                            console.log('✅ Sample Telegram message data generated:', sampleData);
+                                            console.log('💡 Now connect this trigger to another node and click GET on that node to see this data.');
+                                        }}
+                                        style={{ backgroundColor: '#0088cc', color: 'white' }}
+                                    >
+                                        <i className="fa-solid fa-play mr-2"></i>Generate Sample Data
+                                    </button>
+                                    <p className="text-sm text-gray-500 mt-2">Generate sample Telegram message data for testing downstream nodes.</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {node.data.type === 'telegramSendMessage' && (
+                            <div className="form-group mt-6">
+                                <label>Telegram Send Message</label>
+                                <div className="form-group">
+                                    <label htmlFor="botToken">Bot Token</label>
+                                    <div className="flex" style={{ gap: '0.5rem', alignItems: 'center' }}>
+                                        <input type="password" name="botToken" id="botToken" value={formData.botToken} onChange={handleInputChange} placeholder="123456:ABC-..." style={{ flex: 1 }} />
+                                        <button
+                                            type="button"
+                                            className="copy-btn"
+                                            onClick={async () => {
+                                                try {
+                                                    setTokenCheck({ status: 'checking', message: '' });
+                                                    const API_BASE = 'https://workflow-lg9z.onrender.com';
+                                                    const res = await fetch(`${API_BASE}/api/nodes/validate-telegram-token`, {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ token: formData.botToken })
+                                                    });
+                                                    const json = await res.json();
+                                                    if (res.ok && json.success) {
+                                                        setTokenCheck({ status: 'valid', message: `@${json.bot?.username || 'bot'} (${json.bot?.first_name || ''})` });
+                                                    } else {
+                                                        setTokenCheck({ status: 'invalid', message: json.error || 'Invalid token' });
+                                                    }
+                                                } catch (e) {
+                                                    setTokenCheck({ status: 'invalid', message: e.message || 'Validation failed' });
+                                                }
+                                            }}
+                                        >
+                                            {tokenCheck.status === 'checking' ? 'Checking…' : 'Check Token'}
+                                        </button>
+                                    </div>
+                                    {tokenCheck.status === 'valid' && (
+                                        <p className="text-sm" style={{ color: '#16a34a', marginTop: '0.5rem' }}>✅ Valid token: {tokenCheck.message}</p>
+                                    )}
+                                    {tokenCheck.status === 'invalid' && (
+                                        <p className="text-sm" style={{ color: '#dc2626', marginTop: '0.5rem' }}>❌ {tokenCheck.message}</p>
+                                    )}
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="chatId">Chat ID</label>
+                                    <ExpressionInput name="chatId" value={formData.chatId} onChange={handleInputChange} inputData={inputData} placeholder="123456789 or {{message.chat.id}}" />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="messageType">Message Type</label>
+                                    <div className="custom-select-wrapper">
+                                        <select name="messageType" id="messageType" value={formData.messageType} onChange={handleInputChange}>
+                                            <option value="text">Text</option>
+                                            <option value="photo">Photo</option>
+                                            <option value="video">Video</option>
+                                            <option value="audio">Audio</option>
+                                            <option value="voice">Voice</option>
+                                            <option value="document">Document</option>
+                                            <option value="animation">Animation</option>
+                                            <option value="sticker">Sticker</option>
+                                            <option value="location">Location</option>
+                                            <option value="contact">Contact</option>
+                                            <option value="poll">Poll</option>
+                                            <option value="banUser">Ban User</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {formData.messageType === 'text' && (
+                                    <>
+                                        <div className="form-group">
+                                            <label htmlFor="messageText">Message Text</label>
+                                            <ExpressionInput name="messageText" value={formData.messageText} onChange={handleInputChange} inputData={inputData} isTextarea={true} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="parseMode">Parse Mode</label>
+                                            <div className="custom-select-wrapper">
+                                                <select name="parseMode" id="parseMode" value={formData.parseMode} onChange={handleInputChange}>
+                                                    <option value="">None</option>
+                                                    <option value="Markdown">Markdown</option>
+                                                    <option value="MarkdownV2">MarkdownV2</option>
+                                                    <option value="HTML">HTML</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="toggle-option">
+                                            <label htmlFor="disableWebPagePreview" className="toggle-label">Disable Web Page Preview</label>
+                                            <div className="toggle-switch">
+                                                <input type="checkbox" name="disableWebPagePreview" id="disableWebPagePreview" checked={formData.disableWebPagePreview} onChange={handleInputChange} />
+                                                <span className="slider"></span>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+
+                                {formData.messageType === 'photo' && (
+                                    <>
+                                        <div className="form-group">
+                                            <label htmlFor="photoUrl">Photo URL or File ID</label>
+                                            <ExpressionInput name="photoUrl" value={formData.photoUrl} onChange={handleInputChange} inputData={inputData} placeholder="https://... or file_id" />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="photoCaption">Photo Caption</label>
+                                            <ExpressionInput name="photoCaption" value={formData.photoCaption} onChange={handleInputChange} inputData={inputData} />
+                                        </div>
+                                    </>
+                                )}
+
+                                {formData.messageType === 'video' && (
+                                    <>
+                                        <div className="form-group">
+                                            <label htmlFor="videoUrl">Video URL or File ID</label>
+                                            <ExpressionInput name="videoUrl" value={formData.videoUrl} onChange={handleInputChange} inputData={inputData} placeholder="https://... or file_id" />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="videoCaption">Video Caption</label>
+                                            <ExpressionInput name="videoCaption" value={formData.videoCaption} onChange={handleInputChange} inputData={inputData} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="videoDuration">Video Duration (seconds)</label>
+                                            <ExpressionInput name="videoDuration" value={formData.videoDuration} onChange={handleInputChange} inputData={inputData} />
+                                        </div>
+                                    </>
+                                )}
+
+                                {formData.messageType === 'audio' && (
+                                    <>
+                                        <div className="form-group">
+                                            <label htmlFor="audioUrl">Audio URL or File ID</label>
+                                            <ExpressionInput name="audioUrl" value={formData.audioUrl} onChange={handleInputChange} inputData={inputData} placeholder="https://... or file_id" />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="audioCaption">Audio Caption</label>
+                                            <ExpressionInput name="audioCaption" value={formData.audioCaption} onChange={handleInputChange} inputData={inputData} />
+                                        </div>
+                                    </>
+                                )}
+
+                                {formData.messageType === 'voice' && (
+                                    <div className="form-group">
+                                        <label htmlFor="voiceUrl">Voice OGG URL or File ID</label>
+                                        <ExpressionInput name="voiceUrl" value={formData.voiceUrl} onChange={handleInputChange} inputData={inputData} placeholder="https://... or file_id" />
+                                    </div>
+                                )}
+
+                                {formData.messageType === 'document' && (
+                                    <div className="form-group">
+                                        <label htmlFor="documentUrl">Document URL or File ID</label>
+                                        <ExpressionInput name="documentUrl" value={formData.documentUrl} onChange={handleInputChange} inputData={inputData} placeholder="https://... or file_id" />
+                                    </div>
+                                )}
+
+                                {formData.messageType === 'animation' && (
+                                    <div className="form-group">
+                                        <label htmlFor="animationUrl">Animation/GIF URL or File ID</label>
+                                        <ExpressionInput name="animationUrl" value={formData.animationUrl} onChange={handleInputChange} inputData={inputData} placeholder="https://... or file_id" />
+                                    </div>
+                                )}
+
+                                {formData.messageType === 'sticker' && (
+                                    <div className="form-group">
+                                        <label htmlFor="stickerFileId">Sticker File ID</label>
+                                        <ExpressionInput name="stickerFileId" value={formData.stickerFileId} onChange={handleInputChange} inputData={inputData} placeholder="file_id" />
+                                    </div>
+                                )}
+
+                                {formData.messageType === 'location' && (
+                                    <>
+                                        <div className="form-group">
+                                            <label htmlFor="latitude">Latitude</label>
+                                            <ExpressionInput name="latitude" value={formData.latitude} onChange={handleInputChange} inputData={inputData} placeholder="e.g. 37.7749" />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="longitude">Longitude</label>
+                                            <ExpressionInput name="longitude" value={formData.longitude} onChange={handleInputChange} inputData={inputData} placeholder="e.g. -122.4194" />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="locationHorizontalAccuracy">Horizontal Accuracy (meters)</label>
+                                            <ExpressionInput name="locationHorizontalAccuracy" value={formData.locationHorizontalAccuracy} onChange={handleInputChange} inputData={inputData} placeholder="Optional" />
+                                        </div>
+                                    </>
+                                )}
+
+                                {formData.messageType === 'contact' && (
+                                    <>
+                                        <div className="form-group">
+                                            <label htmlFor="contactPhoneNumber">Phone Number</label>
+                                            <ExpressionInput name="contactPhoneNumber" value={formData.contactPhoneNumber} onChange={handleInputChange} inputData={inputData} placeholder="+1234567890" />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="contactFirstName">First Name</label>
+                                            <ExpressionInput name="contactFirstName" value={formData.contactFirstName} onChange={handleInputChange} inputData={inputData} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="contactLastName">Last Name</label>
+                                            <ExpressionInput name="contactLastName" value={formData.contactLastName} onChange={handleInputChange} inputData={inputData} />
+                                        </div>
+                                    </>
+                                )}
+
+                                {formData.messageType === 'poll' && (
+                                    <>
+                                        <div className="form-group">
+                                            <label htmlFor="pollQuestion">Question</label>
+                                            <ExpressionInput name="pollQuestion" value={formData.pollQuestion} onChange={handleInputChange} inputData={inputData} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label htmlFor="pollOptions">Options</label>
+                                            <ExpressionInput name="pollOptions" value={formData.pollOptions} onChange={handleInputChange} inputData={inputData} placeholder='["Option 1","Option 2"] or Option 1, Option 2' />
+                                        </div>
+                                    </>
+                                )}
+
+                                {formData.messageType === 'banUser' && (
+                                    <div className="form-group">
+                                        <label htmlFor="banUserId">User ID to Ban</label>
+                                        <ExpressionInput name="banUserId" value={formData.banUserId} onChange={handleInputChange} inputData={inputData} placeholder="User ID" />
+                                    </div>
+                                )}
                             </div>
                         )}
 
