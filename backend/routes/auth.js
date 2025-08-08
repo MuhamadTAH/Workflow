@@ -181,13 +181,43 @@ router.post('/run-ai-agent', async (req, res) => {
       });
     }
 
-    // Load the AI agent node
-    const aiAgentNode = require('../nodes/actions/aiAgentNode');
-    const result = await aiAgentNode.execute(node.config, inputData);
+    console.log('🤖 AI Agent execution request received');
+    console.log('Config:', {
+      hasApiKey: !!node.config.apiKey,
+      model: node.config.model,
+      systemPrompt: node.config.systemPrompt?.substring(0, 50) + '...',
+      userMessage: node.config.userMessage?.substring(0, 50) + '...'
+    });
+
+    // Validate required fields
+    if (!node.config.apiKey) {
+      return res.status(400).json({
+        success: false,
+        message: 'Claude API Key is required',
+        nodeType: 'aiAgent'
+      });
+    }
+
+    if (!node.config.userMessage) {
+      return res.status(400).json({
+        success: false,
+        message: 'User Message is required',
+        nodeType: 'aiAgent'
+      });
+    }
+
+    // For now, return a mock response until we resolve API issues
+    const mockResponse = {
+      response: `Mock AI Response: I received your message "${node.config.userMessage}" with system prompt "${node.config.systemPrompt || 'default'}". This is a test response to verify the workflow is working. In production, this would be a real Claude API response.`,
+      model: node.config.model || 'claude-3-5-sonnet-20241022',
+      timestamp: new Date().toISOString(),
+      inputProcessed: node.config.userMessage,
+      note: 'This is a mock response for testing. Real Claude API integration coming soon.'
+    };
     
     return res.json({
       success: true,
-      result: result,
+      result: mockResponse,
       nodeType: 'aiAgent',
       executedAt: new Date().toISOString()
     });
