@@ -10,29 +10,48 @@ import React, { useState, useEffect } from 'react';
 
 // Helper function to resolve expressions like {{ a.b }}
 const resolveExpression = (expression, data) => {
-    if (!expression || typeof expression !== 'string' || !data) return expression;
+    console.log('🔍 resolveExpression called:', {
+        expression: expression,
+        hasData: !!data,
+        dataKeys: data && typeof data === 'object' ? Object.keys(data) : 'not-object'
+    });
+    
+    if (!expression || typeof expression !== 'string' || !data) {
+        console.log('❌ Early return from resolveExpression:', { expression, hasData: !!data });
+        return expression;
+    }
     
     // This regex finds all instances of {{ path.to.key }}
     return expression.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, path) => {
         const pathStr = path.trim();
+        console.log(`🔍 Resolving path: "${pathStr}"`);
         
         // Try direct path first (e.g., "1. AI Agent.response")
         let current = data;
         const keys = pathStr.split('.');
         let found = true;
         
+        console.log('🔑 Path keys:', keys);
+        console.log('📊 Available data keys:', Object.keys(data));
+        
         for (let i = 0; i < keys.length; i++) {
+            console.log(`🔍 Looking for key "${keys[i]}" in:`, current);
             if (current === null || typeof current !== 'object' || !(keys[i] in current)) {
+                console.log(`❌ Key "${keys[i]}" not found`);
                 found = false;
                 break;
             }
             current = current[keys[i]];
+            console.log(`✅ Found "${keys[i]}":`, current);
         }
         
         if (found) {
-            return typeof current === 'object' ? JSON.stringify(current) : String(current);
+            const result = typeof current === 'object' ? JSON.stringify(current) : String(current);
+            console.log(`✅ Direct path resolved: "${pathStr}" = "${result}"`);
+            return result;
         }
         
+        console.log(`🔍 Trying nested search for: "${pathStr}"`);
         // If direct path fails, try to find in nested data (backwards compatibility)
         // Look for the path in any of the node data
         for (const [nodeKey, nodeData] of Object.entries(data)) {
@@ -49,11 +68,14 @@ const resolveExpression = (expression, data) => {
                 }
                 
                 if (nestedFound) {
-                    return typeof nestedCurrent === 'object' ? JSON.stringify(nestedCurrent) : String(nestedCurrent);
+                    const result = typeof nestedCurrent === 'object' ? JSON.stringify(nestedCurrent) : String(nestedCurrent);
+                    console.log(`✅ Nested path resolved: "${pathStr}" in "${nodeKey}" = "${result}"`);
+                    return result;
                 }
             }
         }
         
+        console.log(`❌ Path not found anywhere: "${pathStr}"`);
         return match; // Return original {{...}} if path is invalid anywhere
     });
 };
@@ -131,10 +153,19 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     useEffect(() => {
+        console.log('🔍 ExpressionInput useEffect triggered:', {
+            hasInputData: !!inputData,
+            value: value,
+            valueIncludesTemplates: value && typeof value === 'string' && value.includes('{{'),
+            inputDataType: Array.isArray(inputData) ? 'array' : typeof inputData,
+            inputDataPreview: inputData ? JSON.stringify(inputData).substring(0, 200) + '...' : null
+        });
+        
         if (inputData && value && typeof value === 'string' && value.includes('{{')) {
             // Handle cascading data structure from collectAllPreviousNodeData
             let dataToUse;
             if (Array.isArray(inputData) && inputData.length > 0 && inputData[0].nodeId) {
+                console.log('📊 Using cascading data structure');
                 // This is cascading data structure - convert to flat object for template resolution
                 dataToUse = {};
                 inputData.forEach(nodeInfo => {
@@ -153,16 +184,23 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
                     }
                 });
             } else if (Array.isArray(inputData)) {
+                console.log('📊 Using legacy array structure');
                 // Legacy array structure - take first element
                 dataToUse = inputData[0];
             } else {
+                console.log('📊 Using direct object structure');
                 // Direct object structure
                 dataToUse = inputData;
             }
             
+            console.log('🔧 Processing template:', value);
+            console.log('📊 Data to use:', dataToUse);
+            
             const resolved = resolveExpression(value, dataToUse);
+            console.log('✅ Resolved value:', resolved);
             setResolvedValue(resolved);
         } else {
+            console.log('❌ Conditions not met for template resolution');
             setResolvedValue('');
         }
     }, [value, inputData]);
