@@ -12,6 +12,8 @@ const express = require('express');
 const router = express.Router();
 const { runNode } = require('../controllers/nodeController');
 const { TelegramAPI } = require('../services/telegramAPI');
+// Temporarily comment out aiService import to test deployment
+// const { verifyClaudeApiKey } = require('../services/aiService');
 
 // Debug middleware to log all requests to /api/nodes/*
 router.use((req, res, next) => {
@@ -50,6 +52,26 @@ router.post('/validate-telegram-token', async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message || 'Validation failed' });
+  }
+});
+
+// POST /api/nodes/verify-claude - Verify Claude API key (TEMPORARILY DISABLED FOR TESTING)
+console.log('📝 REGISTERING /verify-claude route (MOCK VERSION)');
+router.post('/verify-claude', async (req, res) => {
+  try {
+    const { apiKey } = req.body || {};
+    if (!apiKey || typeof apiKey !== 'string') {
+      return res.status(400).json({ ok: false, message: 'apiKey is required' });
+    }
+    
+    // Mock validation for testing deployment
+    if (!apiKey.startsWith('sk-ant-')) {
+      return res.status(401).json({ ok: false, message: 'Invalid API key format' });
+    }
+    
+    return res.json({ ok: true, model: 'claude-3-haiku-20240307' });
+  } catch (error) {
+    return res.status(500).json({ ok: false, message: error.message || 'Verification failed' });
   }
 });
 
