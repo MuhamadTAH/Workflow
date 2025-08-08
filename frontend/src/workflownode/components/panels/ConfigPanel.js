@@ -397,33 +397,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
         }
     }
 
-    // Special handling for telegramSendMessage nodes that can fetch from connected telegram triggers
-    if (node.data.type === 'telegramSendMessage') {
-        const incomingEdge = edges.find(edge => edge.target === node.id);
-        if (!incomingEdge) {
-            setInputData({ message: "Connect a Telegram Trigger node to get message data for this send node." });
-            return;
-        }
-        const sourceNode = nodes.find(n => n.id === incomingEdge.source);
-        if (!sourceNode) {
-            setInputData({ message: "Source node not found." });
-            return;
-        }
-        
-        // If connected to a telegram trigger, use its output data
-        if (sourceNode.data.type === 'telegramTrigger' && sourceNode.data.outputData) {
-            setInputData(sourceNode.data.outputData);
-            console.log('✅ Using telegram trigger data for send message:', sourceNode.data.outputData);
-            return;
-        } else if (sourceNode.data.outputData) {
-            setInputData(sourceNode.data.outputData);
-            console.log(`✅ Using data from '${sourceNode.data.label}':`, sourceNode.data.outputData);
-            return;
-        } else {
-            setInputData({ message: `Previous node (${sourceNode?.data.label || 'Unknown'}) has not been executed or has no output data.` });
-            return;
-        }
-    }
+    // Note: telegramSendMessage now uses the general cascading data collection below
 
     // Special handling for merge node - collect data from all connected nodes
     if (node.data.type === 'merge') {
