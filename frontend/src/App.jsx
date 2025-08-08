@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-ro
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Overview from './pages/Overview';
+import WorkflowsOverview from './pages/WorkflowsOverview';
 import Connections from './pages/Connections';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 // import WorkflowNode from './pages/workflownode/WorkflowNode'; // Removed - using WorkflowBuilder instead
@@ -96,10 +97,10 @@ function Home() {
           </p>
           
           <div className="dashboard-actions">
-            <Link to="/overview" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+            <Link to="/workflows" className="btn btn-primary" style={{ textDecoration: 'none' }}>
               🎯 My Workflows
             </Link>
-            <Link to="/workflow-builder" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+            <Link to="/workflow" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
               🔧 Workflow Builder
             </Link>
             <Link to="/connections" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
@@ -179,7 +180,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/overview" element={<Overview />} />
+        <Route path="/workflows" element={<WorkflowsOverview />} />
         <Route path="/connections" element={<Connections />} />
+        <Route path="/workflow" element={<WorkflowBuilder />} />
         <Route path="/workflow-builder" element={<WorkflowBuilder />} />
         {/* <Route path="/workflownode" element={<WorkflowNode />} /> */}
         <Route path="/shop" element={<ShopDashboard />} />

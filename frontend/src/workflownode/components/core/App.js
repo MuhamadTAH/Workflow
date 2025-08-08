@@ -7,6 +7,7 @@ edges to the ConfigPanel, enabling it to trace connections and
 fetch data from previous nodes.
 */
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ReactFlow, {
   addEdge,
   useNodesState,
@@ -28,6 +29,7 @@ import '../../styles/index.css';
 const nodeTypes = { custom: CustomLogicNode };
 
 const App = () => {
+  const navigate = useNavigate();
   const reactFlowWrapper = useRef(null);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -210,24 +212,44 @@ const App = () => {
         .then(data => {
           if (data.success) {
             console.log(`✅ Workflow ${workflowId} registered for execution`);
+            // Show success message and navigate to workflows page
+            setTimeout(() => {
+              navigate('/workflows');
+            }, 1000);
             alert(`✅ Workflow "${workflowName}" saved and activated for chat triggers!`);
           } else {
             console.warn('⚠️ Workflow saved but not registered:', data.error);
+            // Show success message and navigate to workflows page
+            setTimeout(() => {
+              navigate('/workflows');
+            }, 1000);
             alert(`✅ Workflow "${workflowName}" saved successfully!`);
           }
         })
         .catch(error => {
           console.error('❌ Workflow registration failed:', error);
+          // Show success message and navigate to workflows page
+          setTimeout(() => {
+            navigate('/workflows');
+          }, 1000);
           alert(`✅ Workflow "${workflowName}" saved successfully!`);
         });
       } catch (error) {
         console.error('❌ Workflow registration error:', error);
+        // Show success message and navigate to workflows page
+        setTimeout(() => {
+          navigate('/workflows');
+        }, 1000);
         alert(`✅ Workflow "${workflowName}" saved successfully!`);
       }
     } else {
+      // Show success message and navigate to workflows page
+      setTimeout(() => {
+        navigate('/workflows');
+      }, 1000);
       alert(`✅ Workflow "${workflowName}" saved successfully!`);
     }
-  }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId]);
+  }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId, navigate]);
 
   const handleExecute = useCallback(() => {
     setIsExecuting(true);
