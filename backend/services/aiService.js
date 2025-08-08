@@ -1,4 +1,38 @@
-// Simplified AI service without external dependencies for now
+const Anthropic = require('@anthropic-ai/sdk');
+
+// AI service with real Claude API integration
+async function callClaudeApi(request) {
+  console.log('🤖 Making Claude API call');
+  console.log('Request details:', {
+    model: request.model,
+    hasApiKey: !!request.apiKey,
+    systemPrompt: request.systemPrompt?.substring(0, 50) + '...',
+    userMessage: request.userMessage?.substring(0, 50) + '...'
+  });
+
+  try {
+    const anthropic = new Anthropic({ apiKey: request.apiKey });
+    
+    const response = await anthropic.messages.create({
+      model: request.model || 'claude-3-5-sonnet-20241022',
+      max_tokens: 1000,
+      system: request.systemPrompt || 'You are a helpful AI assistant.',
+      messages: [
+        { role: 'user', content: request.userMessage }
+      ]
+    });
+
+    const responseText = response.content[0].text;
+    console.log('✅ Claude API call completed');
+    console.log('Response preview:', responseText.substring(0, 100) + '...');
+    
+    return responseText;
+  } catch (error) {
+    console.error('❌ Claude API call failed:', error.message);
+    throw new Error(`Claude API error: ${error.message}`);
+  }
+}
+
 async function verifyClaudeApiKey(apiKey) {
   try {
     // Basic format validation
@@ -22,4 +56,4 @@ async function verifyClaudeApiKey(apiKey) {
   }
 }
 
-module.exports = { verifyClaudeApiKey };
+module.exports = { callClaudeApi, verifyClaudeApiKey };
