@@ -11,6 +11,18 @@ const router = express.Router();
 const { runNode } = require('../controllers/nodeController');
 const { TelegramAPI } = require('../services/telegramAPI');
 
+// Debug middleware to log all requests to /api/nodes/*
+router.use((req, res, next) => {
+  console.log('🔍 NODES ROUTE HIT:', {
+    method: req.method,
+    url: req.url,
+    originalUrl: req.originalUrl,
+    body: req.body,
+    timestamp: new Date().toISOString()
+  });
+  next();
+});
+
 // POST /api/nodes/run-node - Execute a single node
 router.post('/run-node', runNode);
 
