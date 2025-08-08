@@ -132,8 +132,33 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
 
     useEffect(() => {
         if (inputData && value && typeof value === 'string' && value.includes('{{')) {
-            // Handle different input data structures
-            const dataToUse = Array.isArray(inputData) ? inputData[0] : inputData;
+            // Handle cascading data structure from collectAllPreviousNodeData
+            let dataToUse;
+            if (Array.isArray(inputData) && inputData.length > 0 && inputData[0].nodeId) {
+                // This is cascading data structure - convert to flat object for template resolution
+                dataToUse = {};
+                inputData.forEach(nodeInfo => {
+                    // Create entries like "1. AI Agent" for easy template access
+                    const nodeKey = `${nodeInfo.order}. ${nodeInfo.nodeLabel}`;
+                    dataToUse[nodeKey] = nodeInfo.data;
+                    
+                    // Also create direct data entries for backwards compatibility
+                    if (nodeInfo.data && typeof nodeInfo.data === 'object') {
+                        Object.keys(nodeInfo.data).forEach(key => {
+                            if (!(key in dataToUse)) {
+                                dataToUse[key] = nodeInfo.data[key];
+                            }
+                        });
+                    }
+                });
+            } else if (Array.isArray(inputData)) {
+                // Legacy array structure - take first element
+                dataToUse = inputData[0];
+            } else {
+                // Direct object structure
+                dataToUse = inputData;
+            }
+            
             const resolved = resolveExpression(value, dataToUse);
             setResolvedValue(resolved);
         } else {

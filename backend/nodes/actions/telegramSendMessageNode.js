@@ -350,6 +350,32 @@ function processTemplates(text, inputData) {
     console.log('🔧 Processing templates in text:', text);
     console.log('📊 Available input data:', JSON.stringify(inputData, null, 2));
     
+    // Handle cascading data structure similar to frontend
+    let dataToProcess;
+    if (Array.isArray(inputData) && inputData.length > 0 && inputData[0].nodeId) {
+        // This is cascading data structure - convert to flat object for template resolution
+        dataToProcess = {};
+        inputData.forEach(nodeInfo => {
+            // Create entries like "1. AI Agent" for easy template access
+            const nodeKey = `${nodeInfo.order}. ${nodeInfo.nodeLabel}`;
+            dataToProcess[nodeKey] = nodeInfo.data;
+            
+            // Also create direct data entries for backwards compatibility
+            if (nodeInfo.data && typeof nodeInfo.data === 'object') {
+                Object.keys(nodeInfo.data).forEach(key => {
+                    if (!(key in dataToProcess)) {
+                        dataToProcess[key] = nodeInfo.data[key];
+                    }
+                });
+            }
+        });
+    } else {
+        // Use original data structure
+        dataToProcess = inputData;
+    }
+    
+    console.log('🔧 Processed data structure:', JSON.stringify(dataToProcess, null, 2));
+    
     // Enhanced template processing - replace {{ key }} with data values
     return text.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, path) => {
         try {
@@ -359,7 +385,7 @@ function processTemplates(text, inputData) {
             console.log(`🔍 Resolving path: ${pathStr}`);
             
             // Try direct path first (e.g., "1. AI Agent.response")
-            let current = inputData;
+            let current = dataToProcess;
             let found = true;
             
             for (const key of keys) {
@@ -379,8 +405,8 @@ function processTemplates(text, inputData) {
             
             // If direct path fails, try to find in nested data (backwards compatibility)
             // Look for the path in any of the node data
-            if (typeof inputData === 'object' && inputData !== null) {
-                for (const [nodeKey, nodeData] of Object.entries(inputData)) {
+            if (typeof dataToProcess === 'object' && dataToProcess !== null) {
+                for (const [nodeKey, nodeData] of Object.entries(dataToProcess)) {
                     if (typeof nodeData === 'object' && nodeData !== null) {
                         let nestedCurrent = nodeData;
                         let nestedFound = true;
