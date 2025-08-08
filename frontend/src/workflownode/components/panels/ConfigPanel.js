@@ -187,7 +187,88 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
       pollOptions: node.data.pollOptions || '',
       // admin
       banUserId: node.data.banUserId || '',
+      // AI Agent
+      apiKey: node.data.apiKey || '',
+      model: node.data.model || 'claude-3-5-sonnet-20241022',
+      systemPrompt: node.data.systemPrompt || '',
+      userMessage: node.data.userMessage || '',
   });
+
+  useEffect(() => {
+    setFormData({
+      label: node.data.label || '',
+      description: node.data.description || '',
+      fieldsToMatch: node.data.fieldsToMatch || [{ key1: '', key2: '' }],
+      resumeCondition: node.data.resumeCondition || 'afterTimeInterval',
+      waitAmount: node.data.waitAmount || 5,
+      waitUnit: node.data.waitUnit || 'seconds',
+      conditions: node.data.conditions || [{ value1: '', operator: 'is_equal_to', value2: '' }],
+      combinator: node.data.combinator || 'AND',
+      ignoreCase: node.data.ignoreCase || false,
+      errorType: node.data.errorType || 'errorMessage',
+      errorMessage: node.data.errorMessage || 'An error occurred!',
+      switchRules: node.data.switchRules || [{ value1: '', operator: 'is_equal_to', value2: '' }],
+      switchOptions: node.data.switchOptions || [],
+      source: node.data.source || 'database',
+      workflow: node.data.workflow || 'fromList',
+      workflowId: node.data.workflowId || '',
+      mode: node.data.mode || 'runOnce',
+      mergeMode: node.data.mergeMode || 'append',
+      batchSize: node.data.batchSize || 1,
+      fields: node.data.fields || [{ key: '', value: '' }],
+      // Chat trigger specific fields
+      filterKeywords: node.data.filterKeywords || [],
+      allowedDomains: node.data.allowedDomains || [],
+      requireUserInfo: node.data.requireUserInfo || false,
+      autoRespond: node.data.autoRespond || false,
+      autoResponseMessage: node.data.autoResponseMessage || 'Thank you for your message. We\'ll get back to you soon!',
+      // Telegram trigger specific fields
+      botToken: node.data.botToken || '',
+      // Telegram send message fields
+      chatId: node.data.chatId || '{{message.chat.id}}',
+      messageType: node.data.messageType || 'text',
+      // text
+      messageText: node.data.messageText || 'Hello! This is a message from your bot.',
+      parseMode: node.data.parseMode || '',
+      disableWebPagePreview: node.data.disableWebPagePreview || false,
+      // photo
+      photoUrl: node.data.photoUrl || '',
+      photoCaption: node.data.photoCaption || '',
+      // video
+      videoUrl: node.data.videoUrl || '',
+      videoCaption: node.data.videoCaption || '',
+      videoDuration: node.data.videoDuration || '',
+      // audio
+      audioUrl: node.data.audioUrl || '',
+      audioCaption: node.data.audioCaption || '',
+      // voice
+      voiceUrl: node.data.voiceUrl || '',
+      // document
+      documentUrl: node.data.documentUrl || '',
+      // animation
+      animationUrl: node.data.animationUrl || '',
+      // sticker
+      stickerFileId: node.data.stickerFileId || '',
+      // location
+      latitude: node.data.latitude || '',
+      longitude: node.data.longitude || '',
+      locationHorizontalAccuracy: node.data.locationHorizontalAccuracy || '',
+      // contact
+      contactPhoneNumber: node.data.contactPhoneNumber || '',
+      contactFirstName: node.data.contactFirstName || '',
+      contactLastName: node.data.contactLastName || '',
+      // poll
+      pollQuestion: node.data.pollQuestion || '',
+      pollOptions: node.data.pollOptions || '',
+      // admin
+      banUserId: node.data.banUserId || '',
+      // AI Agent
+      apiKey: node.data.apiKey || '',
+      model: node.data.model || 'claude-3-5-sonnet-20241022',
+      systemPrompt: node.data.systemPrompt || '',
+      userMessage: node.data.userMessage || '',
+    });
+  }, [node.id]);
   
   const [isLoading, setIsLoading] = useState(false);
   const [tokenCheck, setTokenCheck] = useState({ status: 'idle', message: '' });
@@ -476,7 +557,8 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
                                                 try {
                                                     setTokenCheck({ status: 'checking', message: '' });
                                                     const API_BASE = 'https://workflow-lg9z.onrender.com';
-                                                    const res = await fetch(`${API_BASE}/api/ai/verify-claude`, {
+                                                    // Use nodes namespace to avoid missing ai route in production
+                                                    const res = await fetch(`${API_BASE}/api/nodes/verify-claude`, {
                                                         method: 'POST',
                                                         headers: { 'Content-Type': 'application/json' },
                                                         body: JSON.stringify({ apiKey: formData.apiKey })
