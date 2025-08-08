@@ -6,6 +6,8 @@ Routes for node execution.
 Copied from WorkflowNode and adapted for main backend.
 */
 
+console.log('🚀 LOADING NODES ROUTES FILE');
+
 const express = require('express');
 const router = express.Router();
 const { runNode } = require('../controllers/nodeController');
@@ -27,6 +29,7 @@ router.use((req, res, next) => {
 router.post('/run-node', runNode);
 
 // POST /api/nodes/validate-telegram-token - Validate Telegram bot token using getMe
+console.log('📝 REGISTERING /validate-telegram-token route');
 router.post('/validate-telegram-token', async (req, res) => {
   try {
     const { token } = req.body || {};
@@ -50,4 +53,5 @@ router.post('/validate-telegram-token', async (req, res) => {
   }
 });
 
+console.log('✅ EXPORTING NODES ROUTER WITH ROUTES:', router.stack.map(r => r.route?.path).filter(Boolean));
 module.exports = router;
