@@ -206,14 +206,46 @@ router.post('/run-ai-agent', async (req, res) => {
       });
     }
 
-    // For now, return a mock response until we resolve API issues
-    const mockResponse = {
-      response: `Mock AI Response: I received your message "${node.config.userMessage}" with system prompt "${node.config.systemPrompt || 'default'}". This is a test response to verify the workflow is working. In production, this would be a real Claude API response.`,
-      model: node.config.model || 'claude-3-5-sonnet-20241022',
-      timestamp: new Date().toISOString(),
-      inputProcessed: node.config.userMessage,
-      note: 'This is a mock response for testing. Real Claude API integration coming soon.'
-    };
+    // Use real Claude API integration
+    try {
+      const { callClaudeApi } = require('../services/aiService');
+      const aiRequest = {
+        model: node.config.model || 'claude-3-5-sonnet-20241022',
+        apiKey: node.config.apiKey,
+        systemPrompt: node.config.systemPrompt || 'You are a helpful AI assistant.',
+        userMessage: node.config.userMessage,
+        inputData: inputData
+      };
+
+      console.log('Making real Claude API call...');
+      const aiResponse = await callClaudeApi(aiRequest);
+      
+      const realResponse = {
+        response: aiResponse,
+        model: node.config.model || 'claude-3-5-sonnet-20241022',
+        timestamp: new Date().toISOString(),
+        inputProcessed: node.config.userMessage
+      };
+      
+      console.log('✅ Real Claude API response received');
+      return res.json({
+        success: true,
+        result: realResponse,
+        nodeType: 'aiAgent',
+        executedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('❌ Real Claude API failed, falling back to mock:', error.message);
+      
+      // Fallback to mock response if real API fails
+      const mockResponse = {
+        response: `AI Response: I received your message "${node.config.userMessage}". (Note: This is a fallback response because the real Claude API encountered an error: ${error.message})`,
+        model: node.config.model || 'claude-3-5-sonnet-20241022',
+        timestamp: new Date().toISOString(),
+        inputProcessed: node.config.userMessage,
+        note: `Fallback response due to API error: ${error.message}`
+      };
+    }
     
     return res.json({
       success: true,

@@ -350,6 +350,40 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
     onClose(allUpdatedData);
   };
   
+  // Helper function to recursively collect data from all previous nodes in the workflow chain
+  const collectAllPreviousNodeData = (currentNodeId, visited = new Set()) => {
+    // Prevent infinite loops
+    if (visited.has(currentNodeId)) {
+      return [];
+    }
+    visited.add(currentNodeId);
+
+    const result = [];
+    const incomingEdges = edges.filter(edge => edge.target === currentNodeId);
+    
+    for (const edge of incomingEdges) {
+      const sourceNode = nodes.find(n => n.id === edge.source);
+      if (sourceNode) {
+        // First collect data from nodes even further back
+        const parentData = collectAllPreviousNodeData(sourceNode.id, visited);
+        result.push(...parentData);
+        
+        // Then add this node's data if it has output
+        if (sourceNode.data.outputData) {
+          result.push({
+            nodeId: sourceNode.id,
+            nodeType: sourceNode.data.type,
+            nodeLabel: sourceNode.data.label || `${sourceNode.data.type} Node`,
+            data: sourceNode.data.outputData,
+            order: result.length + 1
+          });
+        }
+      }
+    }
+    
+    return result;
+  };
+
   const handleGetData = () => {
     // Special handling for telegram trigger nodes that should fetch from their own output
     if (node.data.type === 'telegramTrigger') {
@@ -421,19 +455,27 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
         setInputData(mergedInputData);
         console.log('All merged input data:', mergedInputData);
     } else {
-        // Original logic for non-merge nodes
-        const incomingEdge = edges.find(edge => edge.target === node.id);
-        if (!incomingEdge) {
-            setInputData({ message: "No node is connected to the input." });
+        // Enhanced logic: collect data from ALL previous nodes in the workflow chain
+        const allPreviousData = collectAllPreviousNodeData(node.id);
+        
+        if (allPreviousData.length === 0) {
+            setInputData({ message: "No nodes are connected to the input, or connected nodes have no output data." });
             return;
         }
-        const sourceNode = nodes.find(n => n.id === incomingEdge.source);
-        if (!sourceNode || !sourceNode.data.outputData) {
-            setInputData({ message: `Previous node (${sourceNode?.data.label || 'Unknown'}) has not been executed or has no output data.` });
-            return;
-        }
-        setInputData(sourceNode.data.outputData);
-        console.log(`Data fetched from '${sourceNode.data.label}':`, sourceNode.data.outputData);
+        
+        // Create structured data showing all previous nodes
+        const structuredData = {};
+        allPreviousData.forEach((nodeData, index) => {
+          const key = `${index + 1}. ${nodeData.nodeLabel}`;
+          structuredData[key] = nodeData.data;
+        });
+        
+        setInputData(structuredData);
+        console.log('✅ Collected data from all previous nodes:', {
+          totalNodes: allPreviousData.length,
+          nodeChain: allPreviousData.map(nd => nd.nodeLabel).join(' → '),
+          data: structuredData
+        });
     }
   };
 
