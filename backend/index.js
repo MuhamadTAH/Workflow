@@ -11,6 +11,7 @@ const productsRoutes = require('./routes/products');
 const publicRoutes = require('./routes/public');
 const uploadsRoutes = require('./routes/uploads');
 const chatRoutes = require('./routes/chat');
+const aiRoutes = require('./routes/ai');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
@@ -37,8 +38,18 @@ app.use((req, res, next) => {
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 'http://localhost:5179', 'http://localhost:3000'],
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'Access-Control-Allow-Headers', 'Origin'],
+  optionsSuccessStatus: 200,
+  preflightContinue: false
+}));
+
+// Additional explicit OPTIONS handler for debugging
+app.options('*', cors({
+  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 'http://localhost:5179', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'Access-Control-Allow-Headers', 'Origin'],
   optionsSuccessStatus: 200
 }));
 app.use(express.json()); // Parse JSON bodies
@@ -57,6 +68,20 @@ app.use('/api/products', productsRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/uploads', uploadsRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/ai', aiRoutes);
+// Additional middleware to debug CORS and route issues
+app.use('/api/nodes', (req, res, next) => {
+  console.log('🔍 NODES API REQUEST DEBUG:', {
+    method: req.method,
+    url: req.url,
+    path: req.path,
+    origin: req.headers.origin,
+    headers: Object.keys(req.headers),
+    body: req.method === 'POST' ? req.body : 'N/A'
+  });
+  next();
+});
+
 // NEW ROUTES FROM WORKFLOWNODE
 app.use('/api/nodes', nodesRoutes);
 
