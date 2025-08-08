@@ -48,7 +48,32 @@ const JsonTreeView = ({ data, parentPath = '' }) => {
         <div className="json-tree">
             {Object.entries(data).map(([key, value]) => {
                 const currentPath = parentPath ? `${parentPath}.${key}` : key;
-                if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                
+                // Handle arrays
+                if (Array.isArray(value)) {
+                    return (
+                        <details key={currentPath} className="json-node" open>
+                            <summary className="json-key">{key} (array)</summary>
+                            <div className="json-value">
+                                {value.map((item, index) => {
+                                    const arrayPath = `${currentPath}[${index}]`;
+                                    if (typeof item === 'object' && item !== null) {
+                                        return (
+                                            <div key={arrayPath}>
+                                                <div className="array-index">Index {index}:</div>
+                                                <JsonTreeView data={item} parentPath={arrayPath} />
+                                            </div>
+                                        );
+                                    }
+                                    return <JsonKey key={arrayPath} path={arrayPath} value={item} />;
+                                })}
+                            </div>
+                        </details>
+                    );
+                }
+                
+                // Handle objects
+                if (typeof value === 'object' && value !== null) {
                     return (
                         <details key={currentPath} className="json-node" open>
                             <summary className="json-key">{key}</summary>
@@ -58,6 +83,8 @@ const JsonTreeView = ({ data, parentPath = '' }) => {
                         </details>
                     );
                 }
+                
+                // Handle primitive values
                 return <JsonKey key={currentPath} path={currentPath} value={value} />;
             })}
         </div>
@@ -437,9 +464,9 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
             return;
         }
         
-        // Create structured data showing all previous nodes
+        // Create structured data showing all previous nodes (reverse order: closest node first)
         const structuredData = {};
-        allPreviousData.forEach((nodeData, index) => {
+        allPreviousData.reverse().forEach((nodeData, index) => {
           const key = `${index + 1}. ${nodeData.nodeLabel}`;
           structuredData[key] = nodeData.data;
         });
