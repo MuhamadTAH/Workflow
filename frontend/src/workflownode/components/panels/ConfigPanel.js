@@ -72,7 +72,9 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
 
     useEffect(() => {
         if (inputData && value && typeof value === 'string' && value.includes('{{')) {
-            const resolved = resolveExpression(value, inputData[0]); // Assuming inputData is an array
+            // Handle different input data structures
+            const dataToUse = Array.isArray(inputData) ? inputData[0] : inputData;
+            const resolved = resolveExpression(value, dataToUse);
             setResolvedValue(resolved);
         } else {
             setResolvedValue('');
@@ -491,8 +493,10 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
                 {inputData ? (
                     node.data.type === 'merge' && typeof inputData === 'object' && !Array.isArray(inputData) ? (
                         <JsonTreeView data={inputData} />
-                    ) : (
+                    ) : Array.isArray(inputData) ? (
                         <JsonTreeView data={inputData[0]} />
+                    ) : (
+                        <JsonTreeView data={inputData} />
                     )
                 ) : (
                     <div className="empty-state">
