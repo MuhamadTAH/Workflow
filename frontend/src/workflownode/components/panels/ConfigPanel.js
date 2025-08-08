@@ -331,7 +331,9 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
     }
 
     try {
-        const response = await fetch('http://localhost:3001/api/nodes/run-node', {
+        // Always use production backend (as per deployment setup)
+        const API_BASE = 'https://workflow-lg9z.onrender.com';
+        const response = await fetch(`${API_BASE}/api/nodes/run-node`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -409,6 +411,75 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
                                     </div>
                                 ))}
                                 <button onClick={handleAddDataField} className="add-field-btn"><i className="fa-solid fa-plus mr-2"></i> Add fields to match</button>
+                            </div>
+                        )}
+
+                        {node.data.type === 'aiAgent' && (
+                            <div className="form-group mt-6">
+                                <label>AI Agent</label>
+                                <div className="form-group">
+                                    <label htmlFor="apiKey">Claude API Key</label>
+                                    <div className="flex" style={{ gap: '0.5rem', alignItems: 'center' }}>
+                                        <input
+                                            type="password"
+                                            name="apiKey"
+                                            id="apiKey"
+                                            value={formData.apiKey || ''}
+                                            onChange={handleInputChange}
+                                            placeholder="sk-ant-..."
+                                            style={{ flex: 1 }}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="copy-btn"
+                                            onClick={async () => {
+                                                try {
+                                                    setTokenCheck({ status: 'checking', message: '' });
+                                                    const API_BASE = 'https://workflow-lg9z.onrender.com';
+                                                    const res = await fetch(`${API_BASE}/api/ai/verify-claude`, {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ apiKey: formData.apiKey })
+                                                    });
+                                                    const json = await res.json();
+                                                    if (res.ok && json.ok) {
+                                                        setTokenCheck({ status: 'valid', message: `Valid (model: ${json.model || 'claude'})` });
+                                                    } else {
+                                                        setTokenCheck({ status: 'invalid', message: json.message || 'Invalid API key' });
+                                                    }
+                                                } catch (e) {
+                                                    setTokenCheck({ status: 'invalid', message: e.message || 'Verification failed' });
+                                                }
+                                            }}
+                                        >
+                                            {tokenCheck.status === 'checking' ? 'Checking…' : 'Check Key'}
+                                        </button>
+                                    </div>
+                                    {tokenCheck.status === 'valid' && (
+                                        <p className="text-sm" style={{ color: '#16a34a', marginTop: '0.5rem' }}>✅ {tokenCheck.message}</p>
+                                    )}
+                                    {tokenCheck.status === 'invalid' && (
+                                        <p className="text-sm" style={{ color: '#dc2626', marginTop: '0.5rem' }}>❌ {tokenCheck.message}</p>
+                                    )}
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="model">Model</label>
+                                    <div className="custom-select-wrapper">
+                                        <select name="model" id="model" value={formData.model || 'claude-3-5-sonnet-20241022'} onChange={handleInputChange}>
+                                            <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (Latest)</option>
+                                            <option value="claude-3-haiku-20240307">Claude 3 Haiku (Fast)</option>
+                                            <option value="gpt-4">GPT-4 (Coming Soon)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="systemPrompt">System Prompt</label>
+                                    <ExpressionInput name="systemPrompt" value={formData.systemPrompt || ''} onChange={handleInputChange} inputData={inputData} isTextarea={true} placeholder="You are a helpful assistant..." />
+                                </div>
+                                <div className="form-group">
+                                    <label htmlFor="userMessage">User Message</label>
+                                    <ExpressionInput name="userMessage" value={formData.userMessage || ''} onChange={handleInputChange} inputData={inputData} isTextarea={true} placeholder="e.g. {{message.text}}" />
+                                </div>
                             </div>
                         )}
 
