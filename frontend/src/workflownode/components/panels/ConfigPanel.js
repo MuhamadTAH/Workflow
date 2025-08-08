@@ -11,17 +11,50 @@ import React, { useState, useEffect } from 'react';
 // Helper function to resolve expressions like {{ a.b }}
 const resolveExpression = (expression, data) => {
     if (!expression || typeof expression !== 'string' || !data) return expression;
+    
     // This regex finds all instances of {{ path.to.key }}
     return expression.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, path) => {
-        const keys = path.trim().split('.');
+        const pathStr = path.trim();
+        
+        // Try direct path first (e.g., "1. AI Agent.response")
         let current = data;
+        const keys = pathStr.split('.');
+        let found = true;
+        
         for (let i = 0; i < keys.length; i++) {
             if (current === null || typeof current !== 'object' || !(keys[i] in current)) {
-                return match; // Return original {{...}} if path is invalid
+                found = false;
+                break;
             }
             current = current[keys[i]];
         }
-        return current;
+        
+        if (found) {
+            return typeof current === 'object' ? JSON.stringify(current) : String(current);
+        }
+        
+        // If direct path fails, try to find in nested data (backwards compatibility)
+        // Look for the path in any of the node data
+        for (const [nodeKey, nodeData] of Object.entries(data)) {
+            if (typeof nodeData === 'object' && nodeData !== null) {
+                let nestedCurrent = nodeData;
+                let nestedFound = true;
+                
+                for (let i = 0; i < keys.length; i++) {
+                    if (nestedCurrent === null || typeof nestedCurrent !== 'object' || !(keys[i] in nestedCurrent)) {
+                        nestedFound = false;
+                        break;
+                    }
+                    nestedCurrent = nestedCurrent[keys[i]];
+                }
+                
+                if (nestedFound) {
+                    return typeof nestedCurrent === 'object' ? JSON.stringify(nestedCurrent) : String(nestedCurrent);
+                }
+            }
+        }
+        
+        return match; // Return original {{...}} if path is invalid anywhere
     });
 };
 

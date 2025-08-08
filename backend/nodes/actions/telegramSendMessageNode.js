@@ -107,11 +107,99 @@ const telegramSendMessageNode = {
             let result;
             switch (nodeData.messageType) {
                 case 'text':
-                    result = await sendTextMessage(nodeData.botToken, processedChatId, processedMessage);
+                    result = await sendTextMessage(
+                        nodeData.botToken,
+                        processedChatId,
+                        processedMessage,
+                        nodeData.parseMode,
+                        nodeData.disableWebPagePreview
+                    );
                     break;
                 case 'photo':
-                    // For now, just send as text - can be extended later
-                    result = await sendTextMessage(nodeData.botToken, processedChatId, processedMessage);
+                    result = await sendPhoto(
+                        nodeData.botToken,
+                        processedChatId,
+                        processTemplates(nodeData.photoUrl, inputData),
+                        processTemplates(nodeData.photoCaption, inputData)
+                    );
+                    break;
+                case 'video':
+                    result = await sendVideo(
+                        nodeData.botToken,
+                        processedChatId,
+                        processTemplates(nodeData.videoUrl, inputData),
+                        processTemplates(nodeData.videoCaption, inputData),
+                        toNumber(processTemplates(nodeData.videoDuration, inputData))
+                    );
+                    break;
+                case 'audio':
+                    result = await sendAudio(
+                        nodeData.botToken,
+                        processedChatId,
+                        processTemplates(nodeData.audioUrl, inputData),
+                        processTemplates(nodeData.audioCaption, inputData)
+                    );
+                    break;
+                case 'voice':
+                    result = await sendVoice(
+                        nodeData.botToken,
+                        processedChatId,
+                        processTemplates(nodeData.voiceUrl, inputData)
+                    );
+                    break;
+                case 'document':
+                    result = await sendDocument(
+                        nodeData.botToken,
+                        processedChatId,
+                        processTemplates(nodeData.documentUrl, inputData)
+                    );
+                    break;
+                case 'animation':
+                    result = await sendAnimation(
+                        nodeData.botToken,
+                        processedChatId,
+                        processTemplates(nodeData.animationUrl, inputData)
+                    );
+                    break;
+                case 'sticker':
+                    result = await sendSticker(
+                        nodeData.botToken,
+                        processedChatId,
+                        processTemplates(nodeData.stickerFileId, inputData)
+                    );
+                    break;
+                case 'location':
+                    result = await sendLocation(
+                        nodeData.botToken,
+                        processedChatId,
+                        toNumber(processTemplates(nodeData.latitude, inputData)),
+                        toNumber(processTemplates(nodeData.longitude, inputData)),
+                        toNumber(processTemplates(nodeData.locationHorizontalAccuracy, inputData))
+                    );
+                    break;
+                case 'contact':
+                    result = await sendContact(
+                        nodeData.botToken,
+                        processedChatId,
+                        processTemplates(nodeData.contactPhoneNumber, inputData),
+                        processTemplates(nodeData.contactFirstName, inputData),
+                        processTemplates(nodeData.contactLastName, inputData)
+                    );
+                    break;
+                case 'poll':
+                    result = await sendPoll(
+                        nodeData.botToken,
+                        processedChatId,
+                        processTemplates(nodeData.pollQuestion, inputData),
+                        processTemplates(nodeData.pollOptions, inputData)
+                    );
+                    break;
+                case 'banUser':
+                    result = await banUser(
+                        nodeData.botToken,
+                        processedChatId,
+                        processTemplates(nodeData.banUserId, inputData)
+                    );
                     break;
                 default:
                     throw new Error(`Unsupported message type: ${nodeData.messageType}`);
@@ -137,14 +225,17 @@ const telegramSendMessageNode = {
 };
 
 // Helper function to send text message
-async function sendTextMessage(botToken, chatId, text) {
+async function sendTextMessage(botToken, chatId, text, parseMode = '', disableWebPagePreview = false) {
     const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
     
-    const response = await axios.post(url, {
+    const payload = {
         chat_id: chatId,
-        text: text,
-        parse_mode: 'HTML' // Support basic HTML formatting
-    });
+        text: text
+    };
+    if (parseMode) payload.parse_mode = parseMode;
+    if (disableWebPagePreview) payload.disable_web_page_preview = true;
+
+    const response = await axios.post(url, payload);
 
     if (!response.data.ok) {
         throw new Error(`Telegram API error: ${response.data.description}`);
@@ -153,37 +244,178 @@ async function sendTextMessage(botToken, chatId, text) {
     return response.data.result;
 }
 
+async function sendPhoto(botToken, chatId, photoUrl, caption = '') {
+    const url = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+    const response = await axios.post(url, { chat_id: chatId, photo: photoUrl, caption });
+    if (!response.data.ok) throw new Error(`Telegram API error: ${response.data.description}`);
+    return response.data.result;
+}
+
+async function sendVideo(botToken, chatId, videoUrl, caption = '', duration = undefined) {
+    const url = `https://api.telegram.org/bot${botToken}/sendVideo`;
+    const payload = { chat_id: chatId, video: videoUrl, caption };
+    if (typeof duration === 'number' && !Number.isNaN(duration) && duration > 0) payload.duration = duration;
+    const response = await axios.post(url, payload);
+    if (!response.data.ok) throw new Error(`Telegram API error: ${response.data.description}`);
+    return response.data.result;
+}
+
+async function sendAudio(botToken, chatId, audioUrl, caption = '') {
+    const url = `https://api.telegram.org/bot${botToken}/sendAudio`;
+    const response = await axios.post(url, { chat_id: chatId, audio: audioUrl, caption });
+    if (!response.data.ok) throw new Error(`Telegram API error: ${response.data.description}`);
+    return response.data.result;
+}
+
+async function sendVoice(botToken, chatId, voiceUrl) {
+    const url = `https://api.telegram.org/bot${botToken}/sendVoice`;
+    const response = await axios.post(url, { chat_id: chatId, voice: voiceUrl });
+    if (!response.data.ok) throw new Error(`Telegram API error: ${response.data.description}`);
+    return response.data.result;
+}
+
+async function sendDocument(botToken, chatId, documentUrl) {
+    const url = `https://api.telegram.org/bot${botToken}/sendDocument`;
+    const response = await axios.post(url, { chat_id: chatId, document: documentUrl });
+    if (!response.data.ok) throw new Error(`Telegram API error: ${response.data.description}`);
+    return response.data.result;
+}
+
+async function sendAnimation(botToken, chatId, animationUrl) {
+    const url = `https://api.telegram.org/bot${botToken}/sendAnimation`;
+    const response = await axios.post(url, { chat_id: chatId, animation: animationUrl });
+    if (!response.data.ok) throw new Error(`Telegram API error: ${response.data.description}`);
+    return response.data.result;
+}
+
+async function sendSticker(botToken, chatId, stickerFileId) {
+    const url = `https://api.telegram.org/bot${botToken}/sendSticker`;
+    const response = await axios.post(url, { chat_id: chatId, sticker: stickerFileId });
+    if (!response.data.ok) throw new Error(`Telegram API error: ${response.data.description}`);
+    return response.data.result;
+}
+
+async function sendLocation(botToken, chatId, latitude, longitude, horizontalAccuracy) {
+    const url = `https://api.telegram.org/bot${botToken}/sendLocation`;
+    const payload = { chat_id: chatId, latitude, longitude };
+    if (typeof horizontalAccuracy === 'number' && !Number.isNaN(horizontalAccuracy) && horizontalAccuracy > 0) {
+        payload.horizontal_accuracy = horizontalAccuracy;
+    }
+    const response = await axios.post(url, payload);
+    if (!response.data.ok) throw new Error(`Telegram API error: ${response.data.description}`);
+    return response.data.result;
+}
+
+async function sendContact(botToken, chatId, phoneNumber, firstName, lastName) {
+    const url = `https://api.telegram.org/bot${botToken}/sendContact`;
+    const response = await axios.post(url, { chat_id: chatId, phone_number: phoneNumber, first_name: firstName, last_name: lastName });
+    if (!response.data.ok) throw new Error(`Telegram API error: ${response.data.description}`);
+    return response.data.result;
+}
+
+async function sendPoll(botToken, chatId, question, optionsString) {
+    const url = `https://api.telegram.org/bot${botToken}/sendPoll`;
+    let options;
+    try {
+        // Allows either JSON array string or comma-separated values
+        if (optionsString && optionsString.trim().startsWith('[')) {
+            options = JSON.parse(optionsString);
+        } else {
+            options = String(optionsString || '')
+                .split(',')
+                .map(s => s.trim())
+                .filter(Boolean);
+        }
+    } catch (e) {
+        throw new Error('Invalid poll options format. Provide JSON array or comma-separated values.');
+    }
+    const response = await axios.post(url, { chat_id: chatId, question, options });
+    if (!response.data.ok) throw new Error(`Telegram API error: ${response.data.description}`);
+    return response.data.result;
+}
+
+async function banUser(botToken, chatId, userId) {
+    const url = `https://api.telegram.org/bot${botToken}/banChatMember`;
+    const response = await axios.post(url, { chat_id: chatId, user_id: userId });
+    if (!response.data.ok) throw new Error(`Telegram API error: ${response.data.description}`);
+    return { banned: response.data.ok };
+}
+
 // Helper function to process templates
 function processTemplates(text, inputData) {
     if (!text || typeof text !== 'string') {
         return text;
     }
     
-    // Simple template processing - replace {{ key }} with data values
+    console.log('🔧 Processing templates in text:', text);
+    console.log('📊 Available input data:', JSON.stringify(inputData, null, 2));
+    
+    // Enhanced template processing - replace {{ key }} with data values
     return text.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, path) => {
         try {
-            const keys = path.trim().split('.');
-            let current = inputData;
+            const pathStr = path.trim();
+            const keys = pathStr.split('.');
             
-            // Handle legacy data prefix
-            if (keys[0] === 'data' && keys.length > 1 && !(keys[0] in current)) {
-                keys.shift(); // Remove problematic 'data' prefix
-            }
+            console.log(`🔍 Resolving path: ${pathStr}`);
+            
+            // Try direct path first (e.g., "1. AI Agent.response")
+            let current = inputData;
+            let found = true;
             
             for (const key of keys) {
                 if (current && typeof current === 'object' && key in current) {
                     current = current[key];
                 } else {
-                    return match; // Return original if path not found
+                    found = false;
+                    break;
                 }
             }
             
-            return typeof current === 'object' ? JSON.stringify(current) : String(current);
+            if (found) {
+                const result = typeof current === 'object' ? JSON.stringify(current) : String(current);
+                console.log(`✅ Direct path resolved: ${pathStr} = ${result}`);
+                return result;
+            }
+            
+            // If direct path fails, try to find in nested data (backwards compatibility)
+            // Look for the path in any of the node data
+            if (typeof inputData === 'object' && inputData !== null) {
+                for (const [nodeKey, nodeData] of Object.entries(inputData)) {
+                    if (typeof nodeData === 'object' && nodeData !== null) {
+                        let nestedCurrent = nodeData;
+                        let nestedFound = true;
+                        
+                        for (const key of keys) {
+                            if (nestedCurrent && typeof nestedCurrent === 'object' && key in nestedCurrent) {
+                                nestedCurrent = nestedCurrent[key];
+                            } else {
+                                nestedFound = false;
+                                break;
+                            }
+                        }
+                        
+                        if (nestedFound) {
+                            const result = typeof nestedCurrent === 'object' ? JSON.stringify(nestedCurrent) : String(nestedCurrent);
+                            console.log(`✅ Nested path resolved: ${pathStr} in ${nodeKey} = ${result}`);
+                            return result;
+                        }
+                    }
+                }
+            }
+            
+            console.log(`❌ Path not found: ${pathStr}`);
+            return match; // Return original if path not found anywhere
         } catch (error) {
-            console.warn(`Template processing error for ${match}:`, error.message);
+            console.warn(`❌ Template processing error for ${match}:`, error.message);
             return match;
         }
     });
+}
+
+function toNumber(value) {
+    if (value === undefined || value === null || value === '') return undefined;
+    const n = Number(value);
+    return Number.isNaN(n) ? undefined : n;
 }
 
 module.exports = telegramSendMessageNode;
