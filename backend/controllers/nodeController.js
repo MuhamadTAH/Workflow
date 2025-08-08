@@ -50,6 +50,17 @@ const runNode = async (req, res) => {
                 result = await telegramSendMessageNode.execute(node.config, inputData, connectedNodes);
                 break;
             
+            case 'telegramTrigger':
+                // Trigger nodes don't execute - they start workflows
+                // Return any sample/test data that was generated
+                result = {
+                    success: true,
+                    message: 'Telegram trigger node activated',
+                    data: inputData || node.config.outputData || null,
+                    timestamp: new Date().toISOString()
+                };
+                break;
+            
             default:
                 return res.status(400).json({ message: `Unsupported node type: ${node.type}` });
         }
