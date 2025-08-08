@@ -39,6 +39,8 @@ const App = () => {
   const [isExecuting, setIsExecuting] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
   const [currentWorkflowId, setCurrentWorkflowId] = useState(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSavedState, setLastSavedState] = useState(null);
 
   // Generate a unique, readable workflow ID (moved to top to fix hoisting issue)
   const generateWorkflowId = useCallback(() => {
@@ -50,6 +52,25 @@ const App = () => {
       .substring(0, 20);            // Limit length
     return `${cleanName || 'workflow'}-${random}`;
   }, [workflowName]);
+
+  // Create a snapshot of current state for comparison
+  const createStateSnapshot = useCallback(() => {
+    return JSON.stringify({
+      name: workflowName,
+      nodes: nodes.map(node => ({ id: node.id, position: node.position, data: node.data })),
+      edges: edges.map(edge => ({ id: edge.id, source: edge.source, target: edge.target }))
+    });
+  }, [workflowName, nodes, edges]);
+
+  // Check for unsaved changes
+  useEffect(() => {
+    const currentState = createStateSnapshot();
+    if (lastSavedState && lastSavedState !== currentState) {
+      setHasUnsavedChanges(true);
+    } else if (lastSavedState === currentState) {
+      setHasUnsavedChanges(false);
+    }
+  }, [workflowName, nodes, edges, lastSavedState, createStateSnapshot]);
 
   // Load workflow from URL parameter on component mount
   useEffect(() => {
@@ -66,10 +87,46 @@ const App = () => {
         setWorkflowName(workflowToLoad.name);
         setCurrentWorkflowId(workflowToLoad.id);
         setLastSaved(`Loaded: ${new Date(workflowToLoad.updatedAt).toLocaleTimeString()}`);
+        
+        // Set initial saved state to prevent false unsaved changes detection
+        setTimeout(() => {
+          const initialState = JSON.stringify({
+            name: workflowToLoad.name,
+            nodes: (workflowToLoad.nodes || []).map(node => ({ id: node.id, position: node.position, data: node.data })),
+            edges: (workflowToLoad.edges || []).map(edge => ({ id: edge.id, source: edge.source, target: edge.target }))
+          });
+          setLastSavedState(initialState);
+          setHasUnsavedChanges(false);
+        }, 100);
+        
         console.log('Workflow loaded:', workflowToLoad);
       }
+    } else {
+      // For new workflows, set initial state
+      setTimeout(() => {
+        const initialState = createStateSnapshot();
+        setLastSavedState(initialState);
+        setHasUnsavedChanges(false);
+      }, 100);
     }
-  }, [setNodes, setEdges]);
+  }, [setNodes, setEdges, createStateSnapshot]);
+
+  // Add beforeunload listener for unsaved changes warning
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if (hasUnsavedChanges) {
+        event.preventDefault();
+        event.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return 'You have unsaved changes. Are you sure you want to leave?';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges]);
 
   // Handles creating a new edge when connecting two nodes.
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
@@ -180,6 +237,12 @@ const App = () => {
     localStorage.setItem('savedWorkflows', JSON.stringify(savedWorkflows));
     
     setLastSaved('just now');
+    
+    // Update saved state to mark as no longer having unsaved changes
+    const newSavedState = createStateSnapshot();
+    setLastSavedState(newSavedState);
+    setHasUnsavedChanges(false);
+    
     console.log('Workflow saved:', workflowData);
     
     // Register workflow with backend for execution (if it has a chat trigger)
@@ -212,44 +275,24 @@ const App = () => {
         .then(data => {
           if (data.success) {
             console.log(`✅ Workflow ${workflowId} registered for execution`);
-            // Show success message and navigate to workflows page
-            setTimeout(() => {
-              navigate('/workflows');
-            }, 1000);
             alert(`✅ Workflow "${workflowName}" saved and activated for chat triggers!`);
           } else {
             console.warn('⚠️ Workflow saved but not registered:', data.error);
-            // Show success message and navigate to workflows page
-            setTimeout(() => {
-              navigate('/workflows');
-            }, 1000);
             alert(`✅ Workflow "${workflowName}" saved successfully!`);
           }
         })
         .catch(error => {
           console.error('❌ Workflow registration failed:', error);
-          // Show success message and navigate to workflows page
-          setTimeout(() => {
-            navigate('/workflows');
-          }, 1000);
           alert(`✅ Workflow "${workflowName}" saved successfully!`);
         });
       } catch (error) {
         console.error('❌ Workflow registration error:', error);
-        // Show success message and navigate to workflows page
-        setTimeout(() => {
-          navigate('/workflows');
-        }, 1000);
         alert(`✅ Workflow "${workflowName}" saved successfully!`);
       }
     } else {
-      // Show success message and navigate to workflows page
-      setTimeout(() => {
-        navigate('/workflows');
-      }, 1000);
       alert(`✅ Workflow "${workflowName}" saved successfully!`);
     }
-  }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId, navigate]);
+  }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId, navigate, createStateSnapshot]);
 
   const handleExecute = useCallback(() => {
     setIsExecuting(true);
@@ -289,6 +332,7 @@ const App = () => {
         onWorkflowNameChange={setWorkflowName}
         isExecuting={isExecuting}
         lastSaved={lastSaved}
+        hasUnsavedChanges={hasUnsavedChanges}
       />
       <div className="workflow-content">
         <div className="workflow-canvas" ref={reactFlowWrapper}>
