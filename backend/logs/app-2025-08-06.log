@@ -9,3 +9,7 @@
 {"timestamp":"2025-08-06T12:27:59.515Z","level":"INFO","message":"Workflow engine initialized"}
 {"timestamp":"2025-08-06T12:28:19.653Z","level":"INFO","message":"Workflow engine initialized"}
 {"timestamp":"2025-08-06T12:28:19.712Z","level":"INFO","message":"Backend server started on port 3001","port":"3001"}
+{"timestamp":"2025-08-06T21:22:41.818Z","level":"INFO","message":"Incoming request","method":"GET","url":"/api/hello","ip":"::1","userAgent":"curl/8.14.1"}
+{"timestamp":"2025-08-06T21:22:41.827Z","level":"INFO","message":"Request completed","method":"GET","url":"/api/hello","status":200,"duration":"9ms"}
+{"timestamp":"2025-08-06T21:25:57.830Z","level":"INFO","message":"Workflow engine initialized"}
+{"timestamp":"2025-08-06T21:25:57.924Z","level":"INFO","message":"Backend server started on port 3001","port":"3001"}

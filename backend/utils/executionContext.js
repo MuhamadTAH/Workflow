@@ -27,23 +27,72 @@ class BackendExecutionContext {
    * Build context for a specific node and item (backend version)
    */
   buildNodeContext(nodeId, itemData = null, itemIndex = 0) {
-    const node = this.allNodes.get ? this.allNodes.get(nodeId) : this.allNodes[nodeId];
+    console.log(`🔍 Looking for node ${nodeId} in allNodes:`, Object.keys(this.allNodes || {}));
+    
+    // Handle both Map and Object structures consistently
+    const node = (this.allNodes && typeof this.allNodes.get === 'function') 
+      ? this.allNodes.get(nodeId) 
+      : (this.allNodes || {})[nodeId];
+      
     if (!node) {
-      console.warn(`⚠️ Node ${nodeId} not found in execution context, creating fallback node`);
-      // Create a fallback node context with the provided data
+      console.error(`❌ Node ${nodeId} not found in execution context. Available nodes:`, Object.keys(this.allNodes || {}));
+      console.error(`❌ AllNodes structure:`, JSON.stringify(this.allNodes, null, 2));
+      
+      // Create a fallback node context with the current node data
       const fallbackNode = {
-        type: 'unknown',
-        data: {},
-        outputData: itemData || {},
-        config: {}
+        type: this.currentNode?.type || 'unknown',
+        data: this.currentNode?.data || {},
+        outputData: itemData || this.currentNode?.outputData || {},
+        config: this.currentNode?.config || {}
       };
+      
+      console.log(`🔧 Creating fallback node for ${nodeId}:`, fallbackNode);
+      
       // Add to allNodes to prevent future lookups from failing
-      if (this.allNodes.set) {
+      if (this.allNodes && typeof this.allNodes.set === 'function') {
         this.allNodes.set(nodeId, fallbackNode);
-      } else {
+      } else if (this.allNodes) {
         this.allNodes[nodeId] = fallbackNode;
+      } else {
+        this.allNodes = { [nodeId]: fallbackNode };
       }
-      return this.buildNodeContext(nodeId, itemData, itemIndex);
+      
+      // Use the fallback node directly instead of recursive call
+      const finalNode = fallbackNode;
+      
+      this.itemIndex = itemIndex;
+
+      // Core n8n context variables for backend with fallback node
+      const context = {
+        // Current item data for this node
+        $json: itemData || finalNode.outputData || finalNode.data || {},
+        
+        // Access to other nodes (explicit cross-node references)
+        $node: this.buildNodeReference(),
+        
+        // Environment variables from process.env
+        $env: getEnvironmentVariables(),
+        
+        // Execution metadata
+        $now: new Date(),
+        $runIndex: this.runIndex,
+        $executionId: this.executionId,
+        $itemIndex: this.itemIndex,
+        
+        // Workflow metadata
+        $workflow: {
+          id: this.workflowData.id || 'unknown',
+          name: this.workflowData.name || 'Untitled Workflow',
+          active: this.workflowData.active || false
+        },
+
+        // Current node metadata
+        $nodeId: nodeId,
+        $nodeType: finalNode.type,
+        $nodeLabel: finalNode.data?.label || finalNode.type
+      };
+
+      return context;
     }
 
     this.itemIndex = itemIndex;
@@ -309,8 +358,9 @@ class BackendExecutionContext {
       return config;
     }
 
-    // Build allNodes map from connectedNodes
-    const nodesMap = {};
+    // Build allNodes map from connectedNodes (merge with existing, don't replace)
+    const nodesMap = { ...this.allNodes }; // Preserve existing nodes
+    
     if (Array.isArray(connectedNodes)) {
       connectedNodes.forEach(nodeData => {
         if (nodeData && nodeData.nodeId) {
@@ -334,6 +384,7 @@ class BackendExecutionContext {
       };
     }
 
+    console.log(`🔧 processTemplates: Updated allNodes with keys:`, Object.keys(nodesMap));
     this.allNodes = nodesMap;
 
     const processedConfig = {};
