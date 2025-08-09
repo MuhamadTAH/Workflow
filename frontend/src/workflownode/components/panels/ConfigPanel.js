@@ -8,55 +8,128 @@ drag-and-drop functionality.
 */
 import React, { useState, useEffect } from 'react';
 
-// Helper function to resolve expressions like {{ a.b }}
+// Helper function to resolve expressions like {{ a.b }} and {{ a[0].b }}
 const resolveExpression = (expression, data) => {
     if (!expression || typeof expression !== 'string' || !data) {
         return expression;
     }
     
+    // Helper function to parse path with array notation
+    const parsePath = (pathStr) => {
+        const parts = [];
+        let current = '';
+        let inBracket = false;
+        
+        // First, check if the path starts with a numbered node key like "1. Node Name"
+        const nodeKeyMatch = pathStr.match(/^(\d+\.\s+[^[.]+)/);
+        if (nodeKeyMatch) {
+            const nodeKey = nodeKeyMatch[1];
+            parts.push(nodeKey);
+            // Continue parsing the rest of the path after the node key
+            pathStr = pathStr.substring(nodeKey.length);
+            if (pathStr.startsWith('.')) {
+                pathStr = pathStr.substring(1); // Remove leading dot
+            }
+        }
+        
+        for (let i = 0; i < pathStr.length; i++) {
+            const char = pathStr[i];
+            
+            if (char === '[') {
+                if (current) {
+                    parts.push(current);
+                    current = '';
+                }
+                inBracket = true;
+            } else if (char === ']') {
+                if (inBracket && current) {
+                    // Parse array index as number
+                    const index = parseInt(current, 10);
+                    if (!isNaN(index)) {
+                        parts.push(index);
+                    } else {
+                        parts.push(current); // Keep as string if not a number
+                    }
+                    current = '';
+                }
+                inBracket = false;
+            } else if (char === '.' && !inBracket) {
+                if (current) {
+                    parts.push(current);
+                    current = '';
+                }
+            } else {
+                current += char;
+            }
+        }
+        
+        if (current) {
+            parts.push(current);
+        }
+        
+        return parts;
+    };
+    
+    // Helper function to traverse object/array path
+    const traversePath = (obj, pathParts) => {
+        let current = obj;
+        
+        for (const part of pathParts) {
+            if (current === null || current === undefined) {
+                return { found: false, value: undefined };
+            }
+            
+            if (typeof part === 'number') {
+                // Array index
+                if (!Array.isArray(current) || part >= current.length || part < 0) {
+                    return { found: false, value: undefined };
+                }
+                current = current[part];
+            } else {
+                // Object property
+                if (typeof current !== 'object' || !(part in current)) {
+                    return { found: false, value: undefined };
+                }
+                current = current[part];
+            }
+        }
+        
+        return { found: true, value: current };
+    };
+    
     // This regex finds all instances of {{ path.to.key }}
     return expression.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, path) => {
         const pathStr = path.trim();
+        console.log('🔍 Resolving path:', pathStr);
         
-        // Try direct path first (e.g., "1. AI Agent.response")
-        let current = data;
-        const keys = pathStr.split('.');
-        let found = true;
+        const pathParts = parsePath(pathStr);
+        console.log('🔧 Parsed path parts:', pathParts);
         
-        for (let i = 0; i < keys.length; i++) {
-            if (current === null || typeof current !== 'object' || !(keys[i] in current)) {
-                found = false;
-                break;
-            }
-            current = current[keys[i]];
+        // Try direct path resolution
+        console.log('📊 Available data keys:', Object.keys(data));
+        console.log('📋 Full data structure:', JSON.stringify(data, null, 2));
+        const result = traversePath(data, pathParts);
+        console.log('🎯 Direct path result:', result);
+        
+        if (result.found) {
+            const resolvedValue = typeof result.value === 'object' ? JSON.stringify(result.value) : String(result.value);
+            console.log('✅ Resolved to:', resolvedValue);
+            return resolvedValue;
         }
         
-        if (found) {
-            const result = typeof current === 'object' ? JSON.stringify(current) : String(current);
-            return result;
-        }
-        // If direct path fails, try to find in nested data (backwards compatibility)
-        // Look for the path in any of the node data
+        // If direct path fails, try nested search in each data node
         for (const [nodeKey, nodeData] of Object.entries(data)) {
             if (typeof nodeData === 'object' && nodeData !== null) {
-                let nestedCurrent = nodeData;
-                let nestedFound = true;
-                
-                for (let i = 0; i < keys.length; i++) {
-                    if (nestedCurrent === null || typeof nestedCurrent !== 'object' || !(keys[i] in nestedCurrent)) {
-                        nestedFound = false;
-                        break;
-                    }
-                    nestedCurrent = nestedCurrent[keys[i]];
-                }
-                
-                if (nestedFound) {
-                    const result = typeof nestedCurrent === 'object' ? JSON.stringify(nestedCurrent) : String(nestedCurrent);
-                    return result;
+                const nestedResult = traversePath(nodeData, pathParts);
+                if (nestedResult.found) {
+                    const resolvedValue = typeof nestedResult.value === 'object' ? JSON.stringify(nestedResult.value) : String(nestedResult.value);
+                    console.log('✅ Nested resolved to:', resolvedValue);
+                    return resolvedValue;
                 }
             }
         }
         
+        console.log('❌ Path not found:', pathStr);
         return match; // Return original {{...}} if path is invalid anywhere
     });
 };
@@ -134,10 +207,20 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     useEffect(() => {
+        console.log('🔍 ExpressionInput DEBUG:', { 
+            hasInputData: !!inputData, 
+            inputDataType: Array.isArray(inputData) ? 'array' : typeof inputData,
+            inputDataLength: Array.isArray(inputData) ? inputData.length : 'not-array',
+            value: value,
+            hasTemplates: value && typeof value === 'string' && value.includes('{{'),
+            inputDataPreview: inputData ? JSON.stringify(inputData).substring(0, 200) + '...' : null
+        });
+        
         if (inputData && value && typeof value === 'string' && value.includes('{{')) {
             // Handle cascading data structure from collectAllPreviousNodeData
             let dataToUse;
             if (Array.isArray(inputData) && inputData.length > 0 && inputData[0].nodeId) {
+                console.log('📊 Processing cascading data structure');
                 // This is cascading data structure - convert to flat object for template resolution
                 dataToUse = {};
                 inputData.forEach(nodeInfo => {
@@ -155,15 +238,22 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
                         });
                     }
                 });
+                console.log('🔧 Final dataToUse for cascading:', dataToUse);
             } else if (Array.isArray(inputData)) {
+                console.log('📊 Processing legacy array structure');
                 // Legacy array structure - take first element
                 dataToUse = inputData[0];
+                console.log('🔧 Final dataToUse for legacy:', dataToUse);
             } else {
+                console.log('📊 Processing direct object structure');
                 // Direct object structure
                 dataToUse = inputData;
+                console.log('🔧 Final dataToUse for direct:', dataToUse);
             }
             
+            console.log('🔧 Calling resolveExpression with:', { value, dataToUse });
             const resolved = resolveExpression(value, dataToUse);
+            console.log('✅ resolveExpression returned:', resolved);
             setResolvedValue(resolved);
         } else {
             setResolvedValue('');
@@ -855,6 +945,11 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                                                 });
                                                 
                                                 const result = await response.json();
+                                                console.log('🔍 Telegram API Response:', { status: response.status, result });
+                                                
+                                                if (!response.ok) {
+                                                    throw new Error(`HTTP ${response.status}: ${result.error || result.message || 'Unknown error'}`);
+                                                }
                                                 
                                                 if (result.success && result.updates && result.updates.length > 0) {
                                                     // Use the most recent message

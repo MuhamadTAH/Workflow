@@ -164,31 +164,106 @@ function processTemplates(text, inputData) {
     
     console.log('🤖 Processed data structure:', JSON.stringify(dataToProcess, null, 2));
     
+    // Helper function to parse path with array notation
+    const parsePath = (pathStr) => {
+        const parts = [];
+        let current = '';
+        let inBracket = false;
+        
+        // First, check if the path starts with a numbered node key like "1. Node Name"
+        const nodeKeyMatch = pathStr.match(/^(\d+\.\s+[^[.]+)/);
+        if (nodeKeyMatch) {
+            const nodeKey = nodeKeyMatch[1];
+            parts.push(nodeKey);
+            // Continue parsing the rest of the path after the node key
+            pathStr = pathStr.substring(nodeKey.length);
+            if (pathStr.startsWith('.')) {
+                pathStr = pathStr.substring(1); // Remove leading dot
+            }
+        }
+        
+        for (let i = 0; i < pathStr.length; i++) {
+            const char = pathStr[i];
+            
+            if (char === '[') {
+                if (current) {
+                    parts.push(current);
+                    current = '';
+                }
+                inBracket = true;
+            } else if (char === ']') {
+                if (inBracket && current) {
+                    // Parse array index as number
+                    const index = parseInt(current, 10);
+                    if (!isNaN(index)) {
+                        parts.push(index);
+                    } else {
+                        parts.push(current); // Keep as string if not a number
+                    }
+                    current = '';
+                }
+                inBracket = false;
+            } else if (char === '.' && !inBracket) {
+                if (current) {
+                    parts.push(current);
+                    current = '';
+                }
+            } else {
+                current += char;
+            }
+        }
+        
+        if (current) {
+            parts.push(current);
+        }
+        
+        return parts;
+    };
+    
+    // Helper function to traverse object/array path
+    const traversePath = (obj, pathParts) => {
+        let current = obj;
+        
+        for (const part of pathParts) {
+            if (current === null || current === undefined) {
+                return { found: false, value: undefined };
+            }
+            
+            if (typeof part === 'number') {
+                // Array index
+                if (!Array.isArray(current) || part >= current.length || part < 0) {
+                    return { found: false, value: undefined };
+                }
+                current = current[part];
+            } else {
+                // Object property
+                if (typeof current !== 'object' || !(part in current)) {
+                    return { found: false, value: undefined };
+                }
+                current = current[part];
+            }
+        }
+        
+        return { found: true, value: current };
+    };
+
     // Enhanced template processing - replace {{ key }} with data values
     return text.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, path) => {
         try {
             const pathStr = path.trim();
-            const keys = pathStr.split('.');
-            
             console.log(`🔍 AI Agent resolving path: ${pathStr}`);
             
-            // Try direct path first (e.g., "message.text" or "1. Telegram Trigger.message.text")
-            let current = dataToProcess;
-            let found = true;
+            const pathParts = parsePath(pathStr);
+            console.log(`🔧 AI Agent parsed path parts:`, pathParts);
             
-            for (const key of keys) {
-                if (current && typeof current === 'object' && key in current) {
-                    current = current[key];
-                } else {
-                    found = false;
-                    break;
-                }
-            }
+            // Try direct path resolution
+            const result = traversePath(dataToProcess, pathParts);
+            console.log(`🎯 AI Agent direct path result:`, result);
             
-            if (found) {
-                const result = typeof current === 'object' ? JSON.stringify(current) : String(current);
-                console.log(`✅ AI Agent direct path resolved: ${pathStr} = ${result}`);
-                return result;
+            if (result.found) {
+                const resolvedValue = typeof result.value === 'object' ? JSON.stringify(result.value) : String(result.value);
+                console.log(`✅ AI Agent resolved: ${pathStr} = ${resolvedValue}`);
+                return resolvedValue;
             }
             
             // If direct path fails, try to find in nested data (backwards compatibility)
