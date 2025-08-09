@@ -134,6 +134,32 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: '✅ Hello from the backend!' });
 });
 
+// Test route for IF node routing fix
+app.post('/api/test-if-routing', (req, res) => {
+  const { condition } = req.body;
+  const testData = { message: { text: "Hello World" } };
+  
+  if (condition === true) {
+    res.json({
+      route: 'true',
+      trueOutput: {
+        inputData: testData,
+        message: 'Routed to TRUE output only'
+      },
+      falseOutput: null
+    });
+  } else {
+    res.json({
+      route: 'false',
+      trueOutput: null,
+      falseOutput: {
+        inputData: testData,
+        message: 'Routed to FALSE output only'
+      }
+    });
+  }
+});
+
 // Test webhook route (for debugging)
 app.post('/api/test-webhook', (req, res) => {
   logger.debug('Test webhook received', { body: req.body });
