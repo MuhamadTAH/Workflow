@@ -239,7 +239,8 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
                 className={isDraggingOver ? 'dragging-over' : ''}
                 rows={isTextarea ? 4 : undefined}
             />
-            {resolvedValue && <div className="live-preview">{resolvedValue}</div>}
+            {resolvedValue && <div className="live-preview">Preview: {resolvedValue}</div>}
+            {value && value.includes('{{') && !resolvedValue && <div className="live-preview" style={{color: 'red'}}>Debug: No resolved value for "{value}"</div>}
         </div>
     );
 };
