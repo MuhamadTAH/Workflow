@@ -98,6 +98,7 @@ const telegramSendMessageNode = {
             const processedChatId = processTemplates(nodeData.chatId, inputData);
             const processedMessage = processTemplates(nodeData.messageText, inputData);
 
+            console.log('🔧 DEPLOYMENT TEST: NEW CODE IS ACTIVE');
             console.log('Processed values:', {
                 chatId: processedChatId,
                 message: processedMessage?.substring(0, 100) + '...'
