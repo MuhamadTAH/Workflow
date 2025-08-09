@@ -538,6 +538,55 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
     onClose(allUpdatedData);
   };
   
+  // Helper function to get correct execution order using topological sort
+  const getExecutionOrder = () => {
+    const inDegree = new Map();
+    const nodeMap = new Map();
+    
+    // Initialize in-degree count and node map
+    nodes.forEach(node => {
+      inDegree.set(node.id, 0);
+      nodeMap.set(node.id, node);
+    });
+    
+    // Calculate in-degree for each node
+    edges.forEach(edge => {
+      inDegree.set(edge.target, (inDegree.get(edge.target) || 0) + 1);
+    });
+    
+    // Find nodes with no incoming edges (start nodes)
+    const queue = [];
+    nodes.forEach(node => {
+      if (inDegree.get(node.id) === 0) {
+        queue.push(node);
+      }
+    });
+    
+    // Topological sort
+    const order = [];
+    while (queue.length > 0) {
+      const currentNode = queue.shift();
+      order.push(currentNode);
+      
+      // Find all outgoing edges from current node
+      const outgoingEdges = edges.filter(edge => edge.source === currentNode.id);
+      
+      outgoingEdges.forEach(edge => {
+        const newInDegree = inDegree.get(edge.target) - 1;
+        inDegree.set(edge.target, newInDegree);
+        
+        if (newInDegree === 0) {
+          const targetNode = nodeMap.get(edge.target);
+          if (targetNode) {
+            queue.push(targetNode);
+          }
+        }
+      });
+    }
+    
+    return order;
+  };
+
   // Helper function to recursively collect data from all previous nodes in the workflow chain
   const collectAllPreviousNodeData = (currentNodeId, visited = new Set()) => {
     // Prevent infinite loops
@@ -548,6 +597,13 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
 
     const result = [];
     const incomingEdges = edges.filter(edge => edge.target === currentNodeId);
+    
+    // Get the correct execution order
+    const executionOrder = getExecutionOrder();
+    const nodeOrderMap = new Map();
+    executionOrder.forEach((node, index) => {
+      nodeOrderMap.set(node.id, index + 1);
+    });
     
     for (const edge of incomingEdges) {
       const sourceNode = nodes.find(n => n.id === edge.source);
@@ -563,7 +619,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
             nodeType: sourceNode.data.type,
             nodeLabel: sourceNode.data.label || `${sourceNode.data.type} Node`,
             data: sourceNode.data.outputData,
-            order: result.length + 1
+            order: nodeOrderMap.get(sourceNode.id) || result.length + 1
           });
         }
       }
@@ -692,8 +748,9 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                             // For cascading data, show flattened structure like the old format
                             (() => {
                                 const flattened = {};
-                                inputData.forEach((nodeData, index) => {
-                                    const key = `${index + 1}. ${nodeData.nodeLabel}`;
+                                inputData.forEach((nodeData) => {
+                                    // Use the actual node order from the data, not array index
+                                    const key = `${nodeData.order || 1}. ${nodeData.nodeLabel}`;
                                     flattened[key] = nodeData.data;
                                 });
                                 return <JsonTreeView data={flattened} />;
