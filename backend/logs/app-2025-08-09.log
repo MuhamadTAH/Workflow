@@ -1,1 +1,5 @@
 {"timestamp":"2025-08-09T00:46:38.431Z","level":"INFO","message":"Workflow engine initialized"}
+{"timestamp":"2025-08-09T17:17:21.300Z","level":"INFO","message":"Chat Trigger processing webhook data","method":"POST","hasBody":true,"bodyType":"object","headerCount":0}
+{"timestamp":"2025-08-09T17:17:21.301Z","level":"INFO","message":"Chat Trigger processed data successfully","hasText":true,"userId":"123","method":"POST"}
+{"timestamp":"2025-08-09T19:06:45.324Z","level":"INFO","message":"Incoming request","method":"OPTIONS","url":"/api/webhooks/chat/dndnode_0/chat","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"}
+{"timestamp":"2025-08-09T19:06:45.353Z","level":"INFO","message":"Request completed","method":"OPTIONS","url":"/api/webhooks/chat/dndnode_0/chat","status":204,"duration":"29ms"}

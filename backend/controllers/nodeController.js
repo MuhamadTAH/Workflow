@@ -17,6 +17,18 @@ const switchNode = require('../nodes/logic/switchNode');
 const waitNode = require('../nodes/logic/waitNode');
 const mergeNode = require('../nodes/logic/mergeNode');
 const filterNode = require('../nodes/logic/filterNode');
+
+// Try to load Chat Trigger Node, but don't fail if it doesn't exist
+let ChatTriggerNode = null;
+let chatTriggerNode = null;
+try {
+  ChatTriggerNode = require('../nodes/triggers/chatTriggerNode');
+  chatTriggerNode = new ChatTriggerNode();
+  console.log('✅ ChatTriggerNode loaded successfully in node controller');
+} catch (error) {
+  console.warn('⚠️ ChatTriggerNode not available in node controller:', error.message);
+}
+
 const { createBackendExecutionContext } = require('../utils/executionContext');
 
 const runNode = async (req, res) => {
@@ -132,6 +144,32 @@ const runNode = async (req, res) => {
                     };
                     break;
                 
+                case 'chatTrigger':
+                    if (!chatTriggerNode) {
+                        return res.status(503).json({
+                            success: false,
+                            message: 'Chat Trigger functionality is not available on this server',
+                            supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'telegramSendMessage', 'if', 'switch', 'wait', 'merge', 'filter']
+                        });
+                    }
+                    // Chat Trigger nodes are webhook listeners - they provide webhook info
+                    const webhookUrl = chatTriggerNode.generateWebhookUrl('current-workflow', node.id, processedConfig);
+                    itemResult = {
+                        success: true,
+                        message: 'Chat Trigger node activated',
+                        data: currentItem || processedConfig.outputData || {
+                            text: 'Test message from Chat Trigger',
+                            userId: 'test-user',
+                            sessionId: 'test-session',
+                            source: 'manual-execution',
+                            timestamp: new Date().toISOString()
+                        },
+                        webhookUrl: webhookUrl,
+                        nodeInfo: chatTriggerNode.getNodeInfo(processedConfig),
+                        timestamp: new Date().toISOString()
+                    };
+                    break;
+                
                 case 'telegramSendMessage':
                     itemResult = await telegramSendMessageNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
                     break;
@@ -164,7 +202,7 @@ const runNode = async (req, res) => {
                 default:
                     return res.status(400).json({ 
                         message: `Unsupported node type: ${node.type}`,
-                        supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'telegramSendMessage', 'if', 'switch', 'wait', 'merge', 'filter']
+                        supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'chatTrigger', 'telegramSendMessage', 'if', 'switch', 'wait', 'merge', 'filter']
                     });
             }
             
