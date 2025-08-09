@@ -196,5 +196,6 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
+  console.log(`🚀 Backend server with IF node routing fix started on port ${PORT}`);
   logger.info(`Backend server started on port ${PORT}`, { port: PORT });
 });
