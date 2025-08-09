@@ -85,7 +85,7 @@ const ifNode = {
                 finalResult = results.every(r => r === true);
             }
 
-            console.log(`✅ IF Node evaluation completed: ${finalResult} (${nodeData.combinator})`);
+            console.log(`✅ IF Node evaluation completed: ${finalResult} (${nodeData.combinator}) - Routing to ${finalResult ? 'TRUE' : 'FALSE'} output only`);
 
             // Return result with proper routing - only send data to the matching output path
             const responseData = {
