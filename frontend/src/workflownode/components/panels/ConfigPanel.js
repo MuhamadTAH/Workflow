@@ -794,7 +794,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
         const API_BASE = 'https://workflow-lg9z.onrender.com';
         
         // Use the new n8n-style execution context route for all nodes
-        let endpoint = `${API_BASE}/api/run-node`;
+        let endpoint = `${API_BASE}/api/nodes/run-node`;
         
         const response = await fetch(endpoint, {
             method: 'POST',
