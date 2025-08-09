@@ -8,7 +8,8 @@ fetch data from previous nodes.
 */
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReactFlow, {
+import {
+  ReactFlow,
   addEdge,
   useNodesState,
   useEdgesState,
@@ -103,7 +104,6 @@ const App = () => {
           setHasUnsavedChanges(false);
         }, 100);
         
-        console.log('Workflow loaded:', workflowToLoad);
       }
     } else if (!loadWorkflowId && !currentWorkflowId && lastSavedState === null) {
       // For new workflows, set initial state only once
@@ -206,6 +206,19 @@ const App = () => {
     setSelectedNode(null); // Close the panel
   };
 
+  // Handles updating node data immediately (for live preview output data)
+  const onNodeUpdate = useCallback((nodeId, dataUpdate) => {
+    setNodes((nds) =>
+        nds.map((node) => {
+            if (node.id === nodeId) {
+                // Merge the updated data into the node's data object.
+                node.data = { ...node.data, ...dataUpdate };
+            }
+            return node;
+        })
+    );
+  }, [setNodes]);
+
   // Toolbar action handlers
   const handleSave = useCallback(() => {
     // Create workflow data to save
@@ -251,7 +264,6 @@ const App = () => {
     setLastSavedState(newSavedState);
     setHasUnsavedChanges(false);
     
-    console.log('Workflow saved:', workflowData);
     
     // Register workflow with backend for execution (if it has a chat trigger)
     const hasChatTrigger = nodes.some(node => node.data.type === 'chatTrigger');
@@ -282,10 +294,8 @@ const App = () => {
         .then(response => response.json())
         .then(data => {
           if (data.success) {
-            console.log(`✅ Workflow ${workflowId} registered for execution`);
             alert(`✅ Workflow "${workflowName}" saved and activated for chat triggers!`);
           } else {
-            console.warn('⚠️ Workflow saved but not registered:', data.error);
             alert(`✅ Workflow "${workflowName}" saved successfully!`);
           }
         })
@@ -319,7 +329,6 @@ const App = () => {
         edges, 
         (progress) => {
           setExecutionProgress(progress);
-          console.log('Execution progress:', progress);
         }
       );
 
@@ -405,12 +414,10 @@ const App = () => {
 
   const handleUndo = useCallback(() => {
     // Undo logic here
-    console.log('Undo action');
   }, []);
 
   const handleRedo = useCallback(() => {
     // Redo logic here
-    console.log('Redo action');
   }, []);
 
   return (
@@ -464,7 +471,8 @@ const App = () => {
           node={selectedNode} 
           nodes={nodes}
           edges={edges}
-          onClose={onPanelClose} 
+          onClose={onPanelClose}
+          onNodeUpdate={onNodeUpdate}
         />
       )}
     </div>
