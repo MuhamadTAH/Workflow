@@ -35,14 +35,16 @@ const DraggableNode = ({ nodeInfo }) => {
 
   return (
     <div
-      className="flex items-center p-3 mb-3 bg-white border-2 rounded-lg cursor-grab shadow-sm hover:shadow-md transition-shadow"
+      className="sidebar-node-item"
       onDragStart={(event) => onDragStart(event, nodeInfo)}
       draggable
     >
-      <i className={`${getIconClass(nodeInfo.icon)} mr-3 text-lg ${nodeInfo.color}`}></i>
-      <div>
-        <div className="font-bold">{nodeInfo.label}</div>
-        <div className="text-xs text-gray-500">{nodeInfo.description}</div>
+      <div className="node-icon">
+        <i className={`${getIconClass(nodeInfo.icon)} ${nodeInfo.color}`}></i>
+      </div>
+      <div className="node-info">
+        <div className="node-title">{nodeInfo.label}</div>
+        <div className="node-description">{nodeInfo.description}</div>
       </div>
     </div>
   );
@@ -50,10 +52,23 @@ const DraggableNode = ({ nodeInfo }) => {
 
 const Sidebar = () => {
   return (
-    <aside className="w-72 bg-gray-50 p-4 border-r border-gray-200 overflow-y-auto">
+    <aside className="workflow-sidebar">
       
+      {/* Sidebar Header */}
+      <div className="sidebar-header">
+        <h3>Node Library</h3>
+        <div className="sidebar-search">
+          <i className="fa-solid fa-search"></i>
+          <input type="text" placeholder="Search nodes..." />
+        </div>
+      </div>
+
       {/* TRIGGER NODES */}
-      <div className="mb-4 font-bold text-lg text-blue-600">Trigger Nodes</div>
+      <div className="node-category">
+        <div className="category-header">
+          <i className="fa-solid fa-bolt category-icon"></i>
+          <span>Trigger Nodes</span>
+        </div>
       <DraggableNode 
         nodeInfo={{ 
             label: 'Telegram Trigger', 
@@ -63,9 +78,24 @@ const Sidebar = () => {
             type: 'telegramTrigger' 
         }} 
       />
+      <DraggableNode 
+        nodeInfo={{ 
+            label: 'Chat Trigger', 
+            icon: 'fa-comments', 
+            color: 'text-green-500',
+            description: 'Start workflow from website chat messages',
+            type: 'chatTrigger' 
+        }} 
+      />
       
+      </div>
+
       {/* AI NODES */}
-      <div className="mb-4 mt-6 font-bold text-lg text-purple-600">AI Nodes</div>
+      <div className="node-category">
+        <div className="category-header">
+          <i className="fa-solid fa-robot category-icon"></i>
+          <span>AI Nodes</span>
+        </div>
       <DraggableNode 
         nodeInfo={{ 
             label: 'AI Agent', 
@@ -85,15 +115,21 @@ const Sidebar = () => {
         }} 
       />
       
+      </div>
+
       {/* SOCIAL MEDIA NODES */}
-      <div className="mb-4 mt-6 font-bold text-lg text-green-600">Social Media</div>
+      <div className="node-category">
+        <div className="category-header">
+          <i className="fa-solid fa-share-alt category-icon"></i>
+          <span>Social Media</span>
+        </div>
       <DraggableNode 
         nodeInfo={{ 
-            label: 'Telegram Send', 
-            icon: 'fa-telegram', 
-            color: 'text-blue-500',
-            description: 'Send Telegram messages',
-            type: 'telegramSendMessage' 
+            label: 'Chat Response', 
+            icon: 'fa-reply', 
+            color: 'text-green-500',
+            description: 'Send responses to website chat widgets',
+            type: 'chatResponse' 
         }} 
       />
       <DraggableNode 
@@ -133,8 +169,14 @@ const Sidebar = () => {
         }} 
       />
       
+      </div>
+
       {/* UTILITY NODES */}
-      <div className="mb-4 mt-6 font-bold text-lg text-gray-600">Utility Nodes</div>
+      <div className="node-category">
+        <div className="category-header">
+          <i className="fa-solid fa-tools category-icon"></i>
+          <span>Utility Nodes</span>
+        </div>
       <DraggableNode 
         nodeInfo={{ 
             label: 'Google Docs', 
@@ -163,8 +205,14 @@ const Sidebar = () => {
         }} 
       />
 
+      </div>
+
       {/* LOGIC NODES */}
-      <div className="mb-4 mt-6 font-bold text-lg text-red-600">Logic Nodes</div>
+      <div className="node-category">
+        <div className="category-header">
+          <i className="fa-solid fa-sitemap category-icon"></i>
+          <span>Logic Nodes</span>
+        </div>
       <DraggableNode 
         nodeInfo={{ 
             label: 'If', 
@@ -257,6 +305,7 @@ const Sidebar = () => {
             type: 'executeSubWorkflow' 
         }} 
       />
+      </div>
     </aside>
   );
 };
