@@ -87,8 +87,8 @@ const ifNode = {
 
             console.log(`✅ IF Node evaluation completed: ${finalResult} (${nodeData.combinator}) - Routing to ${finalResult ? 'TRUE' : 'FALSE'} output only`);
 
-            // Return result with proper routing - only send data to the matching output path
-            const responseData = {
+            // Return result with conditional routing information
+            return {
                 success: true,
                 result: finalResult,
                 conditionsMet: finalResult,
@@ -98,29 +98,14 @@ const ifNode = {
                     result: results[i]
                 })),
                 combinator: nodeData.combinator,
+                // Only pass inputData if condition matches the route
+                inputData: inputData,
+                routingNote: `Data should only flow to ${finalResult ? 'TRUE' : 'FALSE'} output. Other output should be ignored.`,
+                // Explicit routing control for workflow execution
+                truePathData: finalResult ? inputData : null,
+                falsePathData: !finalResult ? inputData : null,
                 timestamp: new Date().toISOString()
             };
-
-            // Only include inputData for the path that matches the result
-            if (finalResult) {
-                // Condition is TRUE - send data to true output only
-                responseData.trueOutput = {
-                    inputData: inputData,
-                    conditionsResult: 'true',
-                    message: 'Conditions met - routed to TRUE output'
-                };
-                responseData.falseOutput = null; // No data for false output
-            } else {
-                // Condition is FALSE - send data to false output only  
-                responseData.trueOutput = null; // No data for true output
-                responseData.falseOutput = {
-                    inputData: inputData,
-                    conditionsResult: 'false',
-                    message: 'Conditions not met - routed to FALSE output'
-                };
-            }
-
-            return responseData;
 
         } catch (error) {
             console.error('❌ IF Node execution failed:', error.message);
