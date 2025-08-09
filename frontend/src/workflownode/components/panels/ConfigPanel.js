@@ -793,18 +793,24 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
         // Always use production backend (as per deployment setup)
         const API_BASE = 'https://workflow-lg9z.onrender.com';
         
-        // Special handling for AI agent nodes due to routing issues
-        let endpoint = `${API_BASE}/api/nodes/run-node`;
-        if (node.data.type === 'aiAgent') {
-            endpoint = `${API_BASE}/api/run-ai-agent`;
-        }
+        // Use the new n8n-style execution context route for all nodes
+        let endpoint = `${API_BASE}/api/run-node`;
         
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                node: { type: node.data.type, config: formData },
-                inputData: inputData
+                node: { 
+                    id: node.id,
+                    type: node.data.type, 
+                    config: formData,
+                    data: node.data
+                },
+                inputData: inputData,
+                connectedNodes: collectAllPreviousNodeData(node.id) || [],
+                workflowId: 'live_test_workflow',
+                workflowName: 'Live Test Workflow',
+                executionId: `live_${Date.now()}`
             })
         });
         const result = await response.json();
@@ -1254,10 +1260,10 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                                 
                                 <div className="template-examples" style={{ background: '#f8f9fa', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
                                     <strong>Template Examples:</strong><br/>
-                                    <code>{{$json.message.text}}</code> - Current message<br/>
-                                    <code>{{$node["AI Agent"].json.response}}</code> - From other node<br/>
-                                    <code>{{$env.NODE_ENV}}</code> - Environment variable<br/>
-                                    <code>{{$json.message.from.first_name || "Friend"}}</code> - With fallback
+                                    <code>{'{{$json.message.text}}'}</code> - Current message<br/>
+                                    <code>{'{{$node["AI Agent"].json.response}}'}</code> - From other node<br/>
+                                    <code>{'{{$env.NODE_ENV}}'}</code> - Environment variable<br/>
+                                    <code>{'{{$json.message.from.first_name || "Friend"}}'}</code> - With fallback
                                 </div>
                             </div>
                         )}

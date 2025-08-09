@@ -74,7 +74,7 @@ const aiAgentNode = {
     },
 
     // This function gets called when the node is executed
-    async execute(nodeData, inputData, connectedNodes = []) {
+    async execute(nodeData, inputData, connectedNodes = [], executionContext = null) {
         console.log('🤖 AI Agent Node Execution Starting');
         console.log('Node configuration:', {
             model: nodeData.model,
@@ -93,9 +93,16 @@ const aiAgentNode = {
                 throw new Error('User Message is required');
             }
 
-            // Process templates in user message using input data
-            const processedMessage = processTemplates(nodeData.userMessage, inputData);
-            console.log('Processed user message:', processedMessage);
+            // Process templates using n8n-style execution context if available
+            let processedMessage;
+            if (executionContext) {
+                processedMessage = executionContext.evaluateExpression(nodeData.userMessage, 'ai_agent', inputData, 0);
+                console.log('🔒 n8n-style processed user message:', processedMessage);
+            } else {
+                // Fallback to old template processing
+                processedMessage = processTemplates(nodeData.userMessage, inputData);
+                console.log('📜 Legacy processed user message:', processedMessage);
+            }
 
             // Prepare AI request
             const aiRequest = {
