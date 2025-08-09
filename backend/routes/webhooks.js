@@ -3,7 +3,17 @@ const router = express.Router();
 const workflowEngine = require('../workflowEngine');
 const logger = require('../services/logger');
 const { asyncHandler } = require('../middleware/errorHandler');
-const WorkflowExecutor = require('../services/workflowExecutor');
+
+// Try to load WorkflowExecutor, but don't fail if it doesn't exist
+let WorkflowExecutor = null;
+let workflowExecutor = null;
+try {
+  WorkflowExecutor = require('../services/workflowExecutor');
+  workflowExecutor = new WorkflowExecutor();
+  console.log('✅ WorkflowExecutor loaded successfully for Chat Trigger');
+} catch (error) {
+  console.warn('⚠️ WorkflowExecutor not available, Chat Trigger workflows will not auto-execute:', error.message);
+}
 const fs = require('fs');
 const path = require('path');
 
@@ -20,8 +30,7 @@ const registeredWebhooks = new Map();
 const ChatTriggerNode = require('../nodes/triggers/chatTriggerNode');
 const chatTriggerNode = new ChatTriggerNode();
 
-// Initialize Workflow Executor
-const workflowExecutor = new WorkflowExecutor();
+// WorkflowExecutor is conditionally initialized above
 
 // Basic webhook test endpoint
 router.get('/test', (req, res) => {
@@ -363,7 +372,7 @@ router.all('/chat/:nodeId/:path?', asyncHandler(async (req, res) => {
     const webhookInfo = webhookConfig.config || {};
     const workflowId = webhookConfig.workflowId;
     
-    if (workflowId) {
+    if (workflowId && workflowExecutor) {
       try {
         // Format trigger data for workflow execution 
         const triggerData = [processedData]; // Wrap in array as expected by executor
@@ -392,6 +401,8 @@ router.all('/chat/:nodeId/:path?', asyncHandler(async (req, res) => {
         // Don't fail the webhook response if workflow fails
         // The message was still received successfully
       }
+    } else if (workflowId && !workflowExecutor) {
+      logger.info(`Workflow ${workflowId} associated with Chat Trigger node ${nodeId}, but WorkflowExecutor not available`);
     } else {
       logger.info(`No workflow associated with Chat Trigger node ${nodeId}`);
     }
