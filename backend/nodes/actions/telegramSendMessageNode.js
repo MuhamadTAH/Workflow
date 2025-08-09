@@ -98,7 +98,10 @@ const telegramSendMessageNode = {
             const processedChatId = processTemplates(nodeData.chatId, inputData);
             const processedMessage = processTemplates(nodeData.messageText, inputData);
 
-            console.log('🔧 DEPLOYMENT TEST: NEW CODE IS ACTIVE');
+            console.log('🔧 DEBUGGING TEMPLATE RESOLUTION');
+            console.log('Original message text:', nodeData.messageText);
+            console.log('Processed message text:', processedMessage);
+            console.log('Template resolution succeeded:', processedMessage !== nodeData.messageText);
             console.log('Processed values:', {
                 chatId: processedChatId,
                 message: processedMessage?.substring(0, 100) + '...'
@@ -350,6 +353,8 @@ function processTemplates(text, inputData) {
     
     console.log('🔧 Processing templates in text:', text);
     console.log('📊 Available input data:', JSON.stringify(inputData, null, 2));
+    console.log('📊 Input data type:', typeof inputData, Array.isArray(inputData) ? 'Array' : 'Object');
+    console.log('📊 Input data length/keys:', Array.isArray(inputData) ? inputData.length : Object.keys(inputData || {}));
     
     // Handle cascading data structure similar to frontend
     let dataToProcess;
