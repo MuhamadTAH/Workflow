@@ -26,9 +26,16 @@ const nodeMessages = new Map();
 // Store for registered webhooks (in production, use database)
 const registeredWebhooks = new Map();
 
-// Import Chat Trigger Node
-const ChatTriggerNode = require('../nodes/triggers/chatTriggerNode');
-const chatTriggerNode = new ChatTriggerNode();
+// Try to load Chat Trigger Node, but don't fail if it doesn't exist
+let ChatTriggerNode = null;
+let chatTriggerNode = null;
+try {
+  ChatTriggerNode = require('../nodes/triggers/chatTriggerNode');
+  chatTriggerNode = new ChatTriggerNode();
+  console.log('✅ ChatTriggerNode loaded successfully');
+} catch (error) {
+  console.warn('⚠️ ChatTriggerNode not available, Chat Trigger routes will be disabled:', error.message);
+}
 
 // WorkflowExecutor is conditionally initialized above
 
@@ -326,7 +333,8 @@ router.delete('/workflows/:id', (req, res) => {
   }
 });
 
-// Chat Trigger webhook endpoint - Dynamic path handling
+// Chat Trigger webhook endpoint - Dynamic path handling (only if ChatTriggerNode available)
+if (chatTriggerNode) {
 router.all('/chat/:nodeId/:path?', asyncHandler(async (req, res) => {
   const { nodeId, path = 'chat' } = req.params;
   
@@ -436,6 +444,12 @@ router.all('/chat/:nodeId/:path?', asyncHandler(async (req, res) => {
 
 // Register Chat Trigger webhook
 router.post('/register-chat-trigger', asyncHandler(async (req, res) => {
+  if (!chatTriggerNode) {
+    return res.status(503).json({
+      success: false,
+      error: 'Chat Trigger functionality is not available on this server'
+    });
+  }
   const { nodeId, workflowId, config = {} } = req.body;
   
   if (!nodeId || !workflowId) {
@@ -500,6 +514,12 @@ router.post('/register-chat-trigger', asyncHandler(async (req, res) => {
 
 // Get Chat Trigger webhook status
 router.get('/chat-trigger-status/:nodeId', (req, res) => {
+  if (!chatTriggerNode) {
+    return res.status(503).json({
+      success: false,
+      error: 'Chat Trigger functionality is not available on this server'
+    });
+  }
   const { nodeId } = req.params;
   const webhook = registeredWebhooks.get(`chat-${nodeId}`);
   
@@ -514,6 +534,12 @@ router.get('/chat-trigger-status/:nodeId', (req, res) => {
 
 // Get latest message for Chat Trigger node (similar to Telegram)
 router.get('/chat-trigger-message/:nodeId', (req, res) => {
+  if (!chatTriggerNode) {
+    return res.status(503).json({
+      success: false,
+      error: 'Chat Trigger functionality is not available on this server'
+    });
+  }
   const { nodeId } = req.params;
   const latestMessage = nodeMessages.get(nodeId);
   
@@ -525,6 +551,37 @@ router.get('/chat-trigger-message/:nodeId', (req, res) => {
   });
 });
 
+} else {
+  // Chat Trigger not available - add placeholder routes that return 503
+  router.all('/chat/:nodeId/:path?', (req, res) => {
+    res.status(503).json({
+      success: false,
+      error: 'Chat Trigger functionality is not available on this server'
+    });
+  });
+  
+  router.post('/register-chat-trigger', (req, res) => {
+    res.status(503).json({
+      success: false,
+      error: 'Chat Trigger functionality is not available on this server'
+    });
+  });
+  
+  router.get('/chat-trigger-status/:nodeId', (req, res) => {
+    res.status(503).json({
+      success: false,
+      error: 'Chat Trigger functionality is not available on this server'
+    });
+  });
+  
+  router.get('/chat-trigger-message/:nodeId', (req, res) => {
+    res.status(503).json({
+      success: false,
+      error: 'Chat Trigger functionality is not available on this server'
+    });
+  });
+}
+
 // Health check endpoint
 router.get('/health', (req, res) => {
   res.json({
@@ -532,7 +589,9 @@ router.get('/health', (req, res) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     workflowCount: workflowConfigs.size,
-    chatTriggerCount: Array.from(registeredWebhooks.keys()).filter(k => k.startsWith('chat-')).length
+    chatTriggerCount: Array.from(registeredWebhooks.keys()).filter(k => k.startsWith('chat-')).length,
+    chatTriggerAvailable: !!chatTriggerNode,
+    workflowExecutorAvailable: !!workflowExecutor
   });
 });
 
