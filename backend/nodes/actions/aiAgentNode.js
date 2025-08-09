@@ -82,6 +82,11 @@ const aiAgentNode = {
             systemPrompt: nodeData.systemPrompt?.substring(0, 50) + '...',
             userMessage: nodeData.userMessage?.substring(0, 50) + '...'
         });
+        console.log('ExecutionContext details:', {
+            hasContext: !!executionContext,
+            currentNodeId: executionContext?.currentNode?.id,
+            contextNodeId: executionContext?.currentNode?.id
+        });
 
         try {
             // Validate required fields
@@ -96,7 +101,11 @@ const aiAgentNode = {
             // Process templates using n8n-style execution context if available
             let processedMessage;
             if (executionContext) {
-                processedMessage = executionContext.evaluateExpression(nodeData.userMessage, 'ai_agent', inputData, 0);
+                // Use the actual node ID from the execution context, not a hardcoded string
+                const actualNodeId = executionContext.currentNode?.id || 'ai_agent_fallback';
+                console.log(`🔧 Using actual node ID for template resolution: ${actualNodeId}`);
+                
+                processedMessage = executionContext.evaluateExpression(nodeData.userMessage, actualNodeId, inputData, 0);
                 console.log('🔒 n8n-style processed user message:', processedMessage);
             } else {
                 // Fallback to old template processing

@@ -155,9 +155,13 @@ class TelegramSendMessageNode {
         templateFields.forEach(field => {
             if (processed[field] && typeof processed[field] === 'string') {
                 const originalValue = processed[field];
+                // Use the actual node ID from the execution context
+                const actualNodeId = executionContext.currentNode?.id || 'telegram_send_fallback';
+                console.log(`🔧 Telegram node using actual nodeId: ${actualNodeId} for field: ${field}`);
+                
                 const resolvedValue = executionContext.evaluateExpression(
                     originalValue, 
-                    'telegram_send', 
+                    actualNodeId, 
                     inputData, 
                     0
                 );
