@@ -154,16 +154,33 @@ const runNode = async (req, res) => {
                     }
                     // Chat Trigger nodes are webhook listeners - they provide webhook info
                     const webhookUrl = chatTriggerNode.generateWebhookUrl('current-workflow', node.id, processedConfig);
+                    
+                    // If this is live preview mode, check if we have actual message data from connected nodes
+                    let chatTriggerData = currentItem;
+                    
+                    // If no current item data, check for real webhook message data from nodeMessages
+                    if (!chatTriggerData || Object.keys(chatTriggerData).length === 0) {
+                        // Try to get actual webhook message from the webhooks route storage
+                        const nodeMessages = req.app.get('nodeMessages') || new Map();
+                        const realMessage = nodeMessages.get(node.id);
+                        
+                        if (realMessage) {
+                            chatTriggerData = realMessage;
+                        } else {
+                            // If no real message, provide meaningful fallback that shows "no message received yet"
+                            chatTriggerData = {
+                                message: "No nodes are connected to the input, or connected nodes have no output data.",
+                                info: "This Chat Trigger node is ready to receive webhook messages",
+                                source: 'manual-execution',
+                                timestamp: new Date().toISOString()
+                            };
+                        }
+                    }
+                    
                     itemResult = {
                         success: true,
                         message: 'Chat Trigger node activated',
-                        data: currentItem || processedConfig.outputData || {
-                            text: 'Test message from Chat Trigger',
-                            userId: 'test-user',
-                            sessionId: 'test-session',
-                            source: 'manual-execution',
-                            timestamp: new Date().toISOString()
-                        },
+                        data: chatTriggerData,
                         webhookUrl: webhookUrl,
                         nodeInfo: chatTriggerNode.getNodeInfo(processedConfig),
                         timestamp: new Date().toISOString()

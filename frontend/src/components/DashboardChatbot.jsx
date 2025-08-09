@@ -16,8 +16,9 @@ const DashboardChatbot = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [connectedWorkflowId, setConnectedWorkflowId] = useState(null);
+  const [connectedNodeId, setConnectedNodeId] = useState(null);
   const [sessionId] = useState(() => 'session_' + Math.random().toString(36).substring(2, 15));
+  const [lastSentMessage, setLastSentMessage] = useState('');
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -160,31 +161,31 @@ const DashboardChatbot = () => {
     }
   };
 
-  // Check if input looks like a webhook URL
+  // Check if input looks like a Chat Trigger webhook URL
   const isWebhookUrl = (text) => {
-    return text.includes('workflow-lg9z.onrender.com/api/chat/webhook/') ||
-           text.includes('localhost:3001/api/chat/webhook/') ||
-           text.includes('/api/chat/webhook/') ||
+    return text.includes('workflow-lg9z.onrender.com/api/webhooks/chat/') ||
+           text.includes('localhost:3001/api/webhooks/chat/') ||
+           text.includes('/api/webhooks/chat/') ||
            text.includes('http://') || 
            text.includes('https://') ||
-           text.match(/[a-z0-9\-]+\/[a-z0-9\-]+/); // matches workflow-id patterns
+           text.match(/[a-z0-9\-]+\/[a-z0-9\-]+/); // matches node-id patterns
   };
 
-  // Extract workflow ID from webhook URL
-  const extractWorkflowId = (webhookUrl) => {
-    // Handle full URLs (localhost and production)
-    let match = webhookUrl.match(/\/api\/chat\/webhook\/([^\/?&]+)/);
+  // Extract node ID from Chat Trigger webhook URL
+  const extractNodeId = (webhookUrl) => {
+    // Handle Chat Trigger webhook URLs: /api/webhooks/chat/{nodeId}/{path}
+    let match = webhookUrl.match(/\/api\/webhooks\/chat\/([^\/\?&]+)/);
     if (match) return match[1];
     
     // Handle production URLs
-    match = webhookUrl.match(/workflow-lg9z\.onrender\.com\/api\/chat\/webhook\/([^\/?&]+)/);
+    match = webhookUrl.match(/workflow-lg9z\.onrender\.com\/api\/webhooks\/chat\/([^\/\?&]+)/);
     if (match) return match[1];
     
     // Handle localhost URLs
-    match = webhookUrl.match(/localhost:3001\/api\/chat\/webhook\/([^\/?&]+)/);
+    match = webhookUrl.match(/localhost:3001\/api\/webhooks\/chat\/([^\/\?&]+)/);
     if (match) return match[1];
     
-    // Handle just workflow ID
+    // Handle just node ID
     if (webhookUrl.match(/^[a-z0-9\-]+$/)) {
       return webhookUrl;
     }
@@ -192,129 +193,153 @@ const DashboardChatbot = () => {
     return null;
   };
 
-  // Send message to workflow webhook
-  const sendToWorkflow = async (message, workflowId) => {
+  // Send message to Chat Trigger webhook
+  const sendToWorkflow = async (message, nodeId) => {
     try {
       // Use localhost for development (browser localhost detection)
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const baseUrl = isLocal ? 'http://localhost:3001' : 'https://workflow-lg9z.onrender.com';
-      const webhookUrl = `${baseUrl}/api/chat/webhook/${workflowId}`;
+      const webhookUrl = `${baseUrl}/api/webhooks/chat/${nodeId}/chat`;
       
-      console.log('🚀 DEBUGGING: Starting webhook request process...');
-      console.log('📍 Current URL:', window.location.href);
-      console.log('📍 Hostname:', window.location.hostname);
-      console.log('📍 IsLocal:', isLocal);
-      console.log('📍 BaseUrl:', baseUrl);
+      console.log('🚀 CHAT TRIGGER: Starting webhook request...');
+      console.log('📍 NodeId:', nodeId);
       console.log('📍 WebhookUrl:', webhookUrl);
-      console.log('📍 WorkflowId:', workflowId);
       console.log('📍 Message:', message);
       console.log('📍 SessionId:', sessionId);
 
-      // First test basic connectivity
-      console.log('🧪 Testing basic connectivity to backend...');
-      try {
-        const testResponse = await fetch(`${baseUrl}/api/hello`);
-        console.log('✅ Basic connectivity test result:', {
-          status: testResponse.status,
-          statusText: testResponse.statusText,
-          ok: testResponse.ok,
-          url: testResponse.url
-        });
-        
-        if (!testResponse.ok) {
-          throw new Error(`Basic connectivity failed: ${testResponse.status} ${testResponse.statusText}`);
-        }
-      } catch (testError) {
-        console.error('❌ Basic connectivity failed:', testError);
-        addBotMessage(`❌ Cannot connect to backend: ${testError.message}`, []);
-        return;
-      }
-      
-      console.log('🚀 Starting webhook POST request...');
-      console.log('📤 Request payload:', {
-        message: message,
+      // Send message in Chat Trigger format
+      const payload = {
+        text: message,
+        userId: sessionId,
         sessionId: sessionId,
-        userName: 'Dashboard User',
-        websiteUrl: window.location.origin
-      });
+        source: 'dashboard-chatbot',
+        timestamp: new Date().toISOString()
+      };
       
-      // Add timeout and detailed error logging
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      console.log('📤 Chat Trigger payload:', payload);
       
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          message: message,
-          sessionId: sessionId,
-          userName: 'Dashboard User',
-          websiteUrl: window.location.origin
-        }),
-        signal: controller.signal
+        body: JSON.stringify(payload)
       });
 
-      clearTimeout(timeoutId);
-      
-      console.log('📡 Webhook POST response received:', {
+      console.log('📡 Chat Trigger response:', {
         status: response.status,
         statusText: response.statusText,
-        ok: response.ok,
-        url: response.url,
-        headers: Object.fromEntries(response.headers.entries())
+        ok: response.ok
       });
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Webhook response data:', data);
-        addBotMessage(`🎉 Webhook request successful! Session: ${data.sessionId}`, []);
-        // Poll for response
-        setTimeout(() => pollForResponse(sessionId), 1000);
+        console.log('✅ Chat Trigger data:', data);
+        
+        // Check if workflow response came back immediately
+        if (data.workflowExecuted && data.workflowResponse) {
+          // Got immediate response from workflow
+          if (typeof data.workflowResponse === 'string') {
+            addBotMessage(`🤖 **Workflow Response:**\n\n${data.workflowResponse}`, []);
+            return; // Don't check again
+          } else if (data.workflowResponse.text || data.workflowResponse.message) {
+            const responseText = data.workflowResponse.text || data.workflowResponse.message || JSON.stringify(data.workflowResponse);
+            addBotMessage(`🤖 **Workflow Response:**\n\n${responseText}`, []);
+            return; // Don't check again
+          }
+        }
+        
+        // Show waiting message if no immediate response
+        addBotMessage(`⏳ **Processing your message...**\n\n📤 Message sent to Chat Trigger node\n🔄 Waiting for workflow response...`);
+
+        // Wait for workflow response (always check, regardless of execution status)
+        setTimeout(() => checkForWorkflowResponse(nodeId), 2000);
+        
       } else {
-        const errorText = await response.text().catch(() => 'No error text available');
-        console.error('❌ Webhook request failed:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorText: errorText
-        });
-        addBotMessage(`❌ Failed to send message to workflow. Status: ${response.status}\nError: ${errorText}`, []);
+        const errorText = await response.text().catch(() => 'No error details');
+        console.error('❌ Chat Trigger request failed:', errorText);
+        addBotMessage(`❌ **Failed to send message**\n\nStatus: ${response.status}\nError: ${errorText}`, []);
       }
     } catch (error) {
-      console.error('❌ Webhook request error:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      });
-      
-      if (error.name === 'AbortError') {
-        addBotMessage("❌ Request timed out after 10 seconds", []);
-      } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-        addBotMessage("❌ Network error - check if backend is running and CORS is configured", []);
+      console.error('❌ Chat Trigger error:', error);
+      // Only show connection error if it's a real network/connection issue
+      if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+        addBotMessage(`⏳ **Checking connection...**\n\n🔄 Your message might have been received. Let me check for responses...`);
+        setTimeout(() => checkForWorkflowResponse(nodeId), 3000);
       } else {
-        addBotMessage("❌ Error connecting to workflow: " + error.message, []);
+        addBotMessage(`❌ **Connection Error**\n\n${error.message}\n\n💡 Make sure the Chat Trigger node exists in your workflow!`, []);
       }
     }
   };
 
-  // Poll for workflow response
-  const pollForResponse = async (sessionId) => {
+  // Check for workflow response from Chat Trigger
+  const checkForWorkflowResponse = async (nodeId) => {
     try {
       const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const baseUrl = isLocal ? 'http://localhost:3001' : 'https://workflow-lg9z.onrender.com';
-      const response = await fetch(`${baseUrl}/api/chat/session/${sessionId}/messages`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.pendingResponses && data.pendingResponses.length > 0) {
-          data.pendingResponses.forEach(botResponse => {
-            addBotMessage(botResponse.content, [], 500);
-          });
+      
+      // First check for workflow response in the special response key
+      const responseResponse = await fetch(`${baseUrl}/api/webhooks/chat-trigger-message/${nodeId}_response`);
+      
+      if (responseResponse.ok) {
+        const responseData = await responseResponse.json();
+        console.log('🔍 Checking for workflow response:', responseData);
+        
+        if (responseData.success && responseData.message && responseData.hasMessage) {
+          const workflowResponse = responseData.message.workflowResponse;
+          
+          if (workflowResponse) {
+            // Check if it's AI Agent response
+            if (typeof workflowResponse === 'string') {
+              addBotMessage(`🤖 **Workflow Response:**\n\n${workflowResponse}`, []);
+              return;
+            }
+            // Check if it's structured response data
+            else if (workflowResponse.text || workflowResponse.message) {
+              const responseText = workflowResponse.text || workflowResponse.message || JSON.stringify(workflowResponse);
+              addBotMessage(`🤖 **Workflow Response:**\n\n${responseText}`, []);
+              return;
+            }
+          }
+        }
+      }
+      
+      // Fallback: check for basic message data
+      const messageResponse = await fetch(`${baseUrl}/api/webhooks/chat-trigger-message/${nodeId}`);
+      
+      if (messageResponse.ok) {
+        const data = await messageResponse.json();
+        console.log('🔍 Checking for basic message data:', data);
+        
+        if (data.success && data.message && data.hasMessage) {
+          // Check if this is a new message (not the one we just sent)
+          const messageData = data.message;
+          if (messageData.text && messageData.text !== lastSentMessage) {
+            // Show message was processed but no workflow response
+            addBotMessage(
+              `📨 **Message Processed:**\n\n` +
+              `✅ Your message "${messageData.text}" was received\n` +
+              `📅 **Processed**: ${messageData.timestamp}\n` +
+              `🆔 **User ID**: ${messageData.userId}\n\n` +
+              `💡 *Connect AI Agent or response nodes to your Chat Trigger for intelligent replies!*`
+            );
+          } else {
+            // Show workflow data without specific response
+            addBotMessage(
+              `📊 **Workflow Data:**\n\n` +
+              `📅 **Processed**: ${messageData.timestamp}\n` +
+              `🆔 **User ID**: ${messageData.userId}\n` +
+              `⚙️ **Node Type**: ${messageData.nodeType}\n\n` +
+              `💡 *Add an AI Agent or other response nodes to get intelligent replies!*`
+            );
+          }
+        } else {
+          addBotMessage(`⏳ **No response yet**\n\nYour workflow may still be processing, or it might not have response nodes configured.`);
         }
       }
     } catch (error) {
-      console.error('Error polling for response:', error);
+      console.error('Error checking for workflow response:', error);
+      addBotMessage(`🔍 **Response Check Failed**\n\nCouldn't check for workflow response: ${error.message}`);
     }
   };
 
@@ -329,33 +354,34 @@ const DashboardChatbot = () => {
     };
     setMessages(prev => [...prev, userMessage]);
 
-    // Check if user is trying to connect webhook
+    // Check if user is trying to connect Chat Trigger webhook
     if (isWebhookUrl(inputMessage)) {
-      console.log('🔍 Webhook URL detected:', inputMessage);
-      const workflowId = extractWorkflowId(inputMessage);
-      console.log('🔍 Extracted workflow ID:', workflowId);
+      console.log('🔍 Chat Trigger webhook URL detected:', inputMessage);
+      const nodeId = extractNodeId(inputMessage);
+      console.log('🔍 Extracted node ID:', nodeId);
       
-      if (workflowId) {
-        setConnectedWorkflowId(workflowId);
+      if (nodeId) {
+        setConnectedNodeId(nodeId);
         addBotMessage(
-          `✅ **Connected to workflow!**\n\nWorkflow ID: \`${workflowId}\`\n\n🤖 I'm now intelligent! Send me messages and I'll process them through your workflow.\n\n💬 **Try saying something...**`,
+          `✅ **Connected to Chat Trigger!**\n\n📍 **Node ID**: \`${nodeId}\`\n\n🤖 I'm now connected to your workflow! Send me messages and I'll process them through your Chat Trigger node.\n\n💬 **Try saying something...**`,
           []
         );
-        console.log('✅ Connected to workflow ID:', workflowId);
+        console.log('✅ Connected to Chat Trigger node ID:', nodeId);
       } else {
         addBotMessage(
-          "❌ Invalid webhook URL format.\n\n📝 **Expected format:**\n\`https://workflow-lg9z.onrender.com/api/chat/webhook/your-workflow-id\` or \`http://localhost:3001/api/chat/webhook/your-workflow-id\`",
+          "❌ Invalid Chat Trigger webhook URL format.\n\n📝 **Expected format:**\n\`https://workflow-lg9z.onrender.com/api/webhooks/chat/your-node-id/chat\`",
           [{ text: "❓ How to get webhook?", action: "webhook_help" }]
         );
-        console.log('❌ Failed to extract workflow ID from:', inputMessage);
+        console.log('❌ Failed to extract node ID from:', inputMessage);
       }
       setInputMessage('');
       return;
     }
 
-    // If connected to workflow, send message through workflow
-    if (connectedWorkflowId) {
-      sendToWorkflow(inputMessage, connectedWorkflowId);
+    // If connected to Chat Trigger, send message through webhook
+    if (connectedNodeId) {
+      setLastSentMessage(inputMessage);
+      sendToWorkflow(inputMessage, connectedNodeId);
       setInputMessage('');
       return;
     }
@@ -454,8 +480,8 @@ const DashboardChatbot = () => {
               <div>
                 <div style={{ fontWeight: 'bold', fontSize: '16px' }}>Workflow Assistant</div>
                 <div style={{ fontSize: '12px', opacity: 0.9 }}>
-                  {connectedWorkflowId 
-                    ? `🟢 Connected to: ${connectedWorkflowId.substring(0, 20)}...`
+                  {connectedNodeId 
+                    ? `🟢 Connected to Node: ${connectedNodeId.substring(0, 20)}...`
                     : '🔴 Not connected to workflow'
                   }
                 </div>
@@ -573,7 +599,7 @@ const DashboardChatbot = () => {
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder={connectedWorkflowId 
+                placeholder={connectedNodeId 
                   ? "Send a message through workflow..." 
                   : "Paste webhook URL or ask basic questions..."}
                 style={{

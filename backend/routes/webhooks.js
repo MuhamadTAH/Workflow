@@ -21,7 +21,16 @@ const path = require('path');
 const workflowConfigs = new Map();
 
 // Store for node-specific messages (in production, use database)
-const nodeMessages = new Map();
+// Use shared nodeMessages from main app
+let nodeMessages = new Map();
+
+// Middleware to get shared nodeMessages from app
+router.use((req, res, next) => {
+  if (req.app.get('nodeMessages')) {
+    nodeMessages = req.app.get('nodeMessages');
+  }
+  next();
+});
 
 // Store for registered webhooks (in production, use database)
 const registeredWebhooks = new Map();
@@ -415,7 +424,8 @@ router.all('/chat/:nodeId/:path?', asyncHandler(async (req, res) => {
       logger.info(`No workflow associated with Chat Trigger node ${nodeId}`);
     }
     
-    res.status(200).json({
+    // Prepare response data
+    let responseData = {
       success: true,
       message: `Message received for node ${nodeId}`,
       nodeId,
@@ -423,7 +433,22 @@ router.all('/chat/:nodeId/:path?', asyncHandler(async (req, res) => {
       timestamp: processedData.timestamp,
       workflowExecuted: !!workflowExecutionResult,
       executionId: workflowExecutionResult?.executionId
-    });
+    };
+    
+    // If workflow was executed and produced output, include it in response
+    if (workflowExecutionResult && workflowExecutionResult.finalOutput) {
+      responseData.workflowResponse = workflowExecutionResult.finalOutput;
+      
+      // Store the response in a special key so the chatbot can retrieve it
+      const chatResponseKey = `${nodeId}_response`;
+      nodeMessages.set(chatResponseKey, {
+        ...processedData,
+        workflowResponse: workflowExecutionResult.finalOutput,
+        responseTimestamp: new Date().toISOString()
+      });
+    }
+    
+    res.status(200).json(responseData);
     
   } catch (error) {
     logger.logError(error, { 

@@ -97,6 +97,10 @@ app.use((req, res, next) => {
 });
 app.use(express.json()); // Parse JSON bodies
 
+// Create shared nodeMessages map for Chat Trigger communication
+const nodeMessages = new Map();
+app.set('nodeMessages', nodeMessages);
+
 // Serve static files (uploaded images)
 app.use('/uploads', express.static('uploads'));
 
