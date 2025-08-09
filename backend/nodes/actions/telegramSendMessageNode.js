@@ -477,6 +477,7 @@ function processTemplates(text, inputData) {
                 const resolvedValue = typeof result.value === 'object' ? JSON.stringify(result.value) : String(result.value);
                 console.log(`✅ Telegram resolved: ${pathStr} = ${resolvedValue}`);
                 return resolvedValue;
+            }
             
             // If direct path fails, try nested search in each data node
             for (const [nodeKey, nodeData] of Object.entries(dataToProcess)) {
