@@ -377,60 +377,120 @@ function processTemplates(text, inputData) {
     
     console.log('🔧 Processed data structure:', JSON.stringify(dataToProcess, null, 2));
     
+    // Helper function to parse path with array notation
+    const parsePath = (pathStr) => {
+        const parts = [];
+        let current = '';
+        let inBracket = false;
+        
+        // First, check if the path starts with a numbered node key like "1. Node Name"
+        const nodeKeyMatch = pathStr.match(/^(\d+\.\s+[^[.]+)/);
+        if (nodeKeyMatch) {
+            const nodeKey = nodeKeyMatch[1];
+            parts.push(nodeKey);
+            // Continue parsing the rest of the path after the node key
+            pathStr = pathStr.substring(nodeKey.length);
+            if (pathStr.startsWith('.')) {
+                pathStr = pathStr.substring(1); // Remove leading dot
+            }
+        }
+        
+        for (let i = 0; i < pathStr.length; i++) {
+            const char = pathStr[i];
+            
+            if (char === '[') {
+                if (current) {
+                    parts.push(current);
+                    current = '';
+                }
+                inBracket = true;
+            } else if (char === ']') {
+                if (inBracket && current) {
+                    // Parse array index as number
+                    const index = parseInt(current, 10);
+                    if (!isNaN(index)) {
+                        parts.push(index);
+                    } else {
+                        parts.push(current); // Keep as string if not a number
+                    }
+                    current = '';
+                }
+                inBracket = false;
+            } else if (char === '.' && !inBracket) {
+                if (current) {
+                    parts.push(current);
+                    current = '';
+                }
+            } else {
+                current += char;
+            }
+        }
+        
+        if (current) {
+            parts.push(current);
+        }
+        
+        return parts;
+    };
+    
+    // Helper function to traverse object/array path
+    const traversePath = (obj, pathParts) => {
+        let current = obj;
+        
+        for (const part of pathParts) {
+            if (current === null || current === undefined) {
+                return { found: false, value: undefined };
+            }
+            
+            if (typeof part === 'number') {
+                // Array index
+                if (!Array.isArray(current) || part >= current.length || part < 0) {
+                    return { found: false, value: undefined };
+                }
+                current = current[part];
+            } else {
+                // Object property
+                if (typeof current !== 'object' || !(part in current)) {
+                    return { found: false, value: undefined };
+                }
+                current = current[part];
+            }
+        }
+        
+        return { found: true, value: current };
+    };
+
     // Enhanced template processing - replace {{ key }} with data values
     return text.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, path) => {
         try {
             const pathStr = path.trim();
-            const keys = pathStr.split('.');
+            console.log(`🔍 Telegram resolving path: ${pathStr}`);
             
-            console.log(`🔍 Resolving path: ${pathStr}`);
+            const pathParts = parsePath(pathStr);
+            console.log(`🔧 Telegram parsed path parts:`, pathParts);
             
-            // Try direct path first (e.g., "1. AI Agent.response")
-            let current = dataToProcess;
-            let found = true;
+            // Try direct path resolution
+            const result = traversePath(dataToProcess, pathParts);
+            console.log(`🎯 Telegram direct path result:`, result);
             
-            for (const key of keys) {
-                if (current && typeof current === 'object' && key in current) {
-                    current = current[key];
-                } else {
-                    found = false;
-                    break;
-                }
-            }
+            if (result.found) {
+                const resolvedValue = typeof result.value === 'object' ? JSON.stringify(result.value) : String(result.value);
+                console.log(`✅ Telegram resolved: ${pathStr} = ${resolvedValue}`);
+                return resolvedValue;
             
-            if (found) {
-                const result = typeof current === 'object' ? JSON.stringify(current) : String(current);
-                console.log(`✅ Direct path resolved: ${pathStr} = ${result}`);
-                return result;
-            }
-            
-            // If direct path fails, try to find in nested data (backwards compatibility)
-            // Look for the path in any of the node data
-            if (typeof dataToProcess === 'object' && dataToProcess !== null) {
-                for (const [nodeKey, nodeData] of Object.entries(dataToProcess)) {
-                    if (typeof nodeData === 'object' && nodeData !== null) {
-                        let nestedCurrent = nodeData;
-                        let nestedFound = true;
-                        
-                        for (const key of keys) {
-                            if (nestedCurrent && typeof nestedCurrent === 'object' && key in nestedCurrent) {
-                                nestedCurrent = nestedCurrent[key];
-                            } else {
-                                nestedFound = false;
-                                break;
-                            }
-                        }
-                        
-                        if (nestedFound) {
-                            const result = typeof nestedCurrent === 'object' ? JSON.stringify(nestedCurrent) : String(nestedCurrent);
-                            console.log(`✅ Nested path resolved: ${pathStr} in ${nodeKey} = ${result}`);
-                            return result;
-                        }
+            // If direct path fails, try nested search in each data node
+            for (const [nodeKey, nodeData] of Object.entries(dataToProcess)) {
+                if (typeof nodeData === 'object' && nodeData !== null) {
+                    const nestedResult = traversePath(nodeData, pathParts);
+                    if (nestedResult.found) {
+                        const resolvedValue = typeof nestedResult.value === 'object' ? JSON.stringify(nestedResult.value) : String(nestedResult.value);
+                        console.log(`✅ Telegram nested resolved: ${pathStr} = ${resolvedValue}`);
+                        return resolvedValue;
                     }
                 }
             }
             
-            console.log(`❌ Path not found: ${pathStr}`);
+            console.log(`❌ Telegram path not found: ${pathStr}`);
             return match; // Return original if path not found anywhere
         } catch (error) {
             console.warn(`❌ Template processing error for ${match}:`, error.message);
