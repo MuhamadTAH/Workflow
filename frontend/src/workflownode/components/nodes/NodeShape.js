@@ -94,12 +94,10 @@ const NodeShape = ({ data = {}, nodeHeight, totalInputHandles, totalOutputHandle
       // Other common icons
       'fa-discord': 'fa-brands fa-discord',
       'fa-slack': 'fa-brands fa-slack',
-      'fa-github': 'fa-brands fa-github'
-      // In getIconSymbol function
-      'fa-comments': '💬', // fallback emoji
-
-                            // In iconMapping
-      'fa-comments': 'fa-solid fa-comments',
+      'fa-github': 'fa-brands fa-github',
+      
+      // Chat Trigger
+      'fa-comments': 'fa-solid fa-comments'
 
     };
     

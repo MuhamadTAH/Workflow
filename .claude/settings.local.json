@@ -54,7 +54,8 @@
       "Bash(start test-dashboard.html)",
       "WebFetch(domain:workflow-lg9z.onrender.com)",
       "Bash(git reset:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(timeout:*)"
     ],
     "deny": []
   }
