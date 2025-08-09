@@ -410,12 +410,8 @@ const updateOutputData = (newOutputData) => {
    - ✅ Updated `processTemplates` function with same improved parsing logic
    - ✅ Templates now resolve before sending to Claude API
 
-2. **Telegram Send Message** (`backend/nodes/actions/telegramSendMessageNode.js`):
-   - ✅ Updated `processTemplates` function with array indexing support  
-   - ✅ Templates resolve before sending to Telegram API
-   - 🔄 **Currently debugging deployment issues**
 
-3. **General Node Controller** (`backend/controllers/nodeController.js`):
+2. **General Node Controller** (`backend/controllers/nodeController.js`):
    - ✅ Handles all other node types through centralized execution
 
 **Key Technical Implementation**:
@@ -441,12 +437,10 @@ const traversePath = (obj, pathParts) => {
 - `frontend/src/workflownode/components/panels/ConfigPanel.js`
 - `backend/routes/auth.js` 
 - `backend/nodes/actions/aiAgentNode.js`
-- `backend/nodes/actions/telegramSendMessageNode.js`
 
 **Current Status**:
 - ✅ **Frontend Live Preview**: Working perfectly
 - ✅ **AI Agent Backend**: Templates resolve correctly  
-- 🔄 **Telegram Send Message**: Deployment/syntax issues being resolved
 - ✅ **Console Cleanup**: Removed verbose debug logging for production
 
 **Result**: Template expressions like `{{1. Telegram Trigger[0].message.text}}` now properly resolve to actual values ("hello") instead of raw template syntax, enabling seamless data flow between connected workflow nodes.

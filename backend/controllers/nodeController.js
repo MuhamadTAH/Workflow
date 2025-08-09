@@ -10,7 +10,6 @@ const aiAgentNode = require('../nodes/actions/aiAgentNode');
 const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
-const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
 const ifNode = require('../nodes/logic/ifNode');
 const switchNode = require('../nodes/logic/switchNode');
 const waitNode = require('../nodes/logic/waitNode');
@@ -51,9 +50,6 @@ const runNode = async (req, res) => {
                 result = await dataStorageInstance.process(inputData);
                 break;
             
-            case 'telegramSendMessage':
-                result = await telegramSendMessageNode.execute(node.config, inputData, connectedNodes);
-                break;
             
             case 'telegramTrigger':
                 // Trigger nodes don't execute - they start workflows
