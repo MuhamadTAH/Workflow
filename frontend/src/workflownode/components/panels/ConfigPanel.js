@@ -1152,6 +1152,115 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                             </div>
                         )}
 
+                        {node.data.type === 'telegramSendMessage' && (
+                            <div className="form-group mt-6">
+                                <label>Telegram Send Message Configuration</label>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="botToken">Bot Token</label>
+                                    <ExpressionInput 
+                                        name="botToken" 
+                                        value={formData.botToken || ''} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="{{$env.TELEGRAM_BOT_TOKEN}} or 123456:ABC-DEF..."
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Bot token from BotFather or environment variable</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="chatId">Chat ID</label>
+                                    <ExpressionInput 
+                                        name="chatId" 
+                                        value={formData.chatId || '{{$json.message.chat.id}}'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="{{$json.message.chat.id}} or 123456789"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Who to send the message to</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="messageText">Message Text</label>
+                                    <ExpressionInput 
+                                        name="messageText" 
+                                        value={formData.messageText || 'Hello {{$json.message.from.first_name || "there"}}!'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="Hello {{$json.message.from.first_name}}!"
+                                        isTextarea={true}
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Message content with template expressions</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="parseMode">Parse Mode</label>
+                                    <div className="custom-select-wrapper">
+                                        <select name="parseMode" id="parseMode" value={formData.parseMode || ''} onChange={handleInputChange}>
+                                            <option value="">None</option>
+                                            <option value="Markdown">Markdown</option>
+                                            <option value="MarkdownV2">MarkdownV2</option>
+                                            <option value="HTML">HTML</option>
+                                        </select>
+                                    </div>
+                                    <p className="text-sm text-gray-500 mt-1">How to format the message text</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="replyToMessageId">Reply To Message ID (Optional)</label>
+                                    <ExpressionInput 
+                                        name="replyToMessageId" 
+                                        value={formData.replyToMessageId || '{{$json.message.message_id}}'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="{{$json.message.message_id}}"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Message ID to reply to</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label>
+                                        <input 
+                                            type="checkbox" 
+                                            name="disableWebPagePreview" 
+                                            checked={formData.disableWebPagePreview || false} 
+                                            onChange={handleInputChange} 
+                                        /> 
+                                        Disable Web Page Preview
+                                    </label>
+                                    <p className="text-sm text-gray-500 mt-1">Prevent link previews in messages</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label>
+                                        <input 
+                                            type="checkbox" 
+                                            name="disableNotification" 
+                                            checked={formData.disableNotification || false} 
+                                            onChange={handleInputChange} 
+                                        /> 
+                                        Send Silently
+                                    </label>
+                                    <p className="text-sm text-gray-500 mt-1">Send without sound/vibration</p>
+                                </div>
+                                
+                                <div className="template-examples" style={{ background: '#f8f9fa', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
+                                    <strong>Template Examples:</strong><br/>
+                                    <code>{{$json.message.text}}</code> - Current message<br/>
+                                    <code>{{$node["AI Agent"].json.response}}</code> - From other node<br/>
+                                    <code>{{$env.NODE_ENV}}</code> - Environment variable<br/>
+                                    <code>{{$json.message.from.first_name || "Friend"}}</code> - With fallback
+                                </div>
+                            </div>
+                        )}
 
                         {node.data.type === 'executeSubWorkflow' && (
                             <>

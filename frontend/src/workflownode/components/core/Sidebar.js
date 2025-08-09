@@ -134,6 +134,15 @@ const Sidebar = () => {
       />
       <DraggableNode 
         nodeInfo={{ 
+            label: 'Telegram Send Message', 
+            icon: 'fa-telegram', 
+            color: 'text-blue-500',
+            description: 'Send messages via Telegram Bot API',
+            type: 'telegramSendMessage' 
+        }} 
+      />
+      <DraggableNode 
+        nodeInfo={{ 
             label: 'WhatsApp', 
             icon: 'fa-whatsapp', 
             color: 'text-green-500',
