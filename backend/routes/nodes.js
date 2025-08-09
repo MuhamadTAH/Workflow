@@ -30,9 +30,29 @@ router.use((req, res, next) => {
 // POST /api/nodes/run-node - Execute a single node
 router.post('/run-node', runNode);
 
+// OPTIONS handler for telegram token validation preflight
+router.options('/validate-telegram-token', (req, res) => {
+  console.log('🔧 OPTIONS request for /validate-telegram-token:', {
+    origin: req.headers.origin,
+    method: req.headers['access-control-request-method'],
+    headers: req.headers['access-control-request-headers']
+  });
+  
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, Origin, Cache-Control, Pragma');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.status(200).end();
+});
+
 // POST /api/nodes/validate-telegram-token - Validate Telegram bot token using getMe
 console.log('📝 REGISTERING /validate-telegram-token route');
 router.post('/validate-telegram-token', async (req, res) => {
+  // Explicit CORS headers for this endpoint
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, Origin, Cache-Control, Pragma');
+  res.header('Access-Control-Allow-Credentials', 'true');
   try {
     const { token } = req.body || {};
     if (!token || typeof token !== 'string' || token.trim() === '') {
@@ -75,9 +95,23 @@ router.post('/verify-claude', async (req, res) => {
   }
 });
 
+// OPTIONS handler for telegram get updates preflight
+router.options('/telegram-get-updates', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, Origin, Cache-Control, Pragma');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.status(200).end();
+});
+
 // POST /api/nodes/telegram-get-updates - Fetch real messages from Telegram bot
 console.log('📝 REGISTERING /telegram-get-updates route');
 router.post('/telegram-get-updates', async (req, res) => {
+  // Explicit CORS headers for this endpoint
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, Origin, Cache-Control, Pragma');
+  res.header('Access-Control-Allow-Credentials', 'true');
   try {
     const { token, limit = 5, offset } = req.body || {};
     if (!token || typeof token !== 'string' || token.trim() === '') {
