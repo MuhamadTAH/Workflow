@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Send Message Node Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .test-section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 6px; }
+        .test-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 15px; }
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        .warning { background: #fff3cd; border-color: #ffeaa7; color: #856404; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        button.telegram { background: #0088cc; }
+        button.telegram:hover { background: #0056b3; }
+        input, textarea, select { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .config-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .template-examples { background: #f8f9fa; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .telegram-logo { color: #0088cc; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="telegram-logo">📱</i> Telegram Send Message Node Test</h1>
+        <p>Testing the n8n-style Telegram Send Message node with isolated execution contexts and template expressions.</p>
+
+        <!-- Configuration Panel -->
+        <div class="test-section info">
+            <div class="test-title">📝 Node Configuration</div>
+            <div class="config-panel">
+                <div>
+                    <div class="form-group">
+                        <label for="botToken">Bot Token:</label>
+                        <input type="text" id="botToken" placeholder="123456:ABC-DEF..." value="8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="chatId">Chat ID:</label>
+                        <input type="text" id="chatId" placeholder="{{$json.message.chat.id}}" value="{{$json.message.chat.id}}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="messageText">Message Text:</label>
+                        <textarea id="messageText" rows="3" placeholder="Hello {{$json.message.from.first_name}}!">Hello {{$json.message.from.first_name || "there"}}! You said: "{{$json.message.text}}"</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="parseMode">Parse Mode:</label>
+                        <select id="parseMode">
+                            <option value="">None</option>
+                            <option value="Markdown">Markdown</option>
+                            <option value="MarkdownV2">MarkdownV2</option>
+                            <option value="HTML">HTML</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="form-group">
+                        <label for="replyToMessageId">Reply To Message ID:</label>
+                        <input type="text" id="replyToMessageId" placeholder="{{$json.message.message_id}}" value="{{$json.message.message_id}}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="disableWebPagePreview"> Disable Web Page Preview
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="disableNotification"> Disable Notification
+                        </label>
+                    </div>
+                    
+                    <div class="template-examples">
+                        <strong>Template Examples:</strong><br>
+                        • <code>{{$json.message.text}}</code> - Current message<br>
+                        • <code>{{$node["AI Agent"].json.response}}</code> - From other node<br>
+                        • <code>{{$env.NODE_ENV}}</code> - Environment variable<br>
+                        • <code>{{$json.message.from.first_name || "Friend"}}</code> - With fallback
+                    </div>
+                </div>
+            </div>
+            <button class="telegram" onclick="testConfiguration()">📝 Test Configuration</button>
+            <button class="telegram" onclick="sendTestMessage()">📤 Send Test Message</button>
+        </div>
+
+        <!-- Template Resolution Test -->
+        <div class="test-section info">
+            <div class="test-title">🔧 Template Resolution Test</div>
+            <button onclick="testTemplateResolution()">Test Template Processing</button>
+            <pre id="template-result">Click button to test template resolution...</pre>
+        </div>
+
+        <!-- Validation Test -->
+        <div class="test-section info">
+            <div class="test-title">✅ Parameter Validation Test</div>
+            <button onclick="testValidation()">Test Validation</button>
+            <pre id="validation-result">Click button to test validation...</pre>
+        </div>
+
+        <!-- Live Backend Test -->
+        <div class="test-section warning">
+            <div class="test-title">🚀 Live Backend API Test</div>
+            <p><strong>Note:</strong> This will actually send a message to Telegram if the bot token is valid!</p>
+            <button class="telegram" onclick="testBackendAPI()">📤 Send Real Message</button>
+            <pre id="backend-result">Click button to test backend API...</pre>
+        </div>
+
+        <!-- Mock Data Preview -->
+        <div class="test-section">
+            <div class="test-title">📋 Mock Input Data</div>
+            <pre id="mock-data-preview"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Mock input data simulating a Telegram trigger
+        const mockInputData = {
+            message: {
+                message_id: 123,
+                chat: {
+                    id: 123456789,
+                    type: 'private',
+                    first_name: 'John'
+                },
+                from: {
+                    id: 987654321,
+                    first_name: 'John',
+                    last_name: 'Doe',
+                    username: 'johndoe'
+                },
+                text: 'Hello bot!',
+                date: Math.floor(Date.now() / 1000)
+            },
+            update_id: 123456
+        };
+
+        // Mock connected nodes for context
+        const mockConnectedNodes = [
+            {
+                nodeId: 'telegram_trigger',
+                nodeType: 'telegramTrigger',
+                nodeLabel: 'Telegram Trigger',
+                data: mockInputData,
+                config: { botToken: '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ' }
+            },
+            {
+                nodeId: 'ai_agent',
+                nodeType: 'aiAgent',
+                nodeLabel: 'AI Agent',
+                data: {
+                    response: 'This is an AI-generated response to your message.',
+                    model: 'claude-3-5-sonnet',
+                    timestamp: new Date().toISOString()
+                }
+            }
+        ];
+
+        // n8n-style execution context
+        const mockContext = {
+            $json: mockInputData,
+            $node: {
+                "Telegram Trigger": {
+                    json: mockInputData,
+                    parameter: { botToken: '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ' }
+                },
+                "AI Agent": {
+                    json: {
+                        response: 'This is an AI-generated response to your message.',
+                        model: 'claude-3-5-sonnet'
+                    }
+                }
+            },
+            $env: {
+                NODE_ENV: 'development',
+                TELEGRAM_BOT_TOKEN: '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ'
+            },
+            $now: new Date(),
+            $runIndex: 0,
+            $executionId: 'telegram_test_123',
+            $itemIndex: 0
+        };
+
+        function getCurrentConfig() {
+            return {
+                botToken: document.getElementById('botToken').value,
+                chatId: document.getElementById('chatId').value,
+                text: document.getElementById('messageText').value,
+                parseMode: document.getElementById('parseMode').value,
+                replyToMessageId: document.getElementById('replyToMessageId').value,
+                disableWebPagePreview: document.getElementById('disableWebPagePreview').checked,
+                disableNotification: document.getElementById('disableNotification').checked
+            };
+        }
+
+        function resolveTemplate(template, context) {
+            if (!template || typeof template !== 'string') return template;
+            
+            return template.replace(/\{\{([^}]+)\}\}/g, (match, path) => {
+                const trimmedPath = path.trim();
+                try {
+                    return evaluateContextPath(trimmedPath, context);
+                } catch (error) {
+                    return match; // Return unchanged if error
+                }
+            });
+        }
+
+        function evaluateContextPath(pathStr, context) {
+            const parts = parseContextPath(pathStr);
+            let current = context;
+
+            for (const part of parts) {
+                if (current === null || current === undefined) {
+                    return `undefined`;
+                }
+
+                if (typeof part === 'number') {
+                    if (!Array.isArray(current) || part >= current.length) {
+                        return `undefined`;
+                    }
+                    current = current[part];
+                } else if (typeof current === 'object' && part in current) {
+                    current = current[part];
+                } else {
+                    return `undefined`;
+                }
+            }
+
+            return typeof current === 'object' ? JSON.stringify(current) : String(current);
+        }
+
+        function parseContextPath(pathStr) {
+            const parts = [];
+            let current = '';
+            let inBracket = false;
+            let inQuote = false;
+            let quoteChar = '';
+
+            for (let i = 0; i < pathStr.length; i++) {
+                const char = pathStr[i];
+
+                if ((char === '"' || char === "'") && !inBracket) {
+                    if (!inQuote) {
+                        inQuote = true;
+                        quoteChar = char;
+                    } else if (char === quoteChar) {
+                        inQuote = false;
+                        quoteChar = '';
+                    }
+                    current += char;
+                } else if (char === '[' && !inQuote) {
+                    if (current) {
+                        parts.push(current);
+                        current = '';
+                    }
+                    inBracket = true;
+                } else if (char === ']' && !inQuote) {
+                    if (inBracket && current) {
+                        const bracketContent = current.replace(/^["']|["']$/g, '');
+                        const index = parseInt(bracketContent, 10);
+                        parts.push(!isNaN(index) ? index : bracketContent);
+                        current = '';
+                    }
+                    inBracket = false;
+                } else if (char === '.' && !inBracket && !inQuote) {
+                    if (current) {
+                        parts.push(current);
+                        current = '';
+                    }
+                } else {
+                    current += char;
+                }
+            }
+
+            if (current) {
+                parts.push(current);
+            }
+
+            return parts;
+        }
+
+        function testConfiguration() {
+            const config = getCurrentConfig();
+            const result = document.getElementById('template-result') || createResultElement('template-result');
+            
+            let output = "📝 Configuration Test Results:\n\n";
+            output += `Bot Token: ${config.botToken ? '[SET]' : '[MISSING]'}\n`;
+            output += `Chat ID: ${config.chatId}\n`;
+            output += `Message Text: ${config.text}\n`;
+            output += `Parse Mode: ${config.parseMode || 'None'}\n`;
+            output += `Reply To: ${config.replyToMessageId || 'None'}\n`;
+            output += `Disable Preview: ${config.disableWebPagePreview}\n`;
+            output += `Disable Notification: ${config.disableNotification}\n\n`;
+            
+            output += "✅ Configuration loaded successfully!";
+            result.textContent = output;
+        }
+
+        function testTemplateResolution() {
+            const config = getCurrentConfig();
+            const result = document.getElementById('template-result');
+            
+            try {
+                let output = "🔧 Template Resolution Test:\n\n";
+                
+                // Test each template field
+                const templateFields = ['chatId', 'text', 'replyToMessageId'];
+                templateFields.forEach(field => {
+                    if (config[field]) {
+                        const original = config[field];
+                        const resolved = resolveTemplate(original, mockContext);
+                        const changed = original !== resolved;
+                        
+                        output += `${changed ? '✅' : '➡️'} ${field}:\n`;
+                        output += `  Original: ${original}\n`;
+                        output += `  Resolved: ${resolved}\n\n`;
+                    }
+                });
+
+                result.textContent = output;
+                result.parentElement.className = 'test-section success';
+            } catch (error) {
+                result.textContent = `❌ Template Resolution Error: ${error.message}`;
+                result.parentElement.className = 'test-section error';
+            }
+        }
+
+        function testValidation() {
+            const config = getCurrentConfig();
+            const result = document.getElementById('validation-result');
+            
+            // Resolve templates first
+            const resolvedConfig = {
+                ...config,
+                chatId: resolveTemplate(config.chatId, mockContext),
+                text: resolveTemplate(config.text, mockContext),
+                replyToMessageId: resolveTemplate(config.replyToMessageId, mockContext)
+            };
+
+            const errors = [];
+            
+            // Validate required fields
+            if (!resolvedConfig.chatId || resolvedConfig.chatId.trim() === '' || resolvedConfig.chatId === 'undefined') {
+                errors.push('Chat ID is required or could not be resolved');
+            }
+            
+            if (!resolvedConfig.text || resolvedConfig.text.trim() === '' || resolvedConfig.text === 'undefined') {
+                errors.push('Message text is required or could not be resolved');
+            }
+            
+            if (!resolvedConfig.botToken || resolvedConfig.botToken.trim() === '') {
+                errors.push('Bot token is required');
+            }
+            
+            // Validate chat ID format
+            if (resolvedConfig.chatId && !isValidChatId(resolvedConfig.chatId)) {
+                errors.push('Invalid chat ID format');
+            }
+
+            let output = "✅ Parameter Validation Results:\n\n";
+            if (errors.length === 0) {
+                output += "✅ All validations passed!\n\n";
+                output += "Resolved Configuration:\n";
+                output += JSON.stringify(resolvedConfig, null, 2);
+                result.parentElement.className = 'test-section success';
+            } else {
+                output += `❌ ${errors.length} validation error(s):\n\n`;
+                errors.forEach((error, index) => {
+                    output += `${index + 1}. ${error}\n`;
+                });
+                result.parentElement.className = 'test-section error';
+            }
+            
+            result.textContent = output;
+        }
+
+        function isValidChatId(chatId) {
+            // Numeric chat ID
+            if (/^-?\d+$/.test(chatId)) return true;
+            
+            // Username format
+            if (/^@[a-zA-Z0-9_]{5,32}$/.test(chatId)) return true;
+            
+            // Channel username
+            if (/^[a-zA-Z0-9_]{5,32}$/.test(chatId)) return true;
+            
+            return false;
+        }
+
+        async function sendTestMessage() {
+            const config = getCurrentConfig();
+            
+            // Quick validation
+            if (!config.botToken) {
+                alert('Please enter a bot token first!');
+                return;
+            }
+            
+            const resolvedChatId = resolveTemplate(config.chatId, mockContext);
+            const resolvedText = resolveTemplate(config.text, mockContext);
+            
+            if (!resolvedChatId || resolvedChatId === 'undefined') {
+                alert('Chat ID could not be resolved from template. Check your input data.');
+                return;
+            }
+
+            if (!resolvedText || resolvedText === 'undefined') {
+                alert('Message text could not be resolved from template. Check your input data.');
+                return;
+            }
+
+            const confirmMessage = `Send message to Telegram?
+            
+Chat ID: ${resolvedChatId}
+Message: ${resolvedText}
+Parse Mode: ${config.parseMode || 'None'}`;
+
+            if (!confirm(confirmMessage)) return;
+
+            try {
+                await testBackendAPI();
+            } catch (error) {
+                alert(`Error sending message: ${error.message}`);
+            }
+        }
+
+        async function testBackendAPI() {
+            const result = document.getElementById('backend-result');
+            result.textContent = 'Sending message to backend API...';
+            
+            try {
+                const config = getCurrentConfig();
+                
+                // Build test payload
+                const payload = {
+                    node: {
+                        id: 'telegram_send_test',
+                        type: 'telegramSendMessage',
+                        config: config,
+                        data: { label: 'Test Telegram Send Message' }
+                    },
+                    inputData: mockInputData,
+                    connectedNodes: mockConnectedNodes,
+                    workflowId: 'telegram_test_workflow',
+                    workflowName: 'Telegram Send Message Test'
+                };
+
+                const response = await fetch('https://workflow-lg9z.onrender.com/api/run-node', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                
+                let output = `📤 Backend API Test Results:\n\n`;
+                output += `Status: ${response.status}\n`;
+                output += `Success: ${data.success}\n`;
+                output += `Node Type: ${data.nodeType}\n`;
+                
+                if (data.success && data.result) {
+                    if (data.result.success) {
+                        output += `Message ID: ${data.result.data?.messageId || 'N/A'}\n`;
+                        output += `Chat ID: ${data.result.data?.chatId || 'N/A'}\n`;
+                        output += `Sent At: ${data.result.data?.sentAt || 'N/A'}\n`;
+                        output += `✅ Message sent successfully!\n`;
+                    } else {
+                        output += `❌ Error: ${data.result.error}\n`;
+                    }
+                }
+                
+                output += `\nFull Response:\n${JSON.stringify(data, null, 2)}`;
+                
+                result.textContent = output;
+                result.parentElement.className = data.success && data.result?.success 
+                    ? 'test-section success' 
+                    : 'test-section error';
+                    
+            } catch (error) {
+                result.textContent = `❌ Backend API Error: ${error.message}`;
+                result.parentElement.className = 'test-section error';
+            }
+        }
+
+        function createResultElement(id) {
+            const element = document.createElement('pre');
+            element.id = id;
+            element.textContent = 'Click button to test...';
+            return element;
+        }
+
+        // Initialize page
+        window.onload = () => {
+            document.getElementById('mock-data-preview').textContent = 
+                JSON.stringify(mockInputData, null, 2);
+            console.log('📱 Telegram Send Message Test Page Loaded');
+        };
+    </script>
+</body>
+</html>

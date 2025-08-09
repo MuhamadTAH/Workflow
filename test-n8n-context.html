@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>n8n-style Execution Context Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .test-section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 6px; }
+        .test-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 15px; }
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .context-demo { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .context-panel { border: 1px solid #ddd; padding: 15px; border-radius: 6px; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+        .resolved-output { background: #e7f3ff; padding: 10px; border-radius: 4px; margin-top: 10px; min-height: 50px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 n8n-style Isolated Execution Context Test</h1>
+        <p>Testing the new n8n-style execution context system with isolated node contexts, $json, $node, $env variables, and multi-item processing.</p>
+
+        <!-- Test 1: Basic Context Variables -->
+        <div class="test-section info">
+            <div class="test-title">Test 1: Basic Context Variables ($json, $env, $now)</div>
+            <button onclick="testBasicContext()">Test Basic Context</button>
+            <pre id="basic-context-result">Click button to test...</pre>
+        </div>
+
+        <!-- Test 2: Cross-Node References -->
+        <div class="test-section info">
+            <div class="test-title">Test 2: Cross-Node References ($node["NodeName"].json)</div>
+            <button onclick="testCrossNodeReferences()">Test Cross-Node Access</button>
+            <pre id="cross-node-result">Click button to test...</pre>
+        </div>
+
+        <!-- Test 3: Multi-Item Processing -->
+        <div class="test-section info">
+            <div class="test-title">Test 3: Multi-Item Processing</div>
+            <button onclick="testMultiItemProcessing()">Test Multi-Item</button>
+            <pre id="multi-item-result">Click button to test...</pre>
+        </div>
+
+        <!-- Test 4: Live Expression Resolver -->
+        <div class="test-section">
+            <div class="test-title">Test 4: Live Expression Resolver</div>
+            <div class="context-demo">
+                <div class="context-panel">
+                    <h4>Template Expression</h4>
+                    <textarea id="expression-input" rows="4" placeholder="Try expressions like:
+$json.message.text
+$node[&quot;Telegram Trigger&quot;].json.message
+$env.NODE_ENV
+$now">$json.message.text</textarea>
+                    <button onclick="resolveExpression()">Resolve Expression</button>
+                </div>
+                <div class="context-panel">
+                    <h4>Resolved Output</h4>
+                    <div id="resolved-output" class="resolved-output">
+                        Enter an expression and click resolve...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test 5: Backend API Test -->
+        <div class="test-section info">
+            <div class="test-title">Test 5: Backend API with n8n Context</div>
+            <button onclick="testBackendAPI()">Test Backend Execution</button>
+            <pre id="backend-api-result">Click button to test backend...</pre>
+        </div>
+    </div>
+
+    <script>
+        // Mock execution context for testing
+        const mockContext = {
+            $json: {
+                message: {
+                    text: "Hello from n8n context!",
+                    chat: { id: 123456 },
+                    from: { username: "testuser" }
+                },
+                timestamp: new Date().toISOString()
+            },
+            $node: {
+                "Telegram Trigger": {
+                    json: {
+                        message: { text: "From Telegram", chat: { id: 123456 } },
+                        update_id: 12345
+                    },
+                    parameter: { botToken: "test_token" }
+                },
+                "AI Agent": {
+                    json: {
+                        response: "AI generated response",
+                        model: "claude-3-5-sonnet"
+                    },
+                    parameter: { systemPrompt: "You are helpful" }
+                }
+            },
+            $env: {
+                NODE_ENV: "development",
+                API_BASE: "https://workflow-lg9z.onrender.com",
+                WORKFLOW_VERSION: "1.0.0"
+            },
+            $now: new Date(),
+            $runIndex: 0,
+            $executionId: "exec_test_123",
+            $itemIndex: 0,
+            $nodeId: "test_node",
+            $nodeType: "aiAgent",
+            $nodeLabel: "AI Agent Test"
+        };
+
+        function testBasicContext() {
+            const result = document.getElementById('basic-context-result');
+            try {
+                const tests = [
+                    { expr: "$json.message.text", expected: mockContext.$json.message.text },
+                    { expr: "$env.NODE_ENV", expected: mockContext.$env.NODE_ENV },
+                    { expr: "$now", expected: mockContext.$now.toISOString() },
+                    { expr: "$runIndex", expected: mockContext.$runIndex },
+                    { expr: "$nodeType", expected: mockContext.$nodeType }
+                ];
+
+                let output = "✅ Basic Context Variables Test:\n\n";
+                tests.forEach(test => {
+                    const resolved = resolveTestExpression(test.expr);
+                    const success = resolved.includes(String(test.expected)) || resolved === String(test.expected);
+                    output += `${success ? '✅' : '❌'} ${test.expr} → ${resolved}\n`;
+                });
+
+                result.textContent = output;
+                result.parentElement.className = 'test-section success';
+            } catch (error) {
+                result.textContent = `❌ Error: ${error.message}`;
+                result.parentElement.className = 'test-section error';
+            }
+        }
+
+        function testCrossNodeReferences() {
+            const result = document.getElementById('cross-node-result');
+            try {
+                const tests = [
+                    '$node["Telegram Trigger"].json.message.text',
+                    '$node["AI Agent"].json.response',
+                    '$node["Telegram Trigger"].json.update_id',
+                    '$node["AI Agent"].parameter.systemPrompt'
+                ];
+
+                let output = "✅ Cross-Node References Test:\n\n";
+                tests.forEach(expr => {
+                    const resolved = resolveTestExpression(expr);
+                    output += `${resolved !== expr ? '✅' : '❌'} ${expr}\n  → ${resolved}\n\n`;
+                });
+
+                result.textContent = output;
+                result.parentElement.className = 'test-section success';
+            } catch (error) {
+                result.textContent = `❌ Error: ${error.message}`;
+                result.parentElement.className = 'test-section error';
+            }
+        }
+
+        function testMultiItemProcessing() {
+            const result = document.getElementById('multi-item-result');
+            try {
+                // Simulate processing multiple items
+                const items = [
+                    { message: { text: "Item 1" }, id: 1 },
+                    { message: { text: "Item 2" }, id: 2 },
+                    { message: { text: "Item 3" }, id: 3 }
+                ];
+
+                let output = "✅ Multi-Item Processing Test:\n\n";
+                items.forEach((item, index) => {
+                    // Mock individual item context
+                    const itemContext = { 
+                        ...mockContext, 
+                        $json: item, 
+                        $itemIndex: index 
+                    };
+                    
+                    const expression = "$json.message.text (Item $itemIndex)";
+                    const resolved = expression
+                        .replace('$json.message.text', item.message.text)
+                        .replace('$itemIndex', index);
+                    
+                    output += `Item ${index + 1}: ${resolved}\n`;
+                });
+
+                output += "\n🔄 Each item gets isolated context with its own $json and $itemIndex";
+                result.textContent = output;
+                result.parentElement.className = 'test-section success';
+            } catch (error) {
+                result.textContent = `❌ Error: ${error.message}`;
+                result.parentElement.className = 'test-section error';
+            }
+        }
+
+        function resolveExpression() {
+            const input = document.getElementById('expression-input').value;
+            const output = document.getElementById('resolved-output');
+            
+            try {
+                const resolved = resolveTestExpression(input);
+                output.innerHTML = `<strong>Expression:</strong> ${input}<br><strong>Resolved:</strong> ${resolved}`;
+                output.style.backgroundColor = resolved !== input ? '#e7f3ff' : '#fff3cd';
+            } catch (error) {
+                output.innerHTML = `<strong>Error:</strong> ${error.message}`;
+                output.style.backgroundColor = '#f8d7da';
+            }
+        }
+
+        function resolveTestExpression(expression) {
+            if (!expression || typeof expression !== 'string') {
+                return expression;
+            }
+
+            return expression.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, path) => {
+                return evaluateContextPath(path.trim(), mockContext);
+            });
+        }
+
+        function evaluateContextPath(pathStr, context) {
+            const parts = parseContextPath(pathStr);
+            let current = context;
+
+            for (const part of parts) {
+                if (current === null || current === undefined) {
+                    return `undefined (path: ${pathStr})`;
+                }
+
+                if (typeof part === 'number') {
+                    if (!Array.isArray(current) || part >= current.length) {
+                        return `undefined (array index ${part} not found)`;
+                    }
+                    current = current[part];
+                } else if (typeof current === 'object' && part in current) {
+                    current = current[part];
+                } else {
+                    return `undefined (property ${part} not found)`;
+                }
+            }
+
+            return typeof current === 'object' ? JSON.stringify(current, null, 2) : String(current);
+        }
+
+        function parseContextPath(pathStr) {
+            const parts = [];
+            let current = '';
+            let inBracket = false;
+            let inQuote = false;
+            let quoteChar = '';
+
+            for (let i = 0; i < pathStr.length; i++) {
+                const char = pathStr[i];
+
+                if ((char === '"' || char === "'") && !inBracket) {
+                    if (!inQuote) {
+                        inQuote = true;
+                        quoteChar = char;
+                    } else if (char === quoteChar) {
+                        inQuote = false;
+                        quoteChar = '';
+                    }
+                    current += char;
+                } else if (char === '[' && !inQuote) {
+                    if (current) {
+                        parts.push(current);
+                        current = '';
+                    }
+                    inBracket = true;
+                } else if (char === ']' && !inQuote) {
+                    if (inBracket && current) {
+                        const bracketContent = current.replace(/^["']|["']$/g, '');
+                        const index = parseInt(bracketContent, 10);
+                        parts.push(!isNaN(index) ? index : bracketContent);
+                        current = '';
+                    }
+                    inBracket = false;
+                } else if (char === '.' && !inBracket && !inQuote) {
+                    if (current) {
+                        parts.push(current);
+                        current = '';
+                    }
+                } else {
+                    current += char;
+                }
+            }
+
+            if (current) {
+                parts.push(current);
+            }
+
+            return parts;
+        }
+
+        async function testBackendAPI() {
+            const result = document.getElementById('backend-api-result');
+            result.textContent = 'Testing backend API...';
+            
+            try {
+                // Test data with multiple items and complex context
+                const testPayload = {
+                    node: {
+                        id: 'test_ai_agent',
+                        type: 'aiAgent',
+                        config: {
+                            systemPrompt: "You are a helpful assistant",
+                            userMessage: "$json.message.text"
+                        },
+                        data: { label: "Test AI Agent" }
+                    },
+                    inputData: [
+                        { message: { text: "Hello from item 1", chat: { id: 123 } } },
+                        { message: { text: "Hello from item 2", chat: { id: 456 } } }
+                    ],
+                    connectedNodes: [
+                        {
+                            nodeId: 'telegram_trigger',
+                            nodeType: 'telegramTrigger',
+                            nodeLabel: 'Telegram Trigger',
+                            data: { 
+                                message: { text: "Original trigger message" },
+                                update_id: 12345
+                            }
+                        }
+                    ],
+                    workflowId: 'test_workflow',
+                    workflowName: 'n8n Context Test Workflow'
+                };
+
+                const response = await fetch('https://workflow-lg9z.onrender.com/api/run-node', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testPayload)
+                });
+
+                const data = await response.json();
+                
+                let output = `✅ Backend API Test Results:\n\n`;
+                output += `Status: ${response.status}\n`;
+                output += `Success: ${data.success}\n`;
+                output += `Node Type: ${data.nodeType}\n`;
+                output += `Items Processed: ${data.executionContext?.itemsProcessed || 'N/A'}\n`;
+                output += `Isolated Context: ${data.executionContext?.isolatedContext || 'false'}\n\n`;
+                output += `Full Response:\n${JSON.stringify(data, null, 2)}`;
+
+                result.textContent = output;
+                result.parentElement.className = data.success ? 'test-section success' : 'test-section error';
+                
+            } catch (error) {
+                result.textContent = `❌ Backend API Error: ${error.message}`;
+                result.parentElement.className = 'test-section error';
+            }
+        }
+
+        // Auto-run basic tests on page load
+        window.onload = () => {
+            console.log('🔒 n8n-style Execution Context Test Page Loaded');
+            testBasicContext();
+        };
+    </script>
+</body>
+</html>

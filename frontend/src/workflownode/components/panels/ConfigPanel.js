@@ -7,8 +7,10 @@ including all node variations and the expression system with
 drag-and-drop functionality.
 */
 import React, { useState, useEffect } from 'react';
+import { createExecutionContext } from '../../utils/executionContext';
 
-// Helper function to resolve expressions like {{ a.b }} and {{ a[0].b }}
+// Legacy resolveExpression function for backwards compatibility
+// TODO: Remove this once all components are migrated to ExecutionContext
 const resolveExpression = (expression, data) => {
     if (!expression || typeof expression !== 'string' || !data) {
         return expression;
@@ -100,20 +102,14 @@ const resolveExpression = (expression, data) => {
     // This regex finds all instances of {{ path.to.key }}
     return expression.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, path) => {
         const pathStr = path.trim();
-        console.log('🔍 Resolving path:', pathStr);
         
         const pathParts = parsePath(pathStr);
-        console.log('🔧 Parsed path parts:', pathParts);
         
         // Try direct path resolution
-        console.log('📊 Available data keys:', Object.keys(data));
-        console.log('📋 Full data structure:', JSON.stringify(data, null, 2));
         const result = traversePath(data, pathParts);
-        console.log('🎯 Direct path result:', result);
         
         if (result.found) {
             const resolvedValue = typeof result.value === 'object' ? JSON.stringify(result.value) : String(result.value);
-            console.log('✅ Resolved to:', resolvedValue);
             return resolvedValue;
         }
         
@@ -123,13 +119,11 @@ const resolveExpression = (expression, data) => {
                 const nestedResult = traversePath(nodeData, pathParts);
                 if (nestedResult.found) {
                     const resolvedValue = typeof nestedResult.value === 'object' ? JSON.stringify(nestedResult.value) : String(nestedResult.value);
-                    console.log('✅ Nested resolved to:', resolvedValue);
                     return resolvedValue;
                 }
             }
         }
         
-        console.log('❌ Path not found:', pathStr);
         return match; // Return original {{...}} if path is invalid anywhere
     });
 };
@@ -148,7 +142,71 @@ const JsonKey = ({ path, value }) => {
     );
 };
 
-// Reusable component to display the JSON tree view
+// n8n-style context tree view with $json, $node, $env variables
+const N8nContextTreeView = ({ executionContext, currentNodeId }) => {
+    if (!executionContext || !currentNodeId) {
+        return <div className="context-info">Loading execution context...</div>;
+    }
+    
+    try {
+        const context = executionContext.buildNodeContext(currentNodeId, null, 0);
+        
+        return (
+            <div className="n8n-context-tree">
+                <div className="context-section">
+                    <details className="json-node" open>
+                        <summary className="json-key">📝 $json (Current Node Data)</summary>
+                        <div className="json-value">
+                            <JsonTreeView data={context.$json} parentPath="$json" />
+                        </div>
+                    </details>
+                </div>
+                
+                <div className="context-section">
+                    <details className="json-node" open>
+                        <summary className="json-key">🔗 $node (Other Nodes)</summary>
+                        <div className="json-value">
+                            {Object.entries(context.$node).map(([nodeLabel, nodeData]) => (
+                                <details key={nodeLabel} className="json-node" open>
+                                    <summary className="json-key">{nodeLabel}</summary>
+                                    <div className="json-value">
+                                        <JsonKey path={`$node["${nodeLabel}"].json`} value="{...}" />
+                                        <JsonTreeView data={nodeData.json} parentPath={`$node["${nodeLabel}"].json`} />
+                                    </div>
+                                </details>
+                            ))}
+                        </div>
+                    </details>
+                </div>
+                
+                <div className="context-section">
+                    <details className="json-node">
+                        <summary className="json-key">🌍 $env (Environment)</summary>
+                        <div className="json-value">
+                            <JsonTreeView data={context.$env} parentPath="$env" />
+                        </div>
+                    </details>
+                </div>
+                
+                <div className="context-section">
+                    <details className="json-node">
+                        <summary className="json-key">⏱️ $execution (Metadata)</summary>
+                        <div className="json-value">
+                            <JsonKey path="$now" value={context.$now.toISOString()} />
+                            <JsonKey path="$runIndex" value={context.$runIndex} />
+                            <JsonKey path="$executionId" value={context.$executionId} />
+                            <JsonKey path="$itemIndex" value={context.$itemIndex} />
+                        </div>
+                    </details>
+                </div>
+            </div>
+        );
+    } catch (error) {
+        return <div className="context-error">Error building context: {error.message}</div>;
+    }
+};
+
+// Legacy JSON tree view for backwards compatibility
 const JsonTreeView = ({ data, parentPath = '' }) => {
     if (data === null || typeof data !== 'object') {
         return null;
@@ -201,64 +259,88 @@ const JsonTreeView = ({ data, parentPath = '' }) => {
 };
 
 
-// Enhanced input component with drag-drop and live preview
-const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isTextarea = false }) => {
+// n8n-style enhanced input component with isolated execution context
+const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isTextarea = false, currentNode, allNodes }) => {
     const [resolvedValue, setResolvedValue] = useState('');
     const [isDraggingOver, setIsDraggingOver] = useState(false);
+    const [executionContext, setExecutionContext] = useState(null);
 
     useEffect(() => {
-        console.log('🔍 ExpressionInput DEBUG:', { 
-            hasInputData: !!inputData, 
-            inputDataType: Array.isArray(inputData) ? 'array' : typeof inputData,
-            inputDataLength: Array.isArray(inputData) ? inputData.length : 'not-array',
-            value: value,
-            hasTemplates: value && typeof value === 'string' && value.includes('{{'),
-            inputDataPreview: inputData ? JSON.stringify(inputData).substring(0, 200) + '...' : null
-        });
-        
-        if (inputData && value && typeof value === 'string' && value.includes('{{')) {
-            // Handle cascading data structure from collectAllPreviousNodeData
-            let dataToUse;
-            if (Array.isArray(inputData) && inputData.length > 0 && inputData[0].nodeId) {
-                console.log('📊 Processing cascading data structure');
-                // This is cascading data structure - convert to flat object for template resolution
-                dataToUse = {};
-                inputData.forEach(nodeInfo => {
-                    // Create entries like "1. AI Agent" for easy template access
-                    const nodeKey = `${nodeInfo.order}. ${nodeInfo.nodeLabel}`;
-                    dataToUse[nodeKey] = nodeInfo.data;
-                    
-                    // Also create direct data entries for backwards compatibility
-                    if (nodeInfo.data && typeof nodeInfo.data === 'object') {
-                        Object.keys(nodeInfo.data).forEach(key => {
-                            // Priority: Give Telegram Trigger data priority over AI Agent data for common keys
-                            if (!(key in dataToUse) || nodeInfo.nodeType === 'telegramTrigger') {
-                                dataToUse[key] = nodeInfo.data[key];
-                            }
+        if (inputData && value && typeof value === 'string' && value.includes('{{') && currentNode && allNodes) {
+            try {
+                // Create isolated execution context for this node
+                const workflowData = {
+                    id: 'current_workflow',
+                    name: 'Live Preview Workflow',
+                    active: true,
+                    runIndex: 0
+                };
+                
+                // Build allNodes Map from inputData (cascading structure)
+                const nodesMap = new Map();
+                
+                if (Array.isArray(inputData) && inputData.length > 0 && inputData[0].nodeId) {
+                    // Process cascading data structure
+                    inputData.forEach(nodeInfo => {
+                        nodesMap.set(nodeInfo.nodeId, {
+                            id: nodeInfo.nodeId,
+                            type: nodeInfo.nodeType,
+                            data: { 
+                                label: nodeInfo.nodeLabel,
+                                config: nodeInfo.config || {}
+                            },
+                            outputData: nodeInfo.data
                         });
-                    }
-                });
-                console.log('🔧 Final dataToUse for cascading:', dataToUse);
-            } else if (Array.isArray(inputData)) {
-                console.log('📊 Processing legacy array structure');
-                // Legacy array structure - take first element
-                dataToUse = inputData[0];
-                console.log('🔧 Final dataToUse for legacy:', dataToUse);
-            } else {
-                console.log('📊 Processing direct object structure');
-                // Direct object structure
-                dataToUse = inputData;
-                console.log('🔧 Final dataToUse for direct:', dataToUse);
+                    });
+                }
+                
+                // Add current node to map if not already present
+                if (currentNode && !nodesMap.has(currentNode.id)) {
+                    nodesMap.set(currentNode.id, currentNode);
+                }
+                
+                const context = createExecutionContext(currentNode, nodesMap, workflowData);
+                setExecutionContext(context);
+                
+                // Evaluate expression with isolated context
+                const resolved = context.evaluateExpression(value, currentNode.id, null, 0);
+                setResolvedValue(resolved);
+                
+            } catch (error) {
+                console.error('❌ ExecutionContext error:', error);
+                // Fallback to legacy system
+                const dataToUse = convertInputDataToLegacyFormat(inputData);
+                const resolved = resolveExpression(value, dataToUse);
+                setResolvedValue(resolved);
             }
-            
-            console.log('🔧 Calling resolveExpression with:', { value, dataToUse });
-            const resolved = resolveExpression(value, dataToUse);
-            console.log('✅ resolveExpression returned:', resolved);
-            setResolvedValue(resolved);
         } else {
             setResolvedValue('');
         }
-    }, [value, inputData]);
+    }, [value, inputData, currentNode, allNodes]);
+    
+    // Helper function to convert inputData to legacy format for fallback
+    const convertInputDataToLegacyFormat = (inputData) => {
+        if (Array.isArray(inputData) && inputData.length > 0 && inputData[0].nodeId) {
+            const dataToUse = {};
+            inputData.forEach(nodeInfo => {
+                const nodeKey = `${nodeInfo.order}. ${nodeInfo.nodeLabel}`;
+                dataToUse[nodeKey] = nodeInfo.data;
+                
+                if (nodeInfo.data && typeof nodeInfo.data === 'object') {
+                    Object.keys(nodeInfo.data).forEach(key => {
+                        if (!(key in dataToUse) || nodeInfo.nodeType === 'telegramTrigger') {
+                            dataToUse[key] = nodeInfo.data[key];
+                        }
+                    });
+                }
+            });
+            return dataToUse;
+        } else if (Array.isArray(inputData)) {
+            return inputData[0];
+        } else {
+            return inputData;
+        }
+    };
 
     const handleDrop = (e) => {
         e.preventDefault();
@@ -294,8 +376,13 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
                 className={isDraggingOver ? 'dragging-over' : ''}
                 rows={isTextarea ? 4 : undefined}
             />
-            {resolvedValue && <div className="live-preview">Preview: {resolvedValue}</div>}
-            {value && value.includes('{{') && !resolvedValue && <div className="live-preview" style={{color: 'red'}}>Debug: No resolved value for "{value}"</div>}
+            {resolvedValue && <div className="live-preview">🔒 Isolated Context: {resolvedValue}</div>}
+            {value && value.includes('{{') && !resolvedValue && <div className="live-preview" style={{color: 'red'}}>❌ n8n Context: No value for "{value}"</div>}
+            {executionContext && value && value.includes('{{') && (
+                <div className="context-info" style={{fontSize: '0.8em', color: '#666', marginTop: '4px'}}>
+                    Available: $json, $node, $env, $now | Current: {currentNode?.data?.label || currentNode?.type}
+                </div>
+            )}
         </div>
     );
 };
@@ -734,38 +821,68 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
     <div className="config-panel-overlay" onClick={handleClose}>
         <div className="side-panel" onClick={(e) => e.stopPropagation()}>
             <div className="panel-header">
-                <span>INPUT</span>
-                <button className="side-panel-btn" onClick={handleGetData} disabled={node.data.type === 'setData'}>GET</button>
+                <span>🔒 n8n CONTEXT</span>
+                <button className="side-panel-btn" onClick={handleGetData} disabled={node.data.type === 'setData'}>REFRESH</button>
             </div>
             <div className="panel-content-area data-panel">
                 {inputData ? (
-                    node.data.type === 'merge' && typeof inputData === 'object' && !Array.isArray(inputData) ? (
-                        <JsonTreeView data={inputData} />
-                    ) : Array.isArray(inputData) ? (
-                        // Check if it's cascading data structure (with nodeId properties)
-                        inputData.length > 0 && inputData[0].nodeId ? (
-                            // For cascading data, show flattened structure like the old format
-                            (() => {
-                                const flattened = {};
-                                inputData.forEach((nodeData) => {
-                                    // Use the actual node order from the data, not array index
-                                    const key = `${nodeData.order || 1}. ${nodeData.nodeLabel}`;
-                                    flattened[key] = nodeData.data;
+                    (() => {
+                        // Create execution context for this node
+                        const workflowData = { id: 'live', name: 'Live Preview', active: true, runIndex: 0 };
+                        const nodesMap = new Map();
+                        
+                        // Build nodesMap from inputData if available
+                        if (Array.isArray(inputData) && inputData.length > 0 && inputData[0].nodeId) {
+                            inputData.forEach(nodeInfo => {
+                                nodesMap.set(nodeInfo.nodeId, {
+                                    id: nodeInfo.nodeId,
+                                    type: nodeInfo.nodeType,
+                                    data: { label: nodeInfo.nodeLabel },
+                                    outputData: nodeInfo.data
                                 });
-                                return <JsonTreeView data={flattened} />;
-                            })()
-                        ) : (
-                            // For regular arrays, show first element
-                            <JsonTreeView data={inputData[0]} />
-                        )
-                    ) : (
-                        <JsonTreeView data={inputData} />
-                    )
+                            });
+                        }
+                        
+                        // Add current node
+                        nodesMap.set(node.id, node);
+                        
+                        try {
+                            const context = createExecutionContext(node, nodesMap, workflowData);
+                            return <N8nContextTreeView executionContext={context} currentNodeId={node.id} />;
+                        } catch (error) {
+                            console.error('Context creation error:', error);
+                            // Fallback to legacy view
+                            return (
+                                <div>
+                                    <div className="context-error">n8n Context Error: {error.message}</div>
+                                    <div className="fallback-label">Legacy View:</div>
+                                    {node.data.type === 'merge' && typeof inputData === 'object' && !Array.isArray(inputData) ? (
+                                        <JsonTreeView data={inputData} />
+                                    ) : Array.isArray(inputData) ? (
+                                        inputData.length > 0 && inputData[0].nodeId ? (
+                                            (() => {
+                                                const flattened = {};
+                                                inputData.forEach((nodeData) => {
+                                                    const key = `${nodeData.order || 1}. ${nodeData.nodeLabel}`;
+                                                    flattened[key] = nodeData.data;
+                                                });
+                                                return <JsonTreeView data={flattened} />;
+                                            })()
+                                        ) : (
+                                            <JsonTreeView data={inputData[0]} />
+                                        )
+                                    ) : (
+                                        <JsonTreeView data={inputData} />
+                                    )}
+                                </div>
+                            );
+                        }
+                    })()
                 ) : (
                     <div className="empty-state">
-                        <i className="fa-solid fa-hand-pointer text-4xl mb-4"></i>
-                        <h4 className="font-bold">Wire me up</h4>
-                        <p>This node can receive input data from connected nodes or use the GET button to fetch test data.</p>
+                        <i className="fa-solid fa-lock text-4xl mb-4"></i>
+                        <h4 className="font-bold">n8n Context</h4>
+                        <p>This node will have isolated execution context with $json, $node, $env variables once connected or refreshed.</p>
                     </div>
                 )}
             </div>
@@ -800,8 +917,8 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                                 <p className="text-sm text-gray-500 mb-4">Define pairs of keys to match items between Input 1 and Input 2.</p>
                                 {formData.fieldsToMatch.map((field, index) => (
                                     <div key={index} className="key-value-row">
-                                        <ExpressionInput name="key1" value={field.key1} onChange={(e) => handleInputChange(e, index)} inputData={inputData} placeholder="Key from Input 1" />
-                                        <ExpressionInput name="key2" value={field.key2} onChange={(e) => handleInputChange(e, index)} inputData={inputData} placeholder="Key from Input 2" />
+                                        <ExpressionInput name="key1" value={field.key1} onChange={(e) => handleInputChange(e, index)} inputData={inputData} placeholder="Key from Input 1" currentNode={node} allNodes={nodes} />
+                                        <ExpressionInput name="key2" value={field.key2} onChange={(e) => handleInputChange(e, index)} inputData={inputData} placeholder="Key from Input 2" currentNode={node} allNodes={nodes} />
                                         <button onClick={() => handleRemoveDataField(index)} className="remove-field-btn">&times;</button>
                                     </div>
                                 ))}
@@ -870,11 +987,11 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="systemPrompt">System Prompt</label>
-                                    <ExpressionInput name="systemPrompt" value={formData.systemPrompt || ''} onChange={handleInputChange} inputData={inputData} isTextarea={true} placeholder="You are a helpful assistant..." />
+                                    <ExpressionInput name="systemPrompt" value={formData.systemPrompt || ''} onChange={handleInputChange} inputData={inputData} isTextarea={true} placeholder="You are a helpful assistant..." currentNode={node} allNodes={nodes} />
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="userMessage">User Message</label>
-                                    <ExpressionInput name="userMessage" value={formData.userMessage || ''} onChange={handleInputChange} inputData={inputData} isTextarea={true} placeholder="e.g. {{message.text}}" />
+                                    <ExpressionInput name="userMessage" value={formData.userMessage || ''} onChange={handleInputChange} inputData={inputData} isTextarea={true} placeholder="e.g. {{$json.message.text}}" currentNode={node} allNodes={nodes} />
                                 </div>
                             </div>
                         )}
