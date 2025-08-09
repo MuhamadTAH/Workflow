@@ -12,6 +12,10 @@ const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
 const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
 const ifNode = require('../nodes/logic/ifNode');
+const switchNode = require('../nodes/logic/switchNode');
+const waitNode = require('../nodes/logic/waitNode');
+const mergeNode = require('../nodes/logic/mergeNode');
+const filterNode = require('../nodes/logic/filterNode');
 
 const runNode = async (req, res) => {
     try {
@@ -64,6 +68,22 @@ const runNode = async (req, res) => {
             
             case 'if':
                 result = await ifNode.execute(node.config, inputData, connectedNodes);
+                break;
+            
+            case 'switch':
+                result = await switchNode.execute(node.config, inputData, connectedNodes);
+                break;
+            
+            case 'wait':
+                result = await waitNode.execute(node.config, inputData, connectedNodes);
+                break;
+            
+            case 'merge':
+                result = await mergeNode.execute(node.config, inputData, connectedNodes);
+                break;
+            
+            case 'filter':
+                result = await filterNode.execute(node.config, inputData, connectedNodes);
                 break;
             
             default:
