@@ -71,20 +71,20 @@ const Sidebar = () => {
         </div>
       <DraggableNode 
         nodeInfo={{ 
+            label: 'Chat Trigger', 
+            icon: 'fa-comments', 
+            color: 'text-green-500',
+            description: 'Start workflow from webhook messages',
+            type: 'chatTrigger' 
+        }} 
+      />
+      <DraggableNode 
+        nodeInfo={{ 
             label: 'Telegram Trigger', 
             icon: 'fa-telegram', 
             color: 'text-blue-500',
             description: 'Start workflow from Telegram messages',
             type: 'telegramTrigger' 
-        }} 
-      />
-      <DraggableNode 
-        nodeInfo={{ 
-            label: 'Chat Trigger', 
-            icon: 'fa-comments', 
-            color: 'text-green-500',
-            description: 'Start workflow from website chat messages',
-            type: 'chatTrigger' 
         }} 
       />
       
@@ -123,15 +123,6 @@ const Sidebar = () => {
           <i className="fa-solid fa-share-alt category-icon"></i>
           <span>Social Media</span>
         </div>
-      <DraggableNode 
-        nodeInfo={{ 
-            label: 'Chat Response', 
-            icon: 'fa-reply', 
-            color: 'text-green-500',
-            description: 'Send responses to website chat widgets',
-            type: 'chatResponse' 
-        }} 
-      />
       <DraggableNode 
         nodeInfo={{ 
             label: 'Telegram Send Message', 

@@ -52,12 +52,6 @@ function ShopLayout({ children, title, subtitle, loading = false }) {
           <div className="nav-section">
             <h4>Main</h4>
             <button 
-              className={`nav-item ${isActivePage('/') ? 'active' : ''}`}
-              onClick={() => navigate('/')}
-            >
-              <FaHome /> Dashboard
-            </button>
-            <button 
               className={`nav-item ${isActivePage('/shop') ? 'active' : ''}`}
               onClick={() => navigate('/shop')}
             >
@@ -112,10 +106,10 @@ function ShopLayout({ children, title, subtitle, loading = false }) {
           <div className="nav-section">
             <h4>Settings</h4>
             <button 
-              className={`nav-item ${isActivePage('/shop/settings') ? 'active' : ''}`}
+              className={`nav-item ${isActivePage('/shop') ? 'active' : ''}`}
               onClick={() => navigate('/shop')}
             >
-              <FaCog /> Shop Settings
+              <FaCog /> Shop Dashboard
             </button>
             <button 
               className={`nav-item ${isActivePage('/shop/privacy') ? 'active' : ''}`}

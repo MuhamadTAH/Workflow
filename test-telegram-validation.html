@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Telegram Token Validation</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .container { background: #f5f5f5; padding: 20px; border-radius: 8px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:disabled { background: #ccc; }
+        .result { margin-top: 20px; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .checking { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Telegram Token Validation Test</h1>
+        <p>Test the Telegram bot token validation API endpoint</p>
+        
+        <input type="text" id="tokenInput" placeholder="Enter Telegram Bot Token (e.g., 123456789:ABC...)" />
+        <button onclick="validateToken()" id="validateBtn">✅ Validate Token</button>
+        
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function validateToken() {
+            const token = document.getElementById('tokenInput').value.trim();
+            const btn = document.getElementById('validateBtn');
+            const result = document.getElementById('result');
+            
+            if (!token) {
+                showResult('Please enter a token', 'error');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Validating...';
+            showResult('Checking token with Telegram API...', 'checking');
+            
+            try {
+                const API_BASE = 'https://workflow-lg9z.onrender.com';
+                const response = await fetch(`${API_BASE}/api/nodes/validate-telegram-token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ token })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResult(`✅ Token is valid!<br>Bot: @${data.bot.username} (${data.bot.first_name})`, 'success');
+                } else {
+                    showResult(`❌ ${data.error || 'Token validation failed'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Validation error:', error);
+                showResult(`❌ Network error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '✅ Validate Token';
+            }
+        }
+        
+        function showResult(message, type) {
+            const result = document.getElementById('result');
+            result.innerHTML = message;
+            result.className = `result ${type}`;
+            result.style.display = 'block';
+        }
+        
+        // Allow Enter key to validate
+        document.getElementById('tokenInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                validateToken();
+            }
+        });
+    </script>
+</body>
+</html>

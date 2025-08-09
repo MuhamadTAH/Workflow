@@ -11,7 +11,6 @@ const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
 const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
-const ChatResponseNode = require('../nodes/actions/chatResponseNode');
 
 class WorkflowExecutor {
     constructor() {
@@ -34,10 +33,14 @@ class WorkflowExecutor {
             throw new Error('Workflow must contain nodes and edges');
         }
 
-        // Find trigger node
-        const triggerNode = workflowConfig.nodes.find(node => node.data.type === 'trigger');
+        // Find trigger node (various types)
+        const triggerNode = workflowConfig.nodes.find(node => 
+            node.data.type === 'trigger' || 
+            node.data.type === 'telegramTrigger' || 
+            node.data.type === 'chatTrigger'
+        );
         if (!triggerNode) {
-            throw new Error('Workflow must contain a trigger node');
+            throw new Error('Workflow must contain a trigger node (trigger, telegramTrigger, or chatTrigger)');
         }
 
         console.log(`Found trigger node: ${triggerNode.data.label || triggerNode.data.type} (${triggerNode.id})`);
@@ -119,7 +122,7 @@ class WorkflowExecutor {
 
                 try {
                     // Skip trigger node (already executed)
-                    if (node.data.type === 'trigger') {
+                    if (node.data.type === 'trigger' || node.data.type === 'telegramTrigger' || node.data.type === 'chatTrigger') {
                         stepLog.outputData = currentData;
                         stepLog.status = 'skipped';
                         stepLog.message = 'Trigger node - using trigger data';
@@ -307,9 +310,6 @@ class WorkflowExecutor {
             case 'telegramSendMessage':
                 return await telegramSendMessageNode.execute(nodeConfig, inputData, connectedNodes);
             
-            case 'chatResponse':
-                const chatResponseInstance = new ChatResponseNode(nodeConfig);
-                return await chatResponseInstance.execute(inputData);
             
             default:
                 throw new Error(`Unsupported node type: ${nodeConfig.type}`);

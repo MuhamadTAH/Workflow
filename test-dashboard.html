@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Dashboard Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        /* Copy relevant professional dashboard styles for testing */
+        .professional-dashboard {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .dashboard-nav {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .dashboard-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="professional-dashboard">
+        <nav class="dashboard-nav">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <h2>⚡ WorkflowPro</h2>
+                </div>
+                <div class="nav-user">
+                    <span>Test User</span>
+                </div>
+            </div>
+        </nav>
+
+        <div class="dashboard-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div style="background: linear-gradient(135deg, #667eea, #764ba2); width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 2rem; margin: 0;">12</h3>
+                        <p style="margin: 0.5rem 0; color: #4a5568;">Total Workflows</p>
+                        <span style="color: #38a169; font-size: 0.85rem;">+3 this month</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div style="background: linear-gradient(135deg, #48bb78, #38a169); width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 2rem; margin: 0;">5</h3>
+                        <p style="margin: 0.5rem 0; color: #4a5568;">Active Connections</p>
+                        <span style="color: #38a169; font-size: 0.85rem;">+2 recent</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div style="background: linear-gradient(135deg, #4299e1, #3182ce); width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class="fas fa-play"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 2rem; margin: 0;">1,247</h3>
+                        <p style="margin: 0.5rem 0; color: #4a5568;">Monthly Executions</p>
+                        <span style="color: #38a169; font-size: 0.85rem;">+12% vs last month</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div style="background: linear-gradient(135deg, #ed8936, #dd6b20); width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 2rem; margin: 0;">98.5%</h3>
+                        <p style="margin: 0.5rem 0; color: #4a5568;">Success Rate</p>
+                        <span style="color: #38a169; font-size: 0.85rem;">Excellent</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

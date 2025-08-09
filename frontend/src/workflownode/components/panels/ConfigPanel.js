@@ -1158,6 +1158,124 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                             </div>
                         )}
 
+                        {node.data.type === 'chatTrigger' && (
+                            <div className="form-group mt-6">
+                                <label htmlFor="webhookPath">Webhook Path</label>
+                                <div className="flex" style={{ gap: '0.5rem', alignItems: 'center' }}>
+                                    <input
+                                        type="text"
+                                        name="webhookPath"
+                                        id="webhookPath"
+                                        value={formData.webhookPath || 'chat'}
+                                        onChange={handleInputChange}
+                                        placeholder="chat"
+                                        style={{ flex: 1 }}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="copy-btn"
+                                        onClick={() => {
+                                            const webhookUrl = `https://workflow-lg9z.onrender.com/api/webhooks/chat/${node.id}/${formData.webhookPath || 'chat'}`;
+                                            navigator.clipboard.writeText(webhookUrl);
+                                            alert('Webhook URL copied to clipboard!');
+                                        }}
+                                    >
+                                        Copy URL
+                                    </button>
+                                </div>
+                                <p className="text-sm text-gray-500 mt-2">URL path for the webhook endpoint</p>
+                                
+                                <div className="form-group mt-4">
+                                    <label htmlFor="httpMethod">HTTP Method</label>
+                                    <div className="custom-select-wrapper">
+                                        <select 
+                                            name="httpMethod" 
+                                            id="httpMethod" 
+                                            value={formData.httpMethod || 'POST'} 
+                                            onChange={handleInputChange}
+                                        >
+                                            <option value="POST">POST</option>
+                                            <option value="GET">GET</option>
+                                            <option value="PUT">PUT</option>
+                                            <option value="PATCH">PATCH</option>
+                                        </select>
+                                    </div>
+                                    <p className="text-sm text-gray-500 mt-1">HTTP method for the webhook</p>
+                                </div>
+                                
+                                <div className="form-group mt-4">
+                                    <label htmlFor="secretToken">Secret Token (Optional)</label>
+                                    <input
+                                        type="password"
+                                        name="secretToken"
+                                        id="secretToken"
+                                        value={formData.secretToken || ''}
+                                        onChange={handleInputChange}
+                                        placeholder="Optional security token"
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Include X-Secret header with this token for authentication</p>
+                                </div>
+                                
+                                <div className="webhook-url-display mt-4 p-3" style={{ backgroundColor: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: '4px' }}>
+                                    <strong>Webhook URL:</strong>
+                                    <code style={{ display: 'block', marginTop: '0.5rem', wordBreak: 'break-all', fontSize: '0.875rem' }}>
+                                        https://workflow-lg9z.onrender.com/api/webhooks/chat/{node.id}/{formData.webhookPath || 'chat'}
+                                    </code>
+                                </div>
+                                
+                                <div className="form-group mt-4">
+                                    <button
+                                        type="button"
+                                        className="copy-btn w-full"
+                                        onClick={async () => {
+                                            try {
+                                                setTokenCheck({ status: 'checking', message: 'Testing webhook...' });
+                                                
+                                                const testPayload = {
+                                                    text: "Hello from test",
+                                                    userId: "test-user-123",
+                                                    timestamp: new Date().toISOString()
+                                                };
+                                                
+                                                const webhookUrl = `https://workflow-lg9z.onrender.com/api/webhooks/chat/${node.id}/${formData.webhookPath || 'chat'}`;
+                                                const response = await fetch(webhookUrl, {
+                                                    method: formData.httpMethod || 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        ...(formData.secretToken && { 'X-Secret': formData.secretToken })
+                                                    },
+                                                    body: JSON.stringify(testPayload)
+                                                });
+                                                
+                                                const result = await response.json();
+                                                
+                                                if (response.ok) {
+                                                    updateOutputData([testPayload]);
+                                                    setTokenCheck({ status: 'valid', message: '✅ Webhook test successful' });
+                                                } else {
+                                                    setTokenCheck({ status: 'invalid', message: `❌ Test failed: ${result.error || response.statusText}` });
+                                                }
+                                            } catch (error) {
+                                                setTokenCheck({ status: 'invalid', message: `❌ Test failed: ${error.message}` });
+                                            }
+                                        }}
+                                        style={{ backgroundColor: '#28a745', color: 'white' }}
+                                    >
+                                        <i className="fa-solid fa-play mr-2"></i>
+                                        Test Webhook
+                                    </button>
+                                    <p className="text-sm text-gray-500 mt-2">Send a test request to verify the webhook is working</p>
+                                </div>
+                                
+                                {tokenCheck.status === 'valid' && (
+                                    <p className="text-sm" style={{ color: '#16a34a', marginTop: '0.5rem' }}>{tokenCheck.message}</p>
+                                )}
+                                {tokenCheck.status === 'invalid' && (
+                                    <p className="text-sm" style={{ color: '#dc2626', marginTop: '0.5rem' }}>{tokenCheck.message}</p>
+                                )}
+                            </div>
+                        )}
+
                         {node.data.type === 'telegramSendMessage' && (
                             <div className="form-group mt-6">
                                 <label>Telegram Send Message Configuration</label>

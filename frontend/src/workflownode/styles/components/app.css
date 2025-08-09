@@ -2,11 +2,160 @@
 =================================================================
 FILE: workflownode/styles/components/app.css
 =================================================================
-Main app styling for WorkflowNode system
+Professional main app styling for WorkflowNode system
 */
 
-.workflow-app {
-  /* Main app styles will be extracted here from other files */
+.professional-workflow-builder {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    background: #ffffff;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
-/* Future app-specific styles go here */
+.workflow-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.workflow-canvas {
+    flex: 1;
+    height: 100%;
+    background: #ffffff !important;
+    position: relative;
+}
+
+/* Enhanced ReactFlow Controls */
+.react-flow__controls {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.react-flow__controls-button {
+    background: white;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #64748b;
+}
+
+.react-flow__controls-button:hover {
+    background: #f8fafc;
+    color: #334155;
+}
+
+.react-flow__controls-button:last-child {
+    border-bottom: none;
+}
+
+/* Enhanced ReactFlow Background */
+.react-flow__background {
+    background: #ffffff !important;
+}
+
+/* Force white background for ReactFlow container */
+.react-flow {
+    background: #ffffff !important;
+}
+
+/* Professional Node Enhancements */
+.react-flow__node {
+    font-family: inherit;
+}
+
+.react-flow__handle {
+    background: #667eea;
+    border: 2px solid white;
+    width: 10px;
+    height: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.react-flow__handle.connectingfrom,
+.react-flow__handle.connectingto {
+    background: #22c55e;
+    transform: scale(1.3);
+}
+
+.react-flow__edge-path {
+    stroke: #667eea;
+    stroke-width: 2;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+    stroke: #22c55e;
+    stroke-width: 3;
+}
+
+/* Selection Rectangle */
+.react-flow__selection {
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px dashed #667eea;
+}
+
+/* Attribution */
+.react-flow__attribution {
+    font-size: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 2px 4px;
+    border-radius: 4px;
+    color: #64748b;
+    backdrop-filter: blur(4px);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .professional-workflow-builder {
+        background: #0f172a;
+    }
+    
+    .workflow-canvas {
+        background: #1e293b;
+    }
+    
+    .react-flow__background {
+        background: #1e293b;
+    }
+    
+    .react-flow__controls {
+        background: #334155;
+        border-color: #475569;
+    }
+    
+    .react-flow__controls-button {
+        background: #334155;
+        color: #cbd5e1;
+        border-color: #475569;
+    }
+    
+    .react-flow__controls-button:hover {
+        background: #475569;
+        color: #f1f5f9;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .workflow-content {
+        flex-direction: column;
+    }
+    
+    .react-flow__controls {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 100;
+    }
+}

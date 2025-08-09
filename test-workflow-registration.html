@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workflow Registration Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { background: #f8f9fa; border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; white-space: pre-wrap; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        textarea { width: 100%; height: 200px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Workflow Registration Test</h1>
+    
+    <h3>Step 1: Register a Test Workflow</h3>
+    <button onclick="registerTestWorkflow()">Register Test Workflow with Chat Trigger + AI Agent + Chat Response</button>
+    
+    <h3>Step 2: Test the Registered Workflow</h3>
+    <button onclick="testRegisteredWorkflow()">Test Webhook with Registered Workflow</button>
+    
+    <h3>Step 3: Register Your Real Workflow</h3>
+    <p>Copy your workflow JSON from localStorage and paste it here:</p>
+    <textarea id="workflowJson" placeholder="Paste your workflow JSON here..."></textarea>
+    <br>
+    <input type="text" id="workflowId" placeholder="Enter your workflow ID" style="width: 300px; padding: 5px;">
+    <button onclick="registerCustomWorkflow()">Register Your Workflow</button>
+    
+    <div id="result" class="result"></div>
+
+    <script>
+        function log(message, isError = false, isSuccess = false) {
+            const resultDiv = document.getElementById('result');
+            const timestamp = new Date().toISOString();
+            const logEntry = `[${timestamp}] ${message}\n`;
+            
+            resultDiv.textContent += logEntry;
+            resultDiv.className = `result ${isError ? 'error' : isSuccess ? 'success' : ''}`;
+            console.log(message);
+        }
+
+        async function registerTestWorkflow() {
+            document.getElementById('result').textContent = '';
+            log('🚀 Registering test workflow...');
+            
+            const workflowId = 'test-chat-workflow-' + Date.now();
+            const workflow = {
+                nodes: [
+                    {
+                        id: 'trigger-1',
+                        type: 'input',
+                        position: { x: 100, y: 100 },
+                        data: {
+                            type: 'trigger',
+                            label: 'Chat Trigger',
+                            workflowId: workflowId
+                        }
+                    },
+                    {
+                        id: 'ai-agent-1',
+                        type: 'default',
+                        position: { x: 300, y: 100 },
+                        data: {
+                            type: 'aiAgent',
+                            label: 'AI Agent',
+                            systemPrompt: 'You are a helpful AI assistant. Respond to user messages in a friendly and helpful way.',
+                            model: 'gpt-3.5-turbo',
+                            temperature: 0.7,
+                            maxTokens: 150
+                        }
+                    },
+                    {
+                        id: 'chat-response-1',
+                        type: 'output',
+                        position: { x: 500, y: 100 },
+                        data: {
+                            type: 'chatResponse',
+                            label: 'Chat Response',
+                            responseText: 'AI Agent response will be sent here',
+                            responseType: 'text'
+                        }
+                    }
+                ],
+                edges: [
+                    {
+                        id: 'e1-2',
+                        source: 'trigger-1',
+                        target: 'ai-agent-1'
+                    },
+                    {
+                        id: 'e2-3',
+                        source: 'ai-agent-1',
+                        target: 'chat-response-1'
+                    }
+                ]
+            };
+            
+            try {
+                log(`Registering workflow ID: ${workflowId}`);
+                log(`Workflow nodes: ${workflow.nodes.map(n => n.data.type).join(' → ')}`);
+                
+                const response = await fetch('http://localhost:3001/api/workflows/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        workflowId: workflowId,
+                        workflow: workflow
+                    })
+                });
+                
+                log(`Registration response: ${response.status} ${response.statusText}`, !response.ok, response.ok);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ SUCCESS: ${JSON.stringify(data, null, 2)}`, false, true);
+                    
+                    // Store workflow ID for testing
+                    window.registeredWorkflowId = workflowId;
+                    log(`💡 You can now test webhook: http://localhost:3001/api/chat/webhook/${workflowId}`, false, true);
+                } else {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    log(`❌ ERROR: ${JSON.stringify(errorData, null, 2)}`, true);
+                }
+                
+            } catch (error) {
+                log(`❌ Request failed: ${error.message}`, true);
+            }
+        }
+
+        async function testRegisteredWorkflow() {
+            if (!window.registeredWorkflowId) {
+                log('❌ No workflow registered yet. Register a workflow first.', true);
+                return;
+            }
+            
+            document.getElementById('result').textContent = '';
+            log('🧪 Testing registered workflow...');
+            
+            const webhookUrl = `http://localhost:3001/api/chat/webhook/${window.registeredWorkflowId}`;
+            const payload = {
+                message: 'Hello! This is a test message from the registration test.',
+                sessionId: 'test-session-' + Math.random().toString(36).substring(2, 15),
+                userName: 'Test User',
+                websiteUrl: window.location.origin
+            };
+            
+            try {
+                log(`Sending to: ${webhookUrl}`);
+                log(`Payload: ${JSON.stringify(payload, null, 2)}`);
+                
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                log(`Webhook response: ${response.status} ${response.statusText}`, !response.ok, response.ok);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Webhook successful: ${JSON.stringify(data, null, 2)}`, false, true);
+                    
+                    // Poll for response
+                    setTimeout(async () => {
+                        try {
+                            const pollUrl = `http://localhost:3001/api/chat/session/${payload.sessionId}/messages`;
+                            const pollResponse = await fetch(pollUrl);
+                            if (pollResponse.ok) {
+                                const pollData = await pollResponse.json();
+                                log(`🎉 REAL WORKFLOW RESPONSE: ${JSON.stringify(pollData, null, 2)}`, false, true);
+                            }
+                        } catch (pollError) {
+                            log(`Poll error: ${pollError.message}`, true);
+                        }
+                    }, 2000);
+                } else {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    log(`❌ Webhook failed: ${JSON.stringify(errorData, null, 2)}`, true);
+                }
+                
+            } catch (error) {
+                log(`❌ Test failed: ${error.message}`, true);
+            }
+        }
+
+        async function registerCustomWorkflow() {
+            const workflowJson = document.getElementById('workflowJson').value.trim();
+            const workflowId = document.getElementById('workflowId').value.trim();
+            
+            if (!workflowJson || !workflowId) {
+                log('❌ Please provide both workflow JSON and workflow ID', true);
+                return;
+            }
+            
+            document.getElementById('result').textContent = '';
+            log('🚀 Registering your custom workflow...');
+            
+            try {
+                const workflow = JSON.parse(workflowJson);
+                log(`Workflow ID: ${workflowId}`);
+                log(`Nodes: ${workflow.nodes?.length || 0}`);
+                log(`Edges: ${workflow.edges?.length || 0}`);
+                
+                const response = await fetch('http://localhost:3001/api/workflows/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        workflowId: workflowId,
+                        workflow: workflow
+                    })
+                });
+                
+                log(`Registration response: ${response.status} ${response.statusText}`, !response.ok, response.ok);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ SUCCESS: ${JSON.stringify(data, null, 2)}`, false, true);
+                    log(`💡 Your workflow webhook URL: http://localhost:3001/api/chat/webhook/${workflowId}`, false, true);
+                } else {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    log(`❌ ERROR: ${JSON.stringify(errorData, null, 2)}`, true);
+                }
+                
+            } catch (parseError) {
+                log(`❌ Invalid JSON: ${parseError.message}`, true);
+            } catch (error) {
+                log(`❌ Request failed: ${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html>

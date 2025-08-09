@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import DashboardChatbot from '../components/DashboardChatbot';
 import '../styles.css';
+import '../styles/WorkflowsOverview.css';
 
 function Overview() {
   const navigate = useNavigate();
@@ -13,6 +15,7 @@ function Overview() {
   const [selectedWorkflows, setSelectedWorkflows] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [showLogs, setShowLogs] = useState(null);
+  const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
 
   // Load workflows from localStorage and enhance with status/execution data
   useEffect(() => {
@@ -155,7 +158,7 @@ function Overview() {
   };
 
   const handleRowDoubleClick = (workflowId) => {
-    navigate(`/workflow?load=${workflowId}`);
+    navigate(`/workflow-builder?load=${workflowId}`);
   };
 
   const handleSelectAll = () => {
@@ -228,50 +231,86 @@ function Overview() {
   };
 
   return (
-    <div className="overview-container">
+    <div className="workflows-overview">
+      {/* Header */}
       <div className="overview-header">
-        <div className="overview-title-section">
-          <h1>🎯 My Workflows</h1>
-          <p className="overview-subtitle">
-            {workflows.length} total workflows • {workflows.filter(w => w.status === 'active').length} active
-          </p>
-          <p className="overview-hint">
-            💡 Double-click any row to open workflow editor
-          </p>
-        </div>
-        <div className="overview-actions">
-          <Link to="/workflow" className="btn btn-primary">
-            ✨ New Workflow
-          </Link>
-          <Link to="/" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
-            🏠 Dashboard
-          </Link>
+        <div className="header-content">
+          <div className="header-left">
+            <h1 className="page-title">
+              <i className="fa-solid fa-share-nodes"></i>
+              My Workflows
+            </h1>
+            <p className="page-subtitle">
+              {workflows.length} total workflows • {workflows.filter(w => w.status === 'active').length} active workflows
+            </p>
+            <p className="workflow-hint">
+              <i className="fa-solid fa-lightbulb"></i>
+              Double-click any row to open workflow editor
+            </p>
+          </div>
+          <div className="header-actions">
+            <Link to="/workflow-builder" className="new-workflow-btn">
+              <i className="fa-solid fa-plus"></i>
+              New Workflow
+            </Link>
+            <Link to="/" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
+              <i className="fa-solid fa-home"></i>
+              Dashboard
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Search and Filter Bar */}
-      <div className="overview-filters">
-        <div className="search-section">
-          <input
-            type="text"
-            placeholder="🔍 Search workflows..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
+      {/* Content */}
+      <div className="overview-content">
+        {/* Search and Filter Bar */}
+        <div className="controls-section">
+          <div className="search-box">
+            <i className="fa-solid fa-search"></i>
+            <input
+              type="text"
+              placeholder="Search workflows..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="filter-buttons">
+            <button 
+              className={`filter-btn ${statusFilter === 'all' ? 'active' : ''}`}
+              onClick={() => setStatusFilter('all')}
+            >
+              All
+            </button>
+            <button 
+              className={`filter-btn ${statusFilter === 'active' ? 'active' : ''}`}
+              onClick={() => setStatusFilter('active')}
+            >
+              Active
+            </button>
+            <button 
+              className={`filter-btn ${statusFilter === 'inactive' ? 'active' : ''}`}
+              onClick={() => setStatusFilter('inactive')}
+            >
+              Inactive
+            </button>
+            <div className="view-toggle">
+              <button
+                className={`view-btn ${viewMode === 'table' ? 'active' : ''}`}
+                onClick={() => setViewMode('table')}
+                title="Table View"
+              >
+                <i className="fa-solid fa-table"></i>
+              </button>
+              <button
+                className={`view-btn ${viewMode === 'cards' ? 'active' : ''}`}
+                onClick={() => setViewMode('cards')}
+                title="Card View"
+              >
+                <i className="fa-solid fa-th"></i>
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="filter-section">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
-          </select>
-        </div>
-      </div>
 
       {/* Bulk Actions Bar */}
       {selectedWorkflows.length > 0 && (
@@ -293,9 +332,15 @@ function Overview() {
         </div>
       )}
 
-      {/* Workflows Table */}
-      <div className="workflows-table-container">
-        <table className="workflows-table">
+        {/* Workflows Table */}
+        <div className="workflows-section">
+          <div className="section-header">
+            <h2>Your Workflows</h2>
+            <span className="workflow-count">{filteredWorkflows.length} workflows</span>
+          </div>
+          {viewMode === 'table' ? (
+            <div className="workflows-table-container">
+              <table className="workflows-table">
           <thead>
             <tr>
               <th className="checkbox-column">
@@ -360,7 +405,7 @@ function Overview() {
                     <div className="workflow-name-content">
                       <span className="workflow-title">{workflow.name}</span>
                       <span className="workflow-meta">
-                        {workflow.nodes?.length || 0} nodes • Updated {new Date(workflow.updatedAt).toLocaleDateString()}
+                        {workflow.nodes?.length || 0} nodes • Updated {new Date(workflow.updatedAt || workflow.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   </td>
@@ -388,14 +433,14 @@ function Overview() {
                         ▶️
                       </button>
                       <button
-                        onClick={() => navigate(`/workflow?load=${workflow.id}`)}
+                        onClick={() => navigate(`/workflow-builder?load=${workflow.id}`)}
                         className="action-btn edit-btn"
                         title="Edit Workflow"
                       >
                         ✏️
                       </button>
                       <button
-                        onClick={() => navigate(`/workflow?load=${workflow.id}`)}
+                        onClick={() => navigate(`/workflow-builder?load=${workflow.id}`)}
                         className="action-btn open-btn"
                         title="Open Workflow"
                       >
@@ -420,8 +465,84 @@ function Overview() {
                 </tr>
               ))
             )}
-          </tbody>
-        </table>
+              </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="workflows-grid">
+              {filteredWorkflows.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-icon">
+                    <i className="fa-solid fa-diagram-project"></i>
+                  </div>
+                  <h3>No workflows found</h3>
+                  <p>
+                    {workflows.length === 0 
+                      ? 'Create your first workflow to get started!'
+                      : 'Try adjusting your search or filter criteria.'
+                    }
+                  </p>
+                </div>
+              ) : (
+                filteredWorkflows.map((workflow) => (
+                  <div key={workflow.id} className="workflow-card" onDoubleClick={() => handleRowDoubleClick(workflow.id)}>
+                    <div className="card-header">
+                      <div className="workflow-info">
+                        <h3 className="workflow-name">{workflow.name}</h3>
+                        <p className="workflow-description">{workflow.description}</p>
+                      </div>
+                      <div className="workflow-actions">
+                        <button 
+                          className="action-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/workflow-builder?load=${workflow.id}`);
+                          }}
+                          title="Edit workflow"
+                        >
+                          <i className="fa-solid fa-edit"></i>
+                        </button>
+                        <button 
+                          className="action-btn" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowDeleteConfirm(workflow.id);
+                          }}
+                          title="Delete workflow"
+                        >
+                          <i className="fa-solid fa-trash"></i>
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="card-stats">
+                      <div className="stat-item">
+                        <i className="fa-solid fa-cube"></i>
+                        <span>{workflow.nodes?.length || 0} nodes</span>
+                      </div>
+                      <div className="stat-item">
+                        <i className="fa-solid fa-play"></i>
+                        <span>{workflow.runCount || 0} runs</span>
+                      </div>
+                    </div>
+
+                    <div className="card-footer">
+                      <div className="workflow-status">
+                        <span className={`status-badge ${getStatusColor(workflow.status)}`}>
+                          {workflow.status}
+                        </span>
+                      </div>
+                      <div className="last-modified">
+                        <i className="fa-solid fa-clock"></i>
+                        {formatLastRun(workflow.lastRun)}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -497,6 +618,9 @@ function Overview() {
           </div>
         </div>
       )}
+
+      {/* Dashboard Chatbot */}
+      <DashboardChatbot />
     </div>
   );
 }

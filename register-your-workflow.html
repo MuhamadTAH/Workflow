@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Your Workflow</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { background: #f8f9fa; border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; white-space: pre-wrap; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .workflow-info { background: #e3f2fd; border: 1px solid #90caf9; padding: 15px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Register Your Workflow: untitled-workflow-f50a74</h1>
+    
+    <div class="workflow-info">
+        <h3>📋 What we're doing:</h3>
+        <p>1. Find your workflow "untitled-workflow-f50a74" in localStorage</p>
+        <p>2. Register it with the backend execution engine</p>
+        <p>3. Test that it works with real Chat Trigger → AI Agent → Chat Response flow</p>
+    </div>
+    
+    <button onclick="findAndRegisterWorkflow()">🚀 Find & Register My Workflow</button>
+    <button onclick="testWorkflowAfterRegistration()">🧪 Test Registered Workflow</button>
+    <button onclick="checkWorkflowStatus()">📊 Check Registration Status</button>
+    
+    <div id="result" class="result">Click "Find & Register My Workflow" to start...</div>
+
+    <script>
+        const WORKFLOW_ID = 'untitled-workflow-f50a74';
+        
+        function log(message, isError = false, isSuccess = false) {
+            const resultDiv = document.getElementById('result');
+            const timestamp = new Date().toISOString();
+            const logEntry = `[${timestamp}] ${message}\n`;
+            
+            resultDiv.textContent += logEntry;
+            resultDiv.className = `result ${isError ? 'error' : isSuccess ? 'success' : ''}`;
+            console.log(message);
+        }
+
+        async function findAndRegisterWorkflow() {
+            document.getElementById('result').textContent = '';
+            log('🔍 Looking for your workflow in localStorage...');
+            
+            try {
+                // Get workflows from localStorage
+                const workflows = JSON.parse(localStorage.getItem('workflows') || '[]');
+                log(`Found ${workflows.length} workflows in localStorage`);
+                
+                // Find the specific workflow
+                const targetWorkflow = workflows.find(w => w.id === WORKFLOW_ID);
+                
+                if (!targetWorkflow) {
+                    log(`❌ Workflow ${WORKFLOW_ID} not found in localStorage!`, true);
+                    log('Available workflows:');
+                    workflows.forEach(w => {
+                        log(`  - ${w.id}: ${w.name || 'Unnamed'} (${w.nodes?.length || 0} nodes)`);
+                    });
+                    return;
+                }
+                
+                log(`✅ Found workflow: ${targetWorkflow.name || 'Unnamed'}`, false, true);
+                log(`Nodes: ${targetWorkflow.nodes?.length || 0}`);
+                log(`Edges: ${targetWorkflow.edges?.length || 0}`);
+                
+                // Check if it has a Chat Trigger
+                const hasTrigger = targetWorkflow.nodes?.some(node => 
+                    node.data.type === 'trigger' || node.data.type === 'chatTrigger'
+                );
+                
+                if (!hasTrigger) {
+                    log('❌ This workflow doesn\'t have a Chat Trigger node!', true);
+                    log('Node types found: ' + targetWorkflow.nodes?.map(n => n.data.type).join(', '));
+                    return;
+                }
+                
+                log('✅ Workflow has Chat Trigger - ready to register!', false, true);
+                
+                // Register with backend
+                log('📡 Registering with backend execution engine...');
+                
+                const response = await fetch('http://localhost:3001/api/workflows/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        workflowId: WORKFLOW_ID,
+                        workflow: {
+                            nodes: targetWorkflow.nodes,
+                            edges: targetWorkflow.edges
+                        }
+                    })
+                });
+                
+                log(`Registration response: ${response.status} ${response.statusText}`, !response.ok, response.ok);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`🎉 SUCCESS! Workflow registered: ${JSON.stringify(data, null, 2)}`, false, true);
+                    log('', false, true);
+                    log('🔗 Your webhook URL is now active:', false, true);
+                    log(`   http://localhost:3001/api/chat/webhook/${WORKFLOW_ID}`, false, true);
+                    log('', false, true);
+                    log('💬 You can now test your chatbot - it will use REAL workflow execution!', false, true);
+                } else {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    log(`❌ Registration failed: ${JSON.stringify(errorData, null, 2)}`, true);
+                }
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, true);
+            }
+        }
+
+        async function checkWorkflowStatus() {
+            document.getElementById('result').textContent = '';
+            log('📊 Checking workflow registration status...');
+            
+            try {
+                const response = await fetch(`http://localhost:3001/api/workflows/${WORKFLOW_ID}/status`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`Status response: ${JSON.stringify(data, null, 2)}`, false, true);
+                } else {
+                    log(`Status check failed: ${response.status} ${response.statusText}`, true);
+                }
+            } catch (error) {
+                log(`❌ Status check error: ${error.message}`, true);
+            }
+        }
+
+        async function testWorkflowAfterRegistration() {
+            document.getElementById('result').textContent = '';
+            log('🧪 Testing registered workflow...');
+            
+            const webhookUrl = `http://localhost:3001/api/chat/webhook/${WORKFLOW_ID}`;
+            const sessionId = 'test-session-' + Math.random().toString(36).substring(2, 15);
+            
+            const payload = {
+                message: 'Test message after registration! This should go through the real workflow.',
+                sessionId: sessionId,
+                userName: 'Test User',
+                websiteUrl: window.location.origin
+            };
+            
+            try {
+                log(`📤 Sending to: ${webhookUrl}`);
+                log(`Payload: ${JSON.stringify(payload, null, 2)}`);
+                
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                log(`📡 Response: ${response.status} ${response.statusText}`, !response.ok, response.ok);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Webhook successful: ${JSON.stringify(data, null, 2)}`, false, true);
+                    
+                    // Poll for the real workflow response
+                    log('⏳ Waiting for workflow response...');
+                    setTimeout(async () => {
+                        try {
+                            const pollUrl = `http://localhost:3001/api/chat/session/${sessionId}/messages`;
+                            const pollResponse = await fetch(pollUrl);
+                            
+                            if (pollResponse.ok) {
+                                const pollData = await pollResponse.json();
+                                log(`🎉 WORKFLOW RESPONSE: ${JSON.stringify(pollData, null, 2)}`, false, true);
+                                
+                                if (pollData.pendingResponses && pollData.pendingResponses.length > 0) {
+                                    pollData.pendingResponses.forEach(response => {
+                                        log(`💬 Bot Response: ${response.content}`, false, true);
+                                    });
+                                } else {
+                                    log('No pending responses found - workflow might still be processing');
+                                }
+                            } else {
+                                log(`Poll failed: ${pollResponse.status}`, true);
+                            }
+                        } catch (pollError) {
+                            log(`Poll error: ${pollError.message}`, true);
+                        }
+                    }, 3000);
+                    
+                } else {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+                    log(`❌ Test failed: ${JSON.stringify(errorData, null, 2)}`, true);
+                }
+                
+            } catch (error) {
+                log(`❌ Test error: ${error.message}`, true);
+            }
+        }
+
+        // Auto-run on page load
+        window.onload = () => {
+            log('Ready to register your workflow!');
+            log('Click "Find & Register My Workflow" to start...');
+        };
+    </script>
+</body>
+</html>

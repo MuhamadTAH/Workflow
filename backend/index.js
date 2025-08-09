@@ -10,7 +10,6 @@ const shopsRoutes = require('./routes/shops');
 const productsRoutes = require('./routes/products');
 const publicRoutes = require('./routes/public');
 const uploadsRoutes = require('./routes/uploads');
-const chatRoutes = require('./routes/chat');
 const aiRoutes = require('./routes/ai');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
@@ -111,7 +110,6 @@ app.use('/api/shops', shopsRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/uploads', uploadsRoutes);
-app.use('/api/chat', chatRoutes);
 app.use('/api/ai', aiRoutes);
 // Additional middleware to debug CORS and route issues
 app.use('/api/nodes', (req, res, next) => {
@@ -171,36 +169,6 @@ app.post('/api/test-webhook', (req, res) => {
   });
 });
 
-// Debug route specifically for chat webhooks
-app.post('/api/chat/webhook/debug', (req, res) => {
-  console.log('🐛 DEBUG WEBHOOK HIT - Chat webhook working!');
-  console.log('Request body:', req.body);
-  res.json({
-    success: true,
-    message: 'Debug webhook hit successfully!',
-    receivedData: req.body,
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Universal debug route to catch ALL webhook requests
-app.use('/api/chat/webhook/*', (req, res, next) => {
-  console.log('🔍 WEBHOOK REQUEST INTERCEPTED:', {
-    method: req.method,
-    url: req.url,
-    originalUrl: req.originalUrl,
-    params: req.params,
-    body: req.body,
-    headers: {
-      'content-type': req.headers['content-type'],
-      'user-agent': req.headers['user-agent'],
-      'origin': req.headers['origin'],
-      'referer': req.headers['referer']
-    },
-    timestamp: new Date().toISOString()
-  });
-  next();
-});
 
 // Debug route to check uploads
 app.get('/api/debug/routes', (req, res) => {

@@ -59,12 +59,14 @@ const NodeShape = ({ data = {}, nodeHeight, totalInputHandles, totalOutputHandle
     const iconMapping = {
       // Trigger nodes
       'fa-telegram': 'fa-solid fa-paper-plane',           // Telegram trigger/send
+      'fa-comments': 'fa-solid fa-comments',              // Chat Trigger
       
       // AI nodes  
       'fa-robot': 'fa-solid fa-robot',                    // AI Agent
       'fa-brain': 'fa-solid fa-brain',                    // Model Node
       
       // Social Media nodes (brand icons)
+      'fa-reply': 'fa-solid fa-reply',                    // Chat Response
       'fa-whatsapp': 'fa-brands fa-whatsapp',             // WhatsApp
       'fa-instagram': 'fa-brands fa-instagram',           // Instagram
       'fa-linkedin': 'fa-brands fa-linkedin',             // LinkedIn

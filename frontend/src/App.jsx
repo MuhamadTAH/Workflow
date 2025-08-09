@@ -31,6 +31,21 @@ function Home() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [testLoading, setTestLoading] = useState(false);
+  const [gradientVariant, setGradientVariant] = useState(1);
+  const [stats] = useState({
+    totalWorkflows: 12,
+    activeConnections: 5,
+    monthlyExecutions: 1247,
+    successRate: 98.5
+  });
+
+  // Rotate gradient variants for freshness
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGradientVariant(prev => (prev >= 3 ? 1 : prev + 1));
+    }, 30000); // Change every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -77,8 +92,9 @@ function Home() {
 
   if (loading) {
     return (
-      <div className="loading">
-        <div>Loading your dashboard...</div>
+      <div className="dashboard-loading">
+        <div className="loading-spinner"></div>
+        <p>Loading your professional dashboard...</p>
       </div>
     );
   }
@@ -88,84 +104,214 @@ function Home() {
   }
 
   return (
-    <div className="dashboard">
-      <div className="dashboard-container">
-        <div className="dashboard-header">
-          <h1 className="welcome-text">Welcome back, {user.name || user.email}! 👋</h1>
-          <p className="welcome-subtitle">
-            You're successfully logged in to your secure dashboard
-          </p>
-          
-          <div className="dashboard-actions">
-            <Link to="/workflows" className="btn btn-primary" style={{ textDecoration: 'none' }}>
-              🎯 My Workflows
-            </Link>
-            <Link to="/workflow" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
-              🔧 Workflow Builder
-            </Link>
-            <Link to="/connections" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
-              🔗 Connections
-            </Link>
-            <Link to="/shop" className="btn btn-secondary" style={{ textDecoration: 'none' }}>
-              🛍️ My Shop
-            </Link>
-            <button 
-              onClick={callBackend} 
-              disabled={testLoading}
-              className={`btn btn-secondary ${testLoading ? 'btn-loading' : ''}`}
-            >
-              {testLoading ? 'Testing...' : '🔗 Test Backend'}
-            </button>
-            <button onClick={logout} className="btn btn-primary">
-              👋 Sign Out
+    <div className={`professional-dashboard variant-${gradientVariant}`}>
+      {/* Top Navigation Bar */}
+      <nav className="dashboard-nav">
+        <div className="nav-container">
+          <div className="nav-brand">
+            <h2>⚡ WorkflowPro</h2>
+          </div>
+          <div className="nav-user">
+            <div className="user-avatar">
+              {(user.name || user.email).charAt(0).toUpperCase()}
+            </div>
+            <span className="user-name">{user.name || user.email}</span>
+            <button onClick={logout} className="logout-btn">
+              <i className="fas fa-sign-out-alt"></i>
             </button>
           </div>
+        </div>
+      </nav>
 
-          <div className="legal-links" style={{ marginTop: '2rem', textAlign: 'center' }}>
-            <Link to="/privacy" className="legal-link" style={{ textDecoration: 'none', marginRight: '2rem' }}>
-              🛡️ Privacy Policy
+      <div className="dashboard-content">
+        {/* Header Section */}
+        <header className="dashboard-hero">
+          <div className="hero-content">
+            <h1 className="hero-title">
+              Welcome back, <span className="highlight">{user.name || user.email.split('@')[0]}</span>
+            </h1>
+            <p className="hero-subtitle">
+              Monitor your automation empire and scale your workflows
+            </p>
+          </div>
+          <div className="hero-actions">
+            <Link to="/workflow" className="btn btn-primary">
+              <i className="fas fa-plus"></i> Create Workflow
             </Link>
-            <Link to="/terms" className="legal-link" style={{ textDecoration: 'none' }}>
-              📄 Terms of Service
+            <Link to="/workflows" className="btn btn-secondary">
+              <i className="fas fa-list"></i> View All
             </Link>
           </div>
+        </header>
 
-          {message && (
-            <div className={message.includes('❌') ? 'error-message' : 'success-message'} style={{ marginTop: '1rem' }}>
-              {message}
+        {/* Stats Grid */}
+        <div className="stats-grid">
+          <div className="stat-card primary breathing">
+            <div className="stat-icon">
+              <i className="fas fa-project-diagram"></i>
             </div>
-          )}
-        </div>
-        
-        <div className="profile-card">
-          <h2 className="profile-title">
-            👤 Your Profile Information
-          </h2>
-          <div className="profile-info">
-            <div className="profile-item">
-              <span className="profile-label">User ID</span>
-              <span className="profile-value">#{user.id}</span>
+            <div className="stat-content">
+              <h3 className="stat-number">{stats.totalWorkflows}</h3>
+              <p className="stat-label">Total Workflows</p>
+              <span className="stat-change positive">+3 this month</span>
             </div>
-            <div className="profile-item">
-              <span className="profile-label">Full Name</span>
-              <span className="profile-value">{user.name || 'Not provided'}</span>
+          </div>
+
+          <div className="stat-card success">
+            <div className="stat-icon">
+              <i className="fas fa-link"></i>
             </div>
-            <div className="profile-item">
-              <span className="profile-label">Email Address</span>
-              <span className="profile-value">{user.email}</span>
+            <div className="stat-content">
+              <h3 className="stat-number">{stats.activeConnections}</h3>
+              <p className="stat-label">Active Connections</p>
+              <span className="stat-change positive">+2 recent</span>
             </div>
-            <div className="profile-item">
-              <span className="profile-label">Member Since</span>
-              <span className="profile-value">{new Date(user.created_at).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}</span>
+          </div>
+
+          <div className="stat-card info">
+            <div className="stat-icon">
+              <i className="fas fa-play"></i>
+            </div>
+            <div className="stat-content">
+              <h3 className="stat-number">{stats.monthlyExecutions.toLocaleString()}</h3>
+              <p className="stat-label">Monthly Executions</p>
+              <span className="stat-change positive">+12% vs last month</span>
+            </div>
+          </div>
+
+          <div className="stat-card warning">
+            <div className="stat-icon">
+              <i className="fas fa-chart-line"></i>
+            </div>
+            <div className="stat-content">
+              <h3 className="stat-number">{stats.successRate}%</h3>
+              <p className="stat-label">Success Rate</p>
+              <span className="stat-change positive">Excellent</span>
             </div>
           </div>
         </div>
+
+        {/* Main Content Grid */}
+        <div className="content-grid">
+          {/* Quick Actions */}
+          <div className="dashboard-card quick-actions">
+            <div className="card-header">
+              <h3><i className="fas fa-bolt"></i> Quick Actions</h3>
+            </div>
+            <div className="actions-grid">
+              <Link to="/workflow" className="action-item">
+                <i className="fas fa-magic"></i>
+                <span>Build Workflow</span>
+              </Link>
+              <Link to="/connections" className="action-item">
+                <i className="fas fa-plug"></i>
+                <span>Connect Apps</span>
+              </Link>
+              <Link to="/shop" className="action-item premium shop-action">
+                <i className="fas fa-store"></i>
+                <span>My Shop</span>
+              </Link>
+              <button onClick={callBackend} className="action-item" disabled={testLoading}>
+                <i className={testLoading ? "fas fa-spinner fa-spin" : "fas fa-server"}></i>
+                <span>{testLoading ? 'Testing...' : 'Test Backend'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="dashboard-card recent-activity">
+            <div className="card-header">
+              <h3><i className="fas fa-history"></i> Recent Activity</h3>
+              <Link to="/workflows" className="view-all-link">View All</Link>
+            </div>
+            <div className="activity-list">
+              <div className="activity-item">
+                <div className="activity-icon success">
+                  <i className="fas fa-check"></i>
+                </div>
+                <div className="activity-content">
+                  <p className="activity-title">Marketing Automation completed</p>
+                  <span className="activity-time">2 hours ago</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon info">
+                  <i className="fas fa-plus"></i>
+                </div>
+                <div className="activity-content">
+                  <p className="activity-title">New Telegram connection added</p>
+                  <span className="activity-time">1 day ago</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <div className="activity-icon warning">
+                  <i className="fas fa-edit"></i>
+                </div>
+                <div className="activity-content">
+                  <p className="activity-title">E-commerce workflow updated</p>
+                  <span className="activity-time">3 days ago</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Profile Information */}
+          <div className="dashboard-card profile-section">
+            <div className="card-header">
+              <h3><i className="fas fa-user"></i> Profile Information</h3>
+            </div>
+            <div className="profile-details">
+              <div className="profile-row">
+                <span className="profile-key">User ID</span>
+                <span className="profile-value">#{user.id}</span>
+              </div>
+              <div className="profile-row">
+                <span className="profile-key">Full Name</span>
+                <span className="profile-value">{user.name || 'Not provided'}</span>
+              </div>
+              <div className="profile-row">
+                <span className="profile-key">Email</span>
+                <span className="profile-value">{user.email}</span>
+              </div>
+              <div className="profile-row">
+                <span className="profile-key">Member Since</span>
+                <span className="profile-value">
+                  {new Date(user.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Status Message */}
+        {message && (
+          <div className={`status-alert ${message.includes('❌') ? 'error' : 'success'}`}>
+            {message}
+          </div>
+        )}
+
+        {/* Footer */}
+        <footer className="dashboard-footer">
+          <div className="footer-content">
+            <div className="footer-links">
+              <Link to="/privacy" className="footer-link">
+                <i className="fas fa-shield-alt"></i> Privacy Policy
+              </Link>
+              <Link to="/terms" className="footer-link">
+                <i className="fas fa-file-contract"></i> Terms of Service
+              </Link>
+            </div>
+            <p className="footer-text">
+              &copy; 2025 WorkflowPro. Built for professionals who automate.
+            </p>
+          </div>
+        </footer>
       </div>
-      
+
       {/* Dashboard Chatbot */}
       <DashboardChatbot />
     </div>

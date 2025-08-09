@@ -63,6 +63,15 @@ const Sidebar = () => {
             type: 'telegramTrigger' 
         }} 
       />
+      <DraggableNode 
+        nodeInfo={{ 
+            label: 'Chat Trigger', 
+            icon: 'fa-comments', 
+            color: 'text-green-500',
+            description: 'Start workflow from website chat messages',
+            type: 'chatTrigger' 
+        }} 
+      />
       
       {/* AI NODES */}
       <div className="mb-4 mt-6 font-bold text-lg text-purple-600">AI Nodes</div>
@@ -94,6 +103,15 @@ const Sidebar = () => {
             color: 'text-blue-500',
             description: 'Send Telegram messages',
             type: 'telegramSendMessage' 
+        }} 
+      />
+      <DraggableNode 
+        nodeInfo={{ 
+            label: 'Chat Response', 
+            icon: 'fa-reply', 
+            color: 'text-green-500',
+            description: 'Send responses to website chat',
+            type: 'chatResponse' 
         }} 
       />
       <DraggableNode 

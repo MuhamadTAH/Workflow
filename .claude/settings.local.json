@@ -41,7 +41,19 @@
       "Bash(timeout 10 npm run dev)",
       "Bash(timeout 15 npm run dev)",
       "Bash(timeout 5 npm run dev)",
-      "Bash(start /B npm start)"
+      "Bash(start /B npm start)",
+      "Bash(timeout 10 npm start)",
+      "Bash(copy:*)",
+      "Bash(timeout 15 npm start)",
+      "Bash(timeout 5 npm start)",
+      "Bash(start test-webhook-generation.html)",
+      "Bash(start test-webhook-request.html)",
+      "Bash(start test-workflow-registration.html)",
+      "Bash(start register-your-workflow.html)",
+      "Bash(timeout 5 npm --prefix frontend run dev)",
+      "Bash(start test-dashboard.html)",
+      "WebFetch(domain:workflow-lg9z.onrender.com)",
+      "Bash(git reset:*)"
     ],
     "deny": []
   }

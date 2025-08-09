@@ -12,9 +12,10 @@ Import all component styles and themes here
 
 /* Component Styles */
 @import './components/app.css';
+@import './components/toolbar.css';
+@import './components/sidebar.css';
 @import '../components/nodes/NodeStyles.css';
 @import './components/panels.css';
-@import './components/sidebar.css';
 
 /* Global WorkflowNode Styles */
 .workflownode-container {

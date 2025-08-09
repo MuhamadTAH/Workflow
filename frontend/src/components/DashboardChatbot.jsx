@@ -40,8 +40,14 @@ const DashboardChatbot = () => {
       content: "📚 **About Workflow Chatbots:**\n\n🤖 **How I Work:**\n• I'm a chatbot that connects to your workflows\n• Without a workflow connection, I can only give basic info\n• Once connected, I become intelligent via your workflow logic\n\n✨ **What You Can Do:**\n• Create workflows with Chat Trigger + AI Agent nodes\n• Connect me to those workflows via webhook URL\n• I'll process messages through your workflow\n• Get smart AI responses, data processing, integrations",
       options: [
         { text: "🔗 Connect me to workflow", action: "connect_workflow" },
-        { text: "🚀 Create new workflow", action: "goto_builder" }
+        { text: "🚀 Create new workflow", action: "goto_builder" },
+        { text: "🧪 Test local backend", action: "test_backend" },
+        { text: "🌐 Test production backend", action: "test_production" }
       ]
+    },
+    test_backend: {
+      content: "🧪 **Testing backend connectivity...**",
+      options: []
     },
     webhook_help: {
       content: "🔗 **Getting Your Webhook URL:**\n\n**Step by Step:**\n1. Go to Workflow Builder\n2. Drag a **'Chat Trigger'** node to canvas\n3. Double-click the Chat Trigger node\n4. **Copy the webhook URL** (auto-generated)\n5. Come back here and paste it below\n\n**URL Format:**\n`https://workflow-lg9z.onrender.com/api/chat/webhook/your-id`",
@@ -95,6 +101,58 @@ const DashboardChatbot = () => {
       return;
     }
 
+    if (action === 'test_backend') {
+      // Test local backend connectivity
+      const baseUrl = 'http://localhost:3001';
+      
+      console.log('🧪 Testing LOCAL backend connection to:', baseUrl);
+      
+      fetch(`${baseUrl}/api/hello`)
+        .then(response => {
+          console.log('✅ Local backend response:', response.status);
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error(`HTTP ${response.status}`);
+          }
+        })
+        .then(data => {
+          console.log('✅ Local backend data:', data);
+          addBotMessage(`✅ **Local Backend Connected!**\n\nURL: ${baseUrl}\nResponse: ${data.message}\nStatus: Local development server working!`, [], 500);
+        })
+        .catch(error => {
+          console.error('❌ Local backend connection failed:', error);
+          addBotMessage(`❌ **Local Backend Failed!**\n\nURL: ${baseUrl}\nError: ${error.message}\n\nMake sure your local backend is running on port 3001`, [], 500);
+        });
+      return;
+    }
+
+    if (action === 'test_production') {
+      // Test production backend connectivity
+      const baseUrl = 'https://workflow-lg9z.onrender.com';
+      
+      console.log('🌐 Testing PRODUCTION backend connection to:', baseUrl);
+      
+      fetch(`${baseUrl}/api/hello`)
+        .then(response => {
+          console.log('✅ Production backend response:', response.status);
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error(`HTTP ${response.status}`);
+          }
+        })
+        .then(data => {
+          console.log('✅ Production backend data:', data);
+          addBotMessage(`✅ **Production Backend Connected!**\n\nURL: ${baseUrl}\nResponse: ${data.message}\nStatus: Render server working!`, [], 500);
+        })
+        .catch(error => {
+          console.error('❌ Production backend connection failed:', error);
+          addBotMessage(`❌ **Production Backend Failed!**\n\nURL: ${baseUrl}\nError: ${error.message}\n\nRender server might be down or CORS issue`, [], 500);
+        });
+      return;
+    }
+
     // Get bot response
     const response = botResponses[action];
     if (response) {
@@ -137,51 +195,115 @@ const DashboardChatbot = () => {
   // Send message to workflow webhook
   const sendToWorkflow = async (message, workflowId) => {
     try {
-      // Try production first, fallback to local for testing
-      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : 'https://workflow-lg9z.onrender.com';
+      // Use localhost for development (browser localhost detection)
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const baseUrl = isLocal ? 'http://localhost:3001' : 'https://workflow-lg9z.onrender.com';
       const webhookUrl = `${baseUrl}/api/chat/webhook/${workflowId}`;
       
-      console.log('🚀 Sending message to workflow:', {
-        message,
-        workflowId,
-        webhookUrl,
-        sessionId
+      console.log('🚀 DEBUGGING: Starting webhook request process...');
+      console.log('📍 Current URL:', window.location.href);
+      console.log('📍 Hostname:', window.location.hostname);
+      console.log('📍 IsLocal:', isLocal);
+      console.log('📍 BaseUrl:', baseUrl);
+      console.log('📍 WebhookUrl:', webhookUrl);
+      console.log('📍 WorkflowId:', workflowId);
+      console.log('📍 Message:', message);
+      console.log('📍 SessionId:', sessionId);
+
+      // First test basic connectivity
+      console.log('🧪 Testing basic connectivity to backend...');
+      try {
+        const testResponse = await fetch(`${baseUrl}/api/hello`);
+        console.log('✅ Basic connectivity test result:', {
+          status: testResponse.status,
+          statusText: testResponse.statusText,
+          ok: testResponse.ok,
+          url: testResponse.url
+        });
+        
+        if (!testResponse.ok) {
+          throw new Error(`Basic connectivity failed: ${testResponse.status} ${testResponse.statusText}`);
+        }
+      } catch (testError) {
+        console.error('❌ Basic connectivity failed:', testError);
+        addBotMessage(`❌ Cannot connect to backend: ${testError.message}`, []);
+        return;
+      }
+      
+      console.log('🚀 Starting webhook POST request...');
+      console.log('📤 Request payload:', {
+        message: message,
+        sessionId: sessionId,
+        userName: 'Dashboard User',
+        websiteUrl: window.location.origin
       });
+      
+      // Add timeout and detailed error logging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
       const response = await fetch(webhookUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           message: message,
           sessionId: sessionId,
           userName: 'Dashboard User',
           websiteUrl: window.location.origin
-        })
+        }),
+        signal: controller.signal
       });
 
-      console.log('📡 Webhook response:', response.status, response.statusText);
+      clearTimeout(timeoutId);
+      
+      console.log('📡 Webhook POST response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        url: response.url,
+        headers: Object.fromEntries(response.headers.entries())
+      });
 
       if (response.ok) {
         const data = await response.json();
         console.log('✅ Webhook response data:', data);
+        addBotMessage(`🎉 Webhook request successful! Session: ${data.sessionId}`, []);
         // Poll for response
         setTimeout(() => pollForResponse(sessionId), 1000);
       } else {
-        console.error('❌ Webhook request failed:', response.status, response.statusText);
-        addBotMessage(`❌ Failed to send message to workflow. Status: ${response.status}`, []);
+        const errorText = await response.text().catch(() => 'No error text available');
+        console.error('❌ Webhook request failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: errorText
+        });
+        addBotMessage(`❌ Failed to send message to workflow. Status: ${response.status}\nError: ${errorText}`, []);
       }
     } catch (error) {
-      console.error('❌ Webhook request error:', error);
-      addBotMessage("❌ Error connecting to workflow: " + error.message, []);
+      console.error('❌ Webhook request error:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+      
+      if (error.name === 'AbortError') {
+        addBotMessage("❌ Request timed out after 10 seconds", []);
+      } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        addBotMessage("❌ Network error - check if backend is running and CORS is configured", []);
+      } else {
+        addBotMessage("❌ Error connecting to workflow: " + error.message, []);
+      }
     }
   };
 
   // Poll for workflow response
   const pollForResponse = async (sessionId) => {
     try {
-      const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : 'https://workflow-lg9z.onrender.com';
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const baseUrl = isLocal ? 'http://localhost:3001' : 'https://workflow-lg9z.onrender.com';
       const response = await fetch(`${baseUrl}/api/chat/session/${sessionId}/messages`);
       if (response.ok) {
         const data = await response.json();
