@@ -11,6 +11,8 @@ const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
 const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
+const ifNode = require('../nodes/logic/ifNode');
+const switchNode = require('../nodes/logic/switchNode');
 
 const runNode = async (req, res) => {
     try {
@@ -48,6 +50,14 @@ const runNode = async (req, res) => {
             
             case 'telegramSendMessage':
                 result = await telegramSendMessageNode.execute(node.config, inputData, connectedNodes);
+                break;
+            
+            case 'if':
+                result = await ifNode.execute(node.config, inputData, connectedNodes);
+                break;
+            
+            case 'switch':
+                result = await switchNode.execute(node.config, inputData, connectedNodes);
                 break;
             
             default:
