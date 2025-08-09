@@ -223,27 +223,44 @@ function processTemplates(text, inputData) {
     // Helper function to traverse object/array path
     const traversePath = (obj, pathParts) => {
         let current = obj;
+        console.log(`🔍 AI Agent traversePath starting with:`, current);
+        console.log(`🔍 AI Agent pathParts:`, pathParts);
         
-        for (const part of pathParts) {
+        for (let i = 0; i < pathParts.length; i++) {
+            const part = pathParts[i];
+            console.log(`🔍 AI Agent step ${i}: part="${part}", currentType=${Array.isArray(current) ? 'array' : typeof current}`);
+            
             if (current === null || current === undefined) {
+                console.log(`❌ AI Agent step ${i}: current is null/undefined`);
                 return { found: false, value: undefined };
             }
             
             if (typeof part === 'number') {
                 // Array index
-                if (!Array.isArray(current) || part >= current.length || part < 0) {
+                console.log(`🔍 AI Agent step ${i}: accessing array index ${part}`);
+                if (!Array.isArray(current)) {
+                    console.log(`❌ AI Agent step ${i}: expected array but got ${typeof current}`);
+                    return { found: false, value: undefined };
+                }
+                if (part >= current.length || part < 0) {
+                    console.log(`❌ AI Agent step ${i}: index ${part} out of bounds (length: ${current.length})`);
                     return { found: false, value: undefined };
                 }
                 current = current[part];
+                console.log(`✅ AI Agent step ${i}: array access successful, new current:`, typeof current === 'object' ? 'object' : current);
             } else {
                 // Object property
+                console.log(`🔍 AI Agent step ${i}: accessing object property "${part}"`);
                 if (typeof current !== 'object' || !(part in current)) {
+                    console.log(`❌ AI Agent step ${i}: property "${part}" not found in object with keys:`, Object.keys(current || {}));
                     return { found: false, value: undefined };
                 }
                 current = current[part];
+                console.log(`✅ AI Agent step ${i}: property access successful, new current:`, typeof current === 'object' ? 'object' : current);
             }
         }
         
+        console.log(`✅ AI Agent traversePath final result:`, current);
         return { found: true, value: current };
     };
 
