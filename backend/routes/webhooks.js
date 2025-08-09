@@ -1,3 +1,6 @@
+// Chat Trigger webhook integration with existing webhook system
+const ChatTriggerNode = require('../nodes/triggers/chatTriggerNode');
+
 const express = require('express');
 const router = express.Router();
 const workflowEngine = require('../workflowEngine');
@@ -34,6 +37,12 @@ router.use((req, res, next) => {
 
 // Store for registered webhooks (in production, use database)
 const registeredWebhooks = new Map();
+
+// Initialize Chat Trigger node instance
+const chatTriggerNode = new ChatTriggerNode();
+
+// Store for Chat Trigger webhook registrations
+const chatTriggerWebhooks = new Map();
 
 
 // WorkflowExecutor is conditionally initialized above
@@ -332,6 +341,128 @@ router.delete('/workflows/:id', (req, res) => {
   }
 });
 
+// Chat Trigger webhook endpoint
+// Route pattern: /api/webhooks/chatTrigger/:workflowId/:nodeId/:path
+router.all('/chatTrigger/:workflowId/:nodeId/:path', asyncHandler(async (req, res) => {
+  try {
+    const { workflowId, nodeId, path } = req.params;
+    const key = `${workflowId}-${nodeId}`;
+    
+    console.log(`📥 Chat Trigger webhook hit: ${workflowId}/${nodeId}/${path}`);
+    console.log('Request body:', req.body);
+    
+    // Get registered webhook config
+    const webhookConfig = chatTriggerWebhooks.get(key);
+    if (!webhookConfig) {
+      console.warn(`⚠️ Chat Trigger webhook not registered: ${key}`);
+      // For development, we'll process anyway
+      // return res.status(404).json({ error: 'Chat Trigger webhook not found' });
+    }
+
+    // 1) Optional: verify secret/token if configured
+    const config = webhookConfig?.config || {};
+    const verify = chatTriggerNode.verifySecret({ headers: req.headers }, config);
+    if (!verify.ok) {
+      return res.status(401).json({ error: 'Unauthorized', reason: verify.reason });
+    }
+
+    // 2) Process webhook data (normalize chat message)
+    const processed = await chatTriggerNode.processWebhookData(
+      {
+        body: req.body,
+        headers: req.headers,
+        query: req.query,
+        method: req.method,
+        ip: req.ip
+      },
+      config
+    );
+
+    console.log('📦 Processed chat message:', processed);
+
+    // 3) For now, just log and return success
+    // TODO: Integrate with workflow execution engine
+    logger.info('Chat Trigger webhook processed', {
+      workflowId,
+      nodeId,
+      path,
+      message: processed.json?.text || 'No text',
+      userId: processed.json?.userId,
+      source: processed.json?.source
+    });
+
+    return res.status(200).json({ 
+      ok: true, 
+      message: 'Chat message received',
+      processed: processed 
+    });
+    
+  } catch (error) {
+    console.error('❌ Chat Trigger webhook error:', error);
+    logger.logError(error, { context: 'chat-trigger-webhook' });
+    return res.status(500).json({ ok: false, error: error.message });
+  }
+}));
+
+// Register Chat Trigger webhook
+router.post('/register-chat-trigger', asyncHandler(async (req, res) => {
+  const { workflowId, nodeId, config = {} } = req.body;
+  
+  if (!workflowId || !nodeId) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required fields: workflowId, nodeId'
+    });
+  }
+
+  try {
+    const key = `${workflowId}-${nodeId}`;
+    
+    // Generate webhook URL
+    const webhookUrl = chatTriggerNode.generateWebhookUrl(workflowId, nodeId, config);
+    
+    // Store webhook registration
+    chatTriggerWebhooks.set(key, {
+      workflowId,
+      nodeId,
+      config,
+      webhookUrl,
+      registeredAt: new Date().toISOString()
+    });
+
+    logger.info(`Chat Trigger webhook registered`, { workflowId, nodeId, webhookUrl });
+
+    res.json({
+      success: true,
+      message: 'Chat Trigger webhook registered successfully',
+      workflowId,
+      nodeId,
+      webhookUrl,
+      config
+    });
+  } catch (error) {
+    logger.logError(error, { context: 'register-chat-trigger', workflowId, nodeId });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to register Chat Trigger webhook: ' + error.message
+    });
+  }
+}));
+
+// Get Chat Trigger webhook status
+router.get('/chat-trigger-status/:workflowId/:nodeId', (req, res) => {
+  const { workflowId, nodeId } = req.params;
+  const key = `${workflowId}-${nodeId}`;
+  const webhook = chatTriggerWebhooks.get(key);
+  
+  res.json({
+    success: true,
+    registered: !!webhook,
+    webhook: webhook || null,
+    workflowId,
+    nodeId
+  });
+});
 
 // Health check endpoint
 router.get('/health', (req, res) => {

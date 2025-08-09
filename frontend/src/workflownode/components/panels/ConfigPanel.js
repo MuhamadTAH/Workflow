@@ -455,6 +455,10 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
       model: node.data.model || 'claude-3-5-sonnet-20241022',
       systemPrompt: node.data.systemPrompt || '',
       userMessage: node.data.userMessage || '',
+      // Chat Trigger specific fields
+      webhookPath: node.data.webhookPath || 'chat',
+      secret: node.data.secret || '',
+      chatTitle: node.data.chatTitle || 'Chat Support',
   });
 
   useEffect(() => {
@@ -524,6 +528,10 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
       model: node.data.model || 'claude-3-5-sonnet-20241022',
       systemPrompt: node.data.systemPrompt || '',
       userMessage: node.data.userMessage || '',
+      // Chat Trigger specific fields
+      webhookPath: node.data.webhookPath || 'chat',
+      secret: node.data.secret || '',
+      chatTitle: node.data.chatTitle || 'Chat Support',
     });
   }, [node.id]);
   
@@ -1146,6 +1154,106 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                             </div>
                         )}
 
+                        {node.data.type === 'chatTrigger' && (
+                            <div className="form-group mt-6">
+                                <label>Chat Trigger Configuration</label>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="mode">Mode</label>
+                                    <div className="custom-select-wrapper">
+                                        <select name="mode" id="mode" value={formData.mode || 'hosted'} onChange={handleInputChange}>
+                                            <option value="hosted">Hosted Chat</option>
+                                            <option value="embedded">Embedded Widget</option>
+                                        </select>
+                                    </div>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        {formData.mode === 'hosted' ? 'Opens a hosted chat page on your domain' : 'Provides webhook URL for embedding in other sites'}
+                                    </p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="webhookPath">Webhook Path</label>
+                                    <ExpressionInput 
+                                        name="webhookPath" 
+                                        value={formData.webhookPath || 'chat'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="chat"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Custom path for the webhook URL</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="secret">Webhook Secret (Optional)</label>
+                                    <ExpressionInput 
+                                        name="secret" 
+                                        value={formData.secret || ''} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="Optional security token"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Token for webhook security verification</p>
+                                </div>
+                                
+                                {formData.mode === 'hosted' && (
+                                    <div className="form-group">
+                                        <label htmlFor="chatTitle">Chat Title</label>
+                                        <ExpressionInput 
+                                            name="chatTitle" 
+                                            value={formData.chatTitle || 'Chat Support'} 
+                                            onChange={handleInputChange} 
+                                            inputData={inputData} 
+                                            placeholder="Chat Support"
+                                            currentNode={node} 
+                                            allNodes={nodes}
+                                        />
+                                        <p className="text-sm text-gray-500 mt-1">Title shown on hosted chat page</p>
+                                    </div>
+                                )}
+                                
+                                <div className="webhook-info" style={{ background: '#f8f9fa', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
+                                    <strong>Webhook URL:</strong><br/>
+                                    <code style={{ wordBreak: 'break-all' }}>
+                                        https://workflow-lg9z.onrender.com/api/webhooks/chatTrigger/{'{workflow-id}'}/{'{node-id}'}/{formData.webhookPath || 'chat'}
+                                    </code>
+                                    <br/><br/>
+                                    
+                                    {formData.mode === 'hosted' && (
+                                        <>
+                                            <strong>Hosted Chat URL:</strong><br/>
+                                            <code style={{ wordBreak: 'break-all' }}>
+                                                https://workflow-lg9z.onrender.com/chat/{'{workflow-id}'}/{node.id}/{formData.webhookPath || 'chat'}?title={encodeURIComponent(formData.chatTitle || 'Chat Support')}
+                                            </code>
+                                            <br/><br/>
+                                        </>
+                                    )}
+                                    
+                                    {formData.mode === 'embedded' && (
+                                        <>
+                                            <strong>Widget Integration:</strong><br/>
+                                            <code style={{ display: 'block', marginTop: '8px', padding: '8px', background: 'white', borderRadius: '4px' }}>
+                                                {`<script type="module" src="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+  createChat({
+    webhookUrl: 'https://workflow-lg9z.onrender.com/api/webhooks/chatTrigger/{workflow-id}/${node.id}/${formData.webhookPath || "chat"}',
+    target: '#n8n-chat'
+  });
+});
+</script>
+<div id="n8n-chat"></div>`}
+                                            </code>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {node.data.type === 'telegramSendMessage' && (
                             <div className="form-group mt-6">

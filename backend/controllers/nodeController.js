@@ -12,6 +12,7 @@ const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
 const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
+const ChatTriggerNode = require('../nodes/triggers/chatTriggerNode');
 const ifNode = require('../nodes/logic/ifNode');
 const switchNode = require('../nodes/logic/switchNode');
 const waitNode = require('../nodes/logic/waitNode');
@@ -133,6 +134,12 @@ const runNode = async (req, res) => {
                         timestamp: new Date().toISOString()
                     };
                     break;
+
+                case 'chatTrigger':
+                    // Chat Trigger node - similar to telegram trigger
+                    const chatTriggerInstance = new ChatTriggerNode();
+                    itemResult = await chatTriggerInstance.execute(currentItem, processedConfig, executionContext);
+                    break;
                 
                 
                 case 'telegramSendMessage':
@@ -167,7 +174,7 @@ const runNode = async (req, res) => {
                 default:
                     return res.status(400).json({ 
                         message: `Unsupported node type: ${node.type}`,
-                        supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'telegramSendMessage', 'if', 'switch', 'wait', 'merge', 'filter']
+                        supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'chatTrigger', 'telegramSendMessage', 'if', 'switch', 'wait', 'merge', 'filter']
                     });
             }
             

@@ -104,6 +104,18 @@ app.set('nodeMessages', nodeMessages);
 // Serve static files (uploaded images)
 app.use('/uploads', express.static('uploads'));
 
+// Serve static public files (including hosted chat page)
+app.use('/public', express.static('public'));
+
+// Hosted chat page route with query parameters
+app.get('/chat/:workflowId/:nodeId/:path?', (req, res) => {
+  const { workflowId, nodeId, path = 'chat' } = req.params;
+  const title = req.query.title || 'Chat Support';
+  
+  // Redirect to hosted chat page with parameters
+  res.redirect(`/public/hosted-chat.html?workflowId=${workflowId}&nodeId=${nodeId}&path=${encodeURIComponent(path)}&title=${encodeURIComponent(title)}`);
+});
+
 // Routes
 app.use('/api', authRoutes);
 app.use('/api/webhooks', webhooksRoutes);

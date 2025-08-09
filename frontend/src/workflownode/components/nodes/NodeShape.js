@@ -95,6 +95,12 @@ const NodeShape = ({ data = {}, nodeHeight, totalInputHandles, totalOutputHandle
       'fa-discord': 'fa-brands fa-discord',
       'fa-slack': 'fa-brands fa-slack',
       'fa-github': 'fa-brands fa-github'
+      // In getIconSymbol function
+      'fa-comments': '💬', // fallback emoji
+
+                            // In iconMapping
+      'fa-comments': 'fa-solid fa-comments',
+
     };
     
     // Return mapped class or default to solid
@@ -258,5 +264,7 @@ const NodeShape = ({ data = {}, nodeHeight, totalInputHandles, totalOutputHandle
     </div>
   );
 };
+
+
 
 export default NodeShape;
