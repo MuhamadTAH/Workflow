@@ -410,12 +410,6 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
       mergeMode: node.data.mergeMode || 'append',
       batchSize: node.data.batchSize || 1,
       fields: node.data.fields || [{ key: '', value: '' }],
-      // Chat trigger specific fields
-      filterKeywords: node.data.filterKeywords || [],
-      allowedDomains: node.data.allowedDomains || [],
-      requireUserInfo: node.data.requireUserInfo || false,
-      autoRespond: node.data.autoRespond || false,
-      autoResponseMessage: node.data.autoResponseMessage || 'Thank you for your message. We\'ll get back to you soon!',
       // Telegram trigger specific fields
       botToken: node.data.botToken || '',
       // Telegram send message fields
@@ -485,12 +479,6 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
       mergeMode: node.data.mergeMode || 'append',
       batchSize: node.data.batchSize || 1,
       fields: node.data.fields || [{ key: '', value: '' }],
-      // Chat trigger specific fields
-      filterKeywords: node.data.filterKeywords || [],
-      allowedDomains: node.data.allowedDomains || [],
-      requireUserInfo: node.data.requireUserInfo || false,
-      autoRespond: node.data.autoRespond || false,
-      autoResponseMessage: node.data.autoResponseMessage || 'Thank you for your message. We\'ll get back to you soon!',
       // Telegram trigger specific fields
       botToken: node.data.botToken || '',
       // Telegram send message fields
@@ -1158,123 +1146,6 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                             </div>
                         )}
 
-                        {node.data.type === 'chatTrigger' && (
-                            <div className="form-group mt-6">
-                                <label htmlFor="webhookPath">Webhook Path</label>
-                                <div className="flex" style={{ gap: '0.5rem', alignItems: 'center' }}>
-                                    <input
-                                        type="text"
-                                        name="webhookPath"
-                                        id="webhookPath"
-                                        value={formData.webhookPath || 'chat'}
-                                        onChange={handleInputChange}
-                                        placeholder="chat"
-                                        style={{ flex: 1 }}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="copy-btn"
-                                        onClick={() => {
-                                            const webhookUrl = `https://workflow-lg9z.onrender.com/api/webhooks/chat/${node.id}/${formData.webhookPath || 'chat'}`;
-                                            navigator.clipboard.writeText(webhookUrl);
-                                            alert('Webhook URL copied to clipboard!');
-                                        }}
-                                    >
-                                        Copy URL
-                                    </button>
-                                </div>
-                                <p className="text-sm text-gray-500 mt-2">URL path for the webhook endpoint</p>
-                                
-                                <div className="form-group mt-4">
-                                    <label htmlFor="httpMethod">HTTP Method</label>
-                                    <div className="custom-select-wrapper">
-                                        <select 
-                                            name="httpMethod" 
-                                            id="httpMethod" 
-                                            value={formData.httpMethod || 'POST'} 
-                                            onChange={handleInputChange}
-                                        >
-                                            <option value="POST">POST</option>
-                                            <option value="GET">GET</option>
-                                            <option value="PUT">PUT</option>
-                                            <option value="PATCH">PATCH</option>
-                                        </select>
-                                    </div>
-                                    <p className="text-sm text-gray-500 mt-1">HTTP method for the webhook</p>
-                                </div>
-                                
-                                <div className="form-group mt-4">
-                                    <label htmlFor="secretToken">Secret Token (Optional)</label>
-                                    <input
-                                        type="password"
-                                        name="secretToken"
-                                        id="secretToken"
-                                        value={formData.secretToken || ''}
-                                        onChange={handleInputChange}
-                                        placeholder="Optional security token"
-                                    />
-                                    <p className="text-sm text-gray-500 mt-1">Include X-Secret header with this token for authentication</p>
-                                </div>
-                                
-                                <div className="webhook-url-display mt-4 p-3" style={{ backgroundColor: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: '4px' }}>
-                                    <strong>Webhook URL:</strong>
-                                    <code style={{ display: 'block', marginTop: '0.5rem', wordBreak: 'break-all', fontSize: '0.875rem' }}>
-                                        https://workflow-lg9z.onrender.com/api/webhooks/chat/{node.id}/{formData.webhookPath || 'chat'}
-                                    </code>
-                                </div>
-                                
-                                <div className="form-group mt-4">
-                                    <button
-                                        type="button"
-                                        className="copy-btn w-full"
-                                        onClick={async () => {
-                                            try {
-                                                setTokenCheck({ status: 'checking', message: 'Testing webhook...' });
-                                                
-                                                const testPayload = {
-                                                    text: "Hello from test",
-                                                    userId: "test-user-123",
-                                                    timestamp: new Date().toISOString()
-                                                };
-                                                
-                                                const webhookUrl = `https://workflow-lg9z.onrender.com/api/webhooks/chat/${node.id}/${formData.webhookPath || 'chat'}`;
-                                                const response = await fetch(webhookUrl, {
-                                                    method: formData.httpMethod || 'POST',
-                                                    headers: {
-                                                        'Content-Type': 'application/json',
-                                                        ...(formData.secretToken && { 'X-Secret': formData.secretToken })
-                                                    },
-                                                    body: JSON.stringify(testPayload)
-                                                });
-                                                
-                                                const result = await response.json();
-                                                
-                                                if (response.ok) {
-                                                    updateOutputData([testPayload]);
-                                                    setTokenCheck({ status: 'valid', message: '✅ Webhook test successful' });
-                                                } else {
-                                                    setTokenCheck({ status: 'invalid', message: `❌ Test failed: ${result.error || response.statusText}` });
-                                                }
-                                            } catch (error) {
-                                                setTokenCheck({ status: 'invalid', message: `❌ Test failed: ${error.message}` });
-                                            }
-                                        }}
-                                        style={{ backgroundColor: '#28a745', color: 'white' }}
-                                    >
-                                        <i className="fa-solid fa-play mr-2"></i>
-                                        Test Webhook
-                                    </button>
-                                    <p className="text-sm text-gray-500 mt-2">Send a test request to verify the webhook is working</p>
-                                </div>
-                                
-                                {tokenCheck.status === 'valid' && (
-                                    <p className="text-sm" style={{ color: '#16a34a', marginTop: '0.5rem' }}>{tokenCheck.message}</p>
-                                )}
-                                {tokenCheck.status === 'invalid' && (
-                                    <p className="text-sm" style={{ color: '#dc2626', marginTop: '0.5rem' }}>{tokenCheck.message}</p>
-                                )}
-                            </div>
-                        )}
 
                         {node.data.type === 'telegramSendMessage' && (
                             <div className="form-group mt-6">
@@ -1459,113 +1330,6 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                             </div>
                         )}
 
-                        {node.data.type === 'chatTrigger' && (
-                            <div className="form-group mt-6">
-                                <label>Webhook Configuration</label>
-                                <div className="form-group">
-                                    <label htmlFor="workflowId">Workflow ID</label>
-                                    <input 
-                                        type="text" 
-                                        name="workflowId" 
-                                        id="workflowId" 
-                                        value={formData.workflowId} 
-                                        readOnly 
-                                        className="readonly-input"
-                                        style={{ backgroundColor: '#f0f7ff', color: '#2563eb', fontWeight: '500', border: '2px solid #bfdbfe' }}
-                                        placeholder="Auto-generated workflow ID"
-                                    />
-                                    <p className="text-sm text-green-600 mt-2">✅ Automatically generated unique ID for your webhook</p>
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="webhookUrl">🔗 Ready-to-Use Webhook URL</label>
-                                    <div className="webhook-url-container">
-                                        <input 
-                                            type="text" 
-                                            value={formData.workflowId ? `${process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : 'https://workflow-lg9z.onrender.com'}/api/chat/webhook/${formData.workflowId}` : 'Generating webhook URL...'} 
-                                            readOnly 
-                                            className="webhook-url-input"
-                                            style={{ 
-                                                backgroundColor: '#f0fdf4', 
-                                                color: '#15803d', 
-                                                fontFamily: 'monospace',
-                                                fontSize: '13px',
-                                                border: '2px solid #bbf7d0',
-                                                padding: '12px'
-                                            }}
-                                        />
-                                        <button 
-                                            type="button" 
-                                            onClick={() => {
-                                                const url = `https://workflow-lg9z.onrender.com/api/chat/webhook/${formData.workflowId}`;
-                                                navigator.clipboard.writeText(url).then(() => {
-                                                    // Optional: show success feedback
-                                                    const btn = document.querySelector('.copy-btn');
-                                                    const originalText = btn.innerHTML;
-                                                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
-                                                    btn.style.backgroundColor = '#16a34a';
-                                                    setTimeout(() => {
-                                                        btn.innerHTML = originalText;
-                                                        btn.style.backgroundColor = '#2563eb';
-                                                    }, 2000);
-                                                });
-                                            }}
-                                            className="copy-btn"
-                                            disabled={!formData.workflowId}
-                                            style={{
-                                                backgroundColor: '#2563eb',
-                                                color: 'white',
-                                                border: 'none',
-                                                padding: '12px 16px',
-                                                borderRadius: '8px',
-                                                fontWeight: '600'
-                                            }}
-                                        >
-                                            <i className="fa-solid fa-copy"></i> Copy URL
-                                        </button>
-                                    </div>
-                                    <p className="text-sm text-blue-600 mt-2">📋 <strong>Ready to use:</strong> Copy this complete URL and paste it directly into your website's chat widget configuration. No modifications needed!</p>
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="filterKeywords">Filter Keywords (Optional)</label>
-                                    <ExpressionInput name="filterKeywords" value={formData.filterKeywords.join(', ')} onChange={(e) => setFormData(prev => ({ ...prev, filterKeywords: e.target.value.split(',').map(k => k.trim()).filter(k => k) }))} inputData={inputData} placeholder="support, help, question" />
-                                    <p className="text-sm text-gray-500 mt-2">Only trigger workflow for messages containing these keywords</p>
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="allowedDomains">Allowed Domains (Optional)</label>
-                                    <ExpressionInput name="allowedDomains" value={formData.allowedDomains.join(', ')} onChange={(e) => setFormData(prev => ({ ...prev, allowedDomains: e.target.value.split(',').map(d => d.trim()).filter(d => d) }))} inputData={inputData} placeholder="yoursite.com, app.yoursite.com" />
-                                    <p className="text-sm text-gray-500 mt-2">Only allow messages from these domains</p>
-                                </div>
-
-                                <div className="form-group">
-                                    <label>Options</label>
-                                    <div className="toggle-option">
-                                        <label htmlFor="requireUserInfo" className="toggle-label">Require User Info</label>
-                                        <div className="toggle-switch">
-                                            <input type="checkbox" name="requireUserInfo" id="requireUserInfo" checked={formData.requireUserInfo} onChange={handleInputChange} />
-                                            <span className="slider"></span>
-                                        </div>
-                                    </div>
-                                    <div className="toggle-option mt-2">
-                                        <label htmlFor="autoRespond" className="toggle-label">Auto Respond</label>
-                                        <div className="toggle-switch">
-                                            <input type="checkbox" name="autoRespond" id="autoRespond" checked={formData.autoRespond} onChange={handleInputChange} />
-                                            <span className="slider"></span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {formData.autoRespond && (
-                                    <div className="form-group">
-                                        <label htmlFor="autoResponseMessage">Auto Response Message</label>
-                                        <ExpressionInput name="autoResponseMessage" value={formData.autoResponseMessage} onChange={handleInputChange} inputData={inputData} isTextarea={true} />
-                                        <p className="text-sm text-gray-500 mt-2">Message to send automatically when triggered</p>
-                                    </div>
-                                )}
-                            </div>
-                        )}
                     </div>
                 )}
                 {activeTab === 'settings' && (

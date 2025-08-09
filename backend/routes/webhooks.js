@@ -10,9 +10,9 @@ let workflowExecutor = null;
 try {
   WorkflowExecutor = require('../services/workflowExecutor');
   workflowExecutor = new WorkflowExecutor();
-  console.log('✅ WorkflowExecutor loaded successfully for Chat Trigger');
+  console.log('✅ WorkflowExecutor loaded successfully');
 } catch (error) {
-  console.warn('⚠️ WorkflowExecutor not available, Chat Trigger workflows will not auto-execute:', error.message);
+  console.warn('⚠️ WorkflowExecutor not available:', error.message);
 }
 const fs = require('fs');
 const path = require('path');
@@ -35,16 +35,6 @@ router.use((req, res, next) => {
 // Store for registered webhooks (in production, use database)
 const registeredWebhooks = new Map();
 
-// Try to load Chat Trigger Node, but don't fail if it doesn't exist
-let ChatTriggerNode = null;
-let chatTriggerNode = null;
-try {
-  ChatTriggerNode = require('../nodes/triggers/chatTriggerNode');
-  chatTriggerNode = new ChatTriggerNode();
-  console.log('✅ ChatTriggerNode loaded successfully');
-} catch (error) {
-  console.warn('⚠️ ChatTriggerNode not available, Chat Trigger routes will be disabled:', error.message);
-}
 
 // WorkflowExecutor is conditionally initialized above
 
@@ -342,270 +332,6 @@ router.delete('/workflows/:id', (req, res) => {
   }
 });
 
-// Chat Trigger webhook endpoint - Dynamic path handling (only if ChatTriggerNode available)
-if (chatTriggerNode) {
-router.all('/chat/:nodeId/:path?', asyncHandler(async (req, res) => {
-  const { nodeId, path = 'chat' } = req.params;
-  
-  try {
-    logger.info(`Chat Trigger webhook received`, {
-      nodeId,
-      path,
-      method: req.method,
-      hasBody: !!req.body,
-      headers: Object.keys(req.headers)
-    });
-
-    // Get node configuration from registered webhooks
-    const webhookConfig = registeredWebhooks.get(`chat-${nodeId}`) || {};
-    
-    // Process the webhook data using ChatTriggerNode
-    const requestData = {
-      body: req.body,
-      headers: req.headers,
-      query: req.query,
-      method: req.method
-    };
-    
-    const processedData = await chatTriggerNode.processWebhookData(requestData, {
-      ...webhookConfig,
-      nodeId,
-      webhookPath: path
-    });
-    
-    // Store the processed message for this node
-    nodeMessages.set(nodeId, processedData);
-    
-    // Log successful processing
-    logger.info(`Chat Trigger processed successfully`, {
-      nodeId,
-      path,
-      hasText: !!processedData.text,
-      userId: processedData.userId
-    });
-    
-    // Find and execute associated workflow
-    let workflowExecutionResult = null;
-    const webhookInfo = webhookConfig.config || {};
-    const workflowId = webhookConfig.workflowId;
-    
-    if (workflowId && workflowExecutor) {
-      try {
-        // Format trigger data for workflow execution 
-        const triggerData = [processedData]; // Wrap in array as expected by executor
-        
-        logger.info(`Attempting to execute workflow ${workflowId} for Chat Trigger`, {
-          nodeId,
-          workflowId,
-          triggerDataSize: triggerData.length
-        });
-        
-        // Execute the workflow
-        workflowExecutionResult = await workflowExecutor.executeWorkflow(workflowId, triggerData);
-        
-        logger.info(`Workflow ${workflowId} executed successfully`, {
-          nodeId,
-          executionId: workflowExecutionResult.executionId,
-          steps: workflowExecutionResult.steps.length
-        });
-        
-      } catch (workflowError) {
-        logger.logError(workflowError, { 
-          context: 'chat-trigger-workflow-execution', 
-          nodeId,
-          workflowId 
-        });
-        // Don't fail the webhook response if workflow fails
-        // The message was still received successfully
-      }
-    } else if (workflowId && !workflowExecutor) {
-      logger.info(`Workflow ${workflowId} associated with Chat Trigger node ${nodeId}, but WorkflowExecutor not available`);
-    } else {
-      logger.info(`No workflow associated with Chat Trigger node ${nodeId}`);
-    }
-    
-    // Prepare response data
-    let responseData = {
-      success: true,
-      message: `Message received for node ${nodeId}`,
-      nodeId,
-      path,
-      timestamp: processedData.timestamp,
-      workflowExecuted: !!workflowExecutionResult,
-      executionId: workflowExecutionResult?.executionId
-    };
-    
-    // If workflow was executed and produced output, include it in response
-    if (workflowExecutionResult && workflowExecutionResult.finalOutput) {
-      responseData.workflowResponse = workflowExecutionResult.finalOutput;
-      
-      // Store the response in a special key so the chatbot can retrieve it
-      const chatResponseKey = `${nodeId}_response`;
-      nodeMessages.set(chatResponseKey, {
-        ...processedData,
-        workflowResponse: workflowExecutionResult.finalOutput,
-        responseTimestamp: new Date().toISOString()
-      });
-    }
-    
-    res.status(200).json(responseData);
-    
-  } catch (error) {
-    logger.logError(error, { 
-      context: 'chat-trigger-webhook', 
-      nodeId,
-      path 
-    });
-    
-    res.status(error.message.includes('not allowed') ? 405 : 
-              error.message.includes('secret token') ? 401 : 500).json({
-      success: false,
-      error: error.message,
-      nodeId,
-      path
-    });
-  }
-}));
-
-// Register Chat Trigger webhook
-router.post('/register-chat-trigger', asyncHandler(async (req, res) => {
-  if (!chatTriggerNode) {
-    return res.status(503).json({
-      success: false,
-      error: 'Chat Trigger functionality is not available on this server'
-    });
-  }
-  const { nodeId, workflowId, config = {} } = req.body;
-  
-  if (!nodeId || !workflowId) {
-    return res.status(400).json({
-      success: false,
-      error: 'Missing required fields: nodeId, workflowId'
-    });
-  }
-
-  try {
-    // Validate configuration
-    const validation = chatTriggerNode.validateConfig(config);
-    if (!validation.valid) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid configuration',
-        details: validation.errors
-      });
-    }
-
-    // Generate webhook URL
-    const webhookUrl = chatTriggerNode.generateWebhookUrl(workflowId, nodeId, config);
-    
-    // Store webhook registration
-    registeredWebhooks.set(`chat-${nodeId}`, {
-      nodeId,
-      workflowId,
-      config,
-      webhookUrl,
-      registeredAt: new Date().toISOString()
-    });
-
-    logger.info(`Chat Trigger webhook registered`, {
-      nodeId,
-      workflowId,
-      webhookUrl,
-      config: { ...config, secretToken: config.secretToken ? '[REDACTED]' : undefined }
-    });
-
-    res.json({
-      success: true,
-      message: 'Chat Trigger webhook registered successfully',
-      nodeId,
-      workflowId,
-      webhookUrl,
-      config: chatTriggerNode.getNodeInfo(config)
-    });
-    
-  } catch (error) {
-    logger.logError(error, { 
-      context: 'register-chat-trigger', 
-      nodeId,
-      workflowId 
-    });
-    
-    res.status(500).json({
-      success: false,
-      error: 'Failed to register Chat Trigger webhook: ' + error.message
-    });
-  }
-}));
-
-// Get Chat Trigger webhook status
-router.get('/chat-trigger-status/:nodeId', (req, res) => {
-  if (!chatTriggerNode) {
-    return res.status(503).json({
-      success: false,
-      error: 'Chat Trigger functionality is not available on this server'
-    });
-  }
-  const { nodeId } = req.params;
-  const webhook = registeredWebhooks.get(`chat-${nodeId}`);
-  
-  res.json({
-    success: true,
-    registered: !!webhook,
-    webhook: webhook || null,
-    nodeId,
-    latestMessage: nodeMessages.get(nodeId) || null
-  });
-});
-
-// Get latest message for Chat Trigger node (similar to Telegram)
-router.get('/chat-trigger-message/:nodeId', (req, res) => {
-  if (!chatTriggerNode) {
-    return res.status(503).json({
-      success: false,
-      error: 'Chat Trigger functionality is not available on this server'
-    });
-  }
-  const { nodeId } = req.params;
-  const latestMessage = nodeMessages.get(nodeId);
-  
-  res.json({
-    success: true,
-    message: latestMessage || null,
-    nodeId,
-    hasMessage: !!latestMessage
-  });
-});
-
-} else {
-  // Chat Trigger not available - add placeholder routes that return 503
-  router.all('/chat/:nodeId/:path?', (req, res) => {
-    res.status(503).json({
-      success: false,
-      error: 'Chat Trigger functionality is not available on this server'
-    });
-  });
-  
-  router.post('/register-chat-trigger', (req, res) => {
-    res.status(503).json({
-      success: false,
-      error: 'Chat Trigger functionality is not available on this server'
-    });
-  });
-  
-  router.get('/chat-trigger-status/:nodeId', (req, res) => {
-    res.status(503).json({
-      success: false,
-      error: 'Chat Trigger functionality is not available on this server'
-    });
-  });
-  
-  router.get('/chat-trigger-message/:nodeId', (req, res) => {
-    res.status(503).json({
-      success: false,
-      error: 'Chat Trigger functionality is not available on this server'
-    });
-  });
-}
 
 // Health check endpoint
 router.get('/health', (req, res) => {
@@ -614,8 +340,6 @@ router.get('/health', (req, res) => {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     workflowCount: workflowConfigs.size,
-    chatTriggerCount: Array.from(registeredWebhooks.keys()).filter(k => k.startsWith('chat-')).length,
-    chatTriggerAvailable: !!chatTriggerNode,
     workflowExecutorAvailable: !!workflowExecutor
   });
 });

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import DashboardChatbot from '../components/DashboardChatbot';
 import '../styles.css';
 import '../styles/WorkflowsOverview.css';
 
@@ -619,8 +618,6 @@ function Overview() {
         </div>
       )}
 
-      {/* Dashboard Chatbot */}
-      <DashboardChatbot />
     </div>
   );
 }

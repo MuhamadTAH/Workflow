@@ -53,7 +53,8 @@
       "Bash(timeout 5 npm --prefix frontend run dev)",
       "Bash(start test-dashboard.html)",
       "WebFetch(domain:workflow-lg9z.onrender.com)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }

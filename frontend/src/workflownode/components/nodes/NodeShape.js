@@ -59,7 +59,6 @@ const NodeShape = ({ data = {}, nodeHeight, totalInputHandles, totalOutputHandle
     // Complete mapping for all node icons from the sidebar
     const iconMapping = {
       // Trigger nodes
-      'fa-comments': 'fa-solid fa-comments',              // Chat Trigger
       'fa-telegram': 'fa-solid fa-paper-plane',           // Telegram trigger/send
       
       // AI nodes  

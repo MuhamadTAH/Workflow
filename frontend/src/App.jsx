@@ -23,7 +23,6 @@ import {
 } from './pages/shop';
 import ProductDetail from './pages/shop/product-detail/ProductDetail';
 import { authAPI, tokenManager } from './api';
-import DashboardChatbot from './components/DashboardChatbot';
 import './styles.css';
 
 function Home() {
@@ -312,8 +311,6 @@ function Home() {
         </footer>
       </div>
 
-      {/* Dashboard Chatbot */}
-      <DashboardChatbot />
     </div>
   );
 }

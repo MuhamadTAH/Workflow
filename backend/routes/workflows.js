@@ -297,7 +297,7 @@ router.post('/register', (req, res) => {
       });
     }
 
-    // Check if workflow has a chat trigger
+    // Check if workflow has a trigger
     const hasTrigger = workflow.nodes.some(node => node.data.type === 'trigger');
     if (!hasTrigger) {
       return res.status(400).json({

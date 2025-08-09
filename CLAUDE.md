@@ -84,7 +84,6 @@ app.use(cors({
 - `/api/nodes/*` - Node execution & validation
 - `/api/webhooks/*` - Telegram webhook handling
 - `/api/connections/*` - Social media OAuth
-- `/api/chat/*` - Chatbot interactions
 
 ---
 
@@ -323,7 +322,7 @@ git add package.json && git commit -m "Add dependency" && git push
 **Problem**: POST /api/nodes/validate-telegram-token → 404 Not Found  
 **Cause**: Missing uuid dependency prevented routes from loading  
 **Solution**: Added uuid to package.json, committed to GitHub  
-**Files**: `backend/package.json`, `backend/routes/chat.js`
+**Files**: `backend/package.json`
 
 ### 2. Workflow Management Enhancements (Aug 8, 2025)  
 **Added**: Stay-on-page after save, unsaved changes detection, infinite loop fix  

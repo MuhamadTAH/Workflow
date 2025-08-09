@@ -162,16 +162,6 @@ const App = () => {
         y: event.clientY,
       });
 
-      // Auto-generate workflow ID for chat trigger nodes
-      if (nodeData.type === 'chatTrigger') {
-        const workflowId = currentWorkflowId || generateWorkflowId();
-        nodeData.workflowId = workflowId;
-        
-        // If this is a new workflow, set the current workflow ID
-        if (!currentWorkflowId) {
-          setCurrentWorkflowId(workflowId);
-        }
-      }
 
       const newNode = {
         id: getId(),
@@ -265,51 +255,7 @@ const App = () => {
     setHasUnsavedChanges(false);
     
     
-    // Register workflow with backend for execution (if it has a chat trigger)
-    const hasChatTrigger = nodes.some(node => node.data.type === 'chatTrigger');
-    if (hasChatTrigger) {
-      try {
-        // Send workflow to backend for registration
-        const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : 'https://workflow-lg9z.onrender.com';
-        
-        fetch(`${baseUrl}/api/workflows/register`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            workflowId: workflowId,
-            workflow: {
-              nodes: nodes.map(node => ({
-                ...node,
-                data: {
-                  ...node.data,
-                  type: node.data.type === 'chatTrigger' ? 'trigger' : node.data.type // Map chatTrigger to trigger
-                }
-              })),
-              edges: edges
-            }
-          })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            alert(`✅ Workflow "${workflowName}" saved and activated for chat triggers!`);
-          } else {
-            alert(`✅ Workflow "${workflowName}" saved successfully!`);
-          }
-        })
-        .catch(error => {
-          console.error('❌ Workflow registration failed:', error);
-          alert(`✅ Workflow "${workflowName}" saved successfully!`);
-        });
-      } catch (error) {
-        console.error('❌ Workflow registration error:', error);
-        alert(`✅ Workflow "${workflowName}" saved successfully!`);
-      }
-    } else {
-      alert(`✅ Workflow "${workflowName}" saved successfully!`);
-    }
+    alert(`✅ Workflow "${workflowName}" saved successfully!`);
   }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId, navigate, createStateSnapshot]);
 
   const handleActivate = useCallback(async () => {

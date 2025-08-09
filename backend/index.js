@@ -97,7 +97,7 @@ app.use((req, res, next) => {
 });
 app.use(express.json()); // Parse JSON bodies
 
-// Create shared nodeMessages map for Chat Trigger communication
+// Create shared nodeMessages map for inter-component communication
 const nodeMessages = new Map();
 app.set('nodeMessages', nodeMessages);
 

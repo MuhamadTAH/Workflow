@@ -18,16 +18,6 @@ const waitNode = require('../nodes/logic/waitNode');
 const mergeNode = require('../nodes/logic/mergeNode');
 const filterNode = require('../nodes/logic/filterNode');
 
-// Try to load Chat Trigger Node, but don't fail if it doesn't exist
-let ChatTriggerNode = null;
-let chatTriggerNode = null;
-try {
-  ChatTriggerNode = require('../nodes/triggers/chatTriggerNode');
-  chatTriggerNode = new ChatTriggerNode();
-  console.log('✅ ChatTriggerNode loaded successfully in node controller');
-} catch (error) {
-  console.warn('⚠️ ChatTriggerNode not available in node controller:', error.message);
-}
 
 const { createBackendExecutionContext } = require('../utils/executionContext');
 
@@ -144,48 +134,6 @@ const runNode = async (req, res) => {
                     };
                     break;
                 
-                case 'chatTrigger':
-                    if (!chatTriggerNode) {
-                        return res.status(503).json({
-                            success: false,
-                            message: 'Chat Trigger functionality is not available on this server',
-                            supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'telegramSendMessage', 'if', 'switch', 'wait', 'merge', 'filter']
-                        });
-                    }
-                    // Chat Trigger nodes are webhook listeners - they provide webhook info
-                    const webhookUrl = chatTriggerNode.generateWebhookUrl('current-workflow', node.id, processedConfig);
-                    
-                    // If this is live preview mode, check if we have actual message data from connected nodes
-                    let chatTriggerData = currentItem;
-                    
-                    // If no current item data, check for real webhook message data from nodeMessages
-                    if (!chatTriggerData || Object.keys(chatTriggerData).length === 0) {
-                        // Try to get actual webhook message from the webhooks route storage
-                        const nodeMessages = req.app.get('nodeMessages') || new Map();
-                        const realMessage = nodeMessages.get(node.id);
-                        
-                        if (realMessage) {
-                            chatTriggerData = realMessage;
-                        } else {
-                            // If no real message, provide meaningful fallback that shows "no message received yet"
-                            chatTriggerData = {
-                                message: "No nodes are connected to the input, or connected nodes have no output data.",
-                                info: "This Chat Trigger node is ready to receive webhook messages",
-                                source: 'manual-execution',
-                                timestamp: new Date().toISOString()
-                            };
-                        }
-                    }
-                    
-                    itemResult = {
-                        success: true,
-                        message: 'Chat Trigger node activated',
-                        data: chatTriggerData,
-                        webhookUrl: webhookUrl,
-                        nodeInfo: chatTriggerNode.getNodeInfo(processedConfig),
-                        timestamp: new Date().toISOString()
-                    };
-                    break;
                 
                 case 'telegramSendMessage':
                     itemResult = await telegramSendMessageNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
@@ -219,7 +167,7 @@ const runNode = async (req, res) => {
                 default:
                     return res.status(400).json({ 
                         message: `Unsupported node type: ${node.type}`,
-                        supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'chatTrigger', 'telegramSendMessage', 'if', 'switch', 'wait', 'merge', 'filter']
+                        supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'telegramSendMessage', 'if', 'switch', 'wait', 'merge', 'filter']
                     });
             }
             
