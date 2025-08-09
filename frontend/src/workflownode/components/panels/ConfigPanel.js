@@ -10,48 +10,31 @@ import React, { useState, useEffect } from 'react';
 
 // Helper function to resolve expressions like {{ a.b }}
 const resolveExpression = (expression, data) => {
-    console.log('🔍 resolveExpression called:', {
-        expression: expression,
-        hasData: !!data,
-        dataKeys: data && typeof data === 'object' ? Object.keys(data) : 'not-object'
-    });
-    
     if (!expression || typeof expression !== 'string' || !data) {
-        console.log('❌ Early return from resolveExpression:', { expression, hasData: !!data });
         return expression;
     }
     
     // This regex finds all instances of {{ path.to.key }}
     return expression.replace(/\{\{\s*([^}]+)\s*\}\}/g, (match, path) => {
         const pathStr = path.trim();
-        console.log(`🔍 Resolving path: "${pathStr}"`);
         
         // Try direct path first (e.g., "1. AI Agent.response")
         let current = data;
         const keys = pathStr.split('.');
         let found = true;
         
-        console.log('🔑 Path keys:', keys);
-        console.log('📊 Available data keys:', Object.keys(data));
-        
         for (let i = 0; i < keys.length; i++) {
-            console.log(`🔍 Looking for key "${keys[i]}" in:`, current);
             if (current === null || typeof current !== 'object' || !(keys[i] in current)) {
-                console.log(`❌ Key "${keys[i]}" not found`);
                 found = false;
                 break;
             }
             current = current[keys[i]];
-            console.log(`✅ Found "${keys[i]}":`, current);
         }
         
         if (found) {
             const result = typeof current === 'object' ? JSON.stringify(current) : String(current);
-            console.log(`✅ Direct path resolved: "${pathStr}" = "${result}"`);
             return result;
         }
-        
-        console.log(`🔍 Trying nested search for: "${pathStr}"`);
         // If direct path fails, try to find in nested data (backwards compatibility)
         // Look for the path in any of the node data
         for (const [nodeKey, nodeData] of Object.entries(data)) {
@@ -69,13 +52,11 @@ const resolveExpression = (expression, data) => {
                 
                 if (nestedFound) {
                     const result = typeof nestedCurrent === 'object' ? JSON.stringify(nestedCurrent) : String(nestedCurrent);
-                    console.log(`✅ Nested path resolved: "${pathStr}" in "${nodeKey}" = "${result}"`);
                     return result;
                 }
             }
         }
         
-        console.log(`❌ Path not found anywhere: "${pathStr}"`);
         return match; // Return original {{...}} if path is invalid anywhere
     });
 };
@@ -153,19 +134,10 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
     const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     useEffect(() => {
-        console.log('🔍 ExpressionInput useEffect triggered:', {
-            hasInputData: !!inputData,
-            value: value,
-            valueIncludesTemplates: value && typeof value === 'string' && value.includes('{{'),
-            inputDataType: Array.isArray(inputData) ? 'array' : typeof inputData,
-            inputDataPreview: inputData ? JSON.stringify(inputData).substring(0, 200) + '...' : null
-        });
-        
         if (inputData && value && typeof value === 'string' && value.includes('{{')) {
             // Handle cascading data structure from collectAllPreviousNodeData
             let dataToUse;
             if (Array.isArray(inputData) && inputData.length > 0 && inputData[0].nodeId) {
-                console.log('📊 Using cascading data structure');
                 // This is cascading data structure - convert to flat object for template resolution
                 dataToUse = {};
                 inputData.forEach(nodeInfo => {
@@ -184,23 +156,16 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
                     }
                 });
             } else if (Array.isArray(inputData)) {
-                console.log('📊 Using legacy array structure');
                 // Legacy array structure - take first element
                 dataToUse = inputData[0];
             } else {
-                console.log('📊 Using direct object structure');
                 // Direct object structure
                 dataToUse = inputData;
             }
             
-            console.log('🔧 Processing template:', value);
-            console.log('📊 Data to use:', dataToUse);
-            
             const resolved = resolveExpression(value, dataToUse);
-            console.log('✅ Resolved value:', resolved);
             setResolvedValue(resolved);
         } else {
-            console.log('❌ Conditions not met for template resolution');
             setResolvedValue('');
         }
     }, [value, inputData]);
@@ -246,7 +211,7 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
 };
 
 
-const ConfigPanel = ({ node, nodes, edges, onClose }) => {
+const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
   const [formData, setFormData] = useState({
       label: node.data.label || '',
       description: node.data.description || '',
@@ -403,6 +368,14 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
   const [inputData, setInputData] = useState(node.data.inputData || null);
   const [outputData, setOutputData] = useState(node.data.outputData || null);
 
+  // Custom function to update both local state and node data
+  const updateOutputData = (newOutputData) => {
+    setOutputData(newOutputData);
+    if (onNodeUpdate) {
+      onNodeUpdate(node.id, { outputData: newOutputData });
+    }
+  };
+
   const handleInputChange = (e, index) => {
     const { name, value, type, checked } = e.target;
     const val = type === 'checkbox' ? checked : value;
@@ -510,11 +483,11 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
   };
 
   const handleGetData = () => {
+    
     // Special handling for telegram trigger nodes that should fetch from their own output
     if (node.data.type === 'telegramTrigger') {
         if (outputData && outputData.length > 0) {
             setInputData(outputData);
-            console.log('✅ Using telegram output data as input:', outputData);
             return;
         } else {
             setInputData({ message: "No telegram data available. Click 'Fetch Messages' button first to get real telegram data." });
@@ -542,7 +515,6 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
                 const outputKey = edge.sourceHandle || `output${index + 1}`;
                 mergedInputData[outputKey] = sourceNode.data.outputData;
                 hasValidData = true;
-                console.log(`Data fetched from '${sourceNode.data.label}' (${outputKey}):`, sourceNode.data.outputData);
             }
         });
 
@@ -552,35 +524,26 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
         }
 
         setInputData(mergedInputData);
-        console.log('All merged input data:', mergedInputData);
     } else {
         // Enhanced logic: collect data from ALL previous nodes in the workflow chain
         const allPreviousData = collectAllPreviousNodeData(node.id);
+        
         
         if (allPreviousData.length === 0) {
             setInputData({ message: "No nodes are connected to the input, or connected nodes have no output data." });
             return;
         }
         
-        // Create structured data showing all previous nodes (reverse order: closest node first)
-        const structuredData = {};
-        allPreviousData.reverse().forEach((nodeData, index) => {
-          const key = `${index + 1}. ${nodeData.nodeLabel}`;
-          structuredData[key] = nodeData.data;
-        });
-        
-        setInputData(structuredData);
-        console.log('✅ Collected data from all previous nodes:', {
-          totalNodes: allPreviousData.length,
-          nodeChain: allPreviousData.map(nd => nd.nodeLabel).join(' → '),
-          data: structuredData
-        });
+        // Pass the cascading data structure directly for live preview
+        // This preserves the nodeId, nodeType, nodeLabel structure that ExpressionInput expects
+        allPreviousData.reverse(); // Reverse to show closest node first
+        setInputData(allPreviousData);
     }
   };
 
   const handlePostData = async () => {
     setIsLoading(true);
-    setOutputData(null);
+    updateOutputData(null);
 
     if (node.data.type === 'setData') {
         const output = {};
@@ -589,7 +552,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
                 output[field.key] = field.value;
             }
         });
-        setOutputData([output]);
+        updateOutputData([output]);
         setIsLoading(false);
         return;
     }
@@ -614,11 +577,10 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
         });
         const result = await response.json();
         if (!response.ok) { throw new Error(result.message || 'Execution failed.'); }
-        setOutputData(result);
-        console.log("Node execution successful. Output:", result);
+        updateOutputData(result);
     } catch (error) {
         console.error("Error executing node:", error);
-        setOutputData({ error: error.message });
+        updateOutputData({ error: error.message });
     }
     setIsLoading(false);
   };
@@ -635,7 +597,21 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
                     node.data.type === 'merge' && typeof inputData === 'object' && !Array.isArray(inputData) ? (
                         <JsonTreeView data={inputData} />
                     ) : Array.isArray(inputData) ? (
-                        <JsonTreeView data={inputData[0]} />
+                        // Check if it's cascading data structure (with nodeId properties)
+                        inputData.length > 0 && inputData[0].nodeId ? (
+                            // For cascading data, show flattened structure like the old format
+                            (() => {
+                                const flattened = {};
+                                inputData.forEach((nodeData, index) => {
+                                    const key = `${index + 1}. ${nodeData.nodeLabel}`;
+                                    flattened[key] = nodeData.data;
+                                });
+                                return <JsonTreeView data={flattened} />;
+                            })()
+                        ) : (
+                            // For regular arrays, show first element
+                            <JsonTreeView data={inputData[0]} />
+                        )
                     ) : (
                         <JsonTreeView data={inputData} />
                     )
@@ -883,14 +859,11 @@ const ConfigPanel = ({ node, nodes, edges, onClose }) => {
                                                 if (result.success && result.updates && result.updates.length > 0) {
                                                     // Use the most recent message
                                                     const latestUpdate = result.updates[result.updates.length - 1];
-                                                    setOutputData([latestUpdate]);
+                                                    updateOutputData([latestUpdate]);
                                                     setTokenCheck({ status: 'valid', message: `✅ Fetched ${result.updates.length} real message(s)` });
                                                     
-                                                    console.log('✅ Real Telegram messages fetched:', result.updates);
-                                                    console.log('💡 Latest message loaded. Connect this trigger to another node and click GET.');
                                                 } else if (result.success && result.updates && result.updates.length === 0) {
                                                     setTokenCheck({ status: 'invalid', message: '⚠️ No messages found. Send a message to your bot first.' });
-                                                    console.log('⚠️ No messages found in bot. Send a test message to your bot.');
                                                 } else {
                                                     setTokenCheck({ status: 'invalid', message: result.error || 'Failed to fetch messages' });
                                                     console.error('❌ Failed to fetch messages:', result.error);
