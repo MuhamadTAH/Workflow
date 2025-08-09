@@ -31,6 +31,8 @@ const runNode = async (req, res) => {
 
         console.log('=== n8n-style Node Execution ===');
         console.log('Node type:', node.type);
+        console.log('Node ID:', node.id);
+        console.log('Node structure:', JSON.stringify(node, null, 2));
         console.log('Connected nodes:', connectedNodes ? connectedNodes.length : 0);
         console.log('Input data preview:', JSON.stringify(inputData, null, 2).substring(0, 200) + '...');
         
@@ -65,12 +67,19 @@ const runNode = async (req, res) => {
             outputData: inputData
         };
         
+        console.log('🔧 Creating execution context with:');
+        console.log('- Current node ID:', node.id);
+        console.log('- AllNodes keys:', Object.keys(allNodes));
+        console.log('- AllNodes structure:', JSON.stringify(allNodes, null, 2));
+        
         const executionContext = createBackendExecutionContext(
             node, 
             allNodes, 
             workflowData,
             req.body.executionId
         );
+        
+        console.log('✅ Execution context created successfully');
         
         // Process node config with isolated context (template resolution)
         const processedConfig = executionContext.processTemplates(
