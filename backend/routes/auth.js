@@ -206,16 +206,16 @@ router.post('/run-ai-agent', async (req, res) => {
       });
     }
 
+    // Process templates in user message before sending to Claude API
+    const processedUserMessage = processTemplates(node.config.userMessage, inputData);
+    console.log('🔧 Template processing:', {
+      original: node.config.userMessage,
+      processed: processedUserMessage
+    });
+
     // Use real Claude API integration
     try {
       const { callClaudeApi } = require('../services/aiService');
-      
-      // Process templates in user message before sending to Claude API
-      const processedUserMessage = processTemplates(node.config.userMessage, inputData);
-      console.log('🔧 Template processing:', {
-        original: node.config.userMessage,
-        processed: processedUserMessage
-      });
       
       const aiRequest = {
         model: node.config.model || 'claude-3-5-sonnet-20241022',
@@ -246,7 +246,6 @@ router.post('/run-ai-agent', async (req, res) => {
       console.error('❌ Real Claude API failed, falling back to mock:', error.message);
       
       // Fallback to mock response if real API fails (also use processed message)
-      const processedUserMessage = processTemplates(node.config.userMessage, inputData);
       const mockResponse = {
         response: `AI Response: I received your message "${processedUserMessage}". (Note: This is a fallback response because the real Claude API encountered an error: ${error.message})`,
         model: node.config.model || 'claude-3-5-sonnet-20241022',
@@ -254,14 +253,14 @@ router.post('/run-ai-agent', async (req, res) => {
         inputProcessed: processedUserMessage,
         note: `Fallback response due to API error: ${error.message}`
       };
+      
+      return res.json({
+        success: true,
+        result: mockResponse,
+        nodeType: 'aiAgent',
+        executedAt: new Date().toISOString()
+      });
     }
-    
-    return res.json({
-      success: true,
-      result: mockResponse,
-      nodeType: 'aiAgent',
-      executedAt: new Date().toISOString()
-    });
   } catch (error) {
     console.error('❌ AI Agent execution failed:', error.message);
     return res.status(500).json({
