@@ -29,7 +29,21 @@ class BackendExecutionContext {
   buildNodeContext(nodeId, itemData = null, itemIndex = 0) {
     const node = this.allNodes.get ? this.allNodes.get(nodeId) : this.allNodes[nodeId];
     if (!node) {
-      throw new Error(`Node ${nodeId} not found in execution context`);
+      console.warn(`⚠️ Node ${nodeId} not found in execution context, creating fallback node`);
+      // Create a fallback node context with the provided data
+      const fallbackNode = {
+        type: 'unknown',
+        data: {},
+        outputData: itemData || {},
+        config: {}
+      };
+      // Add to allNodes to prevent future lookups from failing
+      if (this.allNodes.set) {
+        this.allNodes.set(nodeId, fallbackNode);
+      } else {
+        this.allNodes[nodeId] = fallbackNode;
+      }
+      return this.buildNodeContext(nodeId, itemData, itemIndex);
     }
 
     this.itemIndex = itemIndex;
@@ -308,6 +322,16 @@ class BackendExecutionContext {
           };
         }
       });
+    }
+    
+    // Add current node to nodesMap if not already present
+    if (this.currentNode && !nodesMap[nodeId]) {
+      nodesMap[nodeId] = {
+        type: this.currentNode.type,
+        data: this.currentNode.data || {},
+        outputData: this.currentNode.outputData || {},
+        config: this.currentNode.config || {}
+      };
     }
 
     this.allNodes = nodesMap;
