@@ -23,6 +23,7 @@ import Toolbar from './Toolbar';
 import { CustomLogicNode } from '../nodes';
 import { ConfigPanel } from '../panels';
 import { getId } from '../../utils';
+import WorkflowExecutor from '../../utils/workflowExecutor';
 import '../../styles/index.css';
 
 // Register the custom node type so ReactFlow knows how to render it.
@@ -41,6 +42,9 @@ const App = () => {
   const [currentWorkflowId, setCurrentWorkflowId] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSavedState, setLastSavedState] = useState(null);
+  const [isActivated, setIsActivated] = useState(false);
+  const [executionProgress, setExecutionProgress] = useState('');
+  const [workflowExecutor, setWorkflowExecutor] = useState(null);
 
   // Generate a unique, readable workflow ID (moved to top to fix hoisting issue)
   const generateWorkflowId = useCallback(() => {
@@ -298,14 +302,101 @@ const App = () => {
     }
   }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId, navigate, createStateSnapshot]);
 
-  const handleExecute = useCallback(() => {
+  const handleActivate = useCallback(async () => {
+    if (nodes.length === 0) {
+      alert('Please add some nodes to the workflow before activating.');
+      return;
+    }
+
     setIsExecuting(true);
-    // Execute workflow logic here
-    setTimeout(() => {
+    setIsActivated(true);
+    setExecutionProgress('Initializing workflow execution...');
+
+    try {
+      // Create workflow executor
+      const executor = new WorkflowExecutor(
+        nodes, 
+        edges, 
+        (progress) => {
+          setExecutionProgress(progress);
+          console.log('Execution progress:', progress);
+        }
+      );
+
+      setWorkflowExecutor(executor);
+
+      // Execute the entire workflow
+      const result = await executor.executeWorkflow();
+      
+      // Update nodes with execution results
+      setNodes(prevNodes => 
+        prevNodes.map(node => {
+          const nodeResult = result.results.find(r => r.nodeId === node.id);
+          if (nodeResult && nodeResult.success) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                outputData: nodeResult.result.result || nodeResult.result.data || nodeResult.result,
+                lastExecuted: new Date().toISOString(),
+                executionCount: (node.data.executionCount || 0) + 1,
+                executionStatus: 'completed'
+              }
+            };
+          } else if (nodeResult && !nodeResult.success) {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                executionStatus: 'failed',
+                executionError: nodeResult.error
+              }
+            };
+          }
+          return node;
+        })
+      );
+
+      setExecutionProgress(`✅ Workflow completed! ${result.successfulNodes}/${result.totalNodes} nodes executed successfully`);
+      
+      // Show completion message
+      setTimeout(() => {
+        alert(`🚀 Workflow "${workflowName}" executed successfully!\n\n` +
+              `✅ Successful nodes: ${result.successfulNodes}\n` +
+              `❌ Failed nodes: ${result.failedNodes}\n` +
+              `📊 Total execution time: ${((Date.now() - Date.now()) / 1000).toFixed(1)}s`);
+        
+        setExecutionProgress('');
+      }, 2000);
+
+    } catch (error) {
+      console.error('Workflow execution failed:', error);
+      setExecutionProgress(`❌ Execution failed: ${error.message}`);
+      
+      setTimeout(() => {
+        alert(`❌ Workflow execution failed: ${error.message}`);
+        setExecutionProgress('');
+      }, 2000);
+    } finally {
       setIsExecuting(false);
-      console.log('Workflow execution completed');
-    }, 2000);
-  }, []);
+      setTimeout(() => {
+        setIsActivated(false);
+      }, 3000);
+    }
+  }, [nodes, edges, workflowName, setNodes]);
+
+  const handleStopExecution = useCallback(() => {
+    if (workflowExecutor && workflowExecutor.isRunning()) {
+      workflowExecutor.stop();
+      setIsExecuting(false);
+      setIsActivated(false);
+      setExecutionProgress('Execution stopped by user');
+      
+      setTimeout(() => {
+        setExecutionProgress('');
+      }, 2000);
+    }
+  }, [workflowExecutor]);
 
   const handleClear = useCallback(() => {
     setNodes([]);
@@ -326,7 +417,8 @@ const App = () => {
     <div className="professional-workflow-builder">
       <Toolbar
         onSave={handleSave}
-        onExecute={handleExecute}
+        onActivate={handleActivate}
+        onStopExecution={handleStopExecution}
         onClear={handleClear}
         onUndo={handleUndo}
         onRedo={handleRedo}
@@ -335,6 +427,8 @@ const App = () => {
         workflowName={workflowName}
         onWorkflowNameChange={setWorkflowName}
         isExecuting={isExecuting}
+        isActivated={isActivated}
+        executionProgress={executionProgress}
         lastSaved={lastSaved}
         hasUnsavedChanges={hasUnsavedChanges}
       />

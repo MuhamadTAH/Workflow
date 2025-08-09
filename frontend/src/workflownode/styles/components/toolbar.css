@@ -86,6 +86,15 @@ Professional toolbar styles for the workflow builder
     animation: pulse 2s infinite;
 }
 
+.execution-progress {
+    font-size: 11px;
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
 @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.7; }
@@ -146,6 +155,30 @@ Professional toolbar styles for the workflow builder
 .toolbar-btn.secondary:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.3);
+}
+
+.toolbar-btn.success {
+    background: rgba(34, 197, 94, 0.9);
+    color: white;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+}
+
+.toolbar-btn.success:hover:not(:disabled) {
+    background: rgba(34, 197, 94, 1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+.toolbar-btn.danger {
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.toolbar-btn.danger:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
 .toolbar-btn.icon-only {

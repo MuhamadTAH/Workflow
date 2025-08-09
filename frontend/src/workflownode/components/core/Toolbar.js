@@ -8,7 +8,8 @@ import React, { useState } from 'react';
 
 const Toolbar = ({ 
     onSave, 
-    onExecute, 
+    onActivate, 
+    onStopExecution,
     onClear, 
     onUndo, 
     onRedo, 
@@ -17,6 +18,8 @@ const Toolbar = ({
     workflowName,
     onWorkflowNameChange,
     isExecuting,
+    isActivated,
+    executionProgress,
     lastSaved,
     hasUnsavedChanges
 }) => {
@@ -38,7 +41,12 @@ const Toolbar = ({
                         placeholder="Untitled Workflow"
                         className="workflow-name-input"
                     />
-                    {hasUnsavedChanges ? (
+                    {executionProgress ? (
+                        <span className="execution-progress">
+                            <i className="fa-solid fa-cog fa-spin text-blue-500 text-xs"></i>
+                            {executionProgress}
+                        </span>
+                    ) : hasUnsavedChanges ? (
                         <span className="unsaved-changes">
                             <i className="fa-solid fa-circle text-orange-500 text-xs"></i>
                             Unsaved changes
@@ -55,23 +63,35 @@ const Toolbar = ({
             {/* Center Section - Main Actions */}
             <div className="toolbar-center">
                 <div className="action-group">
-                    <button 
-                        className="toolbar-btn primary"
-                        onClick={onExecute}
-                        disabled={isExecuting}
-                    >
-                        {isExecuting ? (
-                            <>
-                                <i className="fa-solid fa-spinner fa-spin"></i>
-                                Executing...
-                            </>
-                        ) : (
-                            <>
-                                <i className="fa-solid fa-play"></i>
-                                Execute
-                            </>
-                        )}
-                    </button>
+                    {isExecuting ? (
+                        <button 
+                            className="toolbar-btn danger"
+                            onClick={onStopExecution}
+                            title="Stop workflow execution"
+                        >
+                            <i className="fa-solid fa-stop"></i>
+                            Stop
+                        </button>
+                    ) : (
+                        <button 
+                            className={`toolbar-btn ${isActivated ? 'success' : 'primary'}`}
+                            onClick={onActivate}
+                            disabled={isExecuting}
+                            title="Activate and run entire workflow automatically"
+                        >
+                            {isActivated ? (
+                                <>
+                                    <i className="fa-solid fa-check-circle"></i>
+                                    Activated
+                                </>
+                            ) : (
+                                <>
+                                    <i className="fa-solid fa-rocket"></i>
+                                    Activate Workflow
+                                </>
+                            )}
+                        </button>
+                    )}
                     <button 
                         className={`toolbar-btn ${hasUnsavedChanges ? 'primary' : 'secondary'}`}
                         onClick={onSave}
