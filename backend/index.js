@@ -11,6 +11,7 @@ const productsRoutes = require('./routes/products');
 const publicRoutes = require('./routes/public');
 const uploadsRoutes = require('./routes/uploads');
 const aiRoutes = require('./routes/ai');
+const chatRoutes = require('./routes/chat');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
@@ -129,6 +130,7 @@ app.use('/api/products', productsRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/uploads', uploadsRoutes);
 app.use('/api/ai', aiRoutes);
+app.use(chatRoutes);
 // Additional middleware to debug CORS and route issues
 app.use('/api/nodes', (req, res, next) => {
   console.log('🔍 NODES API REQUEST DEBUG:', {

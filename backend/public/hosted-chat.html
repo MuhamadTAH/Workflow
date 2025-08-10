@@ -96,6 +96,10 @@
         const path = urlParams.get('path') || 'chat';
         const title = urlParams.get('title') || 'Chat Support';
 
+        // Global session ID for polling
+        window.chatSessionId = null;
+        let pollingInterval = null;
+
         // Update page title
         document.title = title;
         document.getElementById('chat-title').textContent = title;
@@ -110,6 +114,65 @@
             title,
             webhookUrl
         });
+
+        // Function to poll for replies from Chat Trigger Response
+        async function pollReplies(sessionId) {
+            try {
+                const res = await fetch(`https://workflow-lg9z.onrender.com/api/chat-messages/${sessionId}`);
+                const data = await res.json();
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach(msg => {
+                        addMessageToChat('bot', msg);
+                    });
+                }
+            } catch (err) {
+                console.error('Error polling replies:', err);
+            }
+        }
+
+        // Function to display messages in chat
+        function addMessageToChat(sender, text) {
+            const chatContainer = document.getElementById('messages');
+            if (!chatContainer) return;
+            
+            const msgElem = document.createElement('div');
+            msgElem.style.marginBottom = '12px';
+            msgElem.style.textAlign = sender === 'bot' ? 'left' : 'right';
+            
+            const bubble = document.createElement('div');
+            bubble.style.display = 'inline-block';
+            bubble.style.padding = '8px 12px';
+            bubble.style.borderRadius = '12px';
+            bubble.style.maxWidth = '70%';
+            bubble.style.wordWrap = 'break-word';
+            
+            if (sender === 'bot') {
+                bubble.style.background = '#e5e7eb';
+                bubble.style.color = '#374151';
+            } else {
+                bubble.style.background = '#4f46e5';
+                bubble.style.color = 'white';
+            }
+            
+            bubble.textContent = text;
+            msgElem.appendChild(bubble);
+            chatContainer.appendChild(msgElem);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Function to start polling
+        function startPolling(sessionId) {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+            }
+            window.chatSessionId = sessionId;
+            pollingInterval = setInterval(() => {
+                if (window.chatSessionId) {
+                    pollReplies(window.chatSessionId);
+                }
+            }, 2000);
+            console.log('🔄 Started polling for session:', sessionId);
+        }
 
         // Check if required parameters are present
         if (!workflowId || !nodeId) {
@@ -209,19 +272,17 @@
             // Add send message functionality
             window.sendMessage = async function() {
                 const input = document.getElementById('messageInput');
-                const messages = document.getElementById('messages');
                 const text = input.value.trim();
 
                 if (!text) return;
 
-                // Add user message to UI
-                messages.innerHTML += `
-                    <div style="margin-bottom: 12px; text-align: right;">
-                        <div style="display: inline-block; background: #4f46e5; color: white; padding: 8px 12px; border-radius: 12px; max-width: 70%;">
-                            ${text}
-                        </div>
-                    </div>
-                `;
+                // Generate session ID if not exists
+                if (!window.chatSessionId) {
+                    window.chatSessionId = 'chat-session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                }
+
+                // Add user message to UI using new function
+                addMessageToChat('user', text);
                 input.value = '';
 
                 try {
@@ -231,12 +292,14 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             text: text,
-                            userId: 'fallback-user',
-                            sessionId: 'fallback-session-' + Date.now(),
+                            userId: 'hosted-chat-user',
+                            sessionId: window.chatSessionId,
                             source: 'hosted_chat_fallback',
                             metadata: { 
                                 page: window.location.href,
-                                timestamp: new Date().toISOString()
+                                timestamp: new Date().toISOString(),
+                                workflowId: workflowId,
+                                nodeId: nodeId
                             }
                         })
                     });
@@ -244,19 +307,14 @@
                     const result = await response.json();
                     console.log('📤 Message sent to webhook:', result);
 
-                    // Just scroll to show the user message (no confirmation message)
-                    messages.scrollTop = messages.scrollHeight;
+                    // Start polling for responses after first message
+                    if (!pollingInterval) {
+                        startPolling(window.chatSessionId);
+                    }
 
                 } catch (err) {
                     console.error('❌ Send error:', err);
-                    messages.innerHTML += `
-                        <div style="margin-bottom: 12px;">
-                            <div style="display: inline-block; background: #fef2f2; color: #dc2626; padding: 8px 12px; border-radius: 12px; max-width: 70%;">
-                                Failed to send: ${err.message}
-                            </div>
-                        </div>
-                    `;
-                    messages.scrollTop = messages.scrollHeight;
+                    addMessageToChat('bot', `Error sending message: ${err.message}`);
                 }
             };
         }
