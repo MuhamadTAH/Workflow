@@ -348,9 +348,19 @@ router.delete('/workflows/:id', (req, res) => {
   }
 });
 
+// Simple test route to verify webhook routing works
+router.get('/test-chat', (req, res) => {
+  console.log('🧪 Test chat route hit');
+  res.json({ 
+    success: true, 
+    message: 'Chat webhook routing is working',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Chat Trigger webhook endpoint - Simplified version
 // Route pattern: /api/webhooks/chatTrigger/:workflowId/:nodeId/:path
-router.all('/chatTrigger/:workflowId/:nodeId/:path', asyncHandler(async (req, res) => {
+router.all('/chatTrigger/:workflowId/:nodeId/:path', async (req, res) => {
   try {
     const { workflowId, nodeId, path } = req.params;
     
@@ -420,15 +430,40 @@ router.all('/chatTrigger/:workflowId/:nodeId/:path', asyncHandler(async (req, re
     
   } catch (error) {
     console.error('❌ Chat Trigger webhook error:', error);
-    console.error('Error stack:', error.stack);
+    res.status(500).json({ ok: false, error: error.message });
+  }
+});
+
+// Minimal POST route for chat messages  
+router.post('/chatTrigger/:workflowId/:nodeId/:path', (req, res) => {
+  console.log('📥 Chat webhook hit:', req.params);
+  console.log('📝 Message:', req.body);
+  
+  try {
+    const { workflowId, nodeId } = req.params;
+    const messageText = req.body?.text || 'No message';
     
-    if (logger && logger.logError) {
-      logger.logError(error, { context: 'chat-trigger-webhook' });
+    // Simple message storage
+    const nodeMessages = req.app.get('nodeMessages');
+    if (nodeMessages) {
+      const key = `${workflowId}-${nodeId}`;
+      if (!nodeMessages.has(key)) {
+        nodeMessages.set(key, []);
+      }
+      nodeMessages.get(key).push({
+        text: messageText,
+        userId: req.body?.userId || 'user-' + Date.now(),
+        timestamp: new Date().toISOString()
+      });
+      console.log('💾 Message stored for', key);
     }
     
-    return res.status(500).json({ ok: false, error: error.message });
+    res.json({ success: true, message: 'Message received' });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: error.message });
   }
-}));
+});
 
 // Register Chat Trigger webhook
 router.post('/register-chat-trigger', asyncHandler(async (req, res) => {
