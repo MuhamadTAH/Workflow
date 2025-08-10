@@ -16,6 +16,9 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    chunkSizeWarningLimit: 1000 // Raise warning limit to 1000 KB to silence chunk size warnings
+  },
   server: {
     proxy: {
       '/api': {
