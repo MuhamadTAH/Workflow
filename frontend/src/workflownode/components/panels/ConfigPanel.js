@@ -460,6 +460,9 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
       webhookPath: node.data.webhookPath || 'chat',
       secret: node.data.secret || '',
       chatTitle: node.data.chatTitle || 'Chat Support',
+      // Chat Trigger Response specific fields
+      sessionId: node.data.sessionId || '{{$json.sessionId}}',
+      message: node.data.message || 'Hello! I received your message: {{$json.text}}',
   });
 
   useEffect(() => {
@@ -533,6 +536,9 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
       webhookPath: node.data.webhookPath || 'chat',
       secret: node.data.secret || '',
       chatTitle: node.data.chatTitle || 'Chat Support',
+      // Chat Trigger Response specific fields
+      sessionId: node.data.sessionId || '{{$json.sessionId}}',
+      message: node.data.message || 'Hello! I received your message: {{$json.text}}',
     });
   }, [node.id]);
   
@@ -1362,6 +1368,61 @@ window.addEventListener('DOMContentLoaded', () => {
                                     <code>{'{{$node["AI Agent"].json.response}}'}</code> - From other node<br/>
                                     <code>{'{{$env.NODE_ENV}}'}</code> - Environment variable<br/>
                                     <code>{'{{$json.message.from.first_name || "Friend"}}'}</code> - With fallback
+                                </div>
+                            </div>
+                        )}
+
+                        {node.data.type === 'chatTriggerResponse' && (
+                            <div className="form-group mt-6">
+                                <label>Chat Trigger Response Configuration</label>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="sessionId">Session ID</label>
+                                    <ExpressionInput 
+                                        name="sessionId" 
+                                        value={formData.sessionId || '{{$json.sessionId}}'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="{{$json.sessionId}} or static-session-id"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Session ID to send the response to</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="message">Response Message</label>
+                                    <ExpressionInput 
+                                        name="message" 
+                                        value={formData.message || 'Hello! I received your message: {{$json.text}}'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="Hello! Your message was: {{$json.text}}"
+                                        isTextarea={true}
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Response message to send back to the user</p>
+                                </div>
+                                
+                                <div className="template-examples" style={{ background: '#f0f9ff', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
+                                    <strong>💬 Chat Response Examples:</strong><br/>
+                                    <code>{'{{$json.sessionId}}'}</code> - Use incoming session ID<br/>
+                                    <code>{'{{$json.text}}'}</code> - Echo user's message<br/>
+                                    <code>{'{{$node["AI Agent"].json.response}}'}</code> - Use AI response<br/>
+                                    <code>{'Thanks for your message: "{{$json.text}}"'}</code> - Custom response
+                                </div>
+                                
+                                <div className="info-box" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
+                                    <div style={{ color: '#166534', fontWeight: '600', marginBottom: '4px' }}>
+                                        🔄 How Chat Responses Work:
+                                    </div>
+                                    <div style={{ color: '#166534', fontSize: '14px' }}>
+                                        1. User sends message → Chat Trigger receives with sessionId<br/>
+                                        2. Workflow processes message through your nodes<br/>
+                                        3. Chat Trigger Response sends reply back to same session<br/>
+                                        4. User sees bot response automatically (no refresh needed)
+                                    </div>
                                 </div>
                             </div>
                         )}

@@ -134,6 +134,15 @@ const Sidebar = () => {
       />
       <DraggableNode 
         nodeInfo={{ 
+            label: 'Chat Trigger Response', 
+            icon: 'fa-comment-dots', 
+            color: 'text-green-600',
+            description: 'Send reply messages back to chat session',
+            type: 'chatTriggerResponse' 
+        }} 
+      />
+      <DraggableNode 
+        nodeInfo={{ 
             label: 'WhatsApp', 
             icon: 'fa-whatsapp', 
             color: 'text-green-500',
