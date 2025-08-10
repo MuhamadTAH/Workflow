@@ -3,37 +3,39 @@
 ## 🔄 DEPLOYMENT & CONNECTION ARCHITECTURE
 
 ### How Backend & Frontend Connect
-This project uses a **split deployment architecture**:
-- **Frontend**: Runs locally on developer machine (localhost:5173+)
-- **Backend**: Runs on Render production server (https://workflow-lg9z.onrender.com)
-- **Connection**: Frontend makes API calls directly to production backend
+This project uses a **full production deployment architecture**:
+- **Frontend**: Production hosted on Render (https://frontend-dpcg.onrender.com)
+- **Backend**: Production hosted on Render (https://workflow-lg9z.onrender.com)
+- **Connection**: Frontend makes API calls directly to production backend via VITE_API_BASE_URL
 
-**Why This Architecture?**
-1. **Cost Efficiency**: Only backend needs production hosting (database, webhooks)
-2. **Development Speed**: Frontend hot-reload during development
-3. **Real Integration**: Frontend always tests against real production APIs
-4. **Simplified Deployment**: Only backend auto-deploys, no frontend build/deploy needed
+**Architecture Benefits**:
+1. **Full Production Setup**: Both frontend and backend hosted on Render
+2. **Environment Variables**: VITE_API_BASE_URL automatically configures API connections
+3. **Auto Deployment**: Both services auto-deploy on git push
+4. **No Local Development Required**: Complete cloud-based workflow
 
 ### Development Workflow:
 ```bash
-# 1. Start Frontend (connects to production backend automatically)
-cd frontend && npm run dev
+# 1. Make Changes (edit frontend/backend code locally)
 
-# 2. Make Changes (edit frontend/backend code)
-
-# 3. Commit & Push (triggers auto-deployment)
+# 2. Commit & Push (triggers auto-deployment of both services)
 git add .
 git commit -m "feature: description"
 git push origin main
 
-# 4. Render Auto-Deploys backend (1-2 minutes)
+# 3. Render Auto-Deploys:
+#    - Backend: https://workflow-lg9z.onrender.com (1-2 minutes)
+#    - Frontend: https://frontend-dpcg.onrender.com (2-3 minutes)
+
+# 4. Access live application at frontend URL
 ```
 
 ### URLs & Connections:
-- **Frontend**: http://localhost:5173+ (auto-assigned port)
-- **Backend**: https://workflow-lg9z.onrender.com  
+- **Frontend**: https://frontend-dpcg.onrender.com (Production)
+- **Backend**: https://workflow-lg9z.onrender.com (Production API)
 - **GitHub**: https://github.com/MuhamadTAH/Workflow.git
 - **Database**: SQLite (hosted with backend on Render)
+- **Local Development**: `cd frontend && npm run dev` (optional, for hot reload)
 
 ---
 
