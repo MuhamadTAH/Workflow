@@ -10,15 +10,14 @@ const workflowExecutor = require('../services/workflowExecutor');
 router.get('/api/chat-messages/:sessionId', (req, res) => {
   const { sessionId } = req.params;
   
-  // Check if there are any active workflows before processing polling request
-  if (!workflowExecutor.activeWorkflows || workflowExecutor.activeWorkflows.size === 0) {
-    return res.status(404).json({ 
-      error: 'No active workflows found. Polling stopped.',
-      shouldStopPolling: true 
-    });
-  }
+  console.log(`[chat] Polling for messages in session: ${sessionId}`);
+  console.log(`[chat] Active workflows count: ${workflowExecutor.activeWorkflows ? workflowExecutor.activeWorkflows.size : 0}`);
   
+  // Always allow message retrieval - don't block based on workflow status
+  // The chat session should remain active even after workflow completes
   const messages = getMessages(sessionId);
+  console.log(`[chat] Retrieved ${messages.length} messages for session ${sessionId}`);
+  
   res.json({ messages });
 });
 

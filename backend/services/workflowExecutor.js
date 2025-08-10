@@ -317,7 +317,10 @@ class WorkflowExecutor {
             
             case 'chatTriggerResponse':
                 const chatResponseInstance = new ChatTriggerResponseNode();
-                return await chatResponseInstance.execute(nodeConfig, inputData);
+                // Resolve templates in nodeConfig before execution
+                const resolvedConfig = this.resolveNodeTemplates(nodeConfig, inputData, workflow);
+                console.log('🔧 Chat Trigger Response resolved config:', JSON.stringify(resolvedConfig, null, 2));
+                return await chatResponseInstance.execute(resolvedConfig, inputData);
             
             default:
                 throw new Error(`Unsupported node type: ${nodeConfig.type}`);
@@ -357,6 +360,91 @@ class WorkflowExecutor {
             'telegramSendMessage': 'telegramSendMessage',
         };
         return prefixMap[nodeType] || null;
+    }
+
+    // Resolve template expressions in node configuration
+    resolveNodeTemplates(nodeConfig, inputData, workflow) {
+        const resolved = JSON.parse(JSON.stringify(nodeConfig)); // Deep clone
+        
+        // Build context with all available node data
+        const context = {
+            ...inputData, // Contains step data and node outputs
+            $json: inputData, // Legacy compatibility
+        };
+
+        console.log('🔍 Template resolution context:', JSON.stringify(context, null, 2));
+
+        // Recursively resolve all string values in the config
+        const resolveValue = (value) => {
+            if (typeof value === 'string') {
+                return this.resolveTemplate(value, context);
+            } else if (Array.isArray(value)) {
+                return value.map(resolveValue);
+            } else if (value && typeof value === 'object') {
+                const resolvedObj = {};
+                for (const [key, val] of Object.entries(value)) {
+                    resolvedObj[key] = resolveValue(val);
+                }
+                return resolvedObj;
+            }
+            return value;
+        };
+
+        // Apply resolution to all config properties
+        for (const [key, value] of Object.entries(resolved)) {
+            resolved[key] = resolveValue(value);
+        }
+
+        return resolved;
+    }
+
+    // Template resolver that handles $node syntax
+    resolveTemplate(template, context) {
+        if (!template || typeof template !== 'string') {
+            return template;
+        }
+
+        // Handle $node["NodeName"].path syntax
+        return template.replace(/\{\{\s*\$node\["([^"]+)"\]\.([^}]+)\s*\}\}/g, (match, nodeName, path) => {
+            try {
+                console.log(`🔧 Resolving template: ${match} (looking for node: ${nodeName})`);
+                
+                // Look for step data that matches the node name
+                for (const [stepKey, stepValue] of Object.entries(context)) {
+                    if (stepKey.includes(nodeName.replace(/ /g, '_')) || stepKey.includes('Chat_Trigger')) {
+                        console.log(`📍 Found matching step: ${stepKey}`, JSON.stringify(stepValue, null, 2));
+                        
+                        // Navigate the path (e.g., "json.result.data[0].sessionId")
+                        const pathParts = path.split('.');
+                        let current = stepValue;
+                        
+                        for (const part of pathParts) {
+                            if (part.includes('[') && part.includes(']')) {
+                                // Handle array access like "data[0]"
+                                const arrayName = part.split('[')[0];
+                                const index = parseInt(part.match(/\[(\d+)\]/)[1]);
+                                current = current[arrayName] ? current[arrayName][index] : undefined;
+                            } else {
+                                current = current ? current[part] : undefined;
+                            }
+                            
+                            if (current === undefined) break;
+                        }
+                        
+                        if (current !== undefined) {
+                            console.log(`✅ Template resolved: ${match} → ${current}`);
+                            return current;
+                        }
+                    }
+                }
+                
+                console.log(`❌ Could not resolve template: ${match}`);
+                return match; // Return original if not found
+            } catch (error) {
+                console.error(`Error resolving template ${match}:`, error.message);
+                return match;
+            }
+        });
     }
 }
 

@@ -8,13 +8,11 @@ const workflowEngine = require('../workflowEngine');
 const logger = require('../services/logger');
 const { asyncHandler } = require('../middleware/errorHandler');
 
-// Try to load WorkflowExecutor, but don't fail if it doesn't exist
-let WorkflowExecutor = null;
+// Try to load WorkflowExecutor singleton, but don't fail if it doesn't exist
 let workflowExecutor = null;
 try {
-  WorkflowExecutor = require('../services/workflowExecutor');
-  workflowExecutor = new WorkflowExecutor();
-  console.log('✅ WorkflowExecutor loaded successfully');
+  workflowExecutor = require('../services/workflowExecutor'); // Import singleton instance
+  console.log('✅ WorkflowExecutor singleton loaded successfully');
 } catch (error) {
   console.warn('⚠️ WorkflowExecutor not available:', error.message);
 }
