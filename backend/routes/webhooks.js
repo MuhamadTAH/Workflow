@@ -432,7 +432,33 @@ router.post('/chatTrigger/:workflowId/:nodeId/:path', async (req, res) => {
       });
     }
 
-    // 2) Check for immediate responses from Chat Trigger Response nodes
+    // 2) EXECUTE WORKFLOW AUTOMATICALLY when message is received
+    console.log('[webhook] 🚀 Triggering workflow execution for:', workflowId);
+    
+    // Get the workflow executor from the singleton
+    if (workflowExecutor && workflowExecutor.activeWorkflows.has(workflowId)) {
+      try {
+        // Prepare trigger data in the format expected by the executor
+        const triggerData = [{
+          json: processed.json,
+          nodeId: nodeId,
+          nodeType: 'chatTrigger'
+        }];
+        
+        console.log('[webhook] Executing workflow with trigger data:', JSON.stringify(triggerData, null, 2));
+        
+        // Execute the workflow automatically
+        const executionResult = await workflowExecutor.executeWorkflow(workflowId, triggerData);
+        console.log('[webhook] ✅ Workflow executed successfully:', executionResult.status);
+      } catch (execError) {
+        console.error('[webhook] ❌ Workflow execution failed:', execError.message);
+        // Continue processing even if execution fails
+      }
+    } else {
+      console.warn('[webhook] ⚠️ Workflow not found or not active:', workflowId);
+    }
+
+    // 3) Check for immediate responses from Chat Trigger Response nodes
     const sessionId = processed.json.sessionId;
     let immediateResponse = null;
     
@@ -446,7 +472,7 @@ router.post('/chatTrigger/:workflowId/:nodeId/:path', async (req, res) => {
       }
     }
     
-    // 3) Return response in format expected by n8n chat widget
+    // 4) Return response in format expected by n8n chat widget
     if (immediateResponse) {
       return res.status(200).json({
         ok: true,

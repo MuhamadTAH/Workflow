@@ -11,6 +11,7 @@ const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
 const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
+const ChatTriggerResponseNode = require('../nodes/ChatTriggerResponseNode');
 
 class WorkflowExecutor {
     constructor() {
@@ -122,7 +123,7 @@ class WorkflowExecutor {
 
                 try {
                     // Skip trigger node (already executed)
-                    if (node.data.type === 'trigger' || node.data.type === 'telegramTrigger') {
+                    if (node.data.type === 'trigger' || node.data.type === 'telegramTrigger' || node.data.type === 'chatTrigger') {
                         stepLog.outputData = currentData;
                         stepLog.status = 'skipped';
                         stepLog.message = 'Trigger node - using trigger data';
@@ -224,7 +225,11 @@ class WorkflowExecutor {
         });
         
         // Find trigger node (starting point)
-        const triggerNode = nodes.find(node => node.data.type === 'trigger');
+        const triggerNode = nodes.find(node => 
+            node.data.type === 'trigger' || 
+            node.data.type === 'telegramTrigger' ||
+            node.data.type === 'chatTrigger'
+        );
         if (!triggerNode) {
             throw new Error('No trigger node found in workflow');
         }
@@ -310,6 +315,9 @@ class WorkflowExecutor {
             case 'telegramSendMessage':
                 return await telegramSendMessageNode.execute(nodeConfig, inputData, connectedNodes);
             
+            case 'chatTriggerResponse':
+                const chatResponseInstance = new ChatTriggerResponseNode();
+                return await chatResponseInstance.execute(nodeConfig, inputData);
             
             default:
                 throw new Error(`Unsupported node type: ${nodeConfig.type}`);
