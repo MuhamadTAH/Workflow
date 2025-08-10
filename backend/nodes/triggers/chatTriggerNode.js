@@ -139,12 +139,14 @@ class ChatTriggerNode {
      * @param {object} context - optional context (not required)
      */
     async execute(inputData = {}, config = {}, context = {}) {
-      // For trigger nodes the backend usually calls processWebhookData and then hands the result to the workflow runner.
-      // We'll return a no-op result to keep compatibility.
+      // For trigger nodes, return the input data as output
+      // This allows testing the node and passing data through
       return {
         success: true,
         nodeType: this.type,
-        message: 'ChatTriggerNode execute called directly. Use processWebhookData for webhooks.'
+        data: inputData || {},
+        message: 'Chat Trigger node executed successfully',
+        timestamp: new Date().toISOString()
       };
     }
   }

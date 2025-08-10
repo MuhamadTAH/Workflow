@@ -350,23 +350,27 @@ router.all('/chatTrigger/:workflowId/:nodeId/:path', asyncHandler(async (req, re
     
     console.log(`📥 Chat Trigger webhook hit: ${workflowId}/${nodeId}/${path}`);
     console.log('Request body:', req.body);
+    console.log('Request method:', req.method);
     
     // Get registered webhook config
     const webhookConfig = chatTriggerWebhooks.get(key);
     if (!webhookConfig) {
-      console.warn(`⚠️ Chat Trigger webhook not registered: ${key}`);
-      // For development, we'll process anyway
-      // return res.status(404).json({ error: 'Chat Trigger webhook not found' });
+      console.warn(`⚠️ Chat Trigger webhook not registered: ${key} - Processing anyway for development`);
     }
 
     // 1) Optional: verify secret/token if configured
     const config = webhookConfig?.config || {};
+    
+    console.log('🔐 Verifying secret with config:', config);
     const verify = chatTriggerNode.verifySecret({ headers: req.headers }, config);
+    console.log('🔐 Secret verification result:', verify);
+    
     if (!verify.ok) {
       return res.status(401).json({ error: 'Unauthorized', reason: verify.reason });
     }
 
     // 2) Process webhook data (normalize chat message)
+    console.log('🔄 Processing webhook data...');
     const processed = await chatTriggerNode.processWebhookData(
       {
         body: req.body,
@@ -378,11 +382,10 @@ router.all('/chatTrigger/:workflowId/:nodeId/:path', asyncHandler(async (req, re
       config
     );
 
-    console.log('📦 Processed chat message:', processed);
+    console.log('📦 Processed chat message:', JSON.stringify(processed, null, 2));
 
-    // 3) For now, just log and return success
-    // TODO: Integrate with workflow execution engine
-    logger.info('Chat Trigger webhook processed', {
+    // 3) Log the received message
+    logger.info('Chat Trigger webhook processed successfully', {
       workflowId,
       nodeId,
       path,
@@ -393,13 +396,14 @@ router.all('/chatTrigger/:workflowId/:nodeId/:path', asyncHandler(async (req, re
 
     return res.status(200).json({ 
       ok: true, 
-      message: 'Chat message received',
-      processed: processed 
+      message: 'Chat message received and processed',
+      data: processed.json
     });
     
   } catch (error) {
     console.error('❌ Chat Trigger webhook error:', error);
-    logger.logError(error, { context: 'chat-trigger-webhook' });
+    console.error('Error stack:', error.stack);
+    logger.logError && logger.logError(error, { context: 'chat-trigger-webhook' });
     return res.status(500).json({ ok: false, error: error.message });
   }
 }));

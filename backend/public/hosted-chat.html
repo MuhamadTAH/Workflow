@@ -242,16 +242,9 @@
                     });
 
                     const result = await response.json();
-                    console.log('📤 Message sent:', result);
+                    console.log('📤 Message sent to webhook:', result);
 
-                    // Add confirmation message
-                    messages.innerHTML += `
-                        <div style="margin-bottom: 12px;">
-                            <div style="display: inline-block; background: #e5e7eb; padding: 8px 12px; border-radius: 12px; max-width: 70%;">
-                                Message sent successfully! ✅
-                            </div>
-                        </div>
-                    `;
+                    // Just scroll to show the user message (no confirmation message)
                     messages.scrollTop = messages.scrollHeight;
 
                 } catch (err) {
