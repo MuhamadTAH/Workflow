@@ -1218,7 +1218,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                                 <div className="webhook-info" style={{ background: '#f8f9fa', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
                                     <strong>Webhook URL:</strong><br/>
                                     <code style={{ wordBreak: 'break-all' }}>
-                                        https://workflow-lg9z.onrender.com/api/webhooks/chatTrigger/{'{workflow-id}'}/{'{node-id}'}/{formData.webhookPath || 'chat'}
+                                        https://workflow-lg9z.onrender.com/api/webhooks/chatTrigger/test-workflow/{node.id}/{formData.webhookPath || 'chat'}
                                     </code>
                                     <br/><br/>
                                     
@@ -1226,7 +1226,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                                         <>
                                             <strong>Hosted Chat URL:</strong><br/>
                                             <code style={{ wordBreak: 'break-all' }}>
-                                                https://workflow-lg9z.onrender.com/chat/{'{workflow-id}'}/{node.id}/{formData.webhookPath || 'chat'}?title={encodeURIComponent(formData.chatTitle || 'Chat Support')}
+                                                https://workflow-lg9z.onrender.com/chat/test-workflow/{node.id}/{formData.webhookPath || 'chat'}?title={encodeURIComponent(formData.chatTitle || 'Chat Support')}
                                             </code>
                                             <br/><br/>
                                         </>
