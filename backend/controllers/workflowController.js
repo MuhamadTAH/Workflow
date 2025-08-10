@@ -24,7 +24,7 @@ const getCredentials = (nodeType) => {
 
 const activateWorkflow = async (req, res) => {
     try {
-        const { workflowId } = req.params;
+        const workflowId = req.params.id;
         const { workflow } = req.body; 
 
         if (!workflow || !workflow.nodes || !workflow.edges) {
@@ -55,32 +55,31 @@ const activateWorkflow = async (req, res) => {
         console.log(`🔄 Activating workflow ${workflowId}...`);
         console.log(`Found ${triggerNodes.length} trigger node(s):`, triggerNodes.map(n => n.data.type));
 
+        // Register trigger handlers for each trigger node
+        const triggerUrls = [];
+        for (const triggerNode of triggerNodes) {
+            if (triggerNode.data.type === 'chatTrigger') {
+                const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/chatTrigger/${workflowId}/${triggerNode.id}/chat`;
+                triggerUrls.push({
+                    nodeId: triggerNode.id,
+                    type: 'chatTrigger',
+                    webhookUrl: webhookUrl,
+                    hostedChatUrl: `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/public/hosted-chat.html?workflowId=${workflowId}&nodeId=${triggerNode.id}`
+                });
+            } else if (triggerNode.data.type === 'telegramTrigger') {
+                const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram/${workflowId}`;
+                triggerUrls.push({
+                    nodeId: triggerNode.id,
+                    type: 'telegramTrigger',
+                    webhookUrl: webhookUrl
+                });
+            }
+        }
+
         // Register workflow for automatic execution
         try {
             workflowExecutor.registerWorkflow(workflowId, workflow, {});
             console.log(`✅ Workflow ${workflowId} registered for auto-execution`);
-            
-            // Register trigger handlers for each trigger node
-            const triggerUrls = [];
-            for (const triggerNode of triggerNodes) {
-                if (triggerNode.data.type === 'chatTrigger') {
-                    const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/chatTrigger/${workflowId}/${triggerNode.id}/chat`;
-                    triggerUrls.push({
-                        nodeId: triggerNode.id,
-                        type: 'chatTrigger',
-                        webhookUrl: webhookUrl,
-                        hostedChatUrl: `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/public/hosted-chat.html?workflowId=${workflowId}&nodeId=${triggerNode.id}`
-                    });
-                } else if (triggerNode.data.type === 'telegramTrigger') {
-                    const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram/${workflowId}`;
-                    triggerUrls.push({
-                        nodeId: triggerNode.id,
-                        type: 'telegramTrigger',
-                        webhookUrl: webhookUrl
-                    });
-                }
-            }
-
         } catch (error) {
             console.error('Failed to register workflow:', error.message);
             return res.status(500).json({ message: `Failed to register workflow: ${error.message}` });
@@ -116,7 +115,7 @@ const activateWorkflow = async (req, res) => {
 
 const deactivateWorkflow = async (req, res) => {
     try {
-        const { workflowId } = req.params;
+        const workflowId = req.params.id;
 
         console.log(`🔄 Deactivating workflow ${workflowId}...`);
 
@@ -154,7 +153,7 @@ const deactivateWorkflow = async (req, res) => {
 
 const getWorkflowStatus = async (req, res) => {
     try {
-        const { workflowId } = req.params;
+        const workflowId = req.params.id;
         
         const activeWorkflow = activeWorkflows.get(workflowId);
         
