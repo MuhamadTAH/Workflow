@@ -136,9 +136,34 @@ const runNode = async (req, res) => {
                     break;
 
                 case 'chatTrigger':
-                    // Chat Trigger node - similar to telegram trigger
-                    const chatTriggerInstance = new ChatTriggerNode();
-                    itemResult = await chatTriggerInstance.execute(currentItem, processedConfig, executionContext);
+                    // Chat Trigger node - retrieve stored messages from webhook
+                    const messageKey = `${node.config?.workflowId || 'test-workflow'}-${node.id}`;
+                    const nodeMessages = req.app.get('nodeMessages');
+                    const storedMessages = nodeMessages?.get(messageKey) || [];
+                    
+                    console.log(`🔍 Checking for messages with key: ${messageKey}`);
+                    console.log(`📋 Found ${storedMessages.length} stored messages`);
+                    
+                    if (storedMessages.length > 0) {
+                        // Return the latest message(s)
+                        const latestMessages = storedMessages.slice(-3); // Get last 3 messages
+                        itemResult = {
+                            success: true,
+                            nodeType: 'chatTrigger',
+                            data: latestMessages,
+                            message: `Retrieved ${latestMessages.length} chat message(s)`,
+                            timestamp: new Date().toISOString()
+                        };
+                    } else {
+                        // No messages yet
+                        itemResult = {
+                            success: true,
+                            nodeType: 'chatTrigger',
+                            data: [],
+                            message: 'No chat messages received yet',
+                            timestamp: new Date().toISOString()
+                        };
+                    }
                     break;
                 
                 
