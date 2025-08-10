@@ -55,7 +55,9 @@
       "WebFetch(domain:workflow-lg9z.onrender.com)",
       "Bash(git reset:*)",
       "Bash(sed:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "WebFetch(domain:frontend-dpcg.onrender.com)",
+      "WebFetch(domain:www.npmjs.com)"
     ],
     "deny": []
   }

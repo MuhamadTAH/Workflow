@@ -100,134 +100,175 @@ const runNode = async (req, res) => {
         
         console.log(`📋 Processing ${inputItems.length} item(s) for node ${node.type}`);
         
-        // Process each item with its own context
-        for (let itemIndex = 0; itemIndex < inputItems.length; itemIndex++) {
-            const currentItem = inputItems[itemIndex];
-            console.log(`🔄 Processing item ${itemIndex + 1}/${inputItems.length}`);
+        // Check if this is an output node that should execute once regardless of input items
+        const outputNodes = ['telegramSendMessage', 'chatTriggerResponse'];
+        const shouldExecuteOnce = outputNodes.includes(node.type);
+        
+        if (shouldExecuteOnce) {
+            console.log(`🔄 Output node ${node.type} - executing once with all input data`);
             
             let itemResult;
+            // Use all input data as a single execution context
+            const allInputData = inputItems.length > 0 ? inputItems : [{}];
             
-            // Execute different node types with processed config and isolated context
+            // Execute output nodes once with all input data
             switch (node.type) {
-                case 'aiAgent':
-                    itemResult = await aiAgentNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
-                    break;
-                
-                case 'modelNode':
-                    itemResult = await modelNode.execute(processedConfig, currentItem, executionContext);
-                    break;
-                
-                case 'googleDocs':
-                    itemResult = await googleDocsNode.execute(processedConfig, currentItem, executionContext);
-                    break;
-                
-                case 'dataStorage':
-                    const dataStorageInstance = new DataStorageNode(processedConfig);
-                    itemResult = await dataStorageInstance.process(currentItem, executionContext);
-                    break;
-                
-                case 'telegramTrigger':
-                    // Trigger nodes don't execute - they start workflows
-                    itemResult = {
-                        success: true,
-                        message: 'Telegram trigger node activated',
-                        data: currentItem || processedConfig.outputData || null,
-                        timestamp: new Date().toISOString()
-                    };
-                    break;
-
-                case 'chatTrigger':
-                    // Chat Trigger node - retrieve stored messages from webhook
-                    const messageKey = `${node.config?.workflowId || 'test-workflow'}-${node.id}`;
-                    const nodeMessages = req.app.get('nodeMessages');
-                    const storedMessages = nodeMessages?.get(messageKey) || [];
-                    
-                    console.log(`🔍 Checking for messages with key: ${messageKey}`);
-                    console.log(`📋 Found ${storedMessages.length} stored messages`);
-                    
-                    if (storedMessages.length > 0) {
-                        // Return the latest message(s)
-                        const latestMessages = storedMessages.slice(-3); // Get last 3 messages
-                        itemResult = {
-                            success: true,
-                            nodeType: 'chatTrigger',
-                            data: latestMessages,
-                            message: `Retrieved ${latestMessages.length} chat message(s)`,
-                            timestamp: new Date().toISOString()
-                        };
-                    } else {
-                        // No messages yet
-                        itemResult = {
-                            success: true,
-                            nodeType: 'chatTrigger',
-                            data: [],
-                            message: 'No chat messages received yet',
-                            timestamp: new Date().toISOString()
-                        };
-                    }
-                    break;
-                
-                
                 case 'telegramSendMessage':
-                    itemResult = await telegramSendMessageNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                    // Use first item or combined data for context
+                    const contextItem = allInputData[0] || {};
+                    itemResult = await telegramSendMessageNode.execute(processedConfig, contextItem, connectedNodes, executionContext);
                     break;
                 
                 case 'chatTriggerResponse':
                     const chatTriggerResponseInstance = new ChatTriggerResponseNode();
-                    itemResult = await chatTriggerResponseInstance.execute(processedConfig, currentItem, executionContext);
-                    break;
-                
-                case 'if':
-                    itemResult = await ifNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
-                    break;
-                
-                case 'switch':
-                    itemResult = await switchNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
-                    break;
-                
-                case 'wait':
-                    itemResult = await waitNode.execute(processedConfig, currentItem, executionContext);
-                    break;
-                
-                case 'merge':
-                    // Merge node processes all items at once, not per-item
-                    if (itemIndex === 0) {
-                        itemResult = await mergeNode.execute(processedConfig, inputData, executionContext);
-                    } else {
-                        continue; // Skip subsequent items for merge node
-                    }
-                    break;
-                
-                case 'filter':
-                    itemResult = await filterNode.execute(processedConfig, currentItem, executionContext);
+                    const contextItemChat = allInputData[0] || {};
+                    itemResult = await chatTriggerResponseInstance.execute(processedConfig, contextItemChat, executionContext);
                     break;
                 
                 default:
                     return res.status(400).json({ 
-                        message: `Unsupported node type: ${node.type}`,
-                        supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'chatTrigger', 'chatTriggerResponse', 'telegramSendMessage', 'if', 'switch', 'wait', 'merge', 'filter']
+                        message: `Unsupported output node type: ${node.type}`,
+                        supportedOutputTypes: ['telegramSendMessage', 'chatTriggerResponse']
                     });
             }
             
-            // Handle multi-output routing (for If/Switch nodes)
+            // Single result for output nodes
             if (itemResult && typeof itemResult === 'object') {
-                // Check if result has multiple output paths
-                if (itemResult.outputPath !== undefined) {
-                    console.log(`🔀 Item ${itemIndex + 1} routed to output: ${itemResult.outputPath}`);
-                }
-                
                 results.push({
                     ...itemResult,
-                    itemIndex: itemIndex,
-                    processedAt: new Date().toISOString()
+                    itemIndex: 0,
+                    processedAt: new Date().toISOString(),
+                    executedOnce: true
                 });
             } else {
                 results.push({
                     success: false,
-                    error: 'Node returned invalid result',
-                    itemIndex: itemIndex,
+                    error: 'Output node returned invalid result',
+                    itemIndex: 0,
                     processedAt: new Date().toISOString()
                 });
+            }
+            
+        } else {
+            // Process each item with its own context (for non-output nodes)
+            for (let itemIndex = 0; itemIndex < inputItems.length; itemIndex++) {
+                const currentItem = inputItems[itemIndex];
+                console.log(`🔄 Processing item ${itemIndex + 1}/${inputItems.length}`);
+                
+                let itemResult;
+                
+                // Execute different node types with processed config and isolated context
+                switch (node.type) {
+                    case 'aiAgent':
+                        itemResult = await aiAgentNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                        break;
+                    
+                    case 'modelNode':
+                        itemResult = await modelNode.execute(processedConfig, currentItem, executionContext);
+                        break;
+                    
+                    case 'googleDocs':
+                        itemResult = await googleDocsNode.execute(processedConfig, currentItem, executionContext);
+                        break;
+                    
+                    case 'dataStorage':
+                        const dataStorageInstance = new DataStorageNode(processedConfig);
+                        itemResult = await dataStorageInstance.process(currentItem, executionContext);
+                        break;
+                    
+                    case 'telegramTrigger':
+                        // Trigger nodes don't execute - they start workflows
+                        itemResult = {
+                            success: true,
+                            message: 'Telegram trigger node activated',
+                            data: currentItem || processedConfig.outputData || null,
+                            timestamp: new Date().toISOString()
+                        };
+                        break;
+
+                    case 'chatTrigger':
+                        // Chat Trigger node - retrieve stored messages from webhook
+                        const messageKey = `${node.config?.workflowId || 'test-workflow'}-${node.id}`;
+                        const nodeMessages = req.app.get('nodeMessages');
+                        const storedMessages = nodeMessages?.get(messageKey) || [];
+                        
+                        console.log(`🔍 Checking for messages with key: ${messageKey}`);
+                        console.log(`📋 Found ${storedMessages.length} stored messages`);
+                        
+                        if (storedMessages.length > 0) {
+                            // Return the latest message(s)
+                            const latestMessages = storedMessages.slice(-3); // Get last 3 messages
+                            itemResult = {
+                                success: true,
+                                nodeType: 'chatTrigger',
+                                data: latestMessages,
+                                message: `Retrieved ${latestMessages.length} chat message(s)`,
+                                timestamp: new Date().toISOString()
+                            };
+                        } else {
+                            // No messages yet
+                            itemResult = {
+                                success: true,
+                                nodeType: 'chatTrigger',
+                                data: [],
+                                message: 'No chat messages received yet',
+                                timestamp: new Date().toISOString()
+                            };
+                        }
+                        break;
+                    
+                    case 'if':
+                        itemResult = await ifNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                        break;
+                    
+                    case 'switch':
+                        itemResult = await switchNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                        break;
+                    
+                    case 'wait':
+                        itemResult = await waitNode.execute(processedConfig, currentItem, executionContext);
+                        break;
+                    
+                    case 'merge':
+                        // Merge node processes all items at once, not per-item
+                        if (itemIndex === 0) {
+                            itemResult = await mergeNode.execute(processedConfig, inputData, executionContext);
+                        } else {
+                            continue; // Skip subsequent items for merge node
+                        }
+                        break;
+                    
+                    case 'filter':
+                        itemResult = await filterNode.execute(processedConfig, currentItem, executionContext);
+                        break;
+                    
+                    default:
+                        return res.status(400).json({ 
+                            message: `Unsupported node type: ${node.type}`,
+                            supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'chatTrigger', 'if', 'switch', 'wait', 'merge', 'filter']
+                        });
+                }
+                
+                // Handle multi-output routing (for If/Switch nodes)
+                if (itemResult && typeof itemResult === 'object') {
+                    // Check if result has multiple output paths
+                    if (itemResult.outputPath !== undefined) {
+                        console.log(`🔀 Item ${itemIndex + 1} routed to output: ${itemResult.outputPath}`);
+                    }
+                    
+                    results.push({
+                        ...itemResult,
+                        itemIndex: itemIndex,
+                        processedAt: new Date().toISOString()
+                    });
+                } else {
+                    results.push({
+                        success: false,
+                        error: 'Node returned invalid result',
+                        itemIndex: itemIndex,
+                        processedAt: new Date().toISOString()
+                    });
+                }
             }
         }
         

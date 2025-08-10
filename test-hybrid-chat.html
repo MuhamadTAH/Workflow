@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Hybrid Chat System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 8px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        textarea { width: 100%; height: 100px; margin: 5px 0; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Hybrid Chat System Test</h1>
+    <p>This page tests the complete Chat Trigger → Chat Trigger Response flow with both immediate and polling responses.</p>
+
+    <div class="test-section">
+        <h2>Step 1: Test Backend Connectivity</h2>
+        <button onclick="testBackend()">Test Backend</button>
+        <div id="backend-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 2: Test Webhook Endpoint</h2>
+        <p>Workflow ID: <input type="text" id="workflowId" value="test-workflow" /></p>
+        <p>Node ID: <input type="text" id="nodeId" value="chat-trigger-1" /></p>
+        <p>Session ID: <input type="text" id="sessionId" value="test-session-123" /></p>
+        <p>Message: <input type="text" id="messageText" value="Hello from hybrid test!" /></p>
+        <button onclick="testWebhook()">Send to Webhook</button>
+        <div id="webhook-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 3: Test Chat Trigger Response Storage</h2>
+        <p>This simulates a Chat Trigger Response node storing a reply message.</p>
+        <p>Session ID: <input type="text" id="responseSessionId" value="test-session-123" /></p>
+        <p>Response Message: <input type="text" id="responseMessage" value="Hello! This is a bot response." /></p>
+        <button onclick="storeResponse()">Store Response</button>
+        <div id="storage-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 4: Test Immediate Response (Hybrid System)</h2>
+        <p>Send a message after storing a response to test immediate return.</p>
+        <button onclick="testImmediateResponse()">Test Immediate Response</button>
+        <div id="immediate-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 5: Test Polling Response</h2>
+        <button onclick="testPolling()">Test Polling</button>
+        <div id="polling-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results Summary</h2>
+        <div id="summary-result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://workflow-lg9z.onrender.com';
+        let testResults = [];
+
+        function addResult(test, success, message, data = null) {
+            testResults.push({ test, success, message, data, timestamp: new Date().toISOString() });
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const summary = document.getElementById('summary-result');
+            const passed = testResults.filter(r => r.success).length;
+            const total = testResults.length;
+            
+            summary.innerHTML = `
+                <div class="test-result ${passed === total ? 'success' : 'info'}">
+                    Tests Passed: ${passed}/${total}
+                    <br>Latest: ${testResults[testResults.length - 1]?.message || 'No tests run yet'}
+                </div>
+            `;
+        }
+
+        async function testBackend() {
+            const resultDiv = document.getElementById('backend-result');
+            try {
+                const response = await fetch(`${API_BASE}/api/hello`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="test-result success">✅ Backend Online: ${data.message}</div>`;
+                    addResult('Backend Connectivity', true, 'Backend is online and responding');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="test-result error">❌ Backend Error: ${error.message}</div>`;
+                addResult('Backend Connectivity', false, `Backend error: ${error.message}`);
+            }
+        }
+
+        async function testWebhook() {
+            const resultDiv = document.getElementById('webhook-result');
+            const workflowId = document.getElementById('workflowId').value;
+            const nodeId = document.getElementById('nodeId').value;
+            const sessionId = document.getElementById('sessionId').value;
+            const text = document.getElementById('messageText').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/webhooks/chatTrigger/${workflowId}/${nodeId}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        userId: 'test-user',
+                        sessionId: sessionId,
+                        source: 'hybrid-test'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="test-result success">✅ Webhook Success</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    addResult('Webhook Test', true, 'Message sent to webhook successfully');
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${data.error?.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="test-result error">❌ Webhook Error: ${error.message}</div>`;
+                addResult('Webhook Test', false, `Webhook error: ${error.message}`);
+            }
+        }
+
+        async function storeResponse() {
+            const resultDiv = document.getElementById('storage-result');
+            const sessionId = document.getElementById('responseSessionId').value;
+            const message = document.getElementById('responseMessage').value;
+
+            try {
+                // Simulate Chat Trigger Response node by calling the storage endpoint
+                const response = await fetch(`${API_BASE}/api/nodes/run-node`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        node: {
+                            id: 'test-response-node',
+                            type: 'chatTriggerResponse',
+                            config: {
+                                sessionId: sessionId,
+                                message: message
+                            }
+                        },
+                        inputData: {},
+                        connectedNodes: [],
+                        workflowId: 'test-workflow'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    resultDiv.innerHTML = `
+                        <div class="test-result success">✅ Response Stored Successfully</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    addResult('Response Storage', true, 'Chat Trigger Response stored message successfully');
+                } else {
+                    throw new Error(`Storage failed: ${data.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="test-result error">❌ Storage Error: ${error.message}</div>`;
+                addResult('Response Storage', false, `Storage error: ${error.message}`);
+            }
+        }
+
+        async function testImmediateResponse() {
+            const resultDiv = document.getElementById('immediate-result');
+            
+            try {
+                // First store a response
+                await storeResponse();
+                
+                // Wait a moment for storage to complete
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Now send a message that should get immediate response
+                const workflowId = document.getElementById('workflowId').value;
+                const nodeId = document.getElementById('nodeId').value;
+                const sessionId = document.getElementById('responseSessionId').value;
+
+                const response = await fetch(`${API_BASE}/api/webhooks/chatTrigger/${workflowId}/${nodeId}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: 'Test message for immediate response',
+                        userId: 'test-user',
+                        sessionId: sessionId,
+                        source: 'immediate-test'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.hasImmediateResponse) {
+                    resultDiv.innerHTML = `
+                        <div class="test-result success">✅ Immediate Response Working!</div>
+                        <p><strong>Response:</strong> ${data.output}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    addResult('Immediate Response', true, 'Hybrid system returned immediate response correctly');
+                } else if (response.ok && !data.hasImmediateResponse) {
+                    resultDiv.innerHTML = `
+                        <div class="test-result info">ℹ️ No Immediate Response (fallback to polling)</div>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    addResult('Immediate Response', true, 'No immediate response available - will use polling');
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${data.error?.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="test-result error">❌ Immediate Response Error: ${error.message}</div>`;
+                addResult('Immediate Response', false, `Immediate response error: ${error.message}`);
+            }
+        }
+
+        async function testPolling() {
+            const resultDiv = document.getElementById('polling-result');
+            const sessionId = document.getElementById('responseSessionId').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/chat-messages/${sessionId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="test-result success">✅ Polling Endpoint Working</div>
+                        <p><strong>Messages Found:</strong> ${data.messages ? data.messages.length : 0}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                    addResult('Polling Test', true, `Polling returned ${data.messages ? data.messages.length : 0} messages`);
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="test-result error">❌ Polling Error: ${error.message}</div>`;
+                addResult('Polling Test', false, `Polling error: ${error.message}`);
+            }
+        }
+
+        // Auto-run basic connectivity test on page load
+        window.onload = () => {
+            testBackend();
+        };
+    </script>
+</body>
+</html>

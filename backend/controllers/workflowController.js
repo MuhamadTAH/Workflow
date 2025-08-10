@@ -8,6 +8,9 @@ Copied from WorkflowNode and adapted for main backend.
 
 const workflowExecutor = require('../services/workflowExecutor');
 
+// Simple in-memory storage for active workflows (in production, use database)
+const activeWorkflows = new Map();
+
 const credentialsStore = {
     'telegram_bot_token': ''
 };
@@ -22,43 +25,83 @@ const getCredentials = (nodeType) => {
 const activateWorkflow = async (req, res) => {
     try {
         const { workflowId } = req.params;
-        const { triggerNode, workflow } = req.body; 
+        const { workflow } = req.body; 
 
-        if (!triggerNode || triggerNode.data.type !== 'trigger') {
+        if (!workflow || !workflow.nodes || !workflow.edges) {
+            return res.status(400).json({ message: 'Complete workflow data (nodes and edges) is required for activation.' });
+        }
+
+        // Debug: Log what we received
+        console.log('🔍 WORKFLOW DEBUG:', {
+            workflowId,
+            workflowKeys: Object.keys(workflow),
+            nodesCount: workflow.nodes?.length || 0,
+            edgesCount: workflow.edges?.length || 0,
+            nodeTypes: workflow.nodes?.map(n => `${n.data?.type} (${n.id})`) || []
+        });
+
+        // Find trigger nodes in the workflow
+        const triggerNodes = workflow.nodes.filter(node => 
+            node.data.type === 'chatTrigger' || node.data.type === 'telegramTrigger'
+        );
+
+        console.log('🔍 TRIGGER NODES FOUND:', triggerNodes.map(n => `${n.data.type} (${n.id})`));
+
+        if (triggerNodes.length === 0) {
+            console.log('❌ NO TRIGGER NODES - Available node types:', workflow.nodes?.map(n => n.data?.type));
             return res.status(400).json({ message: 'A valid trigger node is required to activate.' });
         }
 
-        if (!workflow || !workflow.nodes || !workflow.edges) {
-            return res.status(400).json({ message: 'Complete workflow data (nodes and edges) is required for auto-execution.' });
-        }
-        
-        if(triggerNode.data.token) {
-            credentialsStore.telegram_bot_token = triggerNode.data.token;
-        }
-
-        const credentials = getCredentials('telegramTrigger');
-        
-        if (!credentials.botToken) {
-             return res.status(400).json({ message: 'Telegram Bot API Token is missing.' });
-        }
-
         console.log(`🔄 Activating workflow ${workflowId}...`);
+        console.log(`Found ${triggerNodes.length} trigger node(s):`, triggerNodes.map(n => n.data.type));
 
-        // Register workflow for automatic execution with credentials
+        // Register workflow for automatic execution
         try {
-            workflowExecutor.registerWorkflow(workflowId, workflow, credentials);
+            workflowExecutor.registerWorkflow(workflowId, workflow, {});
             console.log(`✅ Workflow ${workflowId} registered for auto-execution`);
+            
+            // Register trigger handlers for each trigger node
+            const triggerUrls = [];
+            for (const triggerNode of triggerNodes) {
+                if (triggerNode.data.type === 'chatTrigger') {
+                    const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/chatTrigger/${workflowId}/${triggerNode.id}/chat`;
+                    triggerUrls.push({
+                        nodeId: triggerNode.id,
+                        type: 'chatTrigger',
+                        webhookUrl: webhookUrl,
+                        hostedChatUrl: `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/public/hosted-chat.html?workflowId=${workflowId}&nodeId=${triggerNode.id}`
+                    });
+                } else if (triggerNode.data.type === 'telegramTrigger') {
+                    const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram/${workflowId}`;
+                    triggerUrls.push({
+                        nodeId: triggerNode.id,
+                        type: 'telegramTrigger',
+                        webhookUrl: webhookUrl
+                    });
+                }
+            }
+
         } catch (error) {
             console.error('Failed to register workflow:', error.message);
             return res.status(500).json({ message: `Failed to register workflow: ${error.message}` });
         }
 
+        // Store active workflow
+        activeWorkflows.set(workflowId, {
+            workflowId,
+            workflow,
+            triggerUrls,
+            activatedAt: new Date().toISOString(),
+            status: 'active'
+        });
+
         res.json({
             success: true,
-            message: `✅ Workflow activated! Bot will now respond to messages automatically.`,
+            message: `✅ Workflow activated! All trigger nodes are now listening for events.`,
             workflowId: workflowId,
-            webhookUrl: `${process.env.BASE_URL || 'https://workflownode.onrender.com'}/api/webhooks/telegram/${workflowId}`,
-            activatedAt: new Date().toISOString()
+            triggerUrls: triggerUrls,
+            activatedAt: new Date().toISOString(),
+            status: 'active'
         });
 
     } catch (error) {
@@ -77,21 +120,27 @@ const deactivateWorkflow = async (req, res) => {
 
         console.log(`🔄 Deactivating workflow ${workflowId}...`);
 
-        const result = workflowExecutor.deactivateWorkflow(workflowId);
-        
-        if (result) {
-            res.json({
-                success: true,
-                message: `✅ Workflow ${workflowId} has been deactivated.`,
-                workflowId: workflowId,
-                deactivatedAt: new Date().toISOString()
-            });
-        } else {
-            res.status(404).json({
+        // Check if workflow is active
+        if (!activeWorkflows.has(workflowId)) {
+            return res.status(404).json({
                 success: false,
-                message: `Workflow ${workflowId} not found.`
+                message: `Workflow ${workflowId} is not currently active.`
             });
         }
+
+        // Deactivate in executor
+        const result = workflowExecutor.deactivateWorkflow(workflowId);
+        
+        // Remove from active workflows
+        activeWorkflows.delete(workflowId);
+        
+        res.json({
+            success: true,
+            message: `✅ Workflow ${workflowId} has been deactivated.`,
+            workflowId: workflowId,
+            deactivatedAt: new Date().toISOString(),
+            status: 'inactive'
+        });
 
     } catch (error) {
         console.error('Workflow deactivation failed:', error.message);
@@ -107,13 +156,23 @@ const getWorkflowStatus = async (req, res) => {
     try {
         const { workflowId } = req.params;
         
-        const status = workflowExecutor.getWorkflowStatus(workflowId);
+        const activeWorkflow = activeWorkflows.get(workflowId);
         
-        res.json({
-            success: true,
-            workflowId: workflowId,
-            status: status
-        });
+        if (activeWorkflow) {
+            res.json({
+                success: true,
+                workflowId: workflowId,
+                status: 'active',
+                activatedAt: activeWorkflow.activatedAt,
+                triggerUrls: activeWorkflow.triggerUrls
+            });
+        } else {
+            res.json({
+                success: true,
+                workflowId: workflowId,
+                status: 'inactive'
+            });
+        }
 
     } catch (error) {
         console.error('Failed to get workflow status:', error.message);

@@ -1,5 +1,6 @@
 // Chat Trigger webhook integration with existing webhook system
 const ChatTriggerNode = require('../nodes/triggers/chatTriggerNode');
+const { getMessages } = require('../services/chatSessions');
 
 const express = require('express');
 const router = express.Router();
@@ -431,13 +432,37 @@ router.post('/chatTrigger/:workflowId/:nodeId/:path', async (req, res) => {
       });
     }
 
-    // 2) For now, just return success - workflow execution will be handled by the workflow builder
-    // In a full implementation, this would trigger workflow execution via global.runWorkflow
-    return res.status(200).json({ 
-      ok: true, 
-      message: 'Chat message received and stored',
-      data: processed.json
-    });
+    // 2) Check for immediate responses from Chat Trigger Response nodes
+    const sessionId = processed.json.sessionId;
+    let immediateResponse = null;
+    
+    if (sessionId) {
+      // Check for stored responses for this session
+      const storedMessages = getMessages(sessionId);
+      if (storedMessages && storedMessages.length > 0) {
+        // Get the latest response message
+        immediateResponse = storedMessages[storedMessages.length - 1];
+        console.log('[webhook] Found immediate response:', immediateResponse);
+      }
+    }
+    
+    // 3) Return response in format expected by n8n chat widget
+    if (immediateResponse) {
+      return res.status(200).json({
+        ok: true,
+        output: immediateResponse, // n8n chat widget expects "output" field
+        data: processed.json,
+        hasImmediateResponse: true
+      });
+    } else {
+      // No immediate response - fallback chat will poll for responses
+      return res.status(200).json({ 
+        ok: true, 
+        message: 'Chat message received and stored',
+        data: processed.json,
+        hasImmediateResponse: false
+      });
+    }
 
   } catch (err) {
     console.error('[webhook] Unexpected error:', err && err.stack ? err.stack : err);

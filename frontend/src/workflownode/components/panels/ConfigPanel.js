@@ -1513,7 +1513,7 @@ window.addEventListener('DOMContentLoaded', () => {
         <div className="side-panel" onClick={(e) => e.stopPropagation()}>
             <div className="panel-header">
                 <span>OUTPUT</span>
-                <button className="side-panel-btn" onClick={handlePostData}>POST</button>
+                <button className="side-panel-btn" onClick={handleGetData} disabled={node.data.type === 'setData'}>REFRESH</button>
             </div>
             <div className="panel-content-area data-panel">
                 {isLoading ? (<div className="empty-state">Loading...</div>) : outputData ? (<pre><code className={outputData.error ? 'error-json' : ''}>{JSON.stringify(outputData, null, 2)}</code></pre>) : (<div className="empty-state"><i className="fa-solid fa-play text-4xl mb-4"></i><h4 className="font-bold">Execute this node to view data</h4><button className="mock-data-btn">or set mock data</button></div>)}

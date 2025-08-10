@@ -25,10 +25,14 @@ import { CustomLogicNode } from '../nodes';
 import { ConfigPanel } from '../panels';
 import { getId } from '../../utils';
 import WorkflowExecutor from '../../utils/workflowExecutor';
+import { API_BASE_URL } from '../../config/api.js';
 import '../../styles/index.css';
 
 // Register the custom node type so ReactFlow knows how to render it.
 const nodeTypes = { custom: CustomLogicNode };
+
+// API base URL
+const API_BASE = API_BASE_URL;
 
 const App = () => {
   const navigate = useNavigate();
@@ -264,81 +268,77 @@ const App = () => {
       return;
     }
 
+    // Check if workflow has trigger nodes
+    const triggerNodes = nodes.filter(node => 
+      node.data.type === 'chatTrigger' || node.data.type === 'telegramTrigger'
+    );
+
+    if (triggerNodes.length === 0) {
+      alert('Workflow must contain at least one trigger node (Chat Trigger or Telegram Trigger) to be activated.');
+      return;
+    }
+
+    // Ensure workflow has an ID - generate one if needed
+    let workflowId = currentWorkflowId;
+    if (!workflowId) {
+      workflowId = generateWorkflowId();
+      setCurrentWorkflowId(workflowId);
+    }
+
     setIsExecuting(true);
-    setIsActivated(true);
-    setExecutionProgress('Initializing workflow execution...');
+    setExecutionProgress('Activating workflow...');
 
     try {
-      // Create workflow executor
-      const executor = new WorkflowExecutor(
-        nodes, 
-        edges, 
-        (progress) => {
-          setExecutionProgress(progress);
-        }
-      );
+      // Call the activation endpoint instead of executing immediately
+      const workflowData = {
+        nodes: nodes,
+        edges: edges
+      };
 
-      setWorkflowExecutor(executor);
-
-      // Execute the entire workflow
-      const result = await executor.executeWorkflow();
-      
-      // Update nodes with execution results
-      setNodes(prevNodes => 
-        prevNodes.map(node => {
-          const nodeResult = result.results.find(r => r.nodeId === node.id);
-          if (nodeResult && nodeResult.success) {
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                outputData: nodeResult.result.result || nodeResult.result.data || nodeResult.result,
-                lastExecuted: new Date().toISOString(),
-                executionCount: (node.data.executionCount || 0) + 1,
-                executionStatus: 'completed'
-              }
-            };
-          } else if (nodeResult && !nodeResult.success) {
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                executionStatus: 'failed',
-                executionError: nodeResult.error
-              }
-            };
-          }
-          return node;
+      const response = await fetch(`${API_BASE}/api/workflows/${workflowId}/activate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          workflow: workflowData
         })
-      );
+      });
 
-      setExecutionProgress(`✅ Workflow completed! ${result.successfulNodes}/${result.totalNodes} nodes executed successfully`);
-      
-      // Show completion message
-      setTimeout(() => {
-        alert(`🚀 Workflow "${workflowName}" executed successfully!\n\n` +
-              `✅ Successful nodes: ${result.successfulNodes}\n` +
-              `❌ Failed nodes: ${result.failedNodes}\n` +
-              `📊 Total execution time: ${((Date.now() - Date.now()) / 1000).toFixed(1)}s`);
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setIsActivated(true);
+        setExecutionProgress(`✅ Workflow activated! Listening for triggers...`);
         
-        setExecutionProgress('');
-      }, 2000);
+        // Show activation success with trigger URLs
+        let message = result.message + '\n\n';
+        if (result.triggerUrls && result.triggerUrls.length > 0) {
+          message += 'Trigger URLs:\n';
+          result.triggerUrls.forEach(trigger => {
+            if (trigger.type === 'chatTrigger') {
+              message += `• Chat Trigger: ${trigger.hostedChatUrl}\n`;
+            } else if (trigger.type === 'telegramTrigger') {
+              message += `• Telegram Webhook: ${trigger.webhookUrl}\n`;
+            }
+          });
+        }
+        
+        alert(message);
+        setIsExecuting(false);
+      } else {
+        throw new Error(result.message || 'Failed to activate workflow');
+      }
 
     } catch (error) {
-      console.error('Workflow execution failed:', error);
-      setExecutionProgress(`❌ Execution failed: ${error.message}`);
-      
-      setTimeout(() => {
-        alert(`❌ Workflow execution failed: ${error.message}`);
-        setExecutionProgress('');
-      }, 2000);
-    } finally {
+      console.error('❌ Workflow activation failed:', error);
+      setExecutionProgress(`❌ Activation failed: ${error.message}`);
+      alert(`❌ Workflow activation failed:\n${error.message}`);
       setIsExecuting(false);
-      setTimeout(() => {
-        setIsActivated(false);
-      }, 3000);
+      setIsActivated(false);
     }
-  }, [nodes, edges, workflowName, setNodes]);
+  }, [nodes, edges, workflowName, currentWorkflowId, generateWorkflowId]);
 
   const handleStopExecution = useCallback(() => {
     if (workflowExecutor && workflowExecutor.isRunning()) {

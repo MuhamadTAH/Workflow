@@ -19,16 +19,29 @@ class ChatTriggerResponseNode {
     };
   }
 
-  async execute(input) {
-    const sessionId = input.sessionId;
-    const message = input.message;
+  async execute(config, inputData, executionContext) {
+    // Extract parameters from config (node configuration)
+    const sessionId = config.sessionId;
+    const message = config.message;
+
+    console.log('🗣️ Chat Trigger Response executing with:');
+    console.log('  - Config:', JSON.stringify(config, null, 2));
+    console.log('  - Input Data:', JSON.stringify(inputData, null, 2));
+    console.log('  - Resolved sessionId:', sessionId);
+    console.log('  - Resolved message:', message);
 
     if (!sessionId || !message) {
       throw new Error('Session ID and Message are required');
     }
 
     storeMessage(sessionId, message);
-    return { success: true };
+    
+    return { 
+      success: true, 
+      data: { sessionId, message, storedAt: new Date().toISOString() },
+      nodeType: this.type,
+      message: 'Response stored for chat session'
+    };
   }
 }
 

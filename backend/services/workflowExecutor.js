@@ -36,10 +36,11 @@ class WorkflowExecutor {
         // Find trigger node (various types)
         const triggerNode = workflowConfig.nodes.find(node => 
             node.data.type === 'trigger' || 
-            node.data.type === 'telegramTrigger'
+            node.data.type === 'telegramTrigger' ||
+            node.data.type === 'chatTrigger'
         );
         if (!triggerNode) {
-            throw new Error('Workflow must contain a trigger node (trigger or telegramTrigger)');
+            throw new Error('Workflow must contain a trigger node (trigger, telegramTrigger, or chatTrigger)');
         }
 
         console.log(`Found trigger node: ${triggerNode.data.label || triggerNode.data.type} (${triggerNode.id})`);

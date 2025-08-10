@@ -107,16 +107,32 @@ class WorkflowExecutor {
     return inputData.length > 0 ? inputData : [{}];
   }
 
-  // Generate sample trigger data for testing
+  // Generate sample trigger data for testing (matches Chat Trigger node output format)
   generateTriggerData() {
+    const mockSessionId = `workflow-session-${Date.now()}`;
     return [{
-      message: "Test message for workflow execution",
-      user: {
-        id: "test-user",
-        name: "Test User"
+      text: "Hello! This is a test message for workflow execution.",
+      userId: "test-user-123",
+      sessionId: mockSessionId,
+      source: "manual_trigger",
+      metadata: {
+        page: window.location.href,
+        workflowId: "test-workflow",
+        nodeId: "test-chat-trigger"
       },
-      timestamp: new Date().toISOString(),
-      source: "manual_trigger"
+      message: {
+        from: {
+          id: "test-user-123",
+          first_name: "Test",
+          last_name: "User"
+        },
+        chat: {
+          id: mockSessionId,
+          type: "private"
+        },
+        text: "Hello! This is a test message for workflow execution."
+      },
+      timestamp: new Date().toISOString()
     }];
   }
 
