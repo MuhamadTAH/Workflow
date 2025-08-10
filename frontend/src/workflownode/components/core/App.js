@@ -25,7 +25,7 @@ import { CustomLogicNode } from '../nodes';
 import { ConfigPanel } from '../panels';
 import { getId } from '../../utils';
 import WorkflowExecutor from '../../utils/workflowExecutor';
-import { API_BASE_URL } from '../../config/api.js';
+import { API_BASE_URL } from '../../../config/api.js';
 import '../../styles/index.css';
 
 // Register the custom node type so ReactFlow knows how to render it.
