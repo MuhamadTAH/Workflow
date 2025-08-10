@@ -360,34 +360,94 @@ router.get('/test-chat', (req, res) => {
 
 // REMOVED: Old problematic webhook route that was causing 500 errors
 
-// Minimal POST route for chat messages  
-router.post('/chatTrigger/:workflowId/:nodeId/:path', (req, res) => {
-  console.log('📥 Chat webhook hit:', req.params);
-  console.log('📝 Message:', req.body);
-  
+// Enhanced debug-friendly webhook handler for Chat Trigger
+router.post('/chatTrigger/:workflowId/:nodeId/:path', async (req, res) => {
   try {
     const { workflowId, nodeId } = req.params;
-    const messageText = req.body?.text || 'No message';
-    
-    // Simple message storage
+    const key = `${workflowId}-${nodeId}`;
+
+    // Debug log incoming request
+    console.info('[webhook] Chat Trigger incoming request', { 
+      workflowId, 
+      nodeId, 
+      path: req.params.path, 
+      ip: req.ip,
+      bodyKeys: Object.keys(req.body || {})
+    });
+
+    // Check if Chat Trigger node instance exists
+    if (!chatTriggerNode) {
+      console.error('[webhook] ChatTriggerNode instance not available');
+      return res.status(500).json({ 
+        error: 'ChatTriggerNode instance not initialized' 
+      });
+    }
+
+    // 1) Process webhook data (normalize) - wrapped in try/catch
+    let processed;
+    try {
+      processed = await chatTriggerNode.processWebhookData({
+        body: req.body,
+        headers: req.headers,
+        query: req.query,
+        method: req.method,
+        ip: req.ip
+      }, {});
+      console.log('[webhook] Processed data:', JSON.stringify(processed, null, 2));
+    } catch (err) {
+      console.error('[webhook] processWebhookData threw:', err && err.stack ? err.stack : err);
+      return res.status(500).json({ 
+        error: { 
+          message: 'processWebhookData error', 
+          detail: err.message 
+        }
+      });
+    }
+
+    // Store the processed message for node retrieval
     const nodeMessages = req.app.get('nodeMessages');
     if (nodeMessages) {
-      const key = `${workflowId}-${nodeId}`;
       if (!nodeMessages.has(key)) {
         nodeMessages.set(key, []);
       }
       nodeMessages.get(key).push({
-        text: messageText,
-        userId: req.body?.userId || 'user-' + Date.now(),
-        timestamp: new Date().toISOString()
+        text: processed.json.text,
+        userId: processed.json.userId || 'user-' + Date.now(),
+        sessionId: processed.json.sessionId,
+        source: processed.json.source,
+        metadata: processed.json.metadata,
+        timestamp: processed.timestamp,
+        raw: processed.json.raw
       });
-      console.log('💾 Message stored for', key);
+      console.log('[webhook] Message stored for key:', key);
     }
-    
-    res.json({ success: true, message: 'Message received' });
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: error.message });
+
+    // If debug flag provided, return processed payload directly for inspection
+    if (req.query._debug === '1' || req.headers['x-debug'] === '1') {
+      return res.status(200).json({ 
+        ok: true, 
+        debugProcessed: processed,
+        storedMessages: nodeMessages?.get(key)?.length || 0
+      });
+    }
+
+    // 2) For now, just return success - workflow execution will be handled by the workflow builder
+    // In a full implementation, this would trigger workflow execution via global.runWorkflow
+    return res.status(200).json({ 
+      ok: true, 
+      message: 'Chat message received and stored',
+      data: processed.json
+    });
+
+  } catch (err) {
+    console.error('[webhook] Unexpected error:', err && err.stack ? err.stack : err);
+    return res.status(500).json({ 
+      ok: false, 
+      error: { 
+        message: 'Internal server error',
+        detail: err.message
+      }
+    });
   }
 });
 
@@ -448,6 +508,15 @@ router.get('/chat-trigger-status/:workflowId/:nodeId', (req, res) => {
     webhook: webhook || null,
     workflowId,
     nodeId
+  });
+});
+
+// Dev-only route to test runWorkflow existence
+router.get('/_dev/check-runWorkflow', (req, res) => {
+  res.json({ 
+    hasRunWorkflow: typeof global.runWorkflow === 'function',
+    workflowExecutorAvailable: !!workflowExecutor,
+    chatTriggerNodeAvailable: !!chatTriggerNode
   });
 });
 
