@@ -340,6 +340,43 @@ const App = () => {
     }
   }, [nodes, edges, workflowName, currentWorkflowId, generateWorkflowId]);
 
+  const handleDeactivate = useCallback(async () => {
+    if (!currentWorkflowId) {
+      alert('No workflow ID found for deactivation.');
+      return;
+    }
+
+    setIsExecuting(true);
+    setExecutionProgress('Deactivating workflow...');
+
+    try {
+      const response = await fetch(`${API_BASE}/api/workflows/${currentWorkflowId}/deactivate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setIsActivated(false);
+        setExecutionProgress('');
+        alert(`✅ ${result.message}`);
+      } else {
+        throw new Error(result.message || 'Failed to deactivate workflow');
+      }
+
+    } catch (error) {
+      console.error('❌ Workflow deactivation failed:', error);
+      setExecutionProgress(`❌ Deactivation failed: ${error.message}`);
+      alert(`❌ Workflow deactivation failed:\n${error.message}`);
+    } finally {
+      setIsExecuting(false);
+    }
+  }, [currentWorkflowId]);
+
   const handleStopExecution = useCallback(() => {
     if (workflowExecutor && workflowExecutor.isRunning()) {
       workflowExecutor.stop();
@@ -371,6 +408,7 @@ const App = () => {
       <Toolbar
         onSave={handleSave}
         onActivate={handleActivate}
+        onDeactivate={handleDeactivate}
         onStopExecution={handleStopExecution}
         onClear={handleClear}
         onUndo={handleUndo}

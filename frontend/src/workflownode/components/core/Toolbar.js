@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 const Toolbar = ({ 
     onSave, 
     onActivate, 
+    onDeactivate,
     onStopExecution,
     onClear, 
     onUndo, 
@@ -74,15 +75,15 @@ const Toolbar = ({
                         </button>
                     ) : (
                         <button 
-                            className={`toolbar-btn ${isActivated ? 'success' : 'primary'}`}
-                            onClick={onActivate}
+                            className={`toolbar-btn ${isActivated ? 'danger' : 'primary'}`}
+                            onClick={isActivated ? onDeactivate : onActivate}
                             disabled={isExecuting}
-                            title="Activate and run entire workflow automatically"
+                            title={isActivated ? "Deactivate workflow (stop listening for triggers)" : "Activate workflow (start listening for triggers)"}
                         >
                             {isActivated ? (
                                 <>
-                                    <i className="fa-solid fa-check-circle"></i>
-                                    Activated
+                                    <i className="fa-solid fa-stop-circle"></i>
+                                    Deactivate
                                 </>
                             ) : (
                                 <>
