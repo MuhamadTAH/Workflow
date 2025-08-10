@@ -31,25 +31,13 @@ const activateWorkflow = async (req, res) => {
             return res.status(400).json({ message: 'Complete workflow data (nodes and edges) is required for activation.' });
         }
 
-        // Debug: Log what we received
-        console.log('🔍 WORKFLOW DEBUG:', {
-            workflowId,
-            workflowKeys: Object.keys(workflow),
-            nodesCount: workflow.nodes?.length || 0,
-            edgesCount: workflow.edges?.length || 0,
-            nodeTypes: workflow.nodes?.map(n => `${n.data?.type} (${n.id})`) || []
-        });
-
         // Find trigger nodes in the workflow
         const triggerNodes = workflow.nodes.filter(node => 
             node.data.type === 'chatTrigger' || node.data.type === 'telegramTrigger'
         );
 
-        console.log('🔍 TRIGGER NODES FOUND:', triggerNodes.map(n => `${n.data.type} (${n.id})`));
-
         if (triggerNodes.length === 0) {
-            console.log('❌ NO TRIGGER NODES - Available node types:', workflow.nodes?.map(n => n.data?.type));
-            return res.status(400).json({ message: 'A valid trigger node is required to activate.' });
+            return res.status(400).json({ message: 'Workflow must contain at least one trigger node (Chat Trigger or Telegram Trigger).' });
         }
 
         console.log(`🔄 Activating workflow ${workflowId}...`);
