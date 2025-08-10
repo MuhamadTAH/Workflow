@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { tokenManager, shopAPI } from '../../../api';
+import { API_BASE_URL } from '../../../config/api.js';
 import { 
   FaPlus, 
   FaImage, 
@@ -209,7 +210,7 @@ function AddProduct() {
         formData.append('image', file);
         
         // Upload to backend
-        const response = await fetch('http://localhost:3001/api/uploads/product-image', {
+        const response = await fetch(`${API_BASE_URL}/api/uploads/product-image`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${tokenManager.getToken()}`
@@ -335,7 +336,7 @@ function AddProduct() {
     // If image has a filename (was uploaded to server), delete from server
     if (imageToRemove?.filename) {
       try {
-        await fetch(`http://localhost:3001/api/uploads/product-image/${imageToRemove.filename}`, {
+        await fetch(`${API_BASE_URL}/api/uploads/product-image/${imageToRemove.filename}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${tokenManager.getToken()}`
@@ -360,7 +361,7 @@ function AddProduct() {
     // If video has a filename (was uploaded to server), delete from server
     if (videoToRemove?.filename) {
       try {
-        await fetch(`http://localhost:3001/api/uploads/product-video/${videoToRemove.filename}`, {
+        await fetch(`${API_BASE_URL}/api/uploads/product-video/${videoToRemove.filename}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${tokenManager.getToken()}`

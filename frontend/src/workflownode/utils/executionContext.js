@@ -6,9 +6,11 @@ n8n-style execution context engine with isolated node contexts
 */
 
 // Environment variables simulation (in real app, these come from backend)
+import { API_BASE_URL } from '../../config/api.js';
+
 const ENV_VARIABLES = {
-  NODE_ENV: 'development',
-  API_BASE: 'https://workflow-lg9z.onrender.com',
+  NODE_ENV: import.meta.env.MODE || 'development',
+  API_BASE: API_BASE_URL,
   WORKFLOW_VERSION: '1.0.0'
 };
 

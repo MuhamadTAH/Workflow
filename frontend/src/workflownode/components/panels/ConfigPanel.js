@@ -8,6 +8,7 @@ drag-and-drop functionality.
 */
 import React, { useState, useEffect } from 'react';
 import { createExecutionContext } from '../../utils/executionContext';
+import { API_BASE_URL } from '../../../config/api.js';
 
 // Legacy resolveExpression function for backwards compatibility
 // TODO: Remove this once all components are migrated to ExecutionContext
@@ -787,7 +788,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
 
     try {
         // Always use production backend (as per deployment setup)
-        const API_BASE = 'https://workflow-lg9z.onrender.com';
+        const API_BASE = API_BASE_URL;
         
         // Use the new n8n-style execution context route for all nodes
         let endpoint = `${API_BASE}/api/nodes/run-node`;
@@ -949,7 +950,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                                             onClick={async () => {
                                                 try {
                                                     setTokenCheck({ status: 'checking', message: '' });
-                                                    const API_BASE = 'https://workflow-lg9z.onrender.com';
+                                                    const API_BASE = API_BASE_URL;
                                                     // Use auth namespace as temporary workaround
                                                     const res = await fetch(`${API_BASE}/api/verify-claude`, {
                                                         method: 'POST',
@@ -1066,7 +1067,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                                             try {
                                                 setTokenCheck({ status: 'checking', message: '' });
                                                 // Always use production backend (as per deployment setup)
-                                                const API_BASE = 'https://workflow-lg9z.onrender.com';
+                                                const API_BASE = API_BASE_URL;
                                                 const res = await fetch(`${API_BASE}/api/nodes/validate-telegram-token`, {
                                                     method: 'POST',
                                                     headers: { 'Content-Type': 'application/json' },
@@ -1108,7 +1109,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                                                 setTokenCheck({ status: 'checking', message: 'Fetching real messages...' });
                                                 
                                                 // Always use production backend
-                                                const API_BASE = 'https://workflow-lg9z.onrender.com';
+                                                const API_BASE = API_BASE_URL;
                                                 const response = await fetch(`${API_BASE}/api/nodes/telegram-get-updates`, {
                                                     method: 'POST',
                                                     headers: { 'Content-Type': 'application/json' },
@@ -1218,7 +1219,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                                 <div className="webhook-info" style={{ background: '#f8f9fa', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
                                     <strong>Webhook URL:</strong><br/>
                                     <code style={{ wordBreak: 'break-all' }}>
-                                        https://workflow-lg9z.onrender.com/api/webhooks/chatTrigger/test-workflow/{node.id}/{formData.webhookPath || 'chat'}
+                                        {API_BASE_URL}/api/webhooks/chatTrigger/test-workflow/{node.id}/{formData.webhookPath || 'chat'}
                                     </code>
                                     <br/><br/>
                                     
@@ -1226,7 +1227,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                                         <>
                                             <strong>Hosted Chat URL:</strong><br/>
                                             <code style={{ wordBreak: 'break-all' }}>
-                                                https://workflow-lg9z.onrender.com/chat/test-workflow/{node.id}/{formData.webhookPath || 'chat'}?title={encodeURIComponent(formData.chatTitle || 'Chat Support')}
+                                                {API_BASE_URL}/chat/test-workflow/{node.id}/{formData.webhookPath || 'chat'}?title={encodeURIComponent(formData.chatTitle || 'Chat Support')}
                                             </code>
                                             <br/><br/>
                                         </>
@@ -1242,7 +1243,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
 <script>
 window.addEventListener('DOMContentLoaded', () => {
   createChat({
-    webhookUrl: 'https://workflow-lg9z.onrender.com/api/webhooks/chatTrigger/{workflow-id}/${node.id}/${formData.webhookPath || "chat"}',
+    webhookUrl: '${API_BASE_URL}/api/webhooks/chatTrigger/{workflow-id}/${node.id}/${formData.webhookPath || "chat"}',
     target: '#n8n-chat'
   });
 });

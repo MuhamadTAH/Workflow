@@ -5,9 +5,9 @@ FILE: frontend/src/workflownode/utils/workflowExecutor.js
 Workflow execution engine for automatic step-by-step processing
 */
 
-const API_BASE = process.env.NODE_ENV === 'production' 
-  ? 'https://workflow-lg9z.onrender.com'
-  : 'http://localhost:3001';
+import { API_BASE_URL } from '../../config/api.js';
+
+const API_BASE = API_BASE_URL;
 
 class WorkflowExecutor {
   constructor(nodes, edges, onProgress = null) {

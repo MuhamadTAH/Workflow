@@ -2,10 +2,12 @@
 =================================================================
 FILE: workflownode/constants/apiEndpoints.js
 =================================================================
-Backend API endpoint definitions
+Backend API endpoint definitions - Updated to use centralized config
 */
 
-const API_BASE = '/api';
+import { API_BASE_URL } from '../../config/api.js';
+
+const API_BASE = `${API_BASE_URL}/api`;
 
 export const API_ENDPOINTS = {
   // Node execution
