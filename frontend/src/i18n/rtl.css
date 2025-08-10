@@ -1,0 +1,123 @@
+/* RTL Support for Arabic and other RTL languages */
+[dir="rtl"] {
+  direction: rtl;
+}
+
+[dir="rtl"] .nav-container {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .nav-user {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .hero-actions {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .btn {
+  text-align: center;
+}
+
+[dir="rtl"] .stats-grid {
+  direction: rtl;
+}
+
+[dir="rtl"] .stat-card {
+  text-align: right;
+}
+
+[dir="rtl"] .content-grid {
+  direction: rtl;
+}
+
+[dir="rtl"] .actions-grid {
+  direction: rtl;
+}
+
+[dir="rtl"] .activity-list {
+  direction: rtl;
+}
+
+[dir="rtl"] .activity-item {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] .profile-row {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] .footer-links {
+  flex-direction: row-reverse;
+}
+
+/* Language switcher RTL adjustments */
+[dir="rtl"] .language-switcher {
+  direction: ltr; /* Keep dropdown in LTR for better UX */
+}
+
+/* Workflow builder RTL support */
+[dir="rtl"] .workflow-canvas {
+  direction: ltr; /* Keep workflow canvas in LTR for node connections */
+}
+
+[dir="rtl"] .sidebar {
+  direction: rtl;
+}
+
+[dir="rtl"] .node-list {
+  text-align: right;
+}
+
+/* Chat interface RTL */
+[dir="rtl"] .chat-container {
+  direction: rtl;
+}
+
+[dir="rtl"] .chat-message {
+  text-align: right;
+}
+
+[dir="rtl"] .chat-input {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Connections page RTL */
+[dir="rtl"] .connection-card {
+  text-align: right;
+}
+
+[dir="rtl"] .platform-name {
+  text-align: right;
+}
+
+/* General typography adjustments for RTL */
+[dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
+  text-align: right;
+}
+
+[dir="rtl"] p {
+  text-align: right;
+}
+
+[dir="rtl"] .text-left {
+  text-align: right !important;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left !important;
+}
+
+/* Button adjustments for RTL */
+[dir="rtl"] .btn i {
+  margin-left: 0.5rem;
+  margin-right: 0;
+}
+
+[dir="rtl"] .btn i.fa-plus,
+[dir="rtl"] .btn i.fa-list {
+  order: 2;
+}

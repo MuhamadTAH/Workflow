@@ -1,0 +1,132 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "yes": "Yes",
+    "no": "No",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "clear": "Clear",
+    "submit": "Submit",
+    "welcome": "Welcome back, {{name}}",
+    "dashboardSubtitle": "Monitor your automation empire and scale your workflows",
+    "viewAll": "View All"
+  },
+  "navigation": {
+    "home": "Home",
+    "workflows": "Workflows",
+    "connections": "Connections",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "login": "Login",
+    "signup": "Sign Up"
+  },
+  "workflow": {
+    "title": "Workflow Builder",
+    "create": "Create New Workflow",
+    "edit": "Edit Workflow",
+    "save": "Save Workflow",
+    "activate": "Activate Workflow",
+    "deactivate": "Deactivate Workflow",
+    "delete": "Delete Workflow",
+    "nodes": "Nodes",
+    "connections": "Connections",
+    "settings": "Settings",
+    "run": "Run Workflow",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "running": "Running",
+      "completed": "Completed",
+      "failed": "Failed"
+    }
+  },
+  "nodes": {
+    "chatTrigger": "Chat Trigger",
+    "chatTriggerResponse": "Chat Trigger Response",
+    "telegramTrigger": "Telegram Trigger",
+    "telegramSendMessage": "Send Telegram Message",
+    "aiAgent": "AI Agent",
+    "dataStorage": "Data Storage",
+    "googleDocs": "Google Docs",
+    "ifCondition": "If Condition",
+    "switch": "Switch",
+    "filter": "Filter",
+    "categories": {
+      "triggers": "Triggers",
+      "actions": "Actions",
+      "logic": "Logic",
+      "ai": "AI",
+      "storage": "Storage",
+      "social": "Social Media"
+    }
+  },
+  "chat": {
+    "placeholder": "Type your message...",
+    "send": "Send",
+    "sessionEnded": "Chat session ended - workflow deactivated",
+    "connecting": "Connecting...",
+    "connected": "Connected",
+    "disconnected": "Disconnected"
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "name": "Full Name",
+    "forgotPassword": "Forgot Password?",
+    "createAccount": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "loginSuccess": "Login successful",
+    "signupSuccess": "Account created successfully",
+    "loginError": "Login failed",
+    "signupError": "Account creation failed"
+  },
+  "connections": {
+    "title": "Social Media Connections",
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "connected": "Connected",
+    "notConnected": "Not Connected",
+    "platforms": {
+      "telegram": "Telegram",
+      "whatsapp": "WhatsApp",
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "twitter": "Twitter/X",
+      "linkedin": "LinkedIn",
+      "tiktok": "TikTok",
+      "youtube": "YouTube"
+    }
+  },
+  "language": {
+    "select": "Select Language",
+    "english": "English",
+    "arabic": "العربية",
+    "spanish": "Español",
+    "french": "Français"
+  },
+  "messages": {
+    "workflowSaved": "Workflow saved successfully",
+    "workflowActivated": "Workflow activated successfully",
+    "workflowDeactivated": "Workflow deactivated successfully",
+    "connectionSuccess": "Connected successfully",
+    "connectionError": "Connection failed",
+    "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?",
+    "deleteConfirm": "Are you sure you want to delete this item?"
+  }
+}

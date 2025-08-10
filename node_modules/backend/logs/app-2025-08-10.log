@@ -1,0 +1,14 @@
+{"timestamp":"2025-08-10T13:29:52.106Z","level":"INFO","message":"Workflow engine initialized"}
+{"timestamp":"2025-08-10T13:29:52.170Z","level":"INFO","message":"Backend server started on port 3001","port":"3001"}
+{"timestamp":"2025-08-10T13:30:13.665Z","level":"INFO","message":"Incoming request","method":"POST","url":"/api/workflows/test123/activate","ip":"::1","userAgent":"curl/8.14.1"}
+{"timestamp":"2025-08-10T13:30:13.689Z","level":"INFO","message":"Request completed","method":"POST","url":"/test123/activate","status":500,"duration":"24ms"}
+{"timestamp":"2025-08-10T13:30:55.615Z","level":"INFO","message":"Workflow engine initialized"}
+{"timestamp":"2025-08-10T13:31:31.572Z","level":"INFO","message":"Workflow engine initialized"}
+{"timestamp":"2025-08-10T13:31:31.665Z","level":"INFO","message":"Backend server started on port 3001","port":"3001"}
+{"timestamp":"2025-08-10T13:31:53.142Z","level":"INFO","message":"Incoming request","method":"POST","url":"/api/workflows/test123/activate","ip":"::1","userAgent":"curl/8.14.1"}
+{"timestamp":"2025-08-10T13:31:53.172Z","level":"INFO","message":"Request completed","method":"POST","url":"/test123/activate","status":200,"duration":"30ms"}
+{"timestamp":"2025-08-10T13:32:35.324Z","level":"INFO","message":"Workflow engine initialized"}
+{"timestamp":"2025-08-10T13:33:07.005Z","level":"INFO","message":"Workflow engine initialized"}
+{"timestamp":"2025-08-10T13:33:07.059Z","level":"INFO","message":"Backend server started on port 3001","port":"3001"}
+{"timestamp":"2025-08-10T13:33:24.837Z","level":"INFO","message":"Incoming request","method":"POST","url":"/api/workflows/test123/activate","ip":"::1","userAgent":"curl/8.14.1"}
+{"timestamp":"2025-08-10T13:33:24.873Z","level":"INFO","message":"Request completed","method":"POST","url":"/test123/activate","status":200,"duration":"36ms"}
