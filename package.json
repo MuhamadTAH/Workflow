@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "description": "Full-stack workflow builder platform",
   "scripts": {
-    "install": "cd frontend && npm install",
-    "build": "cd frontend && npm run build",
+    "build": "cd frontend && npm install && npm run build",
     "start": "cd frontend && npm run preview",
     "dev": "cd frontend && npm run dev"
   },
