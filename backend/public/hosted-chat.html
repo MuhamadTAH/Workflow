@@ -119,6 +119,20 @@
         async function pollReplies(sessionId) {
             try {
                 const res = await fetch(`https://workflow-lg9z.onrender.com/api/chat-messages/${sessionId}`);
+                
+                // If request fails (e.g., 404 when no active workflows), stop polling
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({}));
+                    if (errorData.shouldStopPolling) {
+                        console.log('🛑 Stopping polling - no active workflows');
+                        clearInterval(pollingInterval);
+                        pollingInterval = null;
+                        addMessageToChat('bot', '❌ Chat session ended - workflow deactivated');
+                        return;
+                    }
+                    throw new Error(`HTTP ${res.status}: ${errorData.error || 'Unknown error'}`);
+                }
+                
                 const data = await res.json();
                 if (data.messages && data.messages.length > 0) {
                     data.messages.forEach(msg => {
@@ -127,6 +141,7 @@
                 }
             } catch (err) {
                 console.error('Error polling replies:', err);
+                // For network errors, don't stop polling immediately - could be temporary
             }
         }
 

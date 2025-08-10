@@ -363,7 +363,7 @@ const App = () => {
       if (response.ok && result.success) {
         setIsActivated(false);
         setExecutionProgress('');
-        alert(`✅ ${result.message}`);
+        alert(`✅ Workflow deactivated successfully! No longer listening for triggers.`);
       } else {
         throw new Error(result.message || 'Failed to deactivate workflow');
       }
