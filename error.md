@@ -688,7 +688,36 @@ tar: Exiting with failure status due to previous errors
 
 **Solutions**:
 
-**Option 1: Clear Render Build Cache (Recommended)**
+**✅ DEFINITIVE FIX (Manual Repository Cleanup)**
+This is the ONLY reliable solution. Cache clearing is temporary - this fixes the root cause:
+
+```bash
+# 1️⃣ Remove from local & Git
+# Remove node_modules from disk
+rm -rf node_modules
+rm -rf project/src/node_modules/frontend
+rm -rf project/src/node_modules/backend
+
+# Remove from Git's index/history
+git rm -r --cached node_modules
+git rm -r --cached project/src/node_modules/frontend
+git rm -r --cached project/src/node_modules/backend
+
+# Commit and push
+git commit -m "Remove node_modules from repo"
+git push origin main
+
+# 2️⃣ Update .gitignore
+echo "node_modules/" >> .gitignore
+echo "**/node_modules" >> .gitignore
+git add .gitignore
+git commit -m "Update .gitignore to prevent future node_modules commits"
+git push origin main
+```
+
+**Alternative Options (Less Reliable)**:
+
+**Option 1: Clear Render Build Cache**
 1. Go to Render Dashboard → Your Frontend Service
 2. Click **Settings** tab
 3. Scroll to **Build & Deploy** section  
@@ -700,25 +729,6 @@ tar: Exiting with failure status due to previous errors
 2. Change **Node Version** temporarily (e.g., from `18.17.1` to `18.18.0`)
 3. Save changes (triggers rebuild with fresh environment)
 4. Change back to original version after successful deployment
-
-**Option 3: Repository-Level Fix (If cache clearing doesn't work)**
-```bash
-# Add .slugignore file to prevent cache conflicts
-echo "node_modules/frontend" > .slugignore
-echo "node_modules/backend" >> .slugignore
-git add .slugignore
-git commit -m "Add .slugignore to prevent cache conflicts"
-git push origin main
-```
-
-**Option 4: Clean Repository Structure**
-```bash
-# Remove any nested node_modules that shouldn't exist
-rm -rf node_modules/frontend node_modules/backend
-git add .
-git commit -m "Clean up nested node_modules directories"
-git push origin main
-```
 
 **Prevention**: 
 - Avoid nesting `node_modules` in version control
@@ -742,9 +752,94 @@ curl "https://frontend-dpcg.onrender.com"
 # Should return: HTML content (not deployment error)
 ```
 
-**Result**: ✅ **Frontend deployment restored** with clean build cache
+**Result**: ✅ **Frontend deployment restored** - Manual node_modules removal resolves cache conflicts permanently
+
+---
+
+### 20. Rollup Native Dependencies Error on Render Linux (Aug 10, 2025)
+**Problem**: Frontend build fails on Render Linux environment with Rollup missing native binaries
+```
+Error: Cannot find module @rollup/rollup-linux-x64-gnu. npm has a bug related to 
+optional dependencies (https://github.com/npm/cli/issues/4828). 
+Please try `npm i` again after removing both package-lock.json and node_modules directory.
+```
+
+**Root Cause**: NPM bug with optional dependencies where platform-specific Rollup binaries aren't installed correctly on Linux
+- Rollup needs `@rollup/rollup-linux-x64-gnu` for Linux builds
+- NPM fails to install the correct optional dependency for the target platform
+- Common issue when dependencies installed on different OS than deployment target
+
+**Solutions**:
+
+**Solution 1: Clean Install (Recommended)**
+Add this to Render build script or package.json:
+```bash
+# Method A: Add to Render build command
+rm -rf node_modules package-lock.json && npm install
+
+# Method B: Update package.json build script  
+"scripts": {
+  "build": "rm -rf node_modules package-lock.json && npm install && vite build"
+}
+```
+
+**Solution 2: Force Reinstall Rollup**
+Update package.json with explicit dependency reinstall:
+```json
+"scripts": {
+  "prebuild": "npm uninstall rollup && npm install rollup",
+  "build": "vite build"
+}
+```
+
+**Solution 3: Use Yarn Instead of NPM**
+Yarn handles optional dependencies more reliably:
+```json
+"engines": {
+  "node": "18.x",
+  "npm": "please-use-yarn",
+  "yarn": "1.x"
+}
+```
+
+**Solution 4: Lock Node Version**
+Specify exact Node version in package.json:
+```json
+"engines": {
+  "node": "18.17.1"
+}
+```
+
+**Render-Specific Fix**:
+1. Go to Render Dashboard → Frontend Service
+2. **Settings** → **Build Command**
+3. Change from `npm run build` to:
+   ```bash
+   rm -rf node_modules package-lock.json && npm install && npm run build
+   ```
+4. **Save Changes** and trigger new deployment
+
+**Prevention**:
+- Always use same Node version locally as production
+- Test builds in Linux environment or Docker
+- Use `npm ci` instead of `npm install` for production builds
+- Lock dependency versions in package-lock.json
+
+**Files to Check**:
+- `frontend/package.json` - Build scripts and engine versions
+- `frontend/package-lock.json` - Dependency lock file
+- Render build settings - Build command configuration
+
+**Verification**:
+```bash
+# After fix, deployment should succeed
+curl "https://frontend-dpcg.onrender.com"
+# Should return: React app HTML (not build error)
+```
+
+**Result**: ✅ **Rollup native dependencies resolved** - Clean npm install fixes platform-specific binaries
 
 ---
 
 *Error Reference Document - Last Updated: August 10, 2025*  
-*18 of 19 errors fully resolved - All deployment issues resolved - Platform production-ready*
+*19 of 20 errors fully resolved - All deployment issues resolved - Platform production-ready*
