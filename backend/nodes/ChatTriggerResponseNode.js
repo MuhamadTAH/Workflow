@@ -31,10 +31,13 @@ class ChatTriggerResponseNode {
     console.log('  - Resolved message:', message);
 
     if (!sessionId || !message) {
+      console.error('❌ Chat Trigger Response FAILED - missing sessionId or message');
       throw new Error('Session ID and Message are required');
     }
 
+    console.log(`📤 Storing message for session ${sessionId}: "${message}"`);
     storeMessage(sessionId, message);
+    console.log('✅ Chat Trigger Response message stored successfully');
     
     return { 
       success: true, 
