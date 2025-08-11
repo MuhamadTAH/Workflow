@@ -17,7 +17,17 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 1000 // Raise warning limit to 1000 KB to silence chunk size warnings
+    chunkSizeWarningLimit: 1000, // Raise warning limit to 1000 KB to silence chunk size warnings
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom']
+        }
+      }
+    },
+    target: 'esnext',
+    minify: 'esbuild'
   },
   server: {
     proxy: {
