@@ -1,0 +1,6 @@
+frontend/
+WorkflowBuilder-Platform/
+workflownode/
+node_modules/
+*.md
+.git/

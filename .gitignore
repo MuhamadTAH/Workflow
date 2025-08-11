@@ -1,7 +1,6 @@
-# Dependencies
+# Dependencies - NEVER commit node_modules
 node_modules/
-*/node_modules/
-**/node_modules/
+**/node_modules
 
 # Production builds
 /build/

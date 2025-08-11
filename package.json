@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "description": "Full-stack workflow builder platform",
   "scripts": {
-    "build": "cd frontend && npm install && npm run build",
-    "start": "cd frontend && npm run preview",
-    "dev": "cd frontend && npm run dev"
+    "build": "cd backend && npm install",
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm run dev"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/MuhamadTAH/Workflow.git"
+  },
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
   }
 }

@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* Dark Dashboard Theme */
+/* Dark Dashboard Theme - Match Login Page Background */
 .professional-dashboard {
   min-height: 100vh;
   background-color: #212121;
@@ -10,7 +10,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Remove gradient variants - use consistent dark theme */
+/* Ensure all variants use the same clean dark background as login page */
 .professional-dashboard.variant-1,
 .professional-dashboard.variant-2,
 .professional-dashboard.variant-3 {
@@ -97,7 +97,17 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 3rem;
-  padding: 2rem 0;
+  padding: 2rem;
+  background: rgba(35, 35, 35, 0.8);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.dashboard-hero:hover {
+  border-color: rgba(74, 144, 226, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .hero-content {

@@ -4559,17 +4559,17 @@ select {
   animation: avatarGlow 0.4s ease-out;
 }
 
-/* Dynamic Background Gradient Variations */
+/* Use consistent dark background like login page */
 .professional-dashboard.variant-1 {
-  background: var(--gradient-variant-1);
+  background: #212121;
 }
 
 .professional-dashboard.variant-2 {
-  background: var(--gradient-variant-2);
+  background: #212121;
 }
 
 .professional-dashboard.variant-3 {
-  background: var(--gradient-variant-3);
+  background: #212121;
 }
 
 /* Addictive Keyframe Animations */

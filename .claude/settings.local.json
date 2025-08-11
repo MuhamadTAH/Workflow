@@ -57,7 +57,12 @@
       "Bash(sed:*)",
       "Bash(timeout:*)",
       "WebFetch(domain:frontend-dpcg.onrender.com)",
-      "WebFetch(domain:www.npmjs.com)"
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(git ls-tree:*)",
+      "Bash(del package-lock.json)",
+      "Bash(git remote get-url:*)",
+      "WebFetch(domain:workflow-unlq.onrender.com)",
+      "WebFetch(domain:workflow-1-frkg.onrender.com)"
     ],
     "deny": []
   }
