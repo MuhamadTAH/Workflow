@@ -1,0 +1,10 @@
+frontend/
+WorkflowBuilder-Platform/
+workflownode/
+node_modules/
+npm-debug.log
+.git/
+.gitignore
+README.md
+*.md
+.env

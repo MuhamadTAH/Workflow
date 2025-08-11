@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "Full-stack workflow builder platform",
   "scripts": {
-    "build": "cd backend && npm install",
+    "build": "echo 'Backend deployment - no build required'",
     "start": "cd backend && npm start",
-    "dev": "cd backend && npm run dev"
+    "dev": "cd backend && npm run dev",
+    "install": "cd backend && npm install"
   },
   "repository": {
     "type": "git",
