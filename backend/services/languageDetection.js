@@ -15,7 +15,7 @@ class LanguageDetection {
       },
       fr: {
         chars: /[àâäéèêëïîôöùûüÿçÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]/,
-        words: ['le', 'de', 'et', 'à', 'un', 'il', 'être', 'et', 'en', 'avoir', 'que', 'pour', 'dans', 'ce', 'son', 'une', 'sur', 'avec', 'ne', 'se', 'pas', 'tout', 'plus', 'par', 'bonjour', 'merci', 's\\'il vous plaît', 'oui', 'comment', 'quoi', 'quand', 'où']
+        words: ['le', 'de', 'et', 'à', 'un', 'il', 'être', 'et', 'en', 'avoir', 'que', 'pour', 'dans', 'ce', 'son', 'une', 'sur', 'avec', 'ne', 'se', 'pas', 'tout', 'plus', 'par', 'bonjour', 'merci', "s'il vous plaît", 'oui', 'comment', 'quoi', 'quand', 'où']
       },
       en: {
         chars: /[a-zA-Z]/,
