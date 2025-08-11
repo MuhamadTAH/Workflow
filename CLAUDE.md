@@ -4,8 +4,8 @@
 
 ### How Backend & Frontend Connect
 This project uses a **full production deployment architecture**:
-- **Frontend**: Production hosted on Render (https://frontend-dpcg.onrender.com)
-- **Backend**: Production hosted on Render (https://workflow-lg9z.onrender.com)
+- **Frontend**: Production hosted on Render (https://workflow-1-frkg.onrender.com)
+- **Backend**: Production hosted on Render (https://workflow-unlq.onrender.com)
 - **Connection**: Frontend makes API calls directly to production backend via VITE_API_BASE_URL
 
 **Architecture Benefits**:
@@ -24,15 +24,15 @@ git commit -m "feature: description"
 git push origin main
 
 # 3. Render Auto-Deploys:
-#    - Backend: https://workflow-lg9z.onrender.com (1-2 minutes)
-#    - Frontend: https://frontend-dpcg.onrender.com (2-3 minutes)
+#    - Backend: https://workflow-unlq.onrender.com (1-2 minutes)
+#    - Frontend: https://workflow-1-frkg.onrender.com (2-3 minutes)
 
 # 4. Access live application at frontend URL
 ```
 
 ### URLs & Connections:
-- **Frontend**: https://frontend-dpcg.onrender.com (Production)
-- **Backend**: https://workflow-lg9z.onrender.com (Production API)
+- **Frontend**: https://workflow-1-frkg.onrender.com (Production)
+- **Backend**: https://workflow-unlq.onrender.com (Production API)
 - **GitHub**: https://github.com/MuhamadTAH/Workflow.git
 - **Database**: SQLite (hosted with backend on Render)
 - **Local Development**: `cd frontend && npm run dev` (optional, for hot reload)
@@ -47,7 +47,7 @@ git push origin main
 Most components use environment detection:
 ```javascript
 const API_BASE = process.env.NODE_ENV === 'production' 
-  ? 'https://workflow-lg9z.onrender.com'
+  ? 'https://workflow-unlq.onrender.com'
   : 'http://localhost:3001';
 ```
 
@@ -55,7 +55,7 @@ const API_BASE = process.env.NODE_ENV === 'production'
 Some features always use production (telegram validation, webhooks):
 ```javascript
 // Always use production backend for telegram validation
-const API_BASE = 'https://workflow-lg9z.onrender.com';
+const API_BASE = 'https://workflow-unlq.onrender.com';
 ```
 
 #### 3. CORS Configuration
@@ -128,7 +128,7 @@ social_connections:
 - **Name**: AI Marketing Team
 - **Username**: @AI_MarketingTeambot  
 - **Token**: `8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ`
-- **Webhook**: https://workflow-lg9z.onrender.com/api/webhooks/telegram
+- **Webhook**: https://workflow-unlq.onrender.com/api/webhooks/telegram
 
 ### Webhook Flow:
 ```
@@ -244,10 +244,10 @@ git push origin main
 ### Troubleshooting:
 ```bash  
 # Check backend logs
-# View at: Render dashboard → workflow-lg9z → Logs
+# View at: Render dashboard → workflow-unlq → Logs
 
 # Test API endpoints
-curl https://workflow-lg9z.onrender.com/api/hello
+curl https://workflow-unlq.onrender.com/api/hello
 
 # Install missing dependencies
 cd backend && npm install package-name
@@ -276,7 +276,8 @@ git add package.json && git commit -m "Add dependency" && git push
 - `backend/services/telegramAPI.js` - Telegram integration
 
 ### Production URLs:
-- **Backend API**: https://workflow-lg9z.onrender.com
+- **Frontend**: https://workflow-1-frkg.onrender.com
+- **Backend API**: https://workflow-unlq.onrender.com
 - **GitHub Repo**: https://github.com/MuhamadTAH/Workflow.git
 - **Telegram Bot**: @AI_MarketingTeambot
 

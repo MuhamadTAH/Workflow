@@ -149,6 +149,11 @@ class TelegramSendMessageNode {
     processConfigTemplates(config, inputData, executionContext) {
         const processed = { ...config };
         
+        // Map frontend field names to backend field names
+        if (processed.messageText) {
+            processed.text = processed.messageText;
+        }
+        
         // Fields that support template expressions
         const templateFields = ['chatId', 'text', 'replyToMessageId', 'botToken'];
         

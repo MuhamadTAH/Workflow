@@ -45,25 +45,22 @@ const activateWorkflow = async (req, res) => {
         console.log(`Found ${triggerNodes.length} trigger node(s):`, triggerNodes.map(n => n.data.type));
         console.log(`Current active workflows count: ${activeWorkflows.size}`);
 
-        // Register trigger handlers for each trigger node
+        // Register trigger handlers for each trigger node (URLs handled internally)
         const triggerUrls = [];
         for (const triggerNode of triggerNodes) {
             if (triggerNode.data.type === 'chatTrigger') {
                 const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/chatTrigger/${workflowId}/${triggerNode.id}/chat`;
-                const hostedChatUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/public/hosted-chat.html?workflowId=${workflowId}&nodeId=${triggerNode.id}&path=chat&title=Chat+Support`;
                 
-                console.log('🔗 Generated Chat URLs:', {
+                console.log('🔗 Registered Chat Trigger:', {
                     workflowId: workflowId,
                     nodeId: triggerNode.id,
-                    webhookUrl: webhookUrl,
-                    hostedChatUrl: hostedChatUrl
+                    webhookUrl: webhookUrl
                 });
                 
                 triggerUrls.push({
                     nodeId: triggerNode.id,
                     type: 'chatTrigger',
-                    webhookUrl: webhookUrl,
-                    hostedChatUrl: hostedChatUrl
+                    webhookUrl: webhookUrl
                 });
             } else if (triggerNode.data.type === 'telegramTrigger') {
                 const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram/${workflowId}`;
@@ -101,9 +98,8 @@ const activateWorkflow = async (req, res) => {
 
         res.json({
             success: true,
-            message: `✅ Workflow activated! All trigger nodes are now listening for events.`,
+            message: `✅ Workflow Activated`,
             workflowId: workflowId,
-            triggerUrls: triggerUrls,
             activatedAt: new Date().toISOString(),
             status: 'active'
         });

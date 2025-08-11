@@ -6,12 +6,12 @@
  * <script>
  *   window.WorkflowChatConfig = {
  *     workflowId: 'your-workflow-id',
- *     apiUrl: 'https://workflow-lg9z.onrender.com',
+ *     apiUrl: 'https://workflow-unlq.onrender.com',
  *     position: 'bottom-right',
  *     theme: 'light'
  *   };
  * </script>
- * <script src="https://workflow-lg9z.onrender.com/chat-widget.js"></script>
+ * <script src="https://workflow-unlq.onrender.com/chat-widget.js"></script>
  */
 
 (function() {
@@ -20,7 +20,7 @@
     // Default configuration
     const defaultConfig = {
         workflowId: null,
-        apiUrl: 'https://workflow-lg9z.onrender.com',
+        apiUrl: 'https://workflow-unlq.onrender.com',
         position: 'bottom-right',
         theme: 'light',
         title: 'Chat Support',
