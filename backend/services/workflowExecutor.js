@@ -422,7 +422,30 @@ class WorkflowExecutor {
                     if (stepKey.includes(nodeName.replace(/ /g, '_')) || stepKey.includes('Chat_Trigger')) {
                         console.log(`📍 Found matching step: ${stepKey}`, JSON.stringify(stepValue, null, 2));
                         
-                        // Navigate the path (e.g., "json.result.data[0].sessionId")
+                        // Special handling for Chat Trigger nodes - they have flat data structure
+                        if (nodeName === 'Chat Trigger' || stepKey.includes('Chat_Trigger')) {
+                            // For Chat Trigger, map common template paths to actual data structure
+                            if (path === 'json.result.data[0].sessionId' && stepValue.sessionId) {
+                                console.log(`✅ Template resolved (Chat Trigger sessionId): ${match} → ${stepValue.sessionId}`);
+                                return stepValue.sessionId;
+                            }
+                            if (path === 'json.result.data[0].text' && stepValue.text) {
+                                console.log(`✅ Template resolved (Chat Trigger text): ${match} → ${stepValue.text}`);
+                                return stepValue.text;
+                            }
+                            if (path === 'json.result.data[0].userId' && stepValue.userId) {
+                                console.log(`✅ Template resolved (Chat Trigger userId): ${match} → ${stepValue.userId}`);
+                                return stepValue.userId;
+                            }
+                            // For other Chat Trigger fields, try direct access
+                            const simplePath = path.split('.').pop(); // Get last part (e.g., "sessionId")
+                            if (stepValue[simplePath]) {
+                                console.log(`✅ Template resolved (Chat Trigger direct): ${match} → ${stepValue[simplePath]}`);
+                                return stepValue[simplePath];
+                            }
+                        }
+                        
+                        // Navigate the path for other node types (e.g., "json.result.data[0].sessionId")
                         const pathParts = path.split('.');
                         let current = stepValue;
                         
