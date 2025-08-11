@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const db = require('../db');
 const logger = require('../services/logger');
 
 // Import WorkflowNode controllers
@@ -14,13 +13,9 @@ const {
 // Import workflow executor
 const workflowExecutor = require('../services/workflowExecutor');
 
-// Database setup
-const dbPath = path.join(__dirname, '..', 'database.sqlite');
-const db = new sqlite3.Database(dbPath);
-
 // Initialize workflows table
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS workflows (
+try {
+  const stmt = db.prepare(`CREATE TABLE IF NOT EXISTS workflows (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     name TEXT NOT NULL,
@@ -30,7 +25,10 @@ db.serialize(() => {
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (id)
   )`);
-});
+  stmt.run();
+} catch (error) {
+  console.error('Error creating workflows table:', error);
+}
 
 // Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
@@ -54,28 +52,27 @@ const verifyToken = (req, res, next) => {
 router.get('/', verifyToken, (req, res) => {
   const userId = req.user.userId;
 
-  db.all(
-    'SELECT id, name, description, created_at, updated_at FROM workflows WHERE user_id = ? ORDER BY updated_at DESC',
-    [userId],
-    (err, rows) => {
-      if (err) {
-        logger.logError(err, { context: 'getWorkflows', userId });
-        return res.status(500).json({ error: 'Database error' });
-      }
+  try {
+    const stmt = db.prepare(
+      'SELECT id, name, description, created_at, updated_at FROM workflows WHERE user_id = ? ORDER BY updated_at DESC'
+    );
+    const rows = stmt.all(userId);
 
-      logger.info('Workflows retrieved', { userId, count: rows.length });
-      res.json({
-        success: true,
-        workflows: rows.map(row => ({
-          id: row.id,
-          name: row.name,
-          description: row.description,
-          createdAt: row.created_at,
-          updatedAt: row.updated_at
-        }))
-      });
-    }
-  );
+    logger.info('Workflows retrieved', { userId, count: rows.length });
+    res.json({
+      success: true,
+      workflows: rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }))
+    });
+  } catch (err) {
+    logger.logError(err, { context: 'getWorkflows', userId });
+    return res.status(500).json({ error: 'Database error' });
+  }
 });
 
 // GET /api/workflows/:id - Get specific workflow with full data
@@ -83,40 +80,37 @@ router.get('/:id', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
 
-  db.get(
-    'SELECT * FROM workflows WHERE id = ? AND user_id = ?',
-    [workflowId, userId],
-    (err, row) => {
-      if (err) {
-        logger.logError(err, { context: 'getWorkflow', userId, workflowId });
-        return res.status(500).json({ error: 'Database error' });
-      }
+  try {
+    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
+    const row = stmt.get(workflowId, userId);
 
-      if (!row) {
-        return res.status(404).json({ error: 'Workflow not found' });
-      }
-
-      try {
-        const workflowData = JSON.parse(row.data);
-        logger.info('Workflow retrieved', { userId, workflowId, name: row.name });
-        
-        res.json({
-          success: true,
-          workflow: {
-            id: row.id,
-            name: row.name,
-            description: row.description,
-            data: workflowData,
-            createdAt: row.created_at,
-            updatedAt: row.updated_at
-          }
-        });
-      } catch (parseError) {
-        logger.logError(parseError, { context: 'parseWorkflowData', userId, workflowId });
-        res.status(500).json({ error: 'Invalid workflow data' });
-      }
+    if (!row) {
+      return res.status(404).json({ error: 'Workflow not found' });
     }
-  );
+
+    try {
+      const workflowData = JSON.parse(row.data);
+      logger.info('Workflow retrieved', { userId, workflowId, name: row.name });
+      
+      res.json({
+        success: true,
+        workflow: {
+          id: row.id,
+          name: row.name,
+          description: row.description,
+          data: workflowData,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at
+        }
+      });
+    } catch (parseError) {
+      logger.logError(parseError, { context: 'parseWorkflowData', userId, workflowId });
+      res.status(500).json({ error: 'Invalid workflow data' });
+    }
+  } catch (err) {
+    logger.logError(err, { context: 'getWorkflow', userId, workflowId });
+    return res.status(500).json({ error: 'Database error' });
+  }
 });
 
 // POST /api/workflows - Create new workflow
@@ -147,36 +141,33 @@ router.post('/', verifyToken, (req, res) => {
     }
   };
 
-  db.run(
-    'INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)',
-    [userId, name, description || '', JSON.stringify(workflowData)],
-    function(err) {
-      if (err) {
-        logger.logError(err, { context: 'createWorkflow', userId, name });
-        return res.status(500).json({ error: 'Database error' });
-      }
+  try {
+    const stmt = db.prepare('INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)');
+    const result = stmt.run(userId, name, description || '', JSON.stringify(workflowData));
 
-      logger.info('Workflow created', { 
-        userId, 
-        workflowId: this.lastID, 
+    logger.info('Workflow created', { 
+      userId, 
+      workflowId: result.lastInsertRowid, 
+      name,
+      nodeCount: nodes.length,
+      connectionCount: connections.length
+    });
+
+    res.status(201).json({
+      success: true,
+      workflow: {
+        id: result.lastInsertRowid,
         name,
-        nodeCount: nodes.length,
-        connectionCount: connections.length
-      });
-
-      res.status(201).json({
-        success: true,
-        workflow: {
-          id: this.lastID,
-          name,
-          description: description || '',
-          data: workflowData,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      });
-    }
-  );
+        description: description || '',
+        data: workflowData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    });
+  } catch (err) {
+    logger.logError(err, { context: 'createWorkflow', userId, name });
+    return res.status(500).json({ error: 'Database error' });
+  }
 });
 
 // PUT /api/workflows/:id - Update existing workflow
@@ -208,39 +199,36 @@ router.put('/:id', verifyToken, (req, res) => {
     }
   };
 
-  db.run(
-    'UPDATE workflows SET name = ?, description = ?, data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
-    [name, description || '', JSON.stringify(workflowData), workflowId, userId],
-    function(err) {
-      if (err) {
-        logger.logError(err, { context: 'updateWorkflow', userId, workflowId, name });
-        return res.status(500).json({ error: 'Database error' });
-      }
+  try {
+    const stmt = db.prepare('UPDATE workflows SET name = ?, description = ?, data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?');
+    const result = stmt.run(name, description || '', JSON.stringify(workflowData), workflowId, userId);
 
-      if (this.changes === 0) {
-        return res.status(404).json({ error: 'Workflow not found' });
-      }
-
-      logger.info('Workflow updated', { 
-        userId, 
-        workflowId, 
-        name,
-        nodeCount: nodes.length,
-        connectionCount: connections.length
-      });
-
-      res.json({
-        success: true,
-        workflow: {
-          id: parseInt(workflowId),
-          name,
-          description: description || '',
-          data: workflowData,
-          updatedAt: new Date().toISOString()
-        }
-      });
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Workflow not found' });
     }
-  );
+
+    logger.info('Workflow updated', { 
+      userId, 
+      workflowId, 
+      name,
+      nodeCount: nodes.length,
+      connectionCount: connections.length
+    });
+
+    res.json({
+      success: true,
+      workflow: {
+        id: parseInt(workflowId),
+        name,
+        description: description || '',
+        data: workflowData,
+        updatedAt: new Date().toISOString()
+      }
+    });
+  } catch (err) {
+    logger.logError(err, { context: 'updateWorkflow', userId, workflowId, name });
+    return res.status(500).json({ error: 'Database error' });
+  }
 });
 
 // DELETE /api/workflows/:id - Delete workflow
@@ -248,23 +236,20 @@ router.delete('/:id', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
 
-  db.run(
-    'DELETE FROM workflows WHERE id = ? AND user_id = ?',
-    [workflowId, userId],
-    function(err) {
-      if (err) {
-        logger.logError(err, { context: 'deleteWorkflow', userId, workflowId });
-        return res.status(500).json({ error: 'Database error' });
-      }
+  try {
+    const stmt = db.prepare('DELETE FROM workflows WHERE id = ? AND user_id = ?');
+    const result = stmt.run(workflowId, userId);
 
-      if (this.changes === 0) {
-        return res.status(404).json({ error: 'Workflow not found' });
-      }
-
-      logger.info('Workflow deleted', { userId, workflowId });
-      res.json({ success: true, message: 'Workflow deleted successfully' });
+    if (result.changes === 0) {
+      return res.status(404).json({ error: 'Workflow not found' });
     }
-  );
+
+    logger.info('Workflow deleted', { userId, workflowId });
+    res.json({ success: true, message: 'Workflow deleted successfully' });
+  } catch (err) {
+    logger.logError(err, { context: 'deleteWorkflow', userId, workflowId });
+    return res.status(500).json({ error: 'Database error' });
+  }
 });
 
 // NEW ROUTES FROM WORKFLOWNODE - Advanced workflow execution
@@ -368,45 +353,42 @@ router.get('/:id/trigger-info', (req, res) => {
   }
 
   // Fallback to database for inactive workflows
-  db.get(
-    'SELECT * FROM workflows WHERE id = ?',
-    [workflowId],
-    (err, row) => {
-      if (err) {
-        logger.logError(err, { context: 'getTriggerInfo', workflowId });
-        return res.status(500).json({ error: 'Database error' });
-      }
+  try {
+    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ?');
+    const row = stmt.get(workflowId);
 
-      if (!row) {
-        return res.status(404).json({ error: 'Workflow not found' });
-      }
-
-      try {
-        const workflowData = JSON.parse(row.data);
-        const chatTrigger = workflowData.nodes.find(node => 
-          node.data.type === 'chatTrigger'
-        );
-
-        if (!chatTrigger) {
-          return res.status(400).json({ 
-            error: 'No chat trigger found in workflow' 
-          });
-        }
-        
-        res.json({
-          success: true,
-          workflowId: workflowId,
-          triggerNodeId: chatTrigger.id,
-          triggerNodeType: chatTrigger.data.type,
-          webhookPath: 'chat',
-          isActive: false
-        });
-      } catch (parseError) {
-        logger.logError(parseError, { context: 'parseTriggerInfo', workflowId });
-        res.status(500).json({ error: 'Invalid workflow data' });
-      }
+    if (!row) {
+      return res.status(404).json({ error: 'Workflow not found' });
     }
-  );
+
+    try {
+      const workflowData = JSON.parse(row.data);
+      const chatTrigger = workflowData.nodes.find(node => 
+        node.data.type === 'chatTrigger'
+      );
+
+      if (!chatTrigger) {
+        return res.status(400).json({ 
+          error: 'No chat trigger found in workflow' 
+        });
+      }
+      
+      res.json({
+        success: true,
+        workflowId: workflowId,
+        triggerNodeId: chatTrigger.id,
+        triggerNodeType: chatTrigger.data.type,
+        webhookPath: 'chat',
+        isActive: false
+      });
+    } catch (parseError) {
+      logger.logError(parseError, { context: 'parseTriggerInfo', workflowId });
+      res.status(500).json({ error: 'Invalid workflow data' });
+    }
+  } catch (err) {
+    logger.logError(err, { context: 'getTriggerInfo', workflowId });
+    return res.status(500).json({ error: 'Database error' });
+  }
 });
 
 // GET /api/workflows/:id/hosted-url - Get hosted chat URL for workflow testing
@@ -415,50 +397,47 @@ router.get('/:id/hosted-url', verifyToken, (req, res) => {
   const workflowId = req.params.id;
 
   // Get workflow to find trigger node
-  db.get(
-    'SELECT * FROM workflows WHERE id = ? AND user_id = ?',
-    [workflowId, userId],
-    (err, row) => {
-      if (err) {
-        logger.logError(err, { context: 'getHostedUrl', userId, workflowId });
-        return res.status(500).json({ error: 'Database error' });
-      }
+  try {
+    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
+    const row = stmt.get(workflowId, userId);
 
-      if (!row) {
-        return res.status(404).json({ error: 'Workflow not found' });
-      }
-
-      try {
-        const workflowData = JSON.parse(row.data);
-        
-        // Find chat trigger node
-        const chatTrigger = workflowData.nodes.find(node => 
-          node.data.type === 'chatTrigger'
-        );
-
-        if (!chatTrigger) {
-          return res.status(400).json({ 
-            error: 'No chat trigger found in workflow. Add a Chat Trigger node to get a hosted URL.' 
-          });
-        }
-
-        const baseUrl = process.env.BASE_URL || 'https://workflow-lg9z.onrender.com';
-        const hostedUrl = `${baseUrl}/public/hosted-chat.html?workflowId=${workflowId}`;
-        
-        res.json({
-          success: true,
-          workflowId: workflowId,
-          workflowName: row.name,
-          hostedUrl: hostedUrl,
-          triggerNodeId: chatTrigger.id,
-          triggerNodeType: chatTrigger.data.type
-        });
-      } catch (parseError) {
-        logger.logError(parseError, { context: 'parseWorkflowDataForUrl', userId, workflowId });
-        res.status(500).json({ error: 'Invalid workflow data' });
-      }
+    if (!row) {
+      return res.status(404).json({ error: 'Workflow not found' });
     }
-  );
+
+    try {
+      const workflowData = JSON.parse(row.data);
+      
+      // Find chat trigger node
+      const chatTrigger = workflowData.nodes.find(node => 
+        node.data.type === 'chatTrigger'
+      );
+
+      if (!chatTrigger) {
+        return res.status(400).json({ 
+          error: 'No chat trigger found in workflow. Add a Chat Trigger node to get a hosted URL.' 
+        });
+      }
+
+      const baseUrl = process.env.BASE_URL || 'https://workflow-lg9z.onrender.com';
+      const hostedUrl = `${baseUrl}/public/hosted-chat.html?workflowId=${workflowId}`;
+      
+      res.json({
+        success: true,
+        workflowId: workflowId,
+        workflowName: row.name,
+        hostedUrl: hostedUrl,
+        triggerNodeId: chatTrigger.id,
+        triggerNodeType: chatTrigger.data.type
+      });
+    } catch (parseError) {
+      logger.logError(parseError, { context: 'parseWorkflowDataForUrl', userId, workflowId });
+      res.status(500).json({ error: 'Invalid workflow data' });
+    }
+  } catch (err) {
+    logger.logError(err, { context: 'getHostedUrl', userId, workflowId });
+    return res.status(500).json({ error: 'Database error' });
+  }
 });
 
 // Simple status endpoint for checking workflow activation

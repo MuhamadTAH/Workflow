@@ -32,10 +32,9 @@ router.post('/signup', async (req, res) => {
     }
 
     // Check if user already exists
-    db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
-      if (err) {
-        return res.status(500).json({ message: 'Database error' });
-      }
+    try {
+      const stmt = db.prepare('SELECT * FROM users WHERE email = ?');
+      const user = stmt.get(email);
       
       if (user) {
         return res.status(400).json({ message: 'User already exists' });
@@ -46,35 +45,30 @@ router.post('/signup', async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
       // Insert new user
-      db.run(
-        'INSERT INTO users (name, email, password) VALUES (?, ?, ?)',
-        [name || null, email, hashedPassword],
-        function(err) {
-          if (err) {
-            return res.status(500).json({ message: 'Error creating user' });
-          }
+      const insertStmt = db.prepare('INSERT INTO users (name, email, password) VALUES (?, ?, ?)');
+      const result = insertStmt.run(name || null, email, hashedPassword);
 
-          // Generate JWT token
-          const token = jwt.sign(
-            { userId: this.lastID, email: email },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-          );
-
-          res.status(201).json({
-            message: 'User created successfully',
-            token: token
-          });
-        }
+      // Generate JWT token
+      const token = jwt.sign(
+        { userId: result.lastInsertRowid, email: email },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
       );
-    });
+
+      res.status(201).json({
+        message: 'User created successfully',
+        token: token
+      });
+    } catch (dbError) {
+      return res.status(500).json({ message: 'Database error' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
 // POST /api/login - Authenticate user
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -83,11 +77,10 @@ router.post('/login', (req, res) => {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    // Find user by email
-    db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
-      if (err) {
-        return res.status(500).json({ message: 'Database error' });
-      }
+    try {
+      // Find user by email
+      const stmt = db.prepare('SELECT * FROM users WHERE email = ?');
+      const user = stmt.get(email);
 
       if (!user) {
         return res.status(400).json({ message: 'Invalid credentials' });
@@ -110,7 +103,9 @@ router.post('/login', (req, res) => {
         message: 'Login successful',
         token: token
       });
-    });
+    } catch (dbError) {
+      return res.status(500).json({ message: 'Database error' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -119,28 +114,25 @@ router.post('/login', (req, res) => {
 // GET /api/profile - Get user profile (protected route)
 router.get('/profile', verifyToken, (req, res) => {
   try {
-    db.get(
-      'SELECT id, name, email, created_at FROM users WHERE id = ?',
-      [req.user.userId],
-      (err, user) => {
-        if (err) {
-          return res.status(500).json({ message: 'Database error' });
-        }
+    try {
+      const stmt = db.prepare('SELECT id, name, email, created_at FROM users WHERE id = ?');
+      const user = stmt.get(req.user.userId);
 
-        if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-        }
-
-        res.json({
-          user: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            created_at: user.created_at
-          }
-        });
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
       }
-    );
+
+      res.json({
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          created_at: user.created_at
+        }
+      });
+    } catch (dbError) {
+      return res.status(500).json({ message: 'Database error' });
+    }
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }

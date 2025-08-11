@@ -36,98 +36,89 @@ router.put('/:id', verifyToken, (req, res) => {
       return res.status(400).json({ message: 'Price must be a positive number' });
     }
 
-    // Verify product ownership through shop
-    db.get(
-      `SELECT p.id, s.user_id 
-       FROM products p 
-       JOIN shops s ON p.shop_id = s.id 
-       WHERE p.id = ? AND p.is_active = 1`,
-      [id],
-      (err, product) => {
-        if (err) {
-          console.error('Database error:', err);
-          return res.status(500).json({ message: 'Database error' });
-        }
+    try {
+      // Verify product ownership through shop
+      const productStmt = db.prepare(
+        `SELECT p.id, s.user_id 
+         FROM products p 
+         JOIN shops s ON p.shop_id = s.id 
+         WHERE p.id = ? AND p.is_active = 1`
+      );
+      const product = productStmt.get(id);
 
-        if (!product) {
-          return res.status(404).json({ message: 'Product not found' });
-        }
-
-        if (product.user_id !== req.user.userId) {
-          return res.status(403).json({ message: 'Access denied' });
-        }
-
-        // Build dynamic update query based on provided fields
-        const updateFields = [];
-        const updateValues = [];
-        
-        if (title !== undefined) {
-          updateFields.push('title = ?');
-          updateValues.push(title);
-        }
-        if (description !== undefined) {
-          updateFields.push('description = ?');
-          updateValues.push(description || null);
-        }
-        if (price !== undefined) {
-          updateFields.push('price = ?');
-          updateValues.push(parseFloat(price));
-        }
-        if (imageUrl !== undefined) {
-          updateFields.push('image_url = ?');
-          updateValues.push(imageUrl || null);
-        }
-        if (videos !== undefined) {
-          updateFields.push('videos = ?');
-          updateValues.push(videos ? JSON.stringify(videos) : null);
-        }
-        if (isVisible !== undefined) {
-          updateFields.push('is_visible = ?');
-          updateValues.push(isVisible ? 1 : 0);
-        }
-        
-        // Always update the timestamp
-        updateFields.push('updated_at = CURRENT_TIMESTAMP');
-        updateValues.push(id); // Add ID at the end for WHERE clause
-        
-        if (updateFields.length === 1) { // Only timestamp update
-          return res.status(400).json({ message: 'No fields to update' });
-        }
-
-        // Update product
-        db.run(
-          `UPDATE products SET ${updateFields.join(', ')} WHERE id = ?`,
-          updateValues,
-          function(err) {
-            if (err) {
-              console.error('Database error:', err);
-              return res.status(500).json({ message: 'Error updating product' });
-            }
-
-            if (this.changes === 0) {
-              return res.status(404).json({ message: 'Product not found' });
-            }
-
-            // Return updated fields
-            const updatedProduct = {
-              id: parseInt(id),
-              updatedAt: new Date().toISOString()
-            };
-            
-            if (title !== undefined) updatedProduct.title = title;
-            if (description !== undefined) updatedProduct.description = description;
-            if (price !== undefined) updatedProduct.price = parseFloat(price);
-            if (imageUrl !== undefined) updatedProduct.imageUrl = imageUrl;
-            if (isVisible !== undefined) updatedProduct.isVisible = isVisible;
-
-            res.json({
-              message: 'Product updated successfully',
-              product: updatedProduct
-            });
-          }
-        );
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
       }
-    );
+
+      if (product.user_id !== req.user.userId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      // Build dynamic update query based on provided fields
+      const updateFields = [];
+      const updateValues = [];
+      
+      if (title !== undefined) {
+        updateFields.push('title = ?');
+        updateValues.push(title);
+      }
+      if (description !== undefined) {
+        updateFields.push('description = ?');
+        updateValues.push(description || null);
+      }
+      if (price !== undefined) {
+        updateFields.push('price = ?');
+        updateValues.push(parseFloat(price));
+      }
+      if (imageUrl !== undefined) {
+        updateFields.push('image_url = ?');
+        updateValues.push(imageUrl || null);
+      }
+      if (videos !== undefined) {
+        updateFields.push('videos = ?');
+        updateValues.push(videos ? JSON.stringify(videos) : null);
+      }
+      if (isVisible !== undefined) {
+        updateFields.push('is_visible = ?');
+        updateValues.push(isVisible ? 1 : 0);
+      }
+      
+      // Always update the timestamp
+      updateFields.push('updated_at = CURRENT_TIMESTAMP');
+      updateValues.push(id); // Add ID at the end for WHERE clause
+      
+      if (updateFields.length === 1) { // Only timestamp update
+        return res.status(400).json({ message: 'No fields to update' });
+      }
+
+      // Update product
+      const updateStmt = db.prepare(`UPDATE products SET ${updateFields.join(', ')} WHERE id = ?`);
+      const result = updateStmt.run(...updateValues);
+
+      if (result.changes === 0) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+
+      // Return updated fields
+      const updatedProduct = {
+        id: parseInt(id),
+        updatedAt: new Date().toISOString()
+      };
+      
+      if (title !== undefined) updatedProduct.title = title;
+      if (description !== undefined) updatedProduct.description = description;
+      if (price !== undefined) updatedProduct.price = parseFloat(price);
+      if (imageUrl !== undefined) updatedProduct.imageUrl = imageUrl;
+      if (isVisible !== undefined) updatedProduct.isVisible = isVisible;
+
+      res.json({
+        message: 'Product updated successfully',
+        product: updatedProduct
+      });
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      return res.status(500).json({ message: 'Database error' });
+    }
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -139,49 +130,40 @@ router.delete('/:id', verifyToken, (req, res) => {
   try {
     const { id } = req.params;
 
-    // Verify product ownership through shop
-    db.get(
-      `SELECT p.id, s.user_id 
-       FROM products p 
-       JOIN shops s ON p.shop_id = s.id 
-       WHERE p.id = ? AND p.is_active = 1`,
-      [id],
-      (err, product) => {
-        if (err) {
-          console.error('Database error:', err);
-          return res.status(500).json({ message: 'Database error' });
-        }
+    try {
+      // Verify product ownership through shop
+      const productStmt = db.prepare(
+        `SELECT p.id, s.user_id 
+         FROM products p 
+         JOIN shops s ON p.shop_id = s.id 
+         WHERE p.id = ? AND p.is_active = 1`
+      );
+      const product = productStmt.get(id);
 
-        if (!product) {
-          return res.status(404).json({ message: 'Product not found' });
-        }
-
-        if (product.user_id !== req.user.userId) {
-          return res.status(403).json({ message: 'Access denied' });
-        }
-
-        // Soft delete product
-        db.run(
-          'UPDATE products SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-          [id],
-          function(err) {
-            if (err) {
-              console.error('Database error:', err);
-              return res.status(500).json({ message: 'Error deleting product' });
-            }
-
-            if (this.changes === 0) {
-              return res.status(404).json({ message: 'Product not found' });
-            }
-
-            res.json({
-              message: 'Product deleted successfully',
-              productId: parseInt(id)
-            });
-          }
-        );
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
       }
-    );
+
+      if (product.user_id !== req.user.userId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      // Soft delete product
+      const deleteStmt = db.prepare('UPDATE products SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+      const result = deleteStmt.run(id);
+
+      if (result.changes === 0) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+
+      res.json({
+        message: 'Product deleted successfully',
+        productId: parseInt(id)
+      });
+    } catch (dbError) {
+      console.error('Database error:', dbError);
+      return res.status(500).json({ message: 'Database error' });
+    }
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({ message: 'Server error' });
