@@ -320,8 +320,17 @@ class WorkflowExecutor {
                 const chatResponseInstance = new ChatTriggerResponseNode();
                 // Resolve templates in nodeConfig before execution
                 const resolvedConfig = this.resolveNodeTemplates(nodeConfig, inputData, workflow);
-                console.log('🔧 Chat Trigger Response resolved config:', JSON.stringify(resolvedConfig, null, 2));
-                return await chatResponseInstance.execute(resolvedConfig, inputData);
+                
+                // Filter config to only include Chat Trigger Response specific fields
+                const cleanConfig = {
+                    type: resolvedConfig.type,
+                    sessionId: resolvedConfig.sessionId,
+                    message: resolvedConfig.message,
+                    chatTitle: resolvedConfig.chatTitle,
+                    webhookPath: resolvedConfig.webhookPath
+                };
+                console.log('🔧 Chat Trigger Response clean config:', JSON.stringify(cleanConfig, null, 2));
+                return await chatResponseInstance.execute(cleanConfig, inputData);
             
             case 'multiLanguageChatResponse':
                 const multiLangResponseInstance = new MultiLanguageChatResponseNode();
