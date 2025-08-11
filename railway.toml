@@ -1,6 +1,9 @@
 [build]
-builder = "nixpacks"
-buildCommand = "cd backend && npm install"
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "cd backend && npm start"
+startCommand = "npm start"
+
+[variables]
+NODE_ENV = "production"

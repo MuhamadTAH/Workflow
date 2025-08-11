@@ -1,8 +1,13 @@
-# Ignore frontend for backend deployment
+# Force ignore ALL frontend-related files
 frontend/
-WorkflowBuilder-Platform/
-workflownode/
+frontend-local/
+*/frontend/
 node_modules/
 *.md
 .git/
 .env
+package-lock.json
+vite.config.js
+tailwind.config.js
+index.html
+src/

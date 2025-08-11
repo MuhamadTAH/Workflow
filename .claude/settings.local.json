@@ -62,7 +62,8 @@
       "Bash(del package-lock.json)",
       "Bash(git remote get-url:*)",
       "WebFetch(domain:workflow-unlq.onrender.com)",
-      "WebFetch(domain:workflow-1-frkg.onrender.com)"
+      "WebFetch(domain:workflow-1-frkg.onrender.com)",
+      "Bash(npm:*)"
     ],
     "deny": []
   }
