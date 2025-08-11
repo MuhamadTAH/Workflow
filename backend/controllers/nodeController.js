@@ -196,13 +196,17 @@ const runNode = async (req, res) => {
                         console.log(`📋 Found ${storedMessages.length} stored messages`);
                         
                         if (storedMessages.length > 0) {
-                            // Return the latest message(s)
-                            const latestMessages = storedMessages.slice(-3); // Get last 3 messages
+                            // Return ONLY the latest message (not accumulated history)
+                            const latestMessage = storedMessages[storedMessages.length - 1]; // Get only the most recent message
+                            
+                            // Clear the messages after retrieving to prevent accumulation
+                            nodeMessages.set(messageKey, []);
+                            
                             itemResult = {
                                 success: true,
                                 nodeType: 'chatTrigger',
-                                data: latestMessages,
-                                message: `Retrieved ${latestMessages.length} chat message(s)`,
+                                data: [latestMessage], // Wrap in array for consistency
+                                message: `Retrieved latest chat message`,
                                 timestamp: new Date().toISOString()
                             };
                         } else {
