@@ -80,13 +80,27 @@ class WorkflowState {
       const stmt = db.prepare('SELECT * FROM active_workflows WHERE status = "active"');
       const rows = stmt.all();
       
-      const workflows = rows.map(row => ({
-        workflowId: row.workflow_id,
-        workflow: JSON.parse(row.workflow_data),
-        triggerUrls: JSON.parse(row.trigger_urls || '[]'),
-        activatedAt: row.activated_at,
-        status: row.status
-      }));
+      // Handle case where rows is null or undefined
+      if (!rows || !Array.isArray(rows)) {
+        console.log('📋 No active workflows found in database (empty result)');
+        return [];
+      }
+      
+      const workflows = rows.map(row => {
+        // Additional safety check for row data
+        if (!row || !row.workflow_id) {
+          console.warn('⚠️ Skipping invalid row data:', row);
+          return null;
+        }
+        
+        return {
+          workflowId: row.workflow_id,
+          workflow: JSON.parse(row.workflow_data || '{}'),
+          triggerUrls: JSON.parse(row.trigger_urls || '[]'),
+          activatedAt: row.activated_at,
+          status: row.status
+        };
+      }).filter(Boolean); // Remove null entries
 
       console.log(`📋 Retrieved ${workflows.length} active workflows from database`);
       return workflows;
@@ -100,6 +114,13 @@ class WorkflowState {
   async restoreActiveWorkflows(workflowExecutor, activeWorkflowsMap) {
     try {
       const workflows = await this.getActiveWorkflows();
+      
+      // Ensure workflows is always an array
+      if (!workflows || !Array.isArray(workflows)) {
+        console.log('📋 Retrieved undefined active workflows from database - defaulting to empty array');
+        return 0;
+      }
+      
       let restored = 0;
 
       for (const workflowData of workflows) {
