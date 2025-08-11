@@ -31,6 +31,7 @@ import ProductDetail from './pages/shop/product-detail/ProductDetail';
 import { authAPI, tokenManager } from './api';
 import './styles.css';
 import './styles/AuthStyles.css';
+import './styles/DashboardDark.css';
 
 function Home() {
   const { t } = useTranslation();

@@ -1,0 +1,73 @@
+# Dependencies
+node_modules/
+*/node_modules/
+**/node_modules/
+
+# Production builds
+/build/
+/dist/
+*/build/
+*/dist/
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.development
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Database files (keep SQLite in production for Render)
+# *.sqlite
+# *.sqlite3
+# *.db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Cache files
+.cache/
+.parcel-cache/
+.next/
+*.tsbuildinfo
+
+# Coverage directory used by tools like istanbul
+coverage/
+.nyc_output/
+
+# Dependency directories that should never be committed
+backend/node_modules/
+frontend/node_modules/
+workflownode/node_modules/
+WorkflowBuilder-Platform/node_modules/
+WorkflowBuilder-Platform/*/node_modules/
+
+# Render build cache conflicts prevention
+.slugignore
+
+# Package lock files (keep package-lock.json but ignore yarn.lock)
+yarn.lock
+pnpm-lock.yaml
