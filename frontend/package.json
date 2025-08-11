@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "npm install --legacy-peer-deps",
-    "build": "npm install --legacy-peer-deps && vite build",
+    "prebuild": "rm -rf node_modules package-lock.json && npm install --legacy-peer-deps",
+    "build": "rm -rf node_modules package-lock.json && npm install --legacy-peer-deps && vite build",
     "build:clean": "rm -rf node_modules package-lock.json && npm install --legacy-peer-deps && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
