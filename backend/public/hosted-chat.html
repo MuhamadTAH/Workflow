@@ -92,28 +92,46 @@
         // Get URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const workflowId = urlParams.get('workflowId');
-        const nodeId = urlParams.get('nodeId');
-        const path = urlParams.get('path') || 'chat';
         const title = urlParams.get('title') || 'Chat Support';
 
-        // Global session ID for polling
+        // Global variables
         window.chatSessionId = null;
         let pollingInterval = null;
+        let triggerInfo = null;
+        let webhookUrl = null;
 
         // Update page title
         document.title = title;
         document.getElementById('chat-title').textContent = title;
 
-        // Build webhook URL
-        const webhookUrl = `https://workflow-lg9z.onrender.com/api/webhooks/chatTrigger/${workflowId}/${nodeId}/${encodeURIComponent(path)}`;
+        console.log('🚀 Initializing hosted chat with workflow:', workflowId);
 
-        console.log('🚀 Initializing hosted chat with:', {
-            workflowId,
-            nodeId,
-            path,
-            title,
-            webhookUrl
-        });
+        // Function to fetch trigger information
+        async function fetchTriggerInfo() {
+            try {
+                const response = await fetch(`https://workflow-lg9z.onrender.com/api/workflows/${workflowId}/trigger-info`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to get trigger information');
+                }
+                
+                triggerInfo = data;
+                webhookUrl = `https://workflow-lg9z.onrender.com/api/webhooks/chatTrigger/${workflowId}/${data.triggerNodeId}/${data.webhookPath}`;
+                
+                console.log('✅ Trigger info loaded:', {
+                    workflowId,
+                    triggerNodeId: data.triggerNodeId,
+                    isActive: data.isActive,
+                    webhookUrl
+                });
+                
+                return data;
+            } catch (error) {
+                console.error('❌ Failed to fetch trigger info:', error);
+                throw error;
+            }
+        }
 
         // Function to poll for replies from Chat Trigger Response
         async function pollReplies(sessionId) {
@@ -190,17 +208,30 @@
         }
 
         // Check if required parameters are present
-        if (!workflowId || !nodeId) {
+        if (!workflowId) {
             document.getElementById('n8n-chat').innerHTML = `
                 <div class="error">
                     <h3>Configuration Error</h3>
-                    <p>Missing required parameters: workflowId and nodeId</p>
-                    <p>Expected URL format: ?workflowId=xxx&nodeId=yyy&path=zzz&title=Chat+Support</p>
+                    <p>Missing required parameter: workflowId</p>
+                    <p>Expected URL format: ?workflowId=xxx</p>
                 </div>
             `;
         } else {
             // Initialize chat when DOM is ready
-            window.addEventListener('DOMContentLoaded', initializeChat);
+            window.addEventListener('DOMContentLoaded', async () => {
+                try {
+                    await fetchTriggerInfo();
+                    initializeChat();
+                } catch (error) {
+                    document.getElementById('n8n-chat').innerHTML = `
+                        <div class="error">
+                            <h3>Workflow Error</h3>
+                            <p>${error.message}</p>
+                            <p>Make sure the workflow exists and has a Chat Trigger node.</p>
+                        </div>
+                    `;
+                }
+            });
         }
 
         // Function to initialize chat
@@ -240,8 +271,8 @@
                         source: 'hosted_chat',
                         page: window.location.href,
                         workflowId: workflowId,
-                        nodeId: nodeId,
-                        path: path
+                        nodeId: triggerInfo.triggerNodeId,
+                        path: triggerInfo.webhookPath
                     },
                     i18n: {
                         en: {
@@ -314,7 +345,7 @@
                                 page: window.location.href,
                                 timestamp: new Date().toISOString(),
                                 workflowId: workflowId,
-                                nodeId: nodeId
+                                nodeId: triggerInfo.triggerNodeId
                             }
                         })
                     });

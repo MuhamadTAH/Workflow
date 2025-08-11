@@ -152,7 +152,13 @@ class TelegramSendMessageNode {
         // Map frontend field names to backend field names
         if (processed.messageText) {
             processed.text = processed.messageText;
+            console.log(`🔄 Mapped messageText: "${processed.messageText}" → text: "${processed.text}"`);
         }
+        
+        // Additional debug logging
+        console.log('🔍 Available config fields:', Object.keys(processed));
+        console.log('🔍 Text field value before processing:', processed.text);
+        console.log('🔍 MessageText field value:', processed.messageText);
         
         // Fields that support template expressions
         const templateFields = ['chatId', 'text', 'replyToMessageId', 'botToken'];
@@ -175,6 +181,10 @@ class TelegramSendMessageNode {
                 processed[field] = resolvedValue;
             }
         });
+        
+        // Debug final processed values
+        console.log('🔍 Final text field value after processing:', processed.text);
+        console.log('🔍 Final chatId field value after processing:', processed.chatId);
 
         return processed;
     }
@@ -185,11 +195,22 @@ class TelegramSendMessageNode {
     validateParameters(config) {
         const errors = [];
         
+        // Debug validation inputs
+        console.log('🔍 Validating config:', {
+            hasText: !!config.text,
+            textValue: config.text,
+            textType: typeof config.text,
+            hasChatId: !!config.chatId,
+            chatIdValue: config.chatId,
+            allFields: Object.keys(config)
+        });
+        
         if (!config.chatId || config.chatId.trim() === '') {
             errors.push('Chat ID is required');
         }
         
         if (!config.text || config.text.trim() === '') {
+            console.log('❌ Text validation failed - text field:', config.text);
             errors.push('Message text is required');
         }
         

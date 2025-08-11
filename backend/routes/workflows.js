@@ -345,6 +345,122 @@ router.post('/register', (req, res) => {
   }
 });
 
+// GET /api/workflows/:id/trigger-info - Get trigger node info for hosted chat (no auth required for testing)
+router.get('/:id/trigger-info', (req, res) => {
+  const workflowId = req.params.id;
+
+  // Check active workflows first
+  const workflowExecutor = require('../services/workflowExecutor');
+  if (workflowExecutor && workflowExecutor.activeWorkflows && workflowExecutor.activeWorkflows.has(workflowId)) {
+    const activeWorkflow = workflowExecutor.activeWorkflows.get(workflowId);
+    const chatTrigger = activeWorkflow.nodes.find(node => node.data.type === 'chatTrigger');
+    
+    if (chatTrigger) {
+      return res.json({
+        success: true,
+        workflowId: workflowId,
+        triggerNodeId: chatTrigger.id,
+        triggerNodeType: chatTrigger.data.type,
+        webhookPath: 'chat',
+        isActive: true
+      });
+    }
+  }
+
+  // Fallback to database for inactive workflows
+  db.get(
+    'SELECT * FROM workflows WHERE id = ?',
+    [workflowId],
+    (err, row) => {
+      if (err) {
+        logger.logError(err, { context: 'getTriggerInfo', workflowId });
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      if (!row) {
+        return res.status(404).json({ error: 'Workflow not found' });
+      }
+
+      try {
+        const workflowData = JSON.parse(row.data);
+        const chatTrigger = workflowData.nodes.find(node => 
+          node.data.type === 'chatTrigger'
+        );
+
+        if (!chatTrigger) {
+          return res.status(400).json({ 
+            error: 'No chat trigger found in workflow' 
+          });
+        }
+        
+        res.json({
+          success: true,
+          workflowId: workflowId,
+          triggerNodeId: chatTrigger.id,
+          triggerNodeType: chatTrigger.data.type,
+          webhookPath: 'chat',
+          isActive: false
+        });
+      } catch (parseError) {
+        logger.logError(parseError, { context: 'parseTriggerInfo', workflowId });
+        res.status(500).json({ error: 'Invalid workflow data' });
+      }
+    }
+  );
+});
+
+// GET /api/workflows/:id/hosted-url - Get hosted chat URL for workflow testing
+router.get('/:id/hosted-url', verifyToken, (req, res) => {
+  const userId = req.user.userId;
+  const workflowId = req.params.id;
+
+  // Get workflow to find trigger node
+  db.get(
+    'SELECT * FROM workflows WHERE id = ? AND user_id = ?',
+    [workflowId, userId],
+    (err, row) => {
+      if (err) {
+        logger.logError(err, { context: 'getHostedUrl', userId, workflowId });
+        return res.status(500).json({ error: 'Database error' });
+      }
+
+      if (!row) {
+        return res.status(404).json({ error: 'Workflow not found' });
+      }
+
+      try {
+        const workflowData = JSON.parse(row.data);
+        
+        // Find chat trigger node
+        const chatTrigger = workflowData.nodes.find(node => 
+          node.data.type === 'chatTrigger'
+        );
+
+        if (!chatTrigger) {
+          return res.status(400).json({ 
+            error: 'No chat trigger found in workflow. Add a Chat Trigger node to get a hosted URL.' 
+          });
+        }
+
+        const baseUrl = process.env.BASE_URL || 'https://workflow-lg9z.onrender.com';
+        const hostedUrl = `${baseUrl}/public/hosted-chat.html?workflowId=${workflowId}`;
+        
+        res.json({
+          success: true,
+          workflowId: workflowId,
+          workflowName: row.name,
+          hostedUrl: hostedUrl,
+          triggerNodeId: chatTrigger.id,
+          triggerNodeType: chatTrigger.data.type
+        });
+      } catch (parseError) {
+        logger.logError(parseError, { context: 'parseWorkflowDataForUrl', userId, workflowId });
+        res.status(500).json({ error: 'Invalid workflow data' });
+      }
+    }
+  );
+});
+
 // Simple status endpoint for checking workflow activation
 router.get('/workflows/:id/simple-status', async (req, res) => {
   try {
