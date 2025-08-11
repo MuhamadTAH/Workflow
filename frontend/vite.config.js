@@ -30,14 +30,15 @@ export default defineConfig({
     minify: 'esbuild'
   },
   server: {
+    historyApiFallback: true,
     proxy: {
       '/api': {
-        target: 'https://workflow-lg9z.onrender.com',
+        target: 'https://workflow-unlq.onrender.com',
         changeOrigin: true,
         secure: true
       },
       '/uploads': {
-        target: 'https://workflow-lg9z.onrender.com',
+        target: 'https://workflow-unlq.onrender.com',
         changeOrigin: true,
         secure: true
       }
