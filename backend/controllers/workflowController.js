@@ -50,11 +50,20 @@ const activateWorkflow = async (req, res) => {
         for (const triggerNode of triggerNodes) {
             if (triggerNode.data.type === 'chatTrigger') {
                 const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/chatTrigger/${workflowId}/${triggerNode.id}/chat`;
+                const hostedChatUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/public/hosted-chat.html?workflowId=${workflowId}&nodeId=${triggerNode.id}&path=chat&title=Chat+Support`;
+                
+                console.log('🔗 Generated Chat URLs:', {
+                    workflowId: workflowId,
+                    nodeId: triggerNode.id,
+                    webhookUrl: webhookUrl,
+                    hostedChatUrl: hostedChatUrl
+                });
+                
                 triggerUrls.push({
                     nodeId: triggerNode.id,
                     type: 'chatTrigger',
                     webhookUrl: webhookUrl,
-                    hostedChatUrl: `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/public/hosted-chat.html?workflowId=${workflowId}&nodeId=${triggerNode.id}`
+                    hostedChatUrl: hostedChatUrl
                 });
             } else if (triggerNode.data.type === 'telegramTrigger') {
                 const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram/${workflowId}`;
