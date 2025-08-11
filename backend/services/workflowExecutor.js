@@ -424,6 +424,9 @@ class WorkflowExecutor {
                         
                         // Special handling for Chat Trigger nodes - they have flat data structure
                         if (nodeName === 'Chat Trigger' || stepKey.includes('Chat_Trigger')) {
+                            console.log(`🔍 Chat Trigger special handling - nodeName: "${nodeName}", stepKey: "${stepKey}", path: "${path}"`);
+                            console.log(`🔍 stepValue.sessionId: "${stepValue.sessionId}", stepValue.text: "${stepValue.text}"`);
+                            
                             // For Chat Trigger, map common template paths to actual data structure
                             if (path === 'json.result.data[0].sessionId' && stepValue.sessionId) {
                                 console.log(`✅ Template resolved (Chat Trigger sessionId): ${match} → ${stepValue.sessionId}`);
@@ -439,6 +442,7 @@ class WorkflowExecutor {
                             }
                             // For other Chat Trigger fields, try direct access
                             const simplePath = path.split('.').pop(); // Get last part (e.g., "sessionId")
+                            console.log(`🔍 Trying direct access with simplePath: "${simplePath}"`);
                             if (stepValue[simplePath]) {
                                 console.log(`✅ Template resolved (Chat Trigger direct): ${match} → ${stepValue[simplePath]}`);
                                 return stepValue[simplePath];
