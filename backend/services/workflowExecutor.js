@@ -329,7 +329,8 @@ class WorkflowExecutor {
                     chatTitle: resolvedConfig.chatTitle,
                     webhookPath: resolvedConfig.webhookPath
                 };
-                console.log('🔧 Chat Trigger Response clean config:', JSON.stringify(cleanConfig, null, 2));
+                console.log('🧹 BEFORE CLEANING - Full resolved config contains', Object.keys(resolvedConfig).length, 'fields');
+                console.log('✨ AFTER CLEANING - Clean config:', JSON.stringify(cleanConfig, null, 2));
                 return await chatResponseInstance.execute(cleanConfig, inputData);
             
             case 'multiLanguageChatResponse':

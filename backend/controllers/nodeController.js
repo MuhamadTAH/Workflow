@@ -92,7 +92,7 @@ const runNode = async (req, res) => {
             connectedNodes
         );
         
-        console.log('🔒 Processed config with isolated context:', processedConfig);
+        console.log('🔒 Processed config with isolated context - contains', Object.keys(processedConfig).length, 'fields');
         
         // Handle multi-item processing
         const inputItems = Array.isArray(inputData) ? inputData : [inputData || {}];
@@ -122,7 +122,19 @@ const runNode = async (req, res) => {
                 case 'chatTriggerResponse':
                     const chatTriggerResponseInstance = new ChatTriggerResponseNode();
                     const contextItemChat = allInputData[0] || {};
-                    itemResult = await chatTriggerResponseInstance.execute(processedConfig, contextItemChat, executionContext);
+                    
+                    // Filter config to only include Chat Trigger Response specific fields
+                    const cleanConfig = {
+                        type: processedConfig.type,
+                        sessionId: processedConfig.sessionId,
+                        message: processedConfig.message,
+                        chatTitle: processedConfig.chatTitle,
+                        webhookPath: processedConfig.webhookPath
+                    };
+                    console.log('🧹 [NodeController] BEFORE CLEANING - Full config contains', Object.keys(processedConfig).length, 'fields');
+                    console.log('✨ [NodeController] AFTER CLEANING - Clean config:', JSON.stringify(cleanConfig, null, 2));
+                    
+                    itemResult = await chatTriggerResponseInstance.execute(cleanConfig, contextItemChat, executionContext);
                     break;
                 
                 default:
