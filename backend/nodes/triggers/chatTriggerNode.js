@@ -184,11 +184,12 @@ class ChatTriggerNode {
       const result = {
         success: true,
         nodeType: this.type,
-        data: chatMessages.length > 0 ? chatMessages : inputData || {},
+        data: chatMessages.length > 0 ? chatMessages[0] : inputData || {},
         message: chatMessages.length > 0 
           ? `Chat Trigger executed: Retrieved ${chatMessages.length} stored messages`
           : 'Chat Trigger executed: No stored messages found',
         chatMessages: chatMessages,
+        allMessages: chatMessages,
         timestamp: new Date().toISOString()
       };
       
