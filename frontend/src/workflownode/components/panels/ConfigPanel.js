@@ -1233,8 +1233,14 @@ const ConfigPanel = ({ node, nodes, edges, workflowId, onClose, onNodeUpdate }) 
                                         <>
                                             <strong>Hosted Chat URL:</strong><br/>
                                             <code style={{ wordBreak: 'break-all' }}>
-                                                {API_BASE_URL}/chat/{workflowId || 'your-workflow-id'}/{node.id}/{formData.webhookPath || 'chat'}?title={encodeURIComponent(formData.chatTitle || 'Chat Support')}
+                                                {workflowId ? `${API_BASE_URL}/chat/${workflowId}/${node.id}/${formData.webhookPath || 'chat'}?title=${encodeURIComponent(formData.chatTitle || 'Chat Support')}` : 'Please save the workflow first to generate the chat URL'}
                                             </code>
+                                            <br/>
+                                            {workflowId && (
+                                                <small style={{ color: '#666', fontSize: '12px' }}>
+                                                    💡 <strong>Note:</strong> This URL will only work after you <strong>activate</strong> the workflow using the "Activate Workflow" button in the toolbar.
+                                                </small>
+                                            )}
                                             <br/><br/>
                                         </>
                                     )}
