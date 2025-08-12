@@ -1,28 +1,267 @@
-iti is faild to login and the consolae said this 
-login:1  Access to XMLHttpRequest at 'https://workflow-lg9z.onrender.com/api/login' from origin 'https://frontend-dpcg.onrender.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-index-BFYTEVZJ.js:36   POST https://workflow-lg9z.onrender.com/api/login net::ERR_FAILED
-
-and the backend said this 
-2025-08-12T08:11:21.240Z] INFO: Incoming request {"method":"OPTIONS","url":"/api/login","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"}
-🌐 INCOMING REQUEST: {
-  method: 'OPTIONS',
-  url: '/api/login',
-  origin: 'https://frontend-dpcg.onrender.com',
-  userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb',
-  timestamp: '2025-08-12T08:11:21.240Z'
+==> Cloning from https://github.com/MuhamadTAH/Workflow
+==> Checking out commit 15d33fc0d1db325d79c95ca9c291974a77d65a5e in branch main
+==> Using Node.js version 22.16.0 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Running build command 'npm install'...
+added 53 packages, changed 6 packages, and audited 182 packages in 3s
+31 packages are looking for funding
+  run `npm fund` for details
+found 0 vulnerabilities
+==> Uploading build...
+==> Uploaded in 4.4s. Compression took 1.3s
+==> Build successful 🎉
+==> Deploying...
+==> Running 'node index.js'
+[dotenv@17.2.1] injecting env (3) from .env -- tip: ⚙️  override existing env vars with { override: true }
+node:internal/modules/cjs/loader:1404
+  throw err;
+  ^
+Error: Cannot find module './debug'
+Require stack:
+- /opt/render/project/src/backend/node_modules/debug/src/node.js
+- /opt/render/project/src/backend/node_modules/debug/src/index.js
+- /opt/render/project/src/backend/node_modules/finalhandler/index.js
+- /opt/render/project/src/backend/node_modules/express/lib/application.js
+- /opt/render/project/src/backend/node_modules/express/lib/express.js
+- /opt/render/project/src/backend/node_modules/express/index.js
+- /opt/render/project/src/backend/index.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1401:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.require (node:internal/modules/cjs/loader:1487:12)
+    at require (node:internal/modules/helpers:135:16)
+    at Object.<anonymous> (/opt/render/project/src/backend/node_modules/debug/src/node.js:14:28)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/opt/render/project/src/backend/node_modules/debug/src/node.js',
+    '/opt/render/project/src/backend/node_modules/debug/src/index.js',
+    '/opt/render/project/src/backend/node_modules/finalhandler/index.js',
+    '/opt/render/project/src/backend/node_modules/express/lib/application.js',
+    '/opt/render/project/src/backend/node_modules/express/lib/express.js',
+    '/opt/render/project/src/backend/node_modules/express/index.js',
+    '/opt/render/project/src/backend/index.js'
+  ]
 }
-❌ CORS blocked origin: https://frontend-dpcg.onrender.com
-🔍 Allowed origins: [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5175',
-  'http://localhost:5176',
-  'http://localhost:5177',
-  'http://localhost:5178',
-  'http://localhost:5179',
-  'http://localhost:3000',
-  'https://workflow-1-frkg.onrender.com',
-  'https://workflow-unlq.onrender.com'
-]
-[2025-08-12T08:11:21.240Z] ERROR: Application error {"message":"Not allowed by CORS","stack":"Error: Not allowed by CORS\n    at origin (/opt/render/project/src/backend/index.js:74:21)\n    at /opt/render/project/src/backend/node_modules/cors/lib/index.js:219:13\n    at optionsCallback (/opt/render/project/src/backend/node_modules/cors/lib/index.js:199:9)\n    at corsMiddleware (/opt/render/project/src/backend/node_modules/cors/lib/index.js:204:7)\n    at Layer.handle [as handle_request] (/opt/render/project/src/backend/node_modules/express/lib/router/layer.js:95:5)\n    at trim_prefix (/opt/render/project/src/backend/node_modules/express/lib/router/index.js:328:13)\n    at /opt/render/project/src/backend/node_modules/express/lib/router/index.js:286:9\n    at Function.process_params (/opt/render/project/src/backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/opt/render/project/src/backend/node_modules/express/lib/router/index.js:280:10)\n    at /opt/render/project/src/backend/index.js:43:3","method":"OPTIONS","url":"/api/login","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0","params":{},"query":{}}
-[2025-08-12T08:11:21.241Z] INFO: Request completed {"method":"OPTIONS","url":"/api/login","status":500,"duration":"1ms"}
+Node.js v22.16.0
+==> Exited with status 1
+==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+==> Running 'node index.js'
+[dotenv@17.2.1] injecting env (3) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+node:internal/modules/cjs/loader:1404
+  throw err;
+  ^
+Error: Cannot find module './debug'
+Require stack:
+- /opt/render/project/src/backend/node_modules/debug/src/node.js
+- /opt/render/project/src/backend/node_modules/debug/src/index.js
+- /opt/render/project/src/backend/node_modules/finalhandler/index.js
+- /opt/render/project/src/backend/node_modules/express/lib/application.js
+- /opt/render/project/src/backend/node_modules/express/lib/express.js
+- /opt/render/project/src/backend/node_modules/express/index.js
+- /opt/render/project/src/backend/index.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1401:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.require (node:internal/modules/cjs/loader:1487:12)
+    at require (node:internal/modules/helpers:135:16)
+    at Object.<anonymous> (/opt/render/project/src/backend/node_modules/debug/src/node.js:14:28)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/opt/render/project/src/backend/node_modules/debug/src/node.js',
+    '/opt/render/project/src/backend/node_modules/debug/src/index.js',
+    '/opt/render/project/src/backend/node_modules/finalhandler/index.js',
+    '/opt/render/project/src/backend/node_modules/express/lib/application.js',
+    '/opt/render/project/src/backend/node_modules/express/lib/express.js',
+    '/opt/render/project/src/backend/node_modules/express/index.js',
+    '/opt/render/project/src/backend/index.js'
+  ]
+}
+Node.js v22.16.0
+==> Running 'node index.js'
+[dotenv@17.2.1] injecting env (3) from .env -- tip: 📡 observe env with Radar: https://dotenvx.com/radar
+node:internal/modules/cjs/loader:1404
+  throw err;
+  ^
+Error: Cannot find module './debug'
+Require stack:
+- /opt/render/project/src/backend/node_modules/debug/src/node.js
+- /opt/render/project/src/backend/node_modules/debug/src/index.js
+- /opt/render/project/src/backend/node_modules/finalhandler/index.js
+- /opt/render/project/src/backend/node_modules/express/lib/application.js
+- /opt/render/project/src/backend/node_modules/express/lib/express.js
+- /opt/render/project/src/backend/node_modules/express/index.js
+- /opt/render/project/src/backend/index.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1401:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.require (node:internal/modules/cjs/loader:1487:12)
+    at require (node:internal/modules/helpers:135:16)
+    at Object.<anonymous> (/opt/render/project/src/backend/node_modules/debug/src/node.js:14:28)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/opt/render/project/src/backend/node_modules/debug/src/node.js',
+    '/opt/render/project/src/backend/node_modules/debug/src/index.js',
+    '/opt/render/project/src/backend/node_modules/finalhandler/index.js',
+    '/opt/render/project/src/backend/node_modules/express/lib/application.js',
+    '/opt/render/project/src/backend/node_modules/express/lib/express.js',
+    '/opt/render/project/src/backend/node_modules/express/index.js',
+    '/opt/render/project/src/backend/index.js'
+  ]
+}
+Node.js v22.16.0
+==> Running 'node index.js'
+[dotenv@17.2.1] injecting env (3) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+node:internal/modules/cjs/loader:1404
+  throw err;
+  ^
+Error: Cannot find module './debug'
+Require stack:
+- /opt/render/project/src/backend/node_modules/debug/src/node.js
+- /opt/render/project/src/backend/node_modules/debug/src/index.js
+- /opt/render/project/src/backend/node_modules/finalhandler/index.js
+- /opt/render/project/src/backend/node_modules/express/lib/application.js
+- /opt/render/project/src/backend/node_modules/express/lib/express.js
+- /opt/render/project/src/backend/node_modules/express/index.js
+- /opt/render/project/src/backend/index.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1401:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.require (node:internal/modules/cjs/loader:1487:12)
+    at require (node:internal/modules/helpers:135:16)
+    at Object.<anonymous> (/opt/render/project/src/backend/node_modules/debug/src/node.js:14:28)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/opt/render/project/src/backend/node_modules/debug/src/node.js',
+    '/opt/render/project/src/backend/node_modules/debug/src/index.js',
+    '/opt/render/project/src/backend/node_modules/finalhandler/index.js',
+    '/opt/render/project/src/backend/node_modules/express/lib/application.js',
+    '/opt/render/project/src/backend/node_modules/express/lib/express.js',
+    '/opt/render/project/src/backend/node_modules/express/index.js',
+    '/opt/render/project/src/backend/index.js'
+  ]
+}
+Node.js v22.16.0
+==> Running 'node index.js'
+[dotenv@17.2.1] injecting env (3) from .env -- tip: 📡 observe env with Radar: https://dotenvx.com/radar
+node:internal/modules/cjs/loader:1404
+  throw err;
+  ^
+Error: Cannot find module './debug'
+Require stack:
+- /opt/render/project/src/backend/node_modules/debug/src/node.js
+- /opt/render/project/src/backend/node_modules/debug/src/index.js
+- /opt/render/project/src/backend/node_modules/finalhandler/index.js
+- /opt/render/project/src/backend/node_modules/express/lib/application.js
+- /opt/render/project/src/backend/node_modules/express/lib/express.js
+- /opt/render/project/src/backend/node_modules/express/index.js
+- /opt/render/project/src/backend/index.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1401:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.require (node:internal/modules/cjs/loader:1487:12)
+    at require (node:internal/modules/helpers:135:16)
+    at Object.<anonymous> (/opt/render/project/src/backend/node_modules/debug/src/node.js:14:28)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/opt/render/project/src/backend/node_modules/debug/src/node.js',
+    '/opt/render/project/src/backend/node_modules/debug/src/index.js',
+    '/opt/render/project/src/backend/node_modules/finalhandler/index.js',
+    '/opt/render/project/src/backend/node_modules/express/lib/application.js',
+    '/opt/render/project/src/backend/node_modules/express/lib/express.js',
+    '/opt/render/project/src/backend/node_modules/express/index.js',
+    '/opt/render/project/src/backend/index.js'
+  ]
+}
+Node.js v22.16.0
+==> Running 'node index.js'
+[dotenv@17.2.1] injecting env (3) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+node:internal/modules/cjs/loader:1404
+  throw err;
+  ^
+Error: Cannot find module './debug'
+Require stack:
+- /opt/render/project/src/backend/node_modules/debug/src/node.js
+- /opt/render/project/src/backend/node_modules/debug/src/index.js
+- /opt/render/project/src/backend/node_modules/finalhandler/index.js
+- /opt/render/project/src/backend/node_modules/express/lib/application.js
+- /opt/render/project/src/backend/node_modules/express/lib/express.js
+- /opt/render/project/src/backend/node_modules/express/index.js
+- /opt/render/project/src/backend/index.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1401:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.require (node:internal/modules/cjs/loader:1487:12)
+    at require (node:internal/modules/helpers:135:16)
+    at Object.<anonymous> (/opt/render/project/src/backend/node_modules/debug/src/node.js:14:28)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/opt/render/project/src/backend/node_modules/debug/src/node.js',
+    '/opt/render/project/src/backend/node_modules/debug/src/index.js',
+    '/opt/render/project/src/backend/node_modules/finalhandler/index.js',
+    '/opt/render/project/src/backend/node_modules/express/lib/application.js',
+    '/opt/render/project/src/backend/node_modules/express/lib/express.js',
+    '/opt/render/project/src/backend/node_modules/express/index.js',
+    '/opt/render/project/src/backend/index.js'
+  ]
+}
+Node.js v22.16.0
+==> Running 'node index.js'
+[dotenv@17.2.1] injecting env (3) from .env -- tip: 📡 observe env with Radar: https://dotenvx.com/radar
+node:internal/modules/cjs/loader:1404
+  throw err;
+  ^
+Error: Cannot find module './debug'
+Require stack:
+- /opt/render/project/src/backend/node_modules/debug/src/node.js
+- /opt/render/project/src/backend/node_modules/debug/src/index.js
+- /opt/render/project/src/backend/node_modules/finalhandler/index.js
+- /opt/render/project/src/backend/node_modules/express/lib/application.js
+- /opt/render/project/src/backend/node_modules/express/lib/express.js
+- /opt/render/project/src/backend/node_modules/express/index.js
+- /opt/render/project/src/backend/index.js
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1401:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.require (node:internal/modules/cjs/loader:1487:12)
+    at require (node:internal/modules/helpers:135:16)
+    at Object.<anonymous> (/opt/render/project/src/backend/node_modules/debug/src/node.js:14:28)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/opt/render/project/src/backend/node_modules/debug/src/node.js',
+    '/opt/render/project/src/backend/node_modules/debug/src/index.js',
+    '/opt/render/project/src/backend/node_modules/finalhandler/index.js',
+    '/opt/render/project/src/backend/node_modules/express/lib/application.js',
+    '/opt/render/project/src/backend/node_modules/express/lib/express.js',
+    '/opt/render/project/src/backend/node_modules/express/index.js',
+    '/opt/render/project/src/backend/index.js'
+  ]
+}
+Node.js v22.16.0
