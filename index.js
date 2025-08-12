@@ -43,7 +43,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Simple CORS - allow all origins
+// Simple CORS - allow all origins (updated)
 app.use(cors({
   origin: true,
   credentials: true,
