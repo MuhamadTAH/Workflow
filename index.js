@@ -43,54 +43,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// More permissive CORS configuration for debugging
+// Simple CORS - allow all origins
 app.use(cors({
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
-    
-    // Allow all localhost origins for development
-    if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
-      return callback(null, true);
-    }
-    
-    // Allow specific origins
-    const allowedOrigins = [
-      'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 
-      'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 
-      'http://localhost:5179', 'http://localhost:3000',
-      // Production frontend and backend (for self-referencing)
-      'https://frontend-dpcg.onrender.com',
-      'https://workflow-lg9z.onrender.com',
-      'https://workflow-1-frkg.onrender.com',
-      'https://workflow-unlq.onrender.com'
-    ];
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      console.log('✅ CORS allowed origin:', origin);
-      return callback(null, true);
-    }
-    
-    console.log('❌ CORS blocked origin:', origin);
-    console.log('🔍 Allowed origins:', allowedOrigins);
-    return callback(new Error('Not allowed by CORS'), false);
-  },
+  origin: true,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
-  allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
-    'Accept', 
-    'X-Requested-With', 
-    'Access-Control-Allow-Headers', 
-    'Access-Control-Request-Headers',
-    'Access-Control-Request-Method',
-    'Origin',
-    'Cache-Control',
-    'Pragma'
-  ],
-  optionsSuccessStatus: 200,
-  preflightContinue: false
+  optionsSuccessStatus: 200
 }));
 
 // Explicit preflight handler for all routes
