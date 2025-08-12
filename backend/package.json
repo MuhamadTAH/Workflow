@@ -7,7 +7,7 @@
     "start": "node index.js",
     "dev": "node index.js",
     "build": "npm rebuild",
-    "postinstall": "npm rebuild better-sqlite3",
+    "postinstall": "npm rebuild sqlite3",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -21,7 +21,7 @@
     "@anthropic-ai/sdk": "^0.57.0",
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
-    "better-sqlite3": "^11.10.0",
+    "sqlite3": "^5.1.6",
     "cors": "^2.8.5",
     "debug": "^4.3.4",
     "dotenv": "^17.2.1",

@@ -33,8 +33,7 @@ router.post('/signup', async (req, res) => {
 
     // Check if user already exists
     try {
-      const stmt = db.prepare('SELECT * FROM users WHERE email = ?');
-      const user = stmt.get(email);
+      const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
       
       if (user) {
         return res.status(400).json({ message: 'User already exists' });
@@ -45,8 +44,7 @@ router.post('/signup', async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
       // Insert new user
-      const insertStmt = db.prepare('INSERT INTO users (name, email, password) VALUES (?, ?, ?)');
-      const result = insertStmt.run(name || null, email, hashedPassword);
+      const result = await db.run('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', [name || null, email, hashedPassword]);
 
       // Generate JWT token
       const token = jwt.sign(
@@ -79,8 +77,7 @@ router.post('/login', async (req, res) => {
 
     try {
       // Find user by email
-      const stmt = db.prepare('SELECT * FROM users WHERE email = ?');
-      const user = stmt.get(email);
+      const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
 
       if (!user) {
         return res.status(400).json({ message: 'Invalid credentials' });
@@ -112,11 +109,10 @@ router.post('/login', async (req, res) => {
 });
 
 // GET /api/profile - Get user profile (protected route)
-router.get('/profile', verifyToken, (req, res) => {
+router.get('/profile', verifyToken, async (req, res) => {
   try {
     try {
-      const stmt = db.prepare('SELECT id, name, email, created_at FROM users WHERE id = ?');
-      const user = stmt.get(req.user.userId);
+      const user = await db.get('SELECT id, name, email, created_at FROM users WHERE id = ?', [req.user.userId]);
 
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
@@ -437,11 +433,10 @@ function processTemplates(text, inputData) {
 }
 
 // Temporary debug route to check if user exists
-router.get('/debug/user/:email', (req, res) => {
+router.get('/debug/user/:email', async (req, res) => {
   try {
     const { email } = req.params;
-    const stmt = db.prepare('SELECT id, name, email FROM users WHERE email = ?');
-    const user = stmt.get(email);
+    const user = await db.get('SELECT id, name, email FROM users WHERE email = ?', [email]);
     
     if (user) {
       res.json({
