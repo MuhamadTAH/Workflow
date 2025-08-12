@@ -17,31 +17,14 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 1000, // Raise warning limit to 1000 KB to silence chunk size warnings
+    chunkSizeWarningLimit: 2000,
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') && !id.includes('router')) {
-              return 'vendor';
-            }
-            if (id.includes('react-router')) {
-              return 'router';
-            }
-            if (id.includes('@xyflow') || id.includes('reactflow')) {
-              return 'workflow';
-            }
-            if (id.includes('axios') || id.includes('uuid')) {
-              return 'utils';
-            }
-            return 'vendor';
-          }
-          if (id.includes('src/workflownode')) {
-            return 'workflow-components';
-          }
-          if (id.includes('src/pages')) {
-            return 'pages';
-          }
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
+          workflow: ['reactflow'],
+          utils: ['axios']
         },
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
@@ -49,7 +32,8 @@ export default defineConfig({
       }
     },
     target: 'esnext',
-    minify: 'esbuild'
+    minify: 'terser',
+    sourcemap: false
   },
   server: {
     historyApiFallback: true,
