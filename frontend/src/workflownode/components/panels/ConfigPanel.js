@@ -811,7 +811,7 @@ const ConfigPanel = ({ node, nodes, edges, workflowId, onClose, onNodeUpdate }) 
                 },
                 inputData: inputData,
                 connectedNodes: collectAllPreviousNodeData(node.id) || [],
-                workflowId: 'live_test_workflow',
+                workflowId: workflowId || 'live_test_workflow',
                 workflowName: 'Live Test Workflow',
                 executionId: `live_${Date.now()}`
             })
