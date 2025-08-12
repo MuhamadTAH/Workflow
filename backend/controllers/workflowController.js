@@ -26,7 +26,27 @@ const getCredentials = (nodeType) => {
 const activateWorkflow = async (req, res) => {
     try {
         const workflowId = req.params.id;
-        const { workflow } = req.body; 
+        let { workflow } = req.body; 
+
+        // If no workflow data provided, try to load from database
+        if (!workflow) {
+            console.log(`⚠️ No workflow data in request body, attempting to load from database for ${workflowId}`);
+            try {
+                const db = require('../db');
+                const stmt = db.prepare('SELECT * FROM workflows WHERE id = ?');
+                const row = stmt.get(workflowId);
+                
+                if (row && row.data) {
+                    workflow = JSON.parse(row.data);
+                    console.log(`✅ Loaded workflow data from database: ${workflow.nodes?.length || 0} nodes`);
+                } else {
+                    return res.status(400).json({ message: 'Workflow not found in database. Please save the workflow first.' });
+                }
+            } catch (dbError) {
+                console.error('❌ Failed to load workflow from database:', dbError);
+                return res.status(400).json({ message: 'Complete workflow data (nodes and edges) is required for activation.' });
+            }
+        }
 
         if (!workflow || !workflow.nodes || !workflow.edges) {
             return res.status(400).json({ message: 'Complete workflow data (nodes and edges) is required for activation.' });

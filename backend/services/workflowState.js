@@ -34,6 +34,20 @@ class WorkflowState {
   // Store workflow activation state
   async storeActiveWorkflow(workflowId, workflowData, triggerUrls = []) {
     try {
+      // Ensure we have valid workflow data
+      if (!workflowData) {
+        console.warn(`⚠️ No workflow data provided for ${workflowId}, using minimal structure`);
+        workflowData = { nodes: [], edges: [], id: workflowId };
+      }
+      
+      // Ensure workflowData is an object with required fields
+      const safeWorkflowData = {
+        id: workflowId,
+        nodes: workflowData.nodes || [],
+        edges: workflowData.edges || [],
+        ...workflowData
+      };
+      
       const stmt = db.prepare(`
         INSERT OR REPLACE INTO active_workflows 
         (workflow_id, workflow_data, activated_at, trigger_urls, status) 
@@ -42,7 +56,7 @@ class WorkflowState {
       
       stmt.run(
         workflowId,
-        JSON.stringify(workflowData),
+        JSON.stringify(safeWorkflowData),
         new Date().toISOString(),
         JSON.stringify(triggerUrls)
       );
