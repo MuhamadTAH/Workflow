@@ -11,7 +11,6 @@ const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
 const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
-const ChatTriggerResponseNode = require('../nodes/ChatTriggerResponseNode');
 const MultiLanguageChatResponseNode = require('../nodes/MultiLanguageChatResponseNode');
 
 class WorkflowExecutor {
@@ -38,11 +37,10 @@ class WorkflowExecutor {
         // Find trigger node (various types)
         const triggerNode = workflowConfig.nodes.find(node => 
             node.data.type === 'trigger' || 
-            node.data.type === 'telegramTrigger' ||
-            node.data.type === 'chatTrigger'
+            node.data.type === 'telegramTrigger'
         );
         if (!triggerNode) {
-            throw new Error('Workflow must contain a trigger node (trigger, telegramTrigger, or chatTrigger)');
+            throw new Error('Workflow must contain a trigger node (trigger, telegramTrigger)');
         }
 
         console.log(`Found trigger node: ${triggerNode.data.label || triggerNode.data.type} (${triggerNode.id})`);
@@ -124,7 +122,7 @@ class WorkflowExecutor {
 
                 try {
                     // Skip trigger node (already executed)
-                    if (node.data.type === 'trigger' || node.data.type === 'telegramTrigger' || node.data.type === 'chatTrigger') {
+                    if (node.data.type === 'trigger' || node.data.type === 'telegramTrigger') {
                         stepLog.outputData = currentData;
                         stepLog.status = 'skipped';
                         stepLog.message = 'Trigger node - using trigger data';
@@ -228,8 +226,7 @@ class WorkflowExecutor {
         // Find trigger node (starting point)
         const triggerNode = nodes.find(node => 
             node.data.type === 'trigger' || 
-            node.data.type === 'telegramTrigger' ||
-            node.data.type === 'chatTrigger'
+            node.data.type === 'telegramTrigger'
         );
         if (!triggerNode) {
             throw new Error('No trigger node found in workflow');
@@ -316,22 +313,6 @@ class WorkflowExecutor {
             case 'telegramSendMessage':
                 return await telegramSendMessageNode.execute(nodeConfig, inputData, connectedNodes);
             
-            case 'chatTriggerResponse':
-                const chatResponseInstance = new ChatTriggerResponseNode();
-                // Resolve templates in nodeConfig before execution
-                const resolvedConfig = this.resolveNodeTemplates(nodeConfig, inputData, workflow);
-                
-                // Filter config to only include Chat Trigger Response specific fields
-                const cleanConfig = {
-                    type: resolvedConfig.type,
-                    sessionId: resolvedConfig.sessionId,
-                    message: resolvedConfig.message,
-                    chatTitle: resolvedConfig.chatTitle,
-                    webhookPath: resolvedConfig.webhookPath
-                };
-                console.log('🧹 BEFORE CLEANING - Full resolved config contains', Object.keys(resolvedConfig).length, 'fields');
-                console.log('✨ AFTER CLEANING - Clean config:', JSON.stringify(cleanConfig, null, 2));
-                return await chatResponseInstance.execute(cleanConfig, inputData);
             
             case 'multiLanguageChatResponse':
                 const multiLangResponseInstance = new MultiLanguageChatResponseNode();
