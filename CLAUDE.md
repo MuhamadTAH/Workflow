@@ -353,4 +353,29 @@ From logs: `[webhook] ⚠️ Workflow not found or not active: test-workflow`
 
 ---
 
-*Last Updated: August 10, 2025 - Chat Trigger Response system fixes implemented but activation registration incomplete. For complete error history see error.md*
+### 9. 🔧 RENDER DEPLOYMENT FIXES (Aug 12, 2025)
+**Major Issues Resolved**:
+
+**✅ Backend SQLite Fix**: 
+- **Problem**: better-sqlite3 native module compilation mismatch (Node.js 22 local vs Node.js 18 Render)
+- **Solution**: Migrated from better-sqlite3 to sqlite3 with compatibility wrapper
+- **Files**: `backend/package.json`, `backend/dbWrapper.js`, `backend/db.js`
+- **Result**: Backend now running successfully at https://workflow-lg9z.onrender.com
+
+**✅ Chat Trigger URL Fix**:
+- **Problem**: Chat URLs showing "your-workflow-id" placeholder instead of actual workflow IDs
+- **Solution**: Updated template resolution in ConfigPanel.js to use actual workflowId
+- **File**: `frontend/src/workflownode/components/panels/ConfigPanel.js`
+- **Result**: Chat URLs now display correct workflow IDs when saved
+
+**⚠️ Frontend Asset Serving Issue**:
+- **Problem**: 404 errors for JavaScript assets (index-C65KcPNE.js) causing blank page
+- **Partial Fix**: CSS files serve correctly, vendor/router JS files work, but main index.js (588KB) returns 404
+- **Attempted Solutions**: Cache clearing, clean rebuilds, aggressive code splitting
+- **Status**: Main JS bundle too large for Render static serving, needs further optimization
+
+**Production URLs**:
+- **Backend**: ✅ https://workflow-lg9z.onrender.com (Working)  
+- **Frontend**: ⚠️ https://frontend-dpcg.onrender.com (Assets issue)
+
+*Last Updated: August 12, 2025 - Backend fully operational, frontend assets issue requires code splitting optimization. For complete error history see error.md*

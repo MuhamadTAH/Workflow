@@ -20,9 +20,28 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000, // Raise warning limit to 1000 KB to silence chunk size warnings
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom']
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') && !id.includes('router')) {
+              return 'vendor';
+            }
+            if (id.includes('react-router')) {
+              return 'router';
+            }
+            if (id.includes('@xyflow') || id.includes('reactflow')) {
+              return 'workflow';
+            }
+            if (id.includes('axios') || id.includes('uuid')) {
+              return 'utils';
+            }
+            return 'vendor';
+          }
+          if (id.includes('src/workflownode')) {
+            return 'workflow-components';
+          }
+          if (id.includes('src/pages')) {
+            return 'pages';
+          }
         },
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',

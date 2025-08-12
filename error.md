@@ -4,6 +4,68 @@ This document contains all the errors that have been identified, diagnosed, and 
 
 ---
 
+## 🚨 RENDER DEPLOYMENT CRITICAL FIXES (Aug 12, 2025)
+
+### ✅ SOLVED: Backend SQLite Compilation Error
+**Error**:
+```
+Error: The module '/opt/render/project/src/backend/node_modules/better-sqlite3/build/Release/better_sqlite3.node'
+was compiled against a different Node.js version using NODE_MODULE_VERSION 127. 
+This version of Node.js requires NODE_MODULE_VERSION 108.
+```
+
+**Root Cause**: better-sqlite3 native module compiled with Node.js 22 locally but Render runs Node.js 18
+
+**Solution Applied**:
+1. Replace better-sqlite3 with sqlite3 in `backend/package.json`
+2. Create compatibility wrapper in `backend/dbWrapper.js`
+3. Update all database calls to async operations
+4. Set Node.js engine to "18.x" in package.json
+
+**Files Modified**:
+- `backend/package.json` - Switch to sqlite3 dependency
+- `backend/dbWrapper.js` - New compatibility layer
+- `backend/db.js` - Use wrapper instead of direct better-sqlite3
+- `backend/routes/auth.js` - Convert to async database operations
+
+**Result**: ✅ Backend now running successfully at https://workflow-lg9z.onrender.com
+
+### ✅ SOLVED: Chat Trigger URL Placeholder Issue  
+**Error**: Chat Trigger URLs showing "your-workflow-id" instead of actual workflow IDs
+
+**Root Cause**: Template resolution not using actual workflowId when available
+
+**Solution**: Updated ConfigPanel.js to use workflowId when available:
+```javascript
+{workflowId ? `${API_BASE_URL}/chat/${workflowId}/${node.id}/${formData.webhookPath || 'chat'}?title=${encodeURIComponent(formData.chatTitle || 'Chat Support')}` : 'Please save the workflow first to generate the chat URL'}
+```
+
+**Result**: ✅ Chat URLs now show correct workflow IDs when saved
+
+### ⚠️ PARTIAL: Frontend JavaScript Asset 404 Errors
+**Error**: 
+```
+index-C65KcPNE.js:1 Failed to load resource: the server responded with a status of 404 ()
+```
+
+**Root Cause**: Main JavaScript bundle (588KB) too large for Render static asset serving
+
+**Analysis**:
+- CSS files serve correctly ✅
+- Smaller JS files (vendor, router) serve correctly ✅  
+- Main index.js bundle (588KB) returns 404 ❌
+- HTML correctly references the assets
+
+**Attempted Solutions**:
+1. Cache clearing and clean rebuilds
+2. Fresh npm install with --legacy-peer-deps
+3. Aggressive code splitting configuration
+4. Multiple deployment triggers
+
+**Status**: Requires further optimization with smaller chunk sizes
+
+---
+
 ## 🔧 COMMON TROUBLESHOOTING & FIXES
 
 ### 404 Route Not Found Errors
