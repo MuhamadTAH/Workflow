@@ -379,3 +379,39 @@ From logs: `[webhook] ⚠️ Workflow not found or not active: test-workflow`
 - **Frontend**: ⚠️ https://frontend-dpcg.onrender.com (Assets issue)
 
 *Last Updated: August 12, 2025 - Backend fully operational, frontend assets issue requires code splitting optimization. For complete error history see error.md*
+
+---
+
+### 10. 🚨 PRODUCTION BACKEND REQUIREMENT & LOGIN ISSUE (Aug 12, 2025)
+
+**CRITICAL POLICY**: This project uses **PRODUCTION-ONLY BACKEND**
+- ❌ **NO LOCAL BACKEND DEVELOPMENT** - Always use production Render backend
+- ✅ **Frontend Local Development**: `cd frontend && npm run dev` (connects to production API)
+- ✅ **Production Backend**: https://workflow-lg9z.onrender.com (Render hosted)
+
+**Current Login Issue**:
+- **User**: mhamadtah548@gmail.com / 1qazxsw2 ✅ (Credentials verified - working locally)
+- **Problem**: Render backend unresponsive (API timeouts on all endpoints)
+- **Symptom**: Login requests timeout, all `/api/*` calls fail
+- **Root Cause**: Production backend service down/sleeping/crashed on Render
+
+**Authentication System Status**:
+- ✅ **Database**: User exists, password hash correct
+- ✅ **Login Logic**: JWT generation working (tested locally)  
+- ✅ **Frontend**: Login form submits correctly
+- ❌ **Production API**: Render backend not responding to requests
+
+**Required Fix**:
+1. Check Render dashboard for backend service status
+2. Restart backend service if crashed/sleeping  
+3. Monitor backend logs for startup errors
+4. Verify database connectivity on production
+5. Test login flow after backend restoration
+
+**Production Architecture Reminder**:
+```
+Frontend (Local: npm run dev) → Production Backend (Render) → SQLite (Render)
+Frontend (Prod: Render) → Production Backend (Render) → SQLite (Render)
+```
+
+**No Local Backend Policy**: Always troubleshoot and fix production backend issues rather than falling back to local development. This ensures consistency with deployed environment and proper testing of production configurations.

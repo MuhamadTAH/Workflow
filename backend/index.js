@@ -157,6 +157,17 @@ app.get('/api/debug/routes', (req, res) => {
 app.use(errorHandler);
 
 // 404 handler
+// Health check endpoint for monitoring/wake-up
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    service: 'workflow-backend',
+    version: '1.0.0'
+  });
+});
+
 app.use('*', (req, res) => {
   logger.warn(`404 - Route not found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({ error: 'Route not found' });
