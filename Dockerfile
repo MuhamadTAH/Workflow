@@ -1,22 +1,28 @@
-FROM node:18-alpine
+FROM node:18-slim
 
-# Set working directory
 WORKDIR /app
 
-# Copy backend package files
-COPY backend/package*.json ./
+# Copy package files
+COPY package*.json ./
 
-# Install dependencies (better-sqlite3)
-RUN npm ci --only=production --no-audit
+# Install production dependencies
+RUN npm ci --only=production --no-audit --no-optional
 
-# Copy backend source code
-COPY backend/ ./
+# Copy source code (excluding frontend)
+COPY index.js ./
+COPY db.js ./
+COPY routes/ ./routes/
+COPY controllers/ ./controllers/
+COPY services/ ./services/
+COPY nodes/ ./nodes/
+COPY utils/ ./utils/
+COPY middleware/ ./middleware/
 
-# Create uploads directory if it doesn't exist
+# Create uploads directory
 RUN mkdir -p uploads/products
 
 # Expose port
 EXPOSE 3001
 
-# Start the backend server
+# Start application  
 CMD ["npm", "start"]

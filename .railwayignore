@@ -1,13 +1,29 @@
-# Force ignore ALL frontend-related files
+# COMPLETELY IGNORE FRONTEND DIRECTORY AND ALL SUBDIRECTORIES
 frontend/
-frontend-local/
-*/frontend/
-node_modules/
+frontend/**
+frontend/**/package.json
+frontend/**/vite.config.js
+frontend/**/node_modules/
+frontend/src/
+frontend/public/
+frontend/dist/
+
+# Ignore other frontend-related directories
+backend/
+WorkflowBuilder-Platform/
+workflownode/
+ai-agent-diagram/
+hello/
+
+# Ignore documentation and misc files  
 *.md
 .git/
 .env
-package-lock.json
+
+# Ignore any remaining frontend detection files
 vite.config.js
-tailwind.config.js
+tailwind.config.js  
+postcss.config.js
+eslint.config.js
+_redirects
 index.html
-src/

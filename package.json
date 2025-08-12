@@ -1,19 +1,33 @@
 {
-  "name": "workflow-platform",
+  "name": "backend",
   "version": "1.0.0",
-  "description": "Full-stack workflow builder platform",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "build": "echo 'Backend deployment - no build required'",
-    "start": "cd backend && npm start",
-    "dev": "cd backend && npm run dev",
-    "install": "cd backend && npm install"
+    "start": "node index.js",
+    "dev": "node index.js",
+    "build": "echo 'No build required'",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/MuhamadTAH/Workflow.git"
-  },
-  "engines": {
-    "node": "18.x",
-    "npm": "9.x"
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.57.0",
+    "axios": "^1.11.0",
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^11.10.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2",
+    "express-session": "^1.18.2",
+    "googleapis": "^154.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "node-fetch": "^3.3.2",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "uuid": "^11.1.0"
   }
 }

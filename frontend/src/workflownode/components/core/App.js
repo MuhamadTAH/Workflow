@@ -455,6 +455,7 @@ const App = () => {
           node={selectedNode} 
           nodes={nodes}
           edges={edges}
+          workflowId={currentWorkflowId}
           onClose={onPanelClose}
           onNodeUpdate={onNodeUpdate}
         />

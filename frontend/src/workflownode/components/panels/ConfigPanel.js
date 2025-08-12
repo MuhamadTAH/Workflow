@@ -389,7 +389,7 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
 };
 
 
-const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
+const ConfigPanel = ({ node, nodes, edges, workflowId, onClose, onNodeUpdate }) => {
   const [formData, setFormData] = useState({
       label: node.data.label || '',
       description: node.data.description || '',
@@ -1233,7 +1233,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                                         <>
                                             <strong>Hosted Chat URL:</strong><br/>
                                             <code style={{ wordBreak: 'break-all' }}>
-                                                {API_BASE_URL}/chat/test-workflow/{node.id}/{formData.webhookPath || 'chat'}?title={encodeURIComponent(formData.chatTitle || 'Chat Support')}
+                                                {API_BASE_URL}/chat/{workflowId || 'your-workflow-id'}/{node.id}/{formData.webhookPath || 'chat'}?title={encodeURIComponent(formData.chatTitle || 'Chat Support')}
                                             </code>
                                             <br/><br/>
                                         </>
