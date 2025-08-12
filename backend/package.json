@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
-    "build": "echo 'No build required'",
+    "build": "npm rebuild",
+    "postinstall": "npm rebuild better-sqlite3",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
