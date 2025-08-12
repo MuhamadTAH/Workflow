@@ -200,37 +200,24 @@ const runNode = async (req, res) => {
 
                     case 'chatTrigger':
                         // Chat Trigger node - retrieve stored messages from webhook
-                        const messageKey = `${node.config?.workflowId || 'test-workflow'}-${node.id}`;
-                        const nodeMessages = req.app.get('nodeMessages');
-                        const storedMessages = nodeMessages?.get(messageKey) || [];
+                        const chatTriggerInstance = new ChatTriggerNode();
+                        const workflowId = req.body.workflowId || node.config?.workflowId || 'test-workflow';
+                        const nodeId = node.id;
                         
-                        console.log(`🔍 Checking for messages with key: ${messageKey}`);
-                        console.log(`📋 Found ${storedMessages.length} stored messages`);
+                        // Create context with workflowId and nodeId for message retrieval
+                        const triggerContext = {
+                            workflowId: workflowId,
+                            nodeId: nodeId,
+                            executionContext: executionContext
+                        };
                         
-                        if (storedMessages.length > 0) {
-                            // Return ONLY the latest message (not accumulated history)
-                            const latestMessage = storedMessages[storedMessages.length - 1]; // Get only the most recent message
-                            
-                            // Clear the messages after retrieving to prevent accumulation
-                            nodeMessages.set(messageKey, []);
-                            
-                            itemResult = {
-                                success: true,
-                                nodeType: 'chatTrigger',
-                                data: [latestMessage], // Wrap in array for consistency
-                                message: `Retrieved latest chat message`,
-                                timestamp: new Date().toISOString()
-                            };
-                        } else {
-                            // No messages yet
-                            itemResult = {
-                                success: true,
-                                nodeType: 'chatTrigger',
-                                data: [],
-                                message: 'No chat messages received yet',
-                                timestamp: new Date().toISOString()
-                            };
-                        }
+                        console.log(`🔍 [ChatTrigger] Executing with context:`, {
+                            workflowId,
+                            nodeId,
+                            configWorkflowId: node.config?.workflowId
+                        });
+                        
+                        itemResult = await chatTriggerInstance.execute(currentItem, processedConfig, triggerContext);
                         break;
                     
                     case 'if':

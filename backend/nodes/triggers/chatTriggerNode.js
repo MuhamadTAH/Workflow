@@ -136,18 +136,53 @@ class ChatTriggerNode {
      *
      * @param {object} inputData - (not used for webhook trigger)
      * @param {object} config - node config
-     * @param {object} context - optional context (not required)
+     * @param {object} context - optional context (should contain workflowId and nodeId)
      */
     async execute(inputData = {}, config = {}, context = {}) {
-      // For trigger nodes, return the input data as output
-      // This allows testing the node and passing data through
-      return {
+      // Try to get stored messages for manual execution
+      const { workflowId, nodeId } = context || {};
+      let chatMessages = [];
+      
+      if (workflowId && nodeId) {
+        try {
+          // Access the global nodeMessages Map from webhooks
+          const nodeMessages = require('../routes/webhooks').nodeMessages || new Map();
+          const key = `${workflowId}:${nodeId}`;
+          
+          if (nodeMessages.has(key)) {
+            chatMessages = nodeMessages.get(key) || [];
+            console.log(`[ChatTrigger] Retrieved ${chatMessages.length} stored messages for ${key}`);
+            
+            // Clear the messages after retrieval to prevent re-processing
+            nodeMessages.delete(key);
+          } else {
+            console.log(`[ChatTrigger] No stored messages found for ${key}`);
+          }
+        } catch (error) {
+          console.error('[ChatTrigger] Error retrieving stored messages:', error);
+        }
+      }
+      
+      // Return the stored messages as the trigger output
+      const result = {
         success: true,
         nodeType: this.type,
-        data: inputData || {},
-        message: 'Chat Trigger node executed successfully',
+        data: chatMessages.length > 0 ? chatMessages : inputData || {},
+        message: chatMessages.length > 0 
+          ? `Chat Trigger executed: Retrieved ${chatMessages.length} stored messages`
+          : 'Chat Trigger executed: No stored messages found',
+        chatMessages: chatMessages,
         timestamp: new Date().toISOString()
       };
+      
+      console.log('[ChatTrigger] Execute result:', {
+        success: result.success,
+        messageCount: chatMessages.length,
+        workflowId,
+        nodeId
+      });
+      
+      return result;
     }
   }
   

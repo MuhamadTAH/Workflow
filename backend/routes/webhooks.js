@@ -598,4 +598,6 @@ router.get('/health', (req, res) => {
   });
 });
 
+// Export the router and nodeMessages for access by nodes
 module.exports = router;
+module.exports.nodeMessages = nodeMessages;
