@@ -178,11 +178,12 @@ app.listen(PORT, async () => {
   console.log(`🚀 Backend server with IF node routing fix started on port ${PORT}`);
   logger.info(`Backend server started on port ${PORT}`, { port: PORT });
   
-  // Restore active workflows from database
-  try {
-    const { restoreActiveWorkflowsOnStartup } = require('./controllers/workflowController');
-    await restoreActiveWorkflowsOnStartup();
-  } catch (error) {
-    console.error('❌ Failed to restore workflows on startup:', error);
-  }
+  // TODO: Temporarily disabled database restoration to prevent crashes
+  // try {
+  //   const { restoreActiveWorkflowsOnStartup } = require('./controllers/workflowController');
+  //   await restoreActiveWorkflowsOnStartup();
+  // } catch (error) {
+  //   console.error('❌ Failed to restore workflows on startup:', error);
+  // }
+  console.log('⚠️ Database workflow restoration temporarily disabled');
 });

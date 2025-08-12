@@ -113,8 +113,9 @@ const activateWorkflow = async (req, res) => {
 
         console.log(`📊 Activation complete - Controller active workflows: ${activeWorkflows.size}, Executor active workflows: ${workflowExecutor.activeWorkflows.size}`);
 
-        // Store in database for persistence
-        await workflowState.storeActiveWorkflow(workflowId, workflow, triggerUrls);
+        // TODO: Temporarily disabled database storage to prevent crashes
+        // await workflowState.storeActiveWorkflow(workflowId, workflow, triggerUrls);
+        console.log(`⚠️ Database storage temporarily disabled - workflow active in memory only`);
 
         res.json({
             success: true,
