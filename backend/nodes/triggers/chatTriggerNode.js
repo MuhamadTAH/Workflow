@@ -157,6 +157,23 @@ class ChatTriggerNode {
             nodeMessages.delete(key);
           } else {
             console.log(`[ChatTrigger] No stored messages found for ${key}`);
+            
+            // For active workflows, provide sample/example data for development
+            console.log(`[ChatTrigger] Providing sample message data for development`);
+            chatMessages = [{
+              text: "Sample message for development",
+              userId: "hosted-chat-user", 
+              sessionId: "sample-session-id",
+              source: "hosted_chat_fallback",
+              metadata: {
+                page: "Sample page URL",
+                timestamp: new Date().toISOString(),
+                workflowId: workflowId,
+                nodeId: nodeId
+              },
+              timestamp: new Date().toISOString(),
+              note: "This is sample data for configuring Chat Response node"
+            }];
           }
         } catch (error) {
           console.error('[ChatTrigger] Error retrieving stored messages:', error);
