@@ -147,7 +147,10 @@ class ChatTriggerNode {
         try {
           // Access the global nodeMessages Map from webhooks
           const nodeMessages = require('../routes/webhooks').nodeMessages || new Map();
-          const key = `${workflowId}:${nodeId}`;
+          const key = `${workflowId}-${nodeId}`;
+          
+          console.log(`[ChatTrigger] Looking for messages with key: ${key}`);
+          console.log(`[ChatTrigger] Available keys in nodeMessages:`, Array.from(nodeMessages.keys()));
           
           if (nodeMessages.has(key)) {
             chatMessages = nodeMessages.get(key) || [];
