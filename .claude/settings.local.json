@@ -65,7 +65,9 @@
       "WebFetch(domain:workflow-1-frkg.onrender.com)",
       "Bash(npm:*)",
       "Bash(git config:*)",
-      "Bash(ren:*)"
+      "Bash(ren:*)",
+      "Bash(vite build)",
+      "Bash(npx vite:*)"
     ],
     "deny": []
   }
