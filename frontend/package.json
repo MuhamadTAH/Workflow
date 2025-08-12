@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm install --legacy-peer-deps && vite build",
+    "build": "rm -rf node_modules package-lock.json && npm install --legacy-peer-deps && vite build",
     "build:clean": "rm -rf node_modules package-lock.json && npm install --legacy-peer-deps && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -51,6 +51,7 @@
   "optionalDependencies": {
     "@rollup/rollup-darwin-x64": "^4.22.4",
     "@rollup/rollup-darwin-arm64": "^4.22.4",
-    "@rollup/rollup-win32-x64-msvc": "^4.22.4"
+    "@rollup/rollup-win32-x64-msvc": "^4.22.4",
+    "@rollup/rollup-linux-x64-gnu": "^4.22.4"
   }
 }
