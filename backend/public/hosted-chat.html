@@ -123,13 +123,30 @@
                     workflowId,
                     triggerNodeId: data.triggerNodeId,
                     isActive: data.isActive,
+                    hasChatTrigger: data.hasChatTrigger,
                     webhookUrl
                 });
+                
+                // Show workflow status in chat header
+                updateChatHeader(data);
                 
                 return data;
             } catch (error) {
                 console.error('❌ Failed to fetch trigger info:', error);
                 throw error;
+            }
+        }
+
+        // Function to update chat header with workflow status
+        function updateChatHeader(triggerData) {
+            const statusText = triggerData.isActive ? 
+                "🟢 Workflow Active - Responses enabled" : 
+                "🟡 Workflow Inactive - Chat available, responses limited";
+                
+            const headerSubtitle = document.querySelector('.chat-header p');
+            if (headerSubtitle) {
+                headerSubtitle.textContent = statusText;
+                headerSubtitle.style.fontSize = '12px';
             }
         }
 
@@ -298,9 +315,16 @@
                 <div style="padding: 20px; height: 100%; display: flex; flex-direction: column;">
                     <div style="flex: 1; border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-bottom: 16px; overflow-y: auto; background: #f9f9f9;" id="messages">
                         <div style="text-align: center; color: #666; padding: 20px;">
-                            <p><strong>Simple Chat Interface</strong></p>
-                            <p>Ready to send messages to your workflow!</p>
+                            <p><strong>Chat Interface</strong></p>
+                            <p>${triggerInfo.isActive ? 
+                                '✅ Workflow is active - full functionality available!' : 
+                                '⚠️ Workflow is inactive - messages will be received but responses depend on workflow activation'
+                            }</p>
                             <p style="font-size: 12px; opacity: 0.7;">Webhook: ${webhookUrl}</p>
+                            ${!triggerInfo.isActive ? 
+                                '<p style="font-size: 12px; color: #f59e0b; margin-top: 10px;">💡 Tip: Activate the workflow in your workflow builder to enable automatic responses</p>' : 
+                                ''
+                            }
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px;">
