@@ -3,12 +3,6 @@ const router = express.Router();
 const db = require('../db');
 const logger = require('../services/logger');
 
-// Import WorkflowNode controllers
-const { 
-  activateWorkflow, 
-  deactivateWorkflow, 
-  getWorkflowStatus 
-} = require('../controllers/workflowController');
 
 // Import workflow executor
 const workflowExecutor = require('../services/workflowExecutor');
@@ -254,14 +248,7 @@ router.delete('/:id', verifyToken, (req, res) => {
 
 // NEW ROUTES FROM WORKFLOWNODE - Advanced workflow execution
 
-// POST /api/workflows/:id/activate - Activate workflow for automatic execution
-router.post('/:id/activate', activateWorkflow);
 
-// POST /api/workflows/:id/deactivate - Deactivate workflow  
-router.post('/:id/deactivate', deactivateWorkflow);
-
-// GET /api/workflows/:id/status - Get workflow execution status
-router.get('/:id/status', getWorkflowStatus);
 
 // POST /api/workflows/register - Register workflow for chat execution
 router.post('/register', (req, res) => {

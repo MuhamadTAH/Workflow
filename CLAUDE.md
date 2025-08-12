@@ -185,7 +185,7 @@ frontend/src/workflownode/
 - **Load System**: URL parameters (?load=workflowId)
 - **Unsaved Changes**: Smart detection with warnings
 - **Status Tracking**: Execution counts, last run times
-- **Activate Workflow**: One-click automatic execution from start to finish
+- **Manual Execution**: Execute individual nodes for testing and debugging
 - **Execution Engine**: Topological sort for correct node order, data flow between nodes
 
 ---
@@ -206,7 +206,7 @@ frontend/src/workflownode/
 ✅ **Social Connections**: OAuth-ready for 8 platforms at `/connections`  
 ✅ **Node Execution**: Real-time workflow processing  
 ✅ **Unsaved Changes Detection**: Smart state tracking with warnings
-✅ **Activate Workflow**: One-click automatic execution of entire workflow
+✅ **Manual Node Execution**: Execute individual nodes for testing and debugging
 ✅ **Logic Nodes**: Complete backend support for If/Switch conditional routing  
 
 ### Database Schema:

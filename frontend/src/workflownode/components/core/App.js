@@ -42,14 +42,10 @@ const App = () => {
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null);
   const [workflowName, setWorkflowName] = useState('Untitled Workflow');
-  const [isExecuting, setIsExecuting] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
   const [currentWorkflowId, setCurrentWorkflowId] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSavedState, setLastSavedState] = useState(null);
-  const [isActivated, setIsActivated] = useState(false);
-  const [executionProgress, setExecutionProgress] = useState('');
-  const [workflowExecutor, setWorkflowExecutor] = useState(null);
 
   // Generate a unique, readable workflow ID (moved to top to fix hoisting issue)
   const generateWorkflowId = useCallback(() => {
@@ -262,133 +258,6 @@ const App = () => {
     alert(`✅ Workflow "${workflowName}" saved successfully!`);
   }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId, navigate, createStateSnapshot]);
 
-  const handleActivate = useCallback(async () => {
-    if (nodes.length === 0) {
-      alert('Please add some nodes to the workflow before activating.');
-      return;
-    }
-
-    // Check if workflow has trigger nodes
-    const triggerNodes = nodes.filter(node => 
-      node.data.type === 'chatTrigger' || node.data.type === 'telegramTrigger'
-    );
-
-    if (triggerNodes.length === 0) {
-      alert('Workflow must contain at least one trigger node (Chat Trigger or Telegram Trigger) to be activated.');
-      return;
-    }
-
-    // Ensure workflow has an ID - generate one if needed
-    let workflowId = currentWorkflowId;
-    if (!workflowId) {
-      workflowId = generateWorkflowId();
-      setCurrentWorkflowId(workflowId);
-    }
-
-    setIsExecuting(true);
-    setExecutionProgress('Activating workflow...');
-
-    try {
-      // Call the activation endpoint instead of executing immediately
-      const workflowData = {
-        nodes: nodes,
-        edges: edges
-      };
-
-      const response = await fetch(`${API_BASE}/api/workflows/${workflowId}/activate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          workflow: workflowData
-        })
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        setIsActivated(true);
-        setExecutionProgress(`✅ Workflow activated! Listening for triggers...`);
-        
-        // Show activation success with trigger URLs
-        let message = result.message + '\n\n';
-        if (result.triggerUrls && result.triggerUrls.length > 0) {
-          message += 'Trigger URLs:\n';
-          result.triggerUrls.forEach(trigger => {
-            if (trigger.type === 'chatTrigger') {
-              message += `• Chat Trigger: ${trigger.hostedChatUrl}\n`;
-            } else if (trigger.type === 'telegramTrigger') {
-              message += `• Telegram Webhook: ${trigger.webhookUrl}\n`;
-            }
-          });
-        }
-        
-        alert(message);
-        setIsExecuting(false);
-      } else {
-        throw new Error(result.message || 'Failed to activate workflow');
-      }
-
-    } catch (error) {
-      console.error('❌ Workflow activation failed:', error);
-      setExecutionProgress(`❌ Activation failed: ${error.message}`);
-      alert(`❌ Workflow activation failed:\n${error.message}`);
-      setIsExecuting(false);
-      setIsActivated(false);
-    }
-  }, [nodes, edges, workflowName, currentWorkflowId, generateWorkflowId]);
-
-  const handleDeactivate = useCallback(async () => {
-    if (!currentWorkflowId) {
-      alert('No workflow ID found for deactivation.');
-      return;
-    }
-
-    setIsExecuting(true);
-    setExecutionProgress('Deactivating workflow...');
-
-    try {
-      const response = await fetch(`${API_BASE}/api/workflows/${currentWorkflowId}/deactivate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        setIsActivated(false);
-        setExecutionProgress('');
-        alert(`✅ Workflow deactivated successfully! No longer listening for triggers.`);
-      } else {
-        throw new Error(result.message || 'Failed to deactivate workflow');
-      }
-
-    } catch (error) {
-      console.error('❌ Workflow deactivation failed:', error);
-      setExecutionProgress(`❌ Deactivation failed: ${error.message}`);
-      alert(`❌ Workflow deactivation failed:\n${error.message}`);
-    } finally {
-      setIsExecuting(false);
-    }
-  }, [currentWorkflowId]);
-
-  const handleStopExecution = useCallback(() => {
-    if (workflowExecutor && workflowExecutor.isRunning()) {
-      workflowExecutor.stop();
-      setIsExecuting(false);
-      setIsActivated(false);
-      setExecutionProgress('Execution stopped by user');
-      
-      setTimeout(() => {
-        setExecutionProgress('');
-      }, 2000);
-    }
-  }, [workflowExecutor]);
 
   const handleClear = useCallback(() => {
     setNodes([]);
@@ -407,9 +276,6 @@ const App = () => {
     <div className="professional-workflow-builder">
       <Toolbar
         onSave={handleSave}
-        onActivate={handleActivate}
-        onDeactivate={handleDeactivate}
-        onStopExecution={handleStopExecution}
         onClear={handleClear}
         onUndo={handleUndo}
         onRedo={handleRedo}
@@ -417,9 +283,6 @@ const App = () => {
         canRedo={false}
         workflowName={workflowName}
         onWorkflowNameChange={setWorkflowName}
-        isExecuting={isExecuting}
-        isActivated={isActivated}
-        executionProgress={executionProgress}
         lastSaved={lastSaved}
         hasUnsavedChanges={hasUnsavedChanges}
       />
