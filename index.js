@@ -50,24 +50,6 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
-// Explicit preflight handler for all routes
-app.use((req, res, next) => {
-  if (req.method === 'OPTIONS') {
-    console.log('🔧 Handling OPTIONS preflight request:', {
-      origin: req.headers.origin,
-      method: req.headers['access-control-request-method'],
-      headers: req.headers['access-control-request-headers']
-    });
-    
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, Access-Control-Allow-Headers, Origin, Cache-Control, Pragma');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.status(200).end();
-    return;
-  }
-  next();
-});
 app.use(express.json()); // Parse JSON bodies
 
 // Create shared nodeMessages map for inter-component communication
