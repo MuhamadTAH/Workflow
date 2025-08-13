@@ -263,44 +263,77 @@ const App = () => {
   }, [setNodes]);
 
   // Toolbar action handlers
-  const handleSave = useCallback(() => {
-    // Create workflow data to save
-    const workflowId = currentWorkflowId || generateWorkflowId();
-    const workflowData = {
-      id: workflowId,
-      name: workflowName,
-      description: `Workflow with ${nodes.length} nodes`,
-      nodes: nodes,
-      edges: edges,
-      createdAt: currentWorkflowId ? undefined : new Date().toISOString(), // Keep original creation date if editing
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Get existing workflows from localStorage
-    const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
-    
-    // Check if workflow already exists (editing existing workflow)
-    const existingIndex = savedWorkflows.findIndex(w => w.id === workflowId);
-    
-    if (existingIndex >= 0) {
-      // Update existing workflow, preserve creation date
-      savedWorkflows[existingIndex] = { 
-        ...savedWorkflows[existingIndex], 
-        ...workflowData,
-        createdAt: savedWorkflows[existingIndex].createdAt, // Keep original creation date
-        updatedAt: new Date().toISOString() 
+  const handleSave = useCallback(async () => {
+    try {
+      // Prepare workflow data for backend
+      const workflowPayload = {
+        name: workflowName,
+        description: `Workflow with ${nodes.length} nodes`,
+        nodes: nodes,
+        edges: edges
       };
-    } else {
-      // Add new workflow
-      workflowData.createdAt = new Date().toISOString();
-      savedWorkflows.push(workflowData);
-      setCurrentWorkflowId(workflowId); // Set current workflow ID for future saves
-    }
 
-    // Save to localStorage
-    localStorage.setItem('savedWorkflows', JSON.stringify(savedWorkflows));
+      // Save to backend database
+      const response = await fetch(`${API_BASE}/api/workflows`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(workflowPayload)
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Backend save successful - use the returned workflow ID
+        const backendWorkflowId = result.workflow.id;
+        
+        // Create workflow data with backend ID for localStorage
+        const workflowData = {
+          id: backendWorkflowId,
+          name: workflowName,
+          description: `Workflow with ${nodes.length} nodes`,
+          nodes: nodes,
+          edges: edges,
+          createdAt: result.workflow.created_at,
+          updatedAt: result.workflow.updated_at,
+        };
+
+        // Update localStorage with backend data
+        const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
+        
+        // Check if workflow already exists (editing existing workflow)
+        const existingIndex = savedWorkflows.findIndex(w => w.id === backendWorkflowId);
+        
+        if (existingIndex >= 0) {
+          // Update existing workflow
+          savedWorkflows[existingIndex] = workflowData;
+        } else {
+          // Add new workflow
+          savedWorkflows.push(workflowData);
+        }
+
+        // Save to localStorage
+        localStorage.setItem('savedWorkflows', JSON.stringify(savedWorkflows));
+        
+        // Set current workflow ID to backend ID
+        setCurrentWorkflowId(backendWorkflowId);
     
-    setLastSaved('just now');
+        setLastSaved('just now');
+        
+        console.log(`✅ Workflow saved successfully to backend with ID: ${backendWorkflowId}`);
+      } else {
+        // Backend save failed
+        console.error('❌ Backend save failed:', result.error);
+        alert(`Failed to save workflow: ${result.error}`);
+        return; // Don't update localStorage if backend save failed
+      }
+    } catch (error) {
+      console.error('❌ Error saving workflow:', error);
+      alert('Failed to save workflow. Please check your connection and try again.');
+      return; // Don't update localStorage if there was an error
+    }
     
     // Update saved state to mark as no longer having unsaved changes
     const newSavedState = createStateSnapshot();
@@ -308,8 +341,8 @@ const App = () => {
     setHasUnsavedChanges(false);
     
     
-    alert(`✅ Workflow "${workflowName}" saved successfully!`);
-  }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId, navigate, createStateSnapshot]);
+    alert(`✅ Workflow "${workflowName}" saved successfully to backend!`);
+  }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId, createStateSnapshot]);
 
 
   const handleClear = useCallback(() => {
