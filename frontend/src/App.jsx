@@ -122,9 +122,9 @@ function Home() {
           <div className="nav-user">
             <LanguageSwitcher className="mr-4" />
             <div className="user-avatar">
-              {(user.name || user.email).charAt(0).toUpperCase()}
+              {(user.name || user.email || 'User').charAt(0).toUpperCase()}
             </div>
-            <span className="user-name">{user.name || user.email}</span>
+            <span className="user-name">{user.name || user.email || 'User'}</span>
             <button onClick={logout} className="logout-btn">
               <i className="fas fa-sign-out-alt"></i>
             </button>
@@ -137,7 +137,7 @@ function Home() {
         <header className="dashboard-hero">
           <div className="hero-content">
             <h1 className="hero-title">
-              {t('common.welcome', { name: user.name || user.email.split('@')[0] })}
+              {t('common.welcome', { name: user.name || (user.email ? user.email.split('@')[0] : 'User') })}
             </h1>
             <p className="hero-subtitle">
               {t('common.dashboardSubtitle')}
@@ -285,11 +285,11 @@ function Home() {
               <div className="profile-row">
                 <span className="profile-key">Member Since</span>
                 <span className="profile-value">
-                  {new Date(user.created_at).toLocaleDateString('en-US', {
+                  {user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
-                  })}
+                  }) : 'Not available'}
                 </span>
               </div>
             </div>
