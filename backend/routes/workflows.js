@@ -32,14 +32,14 @@ const verifyToken = (req, res, next) => {
 };
 
 // GET /api/workflows - Get all workflows for the authenticated user
-router.get('/', verifyToken, (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
   const userId = req.user.userId;
 
   try {
-    const stmt = db.prepare(
-      'SELECT id, name, description, created_at, updated_at FROM workflows WHERE user_id = ? ORDER BY updated_at DESC'
+    const rows = await db.all(
+      'SELECT id, name, description, created_at, updated_at FROM workflows WHERE user_id = ? ORDER BY updated_at DESC',
+      [userId]
     );
-    const rows = stmt.all(userId);
 
     logger.info('Workflows retrieved', { userId, count: rows.length });
     res.json({
@@ -59,13 +59,12 @@ router.get('/', verifyToken, (req, res) => {
 });
 
 // GET /api/workflows/:id - Get specific workflow with full data
-router.get('/:id', verifyToken, (req, res) => {
+router.get('/:id', verifyToken, async (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
 
   try {
-    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
-    const row = stmt.get(workflowId, userId);
+    const row = await db.get('SELECT * FROM workflows WHERE id = ? AND user_id = ?', [workflowId, userId]);
 
     if (!row) {
       return res.status(404).json({ error: 'Workflow not found' });
@@ -188,7 +187,7 @@ router.post('/', verifyToken, async (req, res) => {
 });
 
 // PUT /api/workflows/:id - Update existing workflow
-router.put('/:id', verifyToken, (req, res) => {
+router.put('/:id', verifyToken, async (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   const { name, description, nodes, connections } = req.body;
@@ -217,8 +216,10 @@ router.put('/:id', verifyToken, (req, res) => {
   };
 
   try {
-    const stmt = db.prepare('UPDATE workflows SET name = ?, description = ?, data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?');
-    const result = stmt.run(name, description || '', JSON.stringify(workflowData), workflowId, userId);
+    const result = await db.run(
+      'UPDATE workflows SET name = ?, description = ?, data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
+      [name, description || '', JSON.stringify(workflowData), workflowId, userId]
+    );
 
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Workflow not found' });
@@ -249,13 +250,12 @@ router.put('/:id', verifyToken, (req, res) => {
 });
 
 // DELETE /api/workflows/:id - Delete workflow
-router.delete('/:id', verifyToken, (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
 
   try {
-    const stmt = db.prepare('DELETE FROM workflows WHERE id = ? AND user_id = ?');
-    const result = stmt.run(workflowId, userId);
+    const result = await db.run('DELETE FROM workflows WHERE id = ? AND user_id = ?', [workflowId, userId]);
 
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Workflow not found' });
