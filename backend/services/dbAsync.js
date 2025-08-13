@@ -1,7 +1,7 @@
 // dbAsync.js — Promise helpers for sqlite3
 // EXPECTS you already create and export a singleton sqlite3 Database in backend/services/db.js
 
-const db = require('./db');
+const db = require('../db');
 
 function runAsync(sql, params = []) {
   return new Promise((resolve, reject) => {
