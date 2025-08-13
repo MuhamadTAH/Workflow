@@ -622,4 +622,22 @@ function Overview() {
   );
 }
 
+function getStatusColor(status) {
+  switch(status) {
+    case 'active': return 'success';
+    case 'inactive': return 'secondary';
+    default: return 'secondary';
+  }
+}
+
+function getActivationStatusColor(activationStatus) {
+  switch(activationStatus) {
+    case 'listening': return 'info';
+    case 'executing': return 'warning';
+    case 'completed': return 'success';
+    case 'inactive':
+    default: return 'secondary';
+  }
+}
+
 export default Overview;

@@ -78,6 +78,15 @@ const App = () => {
     }
   }, [workflowName, nodes, edges, lastSavedState, createStateSnapshot]);
 
+  // Load workflow activation state
+  useEffect(() => {
+    if (currentWorkflowId) {
+      const workflowActivations = JSON.parse(localStorage.getItem('workflowActivations') || '{}');
+      const activationState = workflowActivations[currentWorkflowId] || 'inactive';
+      setWorkflowStatus(activationState);
+    }
+  }, [currentWorkflowId]);
+
   // Load workflow from URL parameter on component mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -93,6 +102,10 @@ const App = () => {
         setWorkflowName(workflowToLoad.name);
         setCurrentWorkflowId(workflowToLoad.id);
         setLastSaved(`Loaded: ${new Date(workflowToLoad.updatedAt).toLocaleTimeString()}`);
+        
+        // Load workflow activation state
+        const workflowActivations = JSON.parse(localStorage.getItem('workflowActivations') || '{}');
+        setWorkflowStatus(workflowActivations[workflowToLoad.id] || 'inactive');
         
         // Set initial saved state to prevent false unsaved changes detection
         setTimeout(() => {
@@ -273,33 +286,45 @@ const App = () => {
     // Redo logic here
   }, []);
 
+  // Save workflow activation state to localStorage
+  const saveWorkflowActivationState = useCallback((workflowId, status) => {
+    const workflowActivations = JSON.parse(localStorage.getItem('workflowActivations') || '{}');
+    workflowActivations[workflowId] = status;
+    localStorage.setItem('workflowActivations', JSON.stringify(workflowActivations));
+  }, []);
+
   // Workflow activation handler
-  const handleActivateWorkflow = useCallback(() => {
+  const handleActivateWorkflow = useCallback(async () => {
+    if (!currentWorkflowId) {
+      console.error('No workflow loaded. Please save the workflow first.');
+      return;
+    }
+
     if (workflowStatus === 'inactive' || workflowStatus === 'completed') {
-      setWorkflowStatus('listening');
-      console.log('Workflow activated - now listening for trigger data...');
+      const newStatus = 'listening';
+      setWorkflowStatus(newStatus);
+      saveWorkflowActivationState(currentWorkflowId, newStatus);
+      
+      console.log(`Workflow ${currentWorkflowId} activated - now listening for trigger data...`);
       
       // TODO: Connect to backend activation API
-      // For now, simulate state changes for demo
-      setTimeout(() => {
-        // Simulate receiving trigger data
-        console.log('Trigger data received - executing workflow...');
-        setWorkflowStatus('executing');
-        
-        setTimeout(() => {
-          // Simulate workflow completion
-          console.log('Workflow execution completed');
-          setWorkflowStatus('completed');
-          
-          setTimeout(() => {
-            // Auto-reset to inactive after 3 seconds
-            setWorkflowStatus('inactive');
-            console.log('Workflow reset to inactive - ready for next activation');
-          }, 3000);
-        }, 2000);
-      }, 1000);
+      // const response = await fetch(`${API_BASE}/api/workflows/${currentWorkflowId}/activate`, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${localStorage.getItem('token')}`
+      //   }
+      // });
     }
-  }, [workflowStatus]);
+  }, [workflowStatus, currentWorkflowId, saveWorkflowActivationState]);
+
+  // Update workflow activation state (for backend updates)
+  const updateWorkflowStatus = useCallback((newStatus) => {
+    setWorkflowStatus(newStatus);
+    if (currentWorkflowId) {
+      saveWorkflowActivationState(currentWorkflowId, newStatus);
+    }
+  }, [currentWorkflowId, saveWorkflowActivationState]);
 
   return (
     <div className="professional-workflow-builder">
@@ -316,6 +341,7 @@ const App = () => {
         hasUnsavedChanges={hasUnsavedChanges}
         workflowStatus={workflowStatus}
         onActivateWorkflow={handleActivateWorkflow}
+        currentWorkflowId={currentWorkflowId}
       />
       <div className="workflow-content">
         <div className="workflow-canvas" ref={reactFlowWrapper}>

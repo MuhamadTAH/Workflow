@@ -18,7 +18,8 @@ const Toolbar = ({
     lastSaved,
     hasUnsavedChanges,
     workflowStatus,
-    onActivateWorkflow
+    onActivateWorkflow,
+    currentWorkflowId
 }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -68,7 +69,8 @@ const Toolbar = ({
                     <button 
                         className={`toolbar-btn activate-btn ${workflowStatus}`}
                         onClick={onActivateWorkflow}
-                        disabled={workflowStatus === 'listening' || workflowStatus === 'executing'}
+                        disabled={workflowStatus === 'listening' || workflowStatus === 'executing' || !currentWorkflowId}
+                        title={!currentWorkflowId ? 'Save workflow first to activate' : ''}
                     >
                         {workflowStatus === 'inactive' && (
                             <>
