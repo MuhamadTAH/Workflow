@@ -28,8 +28,38 @@ router.get('/test', (req, res) => {
     timestamp: new Date().toISOString(),
     availableEndpoints: [
       '/webhooks/test',
-      '/webhooks/telegram/:workflowId'
+      '/webhooks/telegram/:workflowId',
+      '/webhooks/webhookTrigger/:workflowId', 
+      '/webhooks/manualTrigger/:workflowId',
+      '/webhooks/chatTrigger/:workflowId',
+      '/webhooks/telegram-test'
     ]
+  });
+});
+
+// Simple Telegram webhook test endpoint (no workflow ID required)
+router.post('/telegram-test', (req, res) => {
+  logger.info('Telegram test webhook received', { 
+    body: req.body,
+    message: req.body?.message?.text,
+    from: req.body?.message?.from?.first_name
+  });
+
+  console.log('🎯 Telegram webhook test received!', {
+    text: req.body?.message?.text,
+    from: req.body?.message?.from?.first_name,
+    chat_id: req.body?.message?.chat?.id,
+    message_id: req.body?.message?.message_id
+  });
+
+  res.json({
+    success: true,
+    message: 'Telegram webhook test successful!',
+    received: {
+      text: req.body?.message?.text,
+      from: req.body?.message?.from?.first_name,
+      timestamp: new Date().toISOString()
+    }
   });
 });
 
