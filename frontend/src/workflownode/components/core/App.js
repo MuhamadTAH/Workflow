@@ -268,6 +268,9 @@ const App = () => {
 
   // Toolbar action handlers
   const handleSave = useCallback(async () => {
+    // Define isUpdate at function level so it's available for the alert
+    const isUpdate = currentWorkflowId !== null;
+    
     try {
       // Prepare workflow data for backend
       const workflowPayload = {
@@ -278,7 +281,6 @@ const App = () => {
       };
 
       // Save to backend database - use PUT for updates, POST for new workflows
-      const isUpdate = currentWorkflowId !== null;
       const apiUrl = isUpdate ? `${API_BASE}/api/workflows/${currentWorkflowId}` : `${API_BASE}/api/workflows`;
       const method = isUpdate ? 'PUT' : 'POST';
       
