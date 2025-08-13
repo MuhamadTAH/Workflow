@@ -112,7 +112,7 @@ router.get('/:id', verifyToken, (req, res) => {
 });
 
 // POST /api/workflows - Create new workflow
-router.post('/', verifyToken, (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   const userId = req.user.userId;
   const { name, description, nodes, edges, connections } = req.body;
 
@@ -156,19 +156,23 @@ router.post('/', verifyToken, (req, res) => {
   });
 
   try {
-    // Use synchronous database operation
+    // Use asynchronous database operation
     const stmt = db.prepare('INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)');
-    const result = stmt.run(userId, safeName, safeDescription, dataJson);
+    const result = await stmt.run(userId, safeName, safeDescription, dataJson);
 
     console.log('[workflows.create] Database result:', {
       lastID: result.lastID,
+      lastInsertRowid: result.lastInsertRowid,
       changes: result.changes,
-      resultType: typeof result.lastID
+      resultType: typeof result.lastInsertRowid
     });
+
+    // Use lastInsertRowid instead of lastID for sqlite3 wrapper compatibility
+    const workflowId = result.lastInsertRowid || result.lastID;
 
     logger.info('Workflow created successfully', { 
       userId, 
-      workflowId: result.lastID, 
+      workflowId: workflowId, 
       name: safeName,
       nodeCount: workflowNodes.length,
       edgeCount: workflowEdges.length
@@ -177,7 +181,7 @@ router.post('/', verifyToken, (req, res) => {
     res.status(201).json({
       success: true,
       workflow: {
-        id: result.lastID,
+        id: workflowId,
         name: safeName,
         description: safeDescription,
         data: workflowData,
