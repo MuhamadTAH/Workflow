@@ -452,9 +452,18 @@ router.post('/:id/activate', verifyToken, async (req, res) => {
     }
 
     // Check if workflow has trigger nodes
+    console.log('[workflows.activate] All nodes:', workflowData.nodes?.map(node => ({
+      id: node.id,
+      type: node.data?.type,
+      category: node.data?.category,
+      label: node.data?.label
+    })));
+    
     const triggerNodes = workflowData.nodes?.filter(node => 
       node.data?.category === 'trigger'
     ) || [];
+    
+    console.log('[workflows.activate] Found trigger nodes:', triggerNodes.length);
 
     if (triggerNodes.length === 0) {
       return res.status(400).json({ 
