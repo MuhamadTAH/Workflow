@@ -3,6 +3,11 @@ const router = express.Router();
 const db = require('../db');
 const logger = require('../services/logger');
 
+// Import async database helpers
+const { runAsync, begin, commit, rollback } = require('../services/dbAsync');
+
+// Name sanitizer function
+const sanitizeName = (raw) => typeof raw === 'string' ? raw.trim() : '';
 
 // Import workflow executor
 const workflowExecutor = require('../services/workflowExecutor');
@@ -108,71 +113,96 @@ router.get('/:id', verifyToken, (req, res) => {
 });
 
 // POST /api/workflows - Create new workflow
-router.post('/', verifyToken, (req, res) => {
-  const userId = req.user.userId;
-  const { name, description, nodes, edges, connections } = req.body;
-
-  // Support both edges (frontend format) and connections (legacy format)
-  const workflowEdges = edges || connections || [];
-  const workflowNodes = nodes || [];
-
-  // Validate required fields
-  if (!name || !workflowNodes) {
-    return res.status(400).json({ 
-      error: 'Missing required fields: name, nodes' 
-    });
-  }
-
-  // Ensure name is a string and not empty
-  const safeName = String(name || 'Untitled Workflow').trim();
-  if (!safeName) {
-    return res.status(400).json({ 
-      error: 'Workflow name cannot be empty' 
-    });
-  }
-
-  // Validate nodes and edges are arrays
-  if (!Array.isArray(workflowNodes) || !Array.isArray(workflowEdges)) {
-    return res.status(400).json({ 
-      error: 'Nodes and edges must be arrays' 
-    });
-  }
-
-  const workflowData = {
-    nodes: workflowNodes,
-    edges: workflowEdges,
-    metadata: {
-      version: '1.0',
-      savedAt: new Date().toISOString()
-    }
-  };
-
+router.post('/', verifyToken, async (req, res, next) => {
   try {
-    const stmt = db.prepare('INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)');
-    const result = stmt.run(userId, safeName, description || '', JSON.stringify(workflowData));
+    const userId = req.user.userId;
+    const { name, description, nodes, edges, connections } = req.body;
 
-    logger.info('Workflow created', { 
+    // Support both edges (frontend format) and connections (legacy format)
+    const workflowEdges = edges || connections || [];
+    const workflowNodes = nodes || [];
+
+    // Strong validation BEFORE touching DB
+    const safeName = sanitizeName(name);
+    if (!safeName) {
+      return res.status(400).json({ 
+        error: 'Workflow name is required and cannot be empty' 
+      });
+    }
+
+    // Validate nodes and edges are arrays
+    if (!Array.isArray(workflowNodes) || !Array.isArray(workflowEdges)) {
+      return res.status(400).json({ 
+        error: 'Nodes and edges must be arrays' 
+      });
+    }
+
+    const workflowData = {
+      nodes: workflowNodes,
+      edges: workflowEdges,
+      metadata: {
+        version: '1.0',
+        savedAt: new Date().toISOString()
+      }
+    };
+
+    const safeDescription = typeof description === 'string' ? description : '';
+    const dataJson = JSON.stringify(workflowData);
+
+    // Log exact values that will be bound to the statement
+    console.log('[workflows.create] INSERT params', {
+      userIdType: typeof userId, userId,
+      nameType: typeof safeName, name: safeName,
+      descriptionType: typeof safeDescription, description: safeDescription,
+      dataType: typeof dataJson, dataLength: dataJson.length
+    });
+
+    // Begin transaction
+    await begin();
+
+    // IMPORTANT: column order MUST match params order
+    const sql = `INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)`;
+    const params = [userId, safeName, safeDescription, dataJson];
+
+    const result = await runAsync(sql, params);
+
+    // Commit transaction
+    await commit();
+
+    logger.info('Workflow created successfully', { 
       userId, 
-      workflowId: result.lastInsertRowid, 
+      workflowId: result.lastID, 
       name: safeName,
       nodeCount: workflowNodes.length,
       edgeCount: workflowEdges.length
     });
 
-    res.status(201).json({
+    // Only now send 201 - AFTER database operation succeeds
+    return res.status(201).json({
       success: true,
       workflow: {
-        id: result.lastInsertRowid,
+        id: result.lastID,
         name: safeName,
-        description: description || '',
+        description: safeDescription,
         data: workflowData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }
     });
-  } catch (err) {
-    logger.logError(err, { context: 'createWorkflow', userId, name });
-    return res.status(500).json({ error: 'Database error' });
+
+  } catch (error) {
+    await rollback();
+    logger.logError(error, { context: 'createWorkflow', userId: req.user?.userId });
+    
+    // Don't crash the process if headers were already sent
+    if (!res.headersSent) {
+      return res.status(500).json({ 
+        success: false,
+        error: 'Failed to create workflow', 
+        details: error.message 
+      });
+    }
+    return next(error);
   }
 });
 

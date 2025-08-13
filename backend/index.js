@@ -160,7 +160,7 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-const PORT = process.env.PORT || 3001;
+// Global error handler — keeps the process alive and returns JSON\n// Must be the last app.use\napp.use((err, req, res, next) => {\n  console.error('[GLOBAL ERROR]', err && err.stack ? err.stack : err);\n  if (res.headersSent) return next(err);\n  res.status(500).json({ error: 'Internal Server Error', details: err.message || String(err) });\n});\n\nconst PORT = process.env.PORT || 3001;
 app.listen(PORT, async () => {
   console.log(`🚀 Backend server with IF node routing fix started on port ${PORT}`);
   logger.info(`Backend server started on port ${PORT}`, { port: PORT });
