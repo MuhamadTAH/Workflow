@@ -301,7 +301,7 @@ class WorkflowExecutor {
                 return await dataStorageInstance.process(inputData);
             
             case 'telegramSendMessage':
-                return await telegramSendMessageNode.execute(nodeConfig, inputData, connectedNodes);
+                return await telegramSendMessageNode.execute(nodeConfig, inputData, [], workflow);
             
             case 'multiLanguageChatResponse':
                 const multiLangResponseInstance = new MultiLanguageChatResponseNode();
