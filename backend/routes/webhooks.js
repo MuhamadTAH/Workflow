@@ -33,11 +33,11 @@ router.get('/test', (req, res) => {
   });
 });
 
-// Telegram webhook endpoint
+// Telegram webhook endpoint for single-run workflow activation
 router.post('/telegram/:workflowId', asyncHandler(async (req, res) => {
   const workflowId = req.params.workflowId;
   
-  logger.info('Telegram webhook received', { 
+  logger.info('Telegram webhook received for single-run activation', { 
     workflowId,
     body: req.body 
   });
@@ -50,30 +50,259 @@ router.post('/telegram/:workflowId', asyncHandler(async (req, res) => {
       });
     }
 
-    // Process the webhook through the workflow engine
-    const result = await workflowEngine.processTelegramWebhook(workflowId, req.body);
+    // Check if workflow is activated for single-run execution
+    if (!workflowExecutor || !workflowExecutor.isWorkflowActive(workflowId)) {
+      return res.status(404).json({
+        success: false,
+        error: 'Workflow not activated or not found',
+        message: `Workflow ${workflowId} is not currently listening for triggers`
+      });
+    }
+
+    // Prepare trigger data for workflow execution
+    const triggerData = [{
+      nodeId: 'telegram_trigger', // This will be matched with actual trigger node
+      nodeType: 'telegramTrigger',
+      json: {
+        message: req.body.message,
+        chat: req.body.message.chat,
+        from: req.body.message.from,
+        text: req.body.message.text,
+        messageId: req.body.message.message_id,
+        receivedAt: new Date().toISOString()
+      }
+    }];
+
+    console.log('🎯 Triggering single-run workflow execution:', { workflowId, triggerData });
+
+    // Execute the active workflow with trigger data (single-run mode)
+    const result = await workflowExecutor.executeActiveWorkflow(workflowId, triggerData);
     
-    logger.info('Telegram webhook processed', { 
+    logger.info('Single-run workflow execution completed', { 
       workflowId,
-      success: result.success 
+      success: result.success,
+      status: result.status
     });
 
     res.json({
       success: true,
-      message: 'Telegram webhook processed successfully',
+      message: 'Workflow triggered and executed successfully',
       workflowId: workflowId,
+      executionId: result.executionId,
+      status: result.status,
       timestamp: new Date().toISOString()
     });
 
   } catch (error) {
     logger.logError(error, { 
-      context: 'telegramWebhook', 
+      context: 'telegramWebhookSingleRun', 
       workflowId 
     });
     
     res.status(500).json({
       success: false,
-      error: 'Failed to process Telegram webhook',
+      error: 'Failed to trigger workflow execution',
+      message: error.message
+    });
+  }
+}));
+
+// Webhook trigger endpoint for single-run workflow activation
+router.post('/webhookTrigger/:workflowId', asyncHandler(async (req, res) => {
+  const workflowId = req.params.workflowId;
+  
+  logger.info('Webhook trigger received for single-run activation', { 
+    workflowId,
+    body: req.body,
+    query: req.query,
+    headers: req.headers
+  });
+
+  try {
+    // Check if workflow is activated for single-run execution
+    if (!workflowExecutor || !workflowExecutor.isWorkflowActive(workflowId)) {
+      return res.status(404).json({
+        success: false,
+        error: 'Workflow not activated or not found',
+        message: `Workflow ${workflowId} is not currently listening for triggers`
+      });
+    }
+
+    // Prepare trigger data for workflow execution
+    const triggerData = [{
+      nodeId: 'webhook_trigger',
+      nodeType: 'webhookTrigger',
+      json: {
+        body: req.body,
+        query: req.query,
+        headers: req.headers,
+        method: req.method,
+        url: req.url,
+        receivedAt: new Date().toISOString()
+      }
+    }];
+
+    console.log('🎯 Triggering webhook single-run workflow execution:', { workflowId });
+
+    // Execute the active workflow with trigger data (single-run mode)
+    const result = await workflowExecutor.executeActiveWorkflow(workflowId, triggerData);
+    
+    logger.info('Webhook single-run workflow execution completed', { 
+      workflowId,
+      success: result.success,
+      status: result.status
+    });
+
+    res.json({
+      success: true,
+      message: 'Workflow triggered via webhook and executed successfully',
+      workflowId: workflowId,
+      executionId: result.executionId,
+      status: result.status,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    logger.logError(error, { 
+      context: 'webhookTriggerSingleRun', 
+      workflowId 
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to trigger workflow execution via webhook',
+      message: error.message
+    });
+  }
+}));
+
+// Manual trigger endpoint for single-run workflow activation
+router.post('/manualTrigger/:workflowId', asyncHandler(async (req, res) => {
+  const workflowId = req.params.workflowId;
+  
+  logger.info('Manual trigger received for single-run activation', { 
+    workflowId,
+    body: req.body
+  });
+
+  try {
+    // Check if workflow is activated for single-run execution
+    if (!workflowExecutor || !workflowExecutor.isWorkflowActive(workflowId)) {
+      return res.status(404).json({
+        success: false,
+        error: 'Workflow not activated or not found',
+        message: `Workflow ${workflowId} is not currently listening for triggers`
+      });
+    }
+
+    // Prepare trigger data for workflow execution
+    const triggerData = [{
+      nodeId: 'manual_trigger',
+      nodeType: 'manualTrigger',
+      json: {
+        triggeredBy: 'manual',
+        data: req.body.data || {},
+        message: req.body.message || 'Manual trigger activated',
+        triggeredAt: new Date().toISOString()
+      }
+    }];
+
+    console.log('🎯 Triggering manual single-run workflow execution:', { workflowId });
+
+    // Execute the active workflow with trigger data (single-run mode)
+    const result = await workflowExecutor.executeActiveWorkflow(workflowId, triggerData);
+    
+    logger.info('Manual single-run workflow execution completed', { 
+      workflowId,
+      success: result.success,
+      status: result.status
+    });
+
+    res.json({
+      success: true,
+      message: 'Workflow triggered manually and executed successfully',
+      workflowId: workflowId,
+      executionId: result.executionId,
+      status: result.status,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    logger.logError(error, { 
+      context: 'manualTriggerSingleRun', 
+      workflowId 
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to trigger workflow execution manually',
+      message: error.message
+    });
+  }
+}));
+
+// Chat trigger endpoint for single-run workflow activation
+router.post('/chatTrigger/:workflowId', asyncHandler(async (req, res) => {
+  const workflowId = req.params.workflowId;
+  
+  logger.info('Chat trigger received for single-run activation', { 
+    workflowId,
+    body: req.body
+  });
+
+  try {
+    // Check if workflow is activated for single-run execution
+    if (!workflowExecutor || !workflowExecutor.isWorkflowActive(workflowId)) {
+      return res.status(404).json({
+        success: false,
+        error: 'Workflow not activated or not found',
+        message: `Workflow ${workflowId} is not currently listening for triggers`
+      });
+    }
+
+    // Prepare trigger data for workflow execution
+    const triggerData = [{
+      nodeId: 'chat_trigger',
+      nodeType: 'chatTrigger',
+      json: {
+        sessionId: req.body.sessionId || `session_${Date.now()}`,
+        message: req.body.message || req.body.text || '',
+        userId: req.body.userId || 'anonymous',
+        userName: req.body.userName || 'Anonymous User',
+        timestamp: new Date().toISOString(),
+        chatData: req.body
+      }
+    }];
+
+    console.log('🎯 Triggering chat single-run workflow execution:', { workflowId });
+
+    // Execute the active workflow with trigger data (single-run mode)
+    const result = await workflowExecutor.executeActiveWorkflow(workflowId, triggerData);
+    
+    logger.info('Chat single-run workflow execution completed', { 
+      workflowId,
+      success: result.success,
+      status: result.status
+    });
+
+    res.json({
+      success: true,
+      message: 'Workflow triggered via chat and executed successfully',
+      workflowId: workflowId,
+      executionId: result.executionId,
+      status: result.status,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    logger.logError(error, { 
+      context: 'chatTriggerSingleRun', 
+      workflowId 
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to trigger workflow execution via chat',
       message: error.message
     });
   }

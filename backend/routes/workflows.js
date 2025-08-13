@@ -496,12 +496,36 @@ router.post('/:id/activate', verifyToken, (req, res) => {
       mode: 'single-run'
     });
 
-    // Store activation state in database
-    const triggerUrls = triggerNodes.map(node => ({
-      nodeId: node.id,
-      type: node.data?.type,
-      url: `/api/webhooks/${node.data?.type}/${workflowId}`
-    }));
+    // Store activation state and generate trigger URLs
+    const triggerUrls = triggerNodes.map(node => {
+      const nodeType = node.data?.type;
+      let webhookUrl;
+      
+      // Generate correct webhook URLs for single-run triggers
+      switch (nodeType) {
+        case 'telegramTrigger':
+          webhookUrl = `/api/webhooks/telegram/${workflowId}`;
+          break;
+        case 'webhookTrigger':
+          webhookUrl = `/api/webhooks/webhookTrigger/${workflowId}`;
+          break;
+        case 'manualTrigger':
+          webhookUrl = `/api/webhooks/manualTrigger/${workflowId}`;
+          break;
+        case 'chatTrigger':
+          webhookUrl = `/api/webhooks/chatTrigger/${workflowId}`;
+          break;
+        default:
+          webhookUrl = `/api/webhooks/custom/${workflowId}/${node.id}`;
+      }
+      
+      return {
+        nodeId: node.id,
+        type: nodeType,
+        url: webhookUrl,
+        fullUrl: `${process.env.BASE_URL || 'https://workflow-unlq.onrender.com'}${webhookUrl}`
+      };
+    });
 
     // workflowState.storeActiveWorkflow(workflowId, workflowData, triggerUrls);
 
