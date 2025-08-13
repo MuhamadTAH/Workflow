@@ -78,6 +78,13 @@ const App = () => {
     }
   }, [workflowName, nodes, edges, lastSavedState, createStateSnapshot]);
 
+  // Save workflow activation state to localStorage
+  const saveWorkflowActivationState = useCallback((workflowId, status) => {
+    const workflowActivations = JSON.parse(localStorage.getItem('workflowActivations') || '{}');
+    workflowActivations[workflowId] = status;
+    localStorage.setItem('workflowActivations', JSON.stringify(workflowActivations));
+  }, []);
+
   // Load workflow activation state from backend
   const loadWorkflowActivationStatus = useCallback(async (workflowId) => {
     if (!workflowId) return;
@@ -316,13 +323,6 @@ const App = () => {
 
   const handleRedo = useCallback(() => {
     // Redo logic here
-  }, []);
-
-  // Save workflow activation state to localStorage
-  const saveWorkflowActivationState = useCallback((workflowId, status) => {
-    const workflowActivations = JSON.parse(localStorage.getItem('workflowActivations') || '{}');
-    workflowActivations[workflowId] = status;
-    localStorage.setItem('workflowActivations', JSON.stringify(workflowActivations));
   }, []);
 
   // Workflow activation handler
