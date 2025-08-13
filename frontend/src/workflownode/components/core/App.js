@@ -277,9 +277,19 @@ const App = () => {
         edges: edges
       };
 
-      // Save to backend database
-      const response = await fetch(`${API_BASE}/api/workflows`, {
-        method: 'POST',
+      // Save to backend database - use PUT for updates, POST for new workflows
+      const isUpdate = currentWorkflowId !== null;
+      const apiUrl = isUpdate ? `${API_BASE}/api/workflows/${currentWorkflowId}` : `${API_BASE}/api/workflows`;
+      const method = isUpdate ? 'PUT' : 'POST';
+      
+      console.log(`💾 ${isUpdate ? 'Updating' : 'Creating'} workflow`, { 
+        currentWorkflowId, 
+        method, 
+        url: apiUrl 
+      });
+
+      const response = await fetch(apiUrl, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -290,8 +300,8 @@ const App = () => {
       const result = await response.json();
       
       if (result.success) {
-        // Backend save successful - use the returned workflow ID
-        const backendWorkflowId = result.workflow.id;
+        // Backend save successful - for updates keep same ID, for new workflows use returned ID
+        const backendWorkflowId = isUpdate ? currentWorkflowId : result.workflow.id;
         
         // Create workflow data with backend ID for localStorage
         const workflowData = {
@@ -321,13 +331,15 @@ const App = () => {
         // Save to localStorage
         localStorage.setItem('savedWorkflows', JSON.stringify(savedWorkflows));
         
-        // Set current workflow ID to backend ID
-        setCurrentWorkflowId(backendWorkflowId);
-        console.log(`🆔 Setting currentWorkflowId to: ${backendWorkflowId}`);
+        // Set current workflow ID to backend ID (only if it wasn't already set)
+        if (!isUpdate) {
+          setCurrentWorkflowId(backendWorkflowId);
+          console.log(`🆔 Setting currentWorkflowId to: ${backendWorkflowId}`);
+        }
     
         setLastSaved('just now');
         
-        console.log(`✅ Workflow saved successfully to backend with ID: ${backendWorkflowId}`);
+        console.log(`✅ Workflow ${isUpdate ? 'updated' : 'created'} successfully with ID: ${backendWorkflowId}`);
       } else {
         // Backend save failed
         console.error('❌ Backend save failed:', result.error);
@@ -346,7 +358,7 @@ const App = () => {
     setHasUnsavedChanges(false);
     
     
-    alert(`✅ Workflow "${workflowName}" saved successfully to backend!`);
+    alert(`✅ Workflow "${workflowName}" ${isUpdate ? 'updated' : 'saved'} successfully!`);
   }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId, createStateSnapshot]);
 
 

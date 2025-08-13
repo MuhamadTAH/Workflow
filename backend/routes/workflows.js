@@ -185,25 +185,29 @@ router.post('/', verifyToken, (req, res) => {
 router.put('/:id', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
-  const { name, description, nodes, connections } = req.body;
+  const { name, description, nodes, edges, connections } = req.body;
+
+  // Support both edges (frontend format) and connections (legacy format)
+  const workflowEdges = edges || connections || [];
+  const workflowNodes = nodes || [];
 
   // Validate required fields
-  if (!name || !nodes || !connections) {
+  if (!name || !workflowNodes) {
     return res.status(400).json({ 
-      error: 'Missing required fields: name, nodes, connections' 
+      error: 'Missing required fields: name, nodes' 
     });
   }
 
-  // Validate nodes and connections are arrays
-  if (!Array.isArray(nodes) || !Array.isArray(connections)) {
+  // Validate nodes and edges are arrays
+  if (!Array.isArray(workflowNodes) || !Array.isArray(workflowEdges)) {
     return res.status(400).json({ 
-      error: 'Nodes and connections must be arrays' 
+      error: 'Nodes and edges must be arrays' 
     });
   }
 
   const workflowData = {
-    nodes,
-    connections,
+    nodes: workflowNodes,
+    edges: workflowEdges,
     metadata: {
       version: '1.0',
       savedAt: new Date().toISOString()
@@ -222,8 +226,8 @@ router.put('/:id', verifyToken, (req, res) => {
       userId, 
       workflowId, 
       name,
-      nodeCount: nodes.length,
-      connectionCount: connections.length
+      nodeCount: workflowNodes.length,
+      edgeCount: workflowEdges.length
     });
 
     res.json({
