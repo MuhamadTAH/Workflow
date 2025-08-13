@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api.js';
 import '../styles.css';
 import '../styles/WorkflowsOverview.css';
 
@@ -16,21 +17,60 @@ function Overview() {
   const [showLogs, setShowLogs] = useState(null);
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
 
-  // Load workflows from localStorage and enhance with status/execution data
+  // Load workflows from backend database with fallback to localStorage
   useEffect(() => {
-    const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
-    const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
-    const workflowExecutions = JSON.parse(localStorage.getItem('workflowExecutions') || '{}');
+    const loadWorkflows = async () => {
+      try {
+        // Try to fetch from backend first
+        const response = await fetch(`${API_BASE_URL}/api/workflows`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
 
-    const enhancedWorkflows = savedWorkflows.map(workflow => ({
-      ...workflow,
-      status: workflowStatuses[workflow.id] || 'inactive',
-      runCount: workflowExecutions[workflow.id]?.runCount || 0,
-      lastRun: workflowExecutions[workflow.id]?.lastRun || null,
-      logs: workflowExecutions[workflow.id]?.logs || []
-    }));
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            console.log('✅ Loaded workflows from backend:', result.workflows.length);
+            
+            // Enhance with local status/execution data
+            const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
+            const workflowExecutions = JSON.parse(localStorage.getItem('workflowExecutions') || '{}');
 
-    setWorkflows(enhancedWorkflows);
+            const enhancedWorkflows = result.workflows.map(workflow => ({
+              ...workflow,
+              status: workflowStatuses[workflow.id] || 'inactive',
+              runCount: workflowExecutions[workflow.id]?.runCount || 0,
+              lastRun: workflowExecutions[workflow.id]?.lastRun || null,
+              logs: workflowExecutions[workflow.id]?.logs || []
+            }));
+
+            setWorkflows(enhancedWorkflows);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('❌ Failed to load workflows from backend:', error);
+      }
+
+      // Fallback to localStorage
+      console.log('📱 Using localStorage fallback for workflows');
+      const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
+      const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
+      const workflowExecutions = JSON.parse(localStorage.getItem('workflowExecutions') || '{}');
+
+      const enhancedWorkflows = savedWorkflows.map(workflow => ({
+        ...workflow,
+        status: workflowStatuses[workflow.id] || 'inactive',
+        runCount: workflowExecutions[workflow.id]?.runCount || 0,
+        lastRun: workflowExecutions[workflow.id]?.lastRun || null,
+        logs: workflowExecutions[workflow.id]?.logs || []
+      }));
+
+      setWorkflows(enhancedWorkflows);
+    };
+
+    loadWorkflows();
   }, []);
 
   // Filter and sort workflows
