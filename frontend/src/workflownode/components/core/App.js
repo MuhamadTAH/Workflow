@@ -41,12 +41,38 @@ const App = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const [selectedNode, setSelectedNode] = useState(null);
-  const [workflowName, setWorkflowName] = useState('Untitled Workflow');
+  const [workflowName, setWorkflowName] = useState('');
   const [lastSaved, setLastSaved] = useState(null);
   const [currentWorkflowId, setCurrentWorkflowId] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSavedState, setLastSavedState] = useState(null);
   const [workflowStatus, setWorkflowStatus] = useState('inactive'); // inactive, listening, executing, completed
+
+  // Generate auto-incrementing workflow name
+  const generateWorkflowName = useCallback(async () => {
+    try {
+      // Get current workflow count from backend
+      const response = await fetch(`${API_BASE}/api/workflows`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          const count = result.workflows.length;
+          return `Workflow-${count + 1}`;
+        }
+      }
+    } catch (error) {
+      console.error('Error getting workflow count:', error);
+    }
+
+    // Fallback to localStorage count
+    const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
+    return `Workflow-${savedWorkflows.length + 1}`;
+  }, []);
 
   // Generate a unique, readable workflow ID (moved to top to fix hoisting issue)
   const generateWorkflowId = useCallback(() => {
@@ -126,6 +152,18 @@ const App = () => {
     }
   }, [currentWorkflowId, loadWorkflowActivationStatus]);
 
+  // Initialize workflow name for new workflows
+  useEffect(() => {
+    const initializeWorkflowName = async () => {
+      if (!workflowName && !currentWorkflowId) {
+        const autoName = await generateWorkflowName();
+        setWorkflowName(autoName);
+      }
+    };
+
+    initializeWorkflowName();
+  }, [workflowName, currentWorkflowId, generateWorkflowName]);
+
   // Load workflow from URL parameter on component mount
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -162,7 +200,7 @@ const App = () => {
       // For new workflows, set initial state only once
       setTimeout(() => {
         const initialState = JSON.stringify({
-          name: 'Untitled Workflow',
+          name: workflowName || 'Workflow-1',
           nodes: [],
           edges: []
         });
