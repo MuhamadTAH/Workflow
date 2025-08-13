@@ -160,6 +160,12 @@ router.post('/', verifyToken, (req, res) => {
     const stmt = db.prepare('INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)');
     const result = stmt.run(userId, safeName, safeDescription, dataJson);
 
+    console.log('[workflows.create] Database result:', {
+      lastID: result.lastID,
+      changes: result.changes,
+      resultType: typeof result.lastID
+    });
+
     logger.info('Workflow created successfully', { 
       userId, 
       workflowId: result.lastID, 

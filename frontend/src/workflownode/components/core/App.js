@@ -319,6 +319,7 @@ const App = () => {
         
         // Set current workflow ID to backend ID
         setCurrentWorkflowId(backendWorkflowId);
+        console.log(`🆔 Setting currentWorkflowId to: ${backendWorkflowId}`);
     
         setLastSaved('just now');
         
