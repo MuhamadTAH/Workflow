@@ -141,9 +141,11 @@ router.post('/', verifyToken, async (req, res) => {
   });
 
   try {
-    // Use asynchronous database operation
-    const stmt = db.prepare('INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)');
-    const result = await stmt.run(userId, safeName, safeDescription, dataJson);
+    // Use direct database run method to avoid wrapper complexity
+    const result = await db.run(
+      'INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)',
+      [userId, safeName, safeDescription, dataJson]
+    );
 
     console.log('[workflows.create] Database result:', {
       lastID: result.lastID,
@@ -152,8 +154,8 @@ router.post('/', verifyToken, async (req, res) => {
       resultType: typeof result.lastInsertRowid
     });
 
-    // Use lastInsertRowid instead of lastID for sqlite3 wrapper compatibility
-    const workflowId = result.lastInsertRowid || result.lastID;
+    // Use lastInsertRowid for sqlite3 wrapper compatibility
+    const workflowId = result.lastInsertRowid;
 
     logger.info('Workflow created successfully', { 
       userId, 
