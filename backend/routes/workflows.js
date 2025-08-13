@@ -3,8 +3,7 @@ const router = express.Router();
 const db = require('../db');
 const logger = require('../services/logger');
 
-// Import async database helpers
-const { runAsync, begin, commit, rollback } = require('../services/dbAsync');
+// Remove async database helpers - using synchronous db directly
 
 // Name sanitizer function
 const sanitizeName = (raw) => typeof raw === 'string' ? raw.trim() : '';
@@ -113,61 +112,53 @@ router.get('/:id', verifyToken, (req, res) => {
 });
 
 // POST /api/workflows - Create new workflow
-router.post('/', verifyToken, async (req, res, next) => {
-  try {
-    const userId = req.user.userId;
-    const { name, description, nodes, edges, connections } = req.body;
+router.post('/', verifyToken, (req, res) => {
+  const userId = req.user.userId;
+  const { name, description, nodes, edges, connections } = req.body;
 
-    // Support both edges (frontend format) and connections (legacy format)
-    const workflowEdges = edges || connections || [];
-    const workflowNodes = nodes || [];
+  // Support both edges (frontend format) and connections (legacy format)
+  const workflowEdges = edges || connections || [];
+  const workflowNodes = nodes || [];
 
-    // Strong validation BEFORE touching DB
-    const safeName = sanitizeName(name);
-    if (!safeName) {
-      return res.status(400).json({ 
-        error: 'Workflow name is required and cannot be empty' 
-      });
-    }
-
-    // Validate nodes and edges are arrays
-    if (!Array.isArray(workflowNodes) || !Array.isArray(workflowEdges)) {
-      return res.status(400).json({ 
-        error: 'Nodes and edges must be arrays' 
-      });
-    }
-
-    const workflowData = {
-      nodes: workflowNodes,
-      edges: workflowEdges,
-      metadata: {
-        version: '1.0',
-        savedAt: new Date().toISOString()
-      }
-    };
-
-    const safeDescription = typeof description === 'string' ? description : '';
-    const dataJson = JSON.stringify(workflowData);
-
-    // Log exact values that will be bound to the statement
-    console.log('[workflows.create] INSERT params', {
-      userIdType: typeof userId, userId,
-      nameType: typeof safeName, name: safeName,
-      descriptionType: typeof safeDescription, description: safeDescription,
-      dataType: typeof dataJson, dataLength: dataJson.length
+  // Strong validation BEFORE touching DB
+  const safeName = sanitizeName(name);
+  if (!safeName) {
+    return res.status(400).json({ 
+      error: 'Workflow name is required and cannot be empty' 
     });
+  }
 
-    // Begin transaction
-    await begin();
+  // Validate nodes and edges are arrays
+  if (!Array.isArray(workflowNodes) || !Array.isArray(workflowEdges)) {
+    return res.status(400).json({ 
+      error: 'Nodes and edges must be arrays' 
+    });
+  }
 
-    // IMPORTANT: column order MUST match params order
-    const sql = `INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)`;
-    const params = [userId, safeName, safeDescription, dataJson];
+  const workflowData = {
+    nodes: workflowNodes,
+    edges: workflowEdges,
+    metadata: {
+      version: '1.0',
+      savedAt: new Date().toISOString()
+    }
+  };
 
-    const result = await runAsync(sql, params);
+  const safeDescription = typeof description === 'string' ? description : '';
+  const dataJson = JSON.stringify(workflowData);
 
-    // Commit transaction
-    await commit();
+  // Log exact values that will be bound to the statement
+  console.log('[workflows.create] INSERT params', {
+    userIdType: typeof userId, userId,
+    nameType: typeof safeName, name: safeName,
+    descriptionType: typeof safeDescription, description: safeDescription,
+    dataType: typeof dataJson, dataLength: dataJson.length
+  });
+
+  try {
+    // Use synchronous database operation
+    const stmt = db.prepare('INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)');
+    const result = stmt.run(userId, safeName, safeDescription, dataJson);
 
     logger.info('Workflow created successfully', { 
       userId, 
@@ -177,8 +168,7 @@ router.post('/', verifyToken, async (req, res, next) => {
       edgeCount: workflowEdges.length
     });
 
-    // Only now send 201 - AFTER database operation succeeds
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       workflow: {
         id: result.lastID,
@@ -191,18 +181,12 @@ router.post('/', verifyToken, async (req, res, next) => {
     });
 
   } catch (error) {
-    await rollback();
-    logger.logError(error, { context: 'createWorkflow', userId: req.user?.userId });
-    
-    // Don't crash the process if headers were already sent
-    if (!res.headersSent) {
-      return res.status(500).json({ 
-        success: false,
-        error: 'Failed to create workflow', 
-        details: error.message 
-      });
-    }
-    return next(error);
+    logger.logError(error, { context: 'createWorkflow', userId });
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to create workflow', 
+      details: error.message 
+    });
   }
 });
 
@@ -436,7 +420,7 @@ router.get('/workflows/:id/simple-status', async (req, res) => {
 });
 
 // POST /api/workflows/:id/activate - Activate workflow for single-run execution
-router.post('/:id/activate', verifyToken, async (req, res) => {
+router.post('/:id/activate', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
@@ -492,7 +476,7 @@ router.post('/:id/activate', verifyToken, async (req, res) => {
       url: `/api/webhooks/${node.data?.type}/${workflowId}`
     }));
 
-    await workflowState.storeActiveWorkflow(workflowId, workflowData, triggerUrls);
+    // workflowState.storeActiveWorkflow(workflowId, workflowData, triggerUrls);
 
     logger.info('Workflow activated for single-run execution', { 
       userId, 
@@ -521,7 +505,7 @@ router.post('/:id/activate', verifyToken, async (req, res) => {
 });
 
 // POST /api/workflows/:id/deactivate - Deactivate workflow 
-router.post('/:id/deactivate', verifyToken, async (req, res) => {
+router.post('/:id/deactivate', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
@@ -544,7 +528,7 @@ router.post('/:id/deactivate', verifyToken, async (req, res) => {
     workflowExecutor.unregisterWorkflow(workflowId);
 
     // Remove from database
-    await workflowState.removeActiveWorkflow(workflowId);
+    // workflowState.removeActiveWorkflow(workflowId);
 
     logger.info('Workflow deactivated', { userId, workflowId });
 
@@ -566,7 +550,7 @@ router.post('/:id/deactivate', verifyToken, async (req, res) => {
 });
 
 // GET /api/workflows/:id/status - Get workflow activation status
-router.get('/:id/status', verifyToken, async (req, res) => {
+router.get('/:id/status', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
@@ -586,10 +570,11 @@ router.get('/:id/status', verifyToken, async (req, res) => {
     const isRegistered = workflowExecutor.activeWorkflows.has(workflowId);
     const executorData = isRegistered ? workflowExecutor.activeWorkflows.get(workflowId) : null;
 
-    // Check database status
-    const workflowState = require('../services/workflowState');
-    const activeWorkflows = await workflowState.getActiveWorkflows();
-    const dbWorkflow = activeWorkflows.find(w => w.workflowId === workflowId);
+    // Check database status - simplified for now
+    // const workflowState = require('../services/workflowState');
+    // const activeWorkflows = workflowState.getActiveWorkflows();
+    // const dbWorkflow = activeWorkflows.find(w => w.workflowId === workflowId);
+    const dbWorkflow = null;
 
     let status = 'inactive';
     if (isRegistered && dbWorkflow) {
