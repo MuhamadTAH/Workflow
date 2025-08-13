@@ -434,10 +434,18 @@ router.post('/:id/activate', verifyToken, (req, res) => {
     }
 
     // Parse workflow data
+    console.log('[workflows.activate] Raw workflow data:', {
+      dataType: typeof workflow.data,
+      dataLength: workflow.data?.length,
+      dataPreview: workflow.data?.substring(0, 100)
+    });
+    
     let workflowData;
     try {
       workflowData = JSON.parse(workflow.data);
     } catch (parseError) {
+      console.error('[workflows.activate] JSON parse error:', parseError.message);
+      console.error('[workflows.activate] Invalid data:', workflow.data);
       return res.status(400).json({ 
         success: false, 
         error: 'Invalid workflow data format' 
