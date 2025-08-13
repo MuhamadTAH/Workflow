@@ -451,7 +451,7 @@ router.post('/:id/activate', verifyToken, async (req, res) => {
       });
     }
 
-    // Check if workflow has trigger nodes
+    // Check if workflow has trigger nodes - look for trigger types instead of category
     console.log('[workflows.activate] All nodes:', workflowData.nodes?.map(node => ({
       id: node.id,
       type: node.data?.type,
@@ -459,11 +459,21 @@ router.post('/:id/activate', verifyToken, async (req, res) => {
       label: node.data?.label
     })));
     
+    // List of trigger node types
+    const triggerTypes = [
+      'telegramTrigger',
+      'webhookTrigger', 
+      'chatTrigger',
+      'manualTrigger',
+      'scheduleTrigger'
+    ];
+    
     const triggerNodes = workflowData.nodes?.filter(node => 
-      node.data?.category === 'trigger'
+      triggerTypes.includes(node.data?.type)
     ) || [];
     
-    console.log('[workflows.activate] Found trigger nodes:', triggerNodes.length);
+    console.log('[workflows.activate] Found trigger nodes:', triggerNodes.length, 
+               'Types:', triggerNodes.map(n => n.data?.type));
 
     if (triggerNodes.length === 0) {
       return res.status(400).json({ 
