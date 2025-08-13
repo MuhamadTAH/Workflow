@@ -123,6 +123,14 @@ router.post('/', verifyToken, (req, res) => {
     });
   }
 
+  // Ensure name is a string and not empty
+  const safeName = String(name || 'Untitled Workflow').trim();
+  if (!safeName) {
+    return res.status(400).json({ 
+      error: 'Workflow name cannot be empty' 
+    });
+  }
+
   // Validate nodes and edges are arrays
   if (!Array.isArray(workflowNodes) || !Array.isArray(workflowEdges)) {
     return res.status(400).json({ 
@@ -141,12 +149,12 @@ router.post('/', verifyToken, (req, res) => {
 
   try {
     const stmt = db.prepare('INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)');
-    const result = stmt.run(userId, name, description || '', JSON.stringify(workflowData));
+    const result = stmt.run(userId, safeName, description || '', JSON.stringify(workflowData));
 
     logger.info('Workflow created', { 
       userId, 
       workflowId: result.lastInsertRowid, 
-      name,
+      name: safeName,
       nodeCount: workflowNodes.length,
       edgeCount: workflowEdges.length
     });
