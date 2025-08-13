@@ -41,6 +41,11 @@ router.get('/', verifyToken, async (req, res) => {
       [userId]
     );
 
+    // Debug: Check all workflows in database  
+    const allRows = await db.all('SELECT id, name, user_id FROM workflows');
+    console.log('[workflows.get] All workflows in DB:', allRows);
+    console.log('[workflows.get] Filtered for user:', { userId, foundCount: rows.length, workflows: rows.map(r => ({ id: r.id, name: r.name })) });
+
     logger.info('Workflows retrieved', { userId, count: rows.length });
     res.json({
       success: true,
