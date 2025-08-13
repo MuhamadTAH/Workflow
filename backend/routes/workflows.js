@@ -11,22 +11,7 @@ const sanitizeName = (raw) => typeof raw === 'string' ? raw.trim() : '';
 // Import workflow executor
 const workflowExecutor = require('../services/workflowExecutor');
 
-// Initialize workflows table
-try {
-  const stmt = db.prepare(`CREATE TABLE IF NOT EXISTS workflows (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT,
-    data TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users (id)
-  )`);
-  stmt.run();
-} catch (error) {
-  console.error('Error creating workflows table:', error);
-}
+// Workflows table is now initialized in dbWrapper.js
 
 // Middleware to verify JWT token
 const verifyToken = (req, res, next) => {

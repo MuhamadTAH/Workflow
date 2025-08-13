@@ -177,6 +177,26 @@ db.serialize(() => {
     }
   });
   
+  // Create workflows table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS workflows (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      description TEXT,
+      data TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users (id)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating workflows table:', err);
+    } else {
+      console.log('✅ Workflows table ready');
+    }
+  });
+
   // Try to add columns if they don't exist (for existing databases)
   db.run(`ALTER TABLE products ADD COLUMN videos TEXT`, (err) => {
     // Column already exists or other error, ignore
