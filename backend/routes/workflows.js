@@ -163,7 +163,7 @@ router.post('/', verifyToken, (req, res) => {
       success: true,
       workflow: {
         id: result.lastInsertRowid,
-        name,
+        name: safeName,
         description: description || '',
         data: workflowData,
         createdAt: new Date().toISOString(),
