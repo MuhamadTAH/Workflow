@@ -417,14 +417,13 @@ router.get('/workflows/:id/simple-status', async (req, res) => {
 });
 
 // POST /api/workflows/:id/activate - Activate workflow for single-run execution
-router.post('/:id/activate', verifyToken, (req, res) => {
+router.post('/:id/activate', verifyToken, async (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
   try {
     // Verify workflow exists and belongs to user
-    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
-    const workflow = stmt.get(workflowId, userId);
+    const workflow = await db.get('SELECT * FROM workflows WHERE id = ? AND user_id = ?', [workflowId, userId]);
     
     if (!workflow) {
       return res.status(404).json({ 
@@ -510,14 +509,13 @@ router.post('/:id/activate', verifyToken, (req, res) => {
 });
 
 // POST /api/workflows/:id/deactivate - Deactivate workflow 
-router.post('/:id/deactivate', verifyToken, (req, res) => {
+router.post('/:id/deactivate', verifyToken, async (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
   try {
     // Verify workflow exists and belongs to user
-    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
-    const workflow = stmt.get(workflowId, userId);
+    const workflow = await db.get('SELECT * FROM workflows WHERE id = ? AND user_id = ?', [workflowId, userId]);
     
     if (!workflow) {
       return res.status(404).json({ 
@@ -555,14 +553,13 @@ router.post('/:id/deactivate', verifyToken, (req, res) => {
 });
 
 // GET /api/workflows/:id/status - Get workflow activation status
-router.get('/:id/status', verifyToken, (req, res) => {
+router.get('/:id/status', verifyToken, async (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
   try {
     // Verify workflow exists and belongs to user
-    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
-    const workflow = stmt.get(workflowId, userId);
+    const workflow = await db.get('SELECT * FROM workflows WHERE id = ? AND user_id = ?', [workflowId, userId]);
     
     if (!workflow) {
       return res.status(404).json({ 
