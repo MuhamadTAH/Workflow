@@ -16,6 +16,78 @@ const MultiLanguageChatResponseNode = require('../nodes/MultiLanguageChatRespons
 class WorkflowExecutor {
     constructor() {
         this.executionHistory = new Map(); // Store execution history for debugging
+        this.activeWorkflows = new Map(); // Store active workflows for activation system
+    }
+
+    // Register workflow for activation (single-run mode)
+    registerWorkflow(workflowId, workflowData, metadata = {}) {
+        this.activeWorkflows.set(workflowId, {
+            workflowId,
+            workflow: workflowData,
+            metadata,
+            isActive: true,
+            registeredAt: new Date().toISOString(),
+            isExecuting: false
+        });
+        console.log(`✅ Registered workflow ${workflowId} for activation`);
+    }
+
+    // Unregister workflow from activation
+    unregisterWorkflow(workflowId) {
+        const removed = this.activeWorkflows.delete(workflowId);
+        if (removed) {
+            console.log(`🗑️ Unregistered workflow ${workflowId} from activation`);
+        } else {
+            console.log(`⚠️ Workflow ${workflowId} was not registered for activation`);
+        }
+        return removed;
+    }
+
+    // Check if workflow is registered for activation
+    isWorkflowActive(workflowId) {
+        return this.activeWorkflows.has(workflowId);
+    }
+
+    // Get active workflow data
+    getActiveWorkflow(workflowId) {
+        return this.activeWorkflows.get(workflowId);
+    }
+
+    // Execute workflow from activation system
+    async executeActiveWorkflow(workflowId, triggerData) {
+        const workflowInfo = this.activeWorkflows.get(workflowId);
+        if (!workflowInfo) {
+            throw new Error(`Workflow ${workflowId} is not registered for activation`);
+        }
+
+        // Mark as executing
+        workflowInfo.isExecuting = true;
+        workflowInfo.lastExecutionStart = new Date().toISOString();
+
+        try {
+            console.log(`🚀 Executing active workflow ${workflowId} with trigger data`);
+            const result = await this.executeWorkflow(workflowId, workflowInfo.workflow, triggerData);
+            
+            // Single-run mode: remove from active workflows after execution
+            if (workflowInfo.metadata.mode === 'single-run') {
+                this.unregisterWorkflow(workflowId);
+                console.log(`🔄 Single-run completed - removed workflow ${workflowId} from activation`);
+            } else {
+                // Mark as not executing for continuous mode
+                workflowInfo.isExecuting = false;
+                workflowInfo.lastExecutionEnd = new Date().toISOString();
+            }
+
+            return result;
+        } catch (error) {
+            // Reset executing state on error
+            workflowInfo.isExecuting = false;
+            workflowInfo.lastExecutionError = {
+                message: error.message,
+                timestamp: new Date().toISOString()
+            };
+            throw error;
+        }
     }
 
     // Execute a complete workflow on-demand

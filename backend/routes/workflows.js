@@ -393,4 +393,192 @@ router.get('/workflows/:id/simple-status', async (req, res) => {
   }
 });
 
+// POST /api/workflows/:id/activate - Activate workflow for single-run execution
+router.post('/:id/activate', verifyToken, async (req, res) => {
+  const userId = req.user.userId;
+  const workflowId = req.params.id;
+  
+  try {
+    // Verify workflow exists and belongs to user
+    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
+    const workflow = stmt.get(workflowId, userId);
+    
+    if (!workflow) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Workflow not found or access denied' 
+      });
+    }
+
+    // Parse workflow data
+    let workflowData;
+    try {
+      workflowData = JSON.parse(workflow.data);
+    } catch (parseError) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid workflow data format' 
+      });
+    }
+
+    // Check if workflow has trigger nodes
+    const triggerNodes = workflowData.nodes?.filter(node => 
+      node.data?.category === 'trigger'
+    ) || [];
+
+    if (triggerNodes.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Workflow must have at least one trigger node to activate' 
+      });
+    }
+
+    // Import workflow state service
+    const workflowState = require('../services/workflowState');
+    
+    // Register workflow with executor for listening
+    workflowExecutor.registerWorkflow(workflowId, workflowData, {
+      userId,
+      activatedAt: new Date().toISOString(),
+      mode: 'single-run'
+    });
+
+    // Store activation state in database
+    const triggerUrls = triggerNodes.map(node => ({
+      nodeId: node.id,
+      type: node.data?.type,
+      url: `/api/webhooks/${node.data?.type}/${workflowId}`
+    }));
+
+    await workflowState.storeActiveWorkflow(workflowId, workflowData, triggerUrls);
+
+    logger.info('Workflow activated for single-run execution', { 
+      userId, 
+      workflowId, 
+      triggerCount: triggerNodes.length,
+      mode: 'single-run'
+    });
+
+    res.json({
+      success: true,
+      workflowId,
+      status: 'listening',
+      message: 'Workflow activated and listening for trigger data',
+      triggerNodes: triggerNodes.length,
+      triggerUrls,
+      activatedAt: new Date().toISOString()
+    });
+
+  } catch (error) {
+    logger.logError(error, { context: 'activateWorkflow', userId, workflowId });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to activate workflow' 
+    });
+  }
+});
+
+// POST /api/workflows/:id/deactivate - Deactivate workflow 
+router.post('/:id/deactivate', verifyToken, async (req, res) => {
+  const userId = req.user.userId;
+  const workflowId = req.params.id;
+  
+  try {
+    // Verify workflow exists and belongs to user
+    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
+    const workflow = stmt.get(workflowId, userId);
+    
+    if (!workflow) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Workflow not found or access denied' 
+      });
+    }
+
+    // Import workflow state service
+    const workflowState = require('../services/workflowState');
+    
+    // Remove from executor
+    workflowExecutor.unregisterWorkflow(workflowId);
+
+    // Remove from database
+    await workflowState.removeActiveWorkflow(workflowId);
+
+    logger.info('Workflow deactivated', { userId, workflowId });
+
+    res.json({
+      success: true,
+      workflowId,
+      status: 'inactive',
+      message: 'Workflow deactivated successfully',
+      deactivatedAt: new Date().toISOString()
+    });
+
+  } catch (error) {
+    logger.logError(error, { context: 'deactivateWorkflow', userId, workflowId });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to deactivate workflow' 
+    });
+  }
+});
+
+// GET /api/workflows/:id/status - Get workflow activation status
+router.get('/:id/status', verifyToken, async (req, res) => {
+  const userId = req.user.userId;
+  const workflowId = req.params.id;
+  
+  try {
+    // Verify workflow exists and belongs to user
+    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
+    const workflow = stmt.get(workflowId, userId);
+    
+    if (!workflow) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Workflow not found or access denied' 
+      });
+    }
+
+    // Check executor status
+    const isRegistered = workflowExecutor.activeWorkflows.has(workflowId);
+    const executorData = isRegistered ? workflowExecutor.activeWorkflows.get(workflowId) : null;
+
+    // Check database status
+    const workflowState = require('../services/workflowState');
+    const activeWorkflows = await workflowState.getActiveWorkflows();
+    const dbWorkflow = activeWorkflows.find(w => w.workflowId === workflowId);
+
+    let status = 'inactive';
+    if (isRegistered && dbWorkflow) {
+      status = 'listening';
+    } else if (executorData?.isExecuting) {
+      status = 'executing';
+    }
+
+    res.json({
+      success: true,
+      workflowId,
+      status,
+      executor: {
+        registered: isRegistered,
+        activatedAt: executorData?.activatedAt || null
+      },
+      database: {
+        stored: !!dbWorkflow,
+        activatedAt: dbWorkflow?.activatedAt || null,
+        triggerUrls: dbWorkflow?.triggerUrls || []
+      },
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    logger.logError(error, { context: 'getWorkflowStatus', userId, workflowId });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to get workflow status' 
+    });
+  }
+});
+
 module.exports = router;

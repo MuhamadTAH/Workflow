@@ -78,14 +78,46 @@ const App = () => {
     }
   }, [workflowName, nodes, edges, lastSavedState, createStateSnapshot]);
 
+  // Load workflow activation state from backend
+  const loadWorkflowActivationStatus = useCallback(async (workflowId) => {
+    if (!workflowId) return;
+    
+    try {
+      const response = await fetch(`${API_BASE}/api/workflows/${workflowId}/status`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setWorkflowStatus(result.status);
+          saveWorkflowActivationState(workflowId, result.status);
+          console.log(`📡 Loaded activation status for workflow ${workflowId}: ${result.status}`);
+        }
+      } else {
+        // Fallback to localStorage if backend fails
+        const workflowActivations = JSON.parse(localStorage.getItem('workflowActivations') || '{}');
+        const localStatus = workflowActivations[workflowId] || 'inactive';
+        setWorkflowStatus(localStatus);
+        console.log(`📱 Using local activation status for workflow ${workflowId}: ${localStatus}`);
+      }
+    } catch (error) {
+      console.error('❌ Error loading activation status:', error);
+      // Fallback to localStorage
+      const workflowActivations = JSON.parse(localStorage.getItem('workflowActivations') || '{}');
+      const localStatus = workflowActivations[workflowId] || 'inactive';
+      setWorkflowStatus(localStatus);
+    }
+  }, [saveWorkflowActivationState]);
+
   // Load workflow activation state
   useEffect(() => {
     if (currentWorkflowId) {
-      const workflowActivations = JSON.parse(localStorage.getItem('workflowActivations') || '{}');
-      const activationState = workflowActivations[currentWorkflowId] || 'inactive';
-      setWorkflowStatus(activationState);
+      loadWorkflowActivationStatus(currentWorkflowId);
     }
-  }, [currentWorkflowId]);
+  }, [currentWorkflowId, loadWorkflowActivationStatus]);
 
   // Load workflow from URL parameter on component mount
   useEffect(() => {
@@ -301,20 +333,47 @@ const App = () => {
     }
 
     if (workflowStatus === 'inactive' || workflowStatus === 'completed') {
-      const newStatus = 'listening';
-      setWorkflowStatus(newStatus);
-      saveWorkflowActivationState(currentWorkflowId, newStatus);
-      
-      console.log(`Workflow ${currentWorkflowId} activated - now listening for trigger data...`);
-      
-      // TODO: Connect to backend activation API
-      // const response = await fetch(`${API_BASE}/api/workflows/${currentWorkflowId}/activate`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${localStorage.getItem('token')}`
-      //   }
-      // });
+      try {
+        // Set to listening immediately for UI feedback
+        setWorkflowStatus('listening');
+        
+        const response = await fetch(`${API_BASE}/api/workflows/${currentWorkflowId}/activate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          // Update both local state and localStorage
+          setWorkflowStatus('listening');
+          saveWorkflowActivationState(currentWorkflowId, 'listening');
+          
+          console.log(`✅ Workflow ${currentWorkflowId} activated successfully:`, {
+            triggerNodes: result.triggerNodes,
+            triggerUrls: result.triggerUrls,
+            activatedAt: result.activatedAt
+          });
+        } else {
+          // Handle activation failure
+          console.error('❌ Failed to activate workflow:', result.error);
+          setWorkflowStatus('inactive');
+          saveWorkflowActivationState(currentWorkflowId, 'inactive');
+          
+          // Show error to user
+          alert(`Failed to activate workflow: ${result.error}`);
+        }
+      } catch (error) {
+        console.error('❌ Error activating workflow:', error);
+        setWorkflowStatus('inactive');
+        saveWorkflowActivationState(currentWorkflowId, 'inactive');
+        
+        // Show error to user
+        alert('Failed to activate workflow. Please check your connection and try again.');
+      }
     }
   }, [workflowStatus, currentWorkflowId, saveWorkflowActivationState]);
 
