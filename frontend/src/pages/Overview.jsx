@@ -10,8 +10,8 @@ function Overview() {
   const [filteredWorkflows, setFilteredWorkflows] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [sortField, setSortField] = useState('updatedAt');
-  const [sortDirection, setSortDirection] = useState('desc');
+  const [sortField, setSortField] = useState('name');
+  const [sortDirection, setSortDirection] = useState('asc');
   const [selectedWorkflows, setSelectedWorkflows] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [showLogs, setShowLogs] = useState(null);

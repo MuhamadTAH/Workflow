@@ -32,19 +32,14 @@ const verifyToken = (req, res, next) => {
 };
 
 // GET /api/workflows - Get all workflows for the authenticated user
-router.get('/', verifyToken, async (req, res) => {
+router.get('/', verifyToken, (req, res) => {
   const userId = req.user.userId;
 
   try {
-    const rows = await db.all(
-      'SELECT id, name, description, created_at, updated_at FROM workflows WHERE user_id = ? ORDER BY updated_at DESC',
-      [userId]
+    const stmt = db.prepare(
+      'SELECT id, name, description, created_at, updated_at FROM workflows WHERE user_id = ? ORDER BY updated_at DESC'
     );
-
-    // Debug: Check all workflows in database  
-    const allRows = await db.all('SELECT id, name, user_id FROM workflows');
-    console.log('[workflows.get] All workflows in DB:', allRows);
-    console.log('[workflows.get] Filtered for user:', { userId, foundCount: rows.length, workflows: rows.map(r => ({ id: r.id, name: r.name })) });
+    const rows = stmt.all(userId);
 
     logger.info('Workflows retrieved', { userId, count: rows.length });
     res.json({
@@ -64,12 +59,13 @@ router.get('/', verifyToken, async (req, res) => {
 });
 
 // GET /api/workflows/:id - Get specific workflow with full data
-router.get('/:id', verifyToken, async (req, res) => {
+router.get('/:id', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
 
   try {
-    const row = await db.get('SELECT * FROM workflows WHERE id = ? AND user_id = ?', [workflowId, userId]);
+    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
+    const row = stmt.get(workflowId, userId);
 
     if (!row) {
       return res.status(404).json({ error: 'Workflow not found' });
@@ -192,7 +188,7 @@ router.post('/', verifyToken, async (req, res) => {
 });
 
 // PUT /api/workflows/:id - Update existing workflow
-router.put('/:id', verifyToken, async (req, res) => {
+router.put('/:id', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   const { name, description, nodes, connections } = req.body;
@@ -221,10 +217,8 @@ router.put('/:id', verifyToken, async (req, res) => {
   };
 
   try {
-    const result = await db.run(
-      'UPDATE workflows SET name = ?, description = ?, data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
-      [name, description || '', JSON.stringify(workflowData), workflowId, userId]
-    );
+    const stmt = db.prepare('UPDATE workflows SET name = ?, description = ?, data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?');
+    const result = stmt.run(name, description || '', JSON.stringify(workflowData), workflowId, userId);
 
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Workflow not found' });
@@ -255,12 +249,13 @@ router.put('/:id', verifyToken, async (req, res) => {
 });
 
 // DELETE /api/workflows/:id - Delete workflow
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
 
   try {
-    const result = await db.run('DELETE FROM workflows WHERE id = ? AND user_id = ?', [workflowId, userId]);
+    const stmt = db.prepare('DELETE FROM workflows WHERE id = ? AND user_id = ?');
+    const result = stmt.run(workflowId, userId);
 
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Workflow not found' });
@@ -422,13 +417,14 @@ router.get('/workflows/:id/simple-status', async (req, res) => {
 });
 
 // POST /api/workflows/:id/activate - Activate workflow for single-run execution
-router.post('/:id/activate', verifyToken, async (req, res) => {
+router.post('/:id/activate', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
   try {
     // Verify workflow exists and belongs to user
-    const workflow = await db.get('SELECT * FROM workflows WHERE id = ? AND user_id = ?', [workflowId, userId]);
+    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
+    const workflow = stmt.get(workflowId, userId);
     
     if (!workflow) {
       return res.status(404).json({ 
@@ -533,13 +529,14 @@ router.post('/:id/activate', verifyToken, async (req, res) => {
 });
 
 // POST /api/workflows/:id/deactivate - Deactivate workflow 
-router.post('/:id/deactivate', verifyToken, async (req, res) => {
+router.post('/:id/deactivate', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
   try {
     // Verify workflow exists and belongs to user
-    const workflow = await db.get('SELECT * FROM workflows WHERE id = ? AND user_id = ?', [workflowId, userId]);
+    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
+    const workflow = stmt.get(workflowId, userId);
     
     if (!workflow) {
       return res.status(404).json({ 
@@ -577,13 +574,14 @@ router.post('/:id/deactivate', verifyToken, async (req, res) => {
 });
 
 // GET /api/workflows/:id/status - Get workflow activation status
-router.get('/:id/status', verifyToken, async (req, res) => {
+router.get('/:id/status', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
   try {
     // Verify workflow exists and belongs to user
-    const workflow = await db.get('SELECT * FROM workflows WHERE id = ? AND user_id = ?', [workflowId, userId]);
+    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
+    const workflow = stmt.get(workflowId, userId);
     
     if (!workflow) {
       return res.status(404).json({ 
