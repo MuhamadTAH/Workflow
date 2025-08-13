@@ -69,7 +69,7 @@ const Toolbar = ({
                     <button 
                         className={`toolbar-btn activate-btn ${workflowStatus}`}
                         onClick={onActivateWorkflow}
-                        disabled={workflowStatus === 'listening' || workflowStatus === 'executing' || !currentWorkflowId}
+                        disabled={workflowStatus === 'executing' || !currentWorkflowId}
                         title={!currentWorkflowId ? 'Save workflow first to activate' : ''}
                     >
                         {workflowStatus === 'inactive' && (
@@ -80,8 +80,8 @@ const Toolbar = ({
                         )}
                         {workflowStatus === 'listening' && (
                             <>
-                                <i className="fa-solid fa-ear-listen"></i>
-                                Listening...
+                                <i className="fa-solid fa-stop"></i>
+                                Deactivate
                             </>
                         )}
                         {workflowStatus === 'executing' && (

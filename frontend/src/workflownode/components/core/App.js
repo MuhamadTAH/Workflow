@@ -359,13 +359,42 @@ const App = () => {
     // Redo logic here
   }, []);
 
-  // Workflow activation handler
+  // Workflow activation/deactivation handler
   const handleActivateWorkflow = useCallback(async () => {
     if (!currentWorkflowId) {
       console.error('No workflow loaded. Please save the workflow first.');
       return;
     }
 
+    // Handle deactivation when currently listening
+    if (workflowStatus === 'listening') {
+      try {
+        const response = await fetch(`${API_BASE}/api/workflows/${currentWorkflowId}/deactivate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+          setWorkflowStatus('inactive');
+          saveWorkflowActivationState(currentWorkflowId, 'inactive');
+          console.log(`✅ Workflow ${currentWorkflowId} deactivated successfully`);
+        } else {
+          console.error('❌ Failed to deactivate workflow:', result.error);
+          alert(`Failed to deactivate workflow: ${result.error}`);
+        }
+      } catch (error) {
+        console.error('❌ Error deactivating workflow:', error);
+        alert('Failed to deactivate workflow. Please check your connection and try again.');
+      }
+      return;
+    }
+
+    // Handle activation when currently inactive or completed
     if (workflowStatus === 'inactive' || workflowStatus === 'completed') {
       try {
         // Set to listening immediately for UI feedback
