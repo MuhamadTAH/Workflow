@@ -342,3 +342,48 @@ Frontend (Prod: Render) → Production Backend (Render) → SQLite (Render)
 ```
 
 **No Local Backend Policy**: Always troubleshoot and fix production backend issues rather than falling back to local development. This ensures consistency with deployed environment and proper testing of production configurations.
+
+---
+
+### 11. 🎯 DEVELOPMENT RULES & WORKFLOW (Aug 12, 2025)
+
+**CRITICAL DEVELOPMENT RULES**:
+
+1. **🖥️ DUAL RENDER DEPLOYMENT**: Both frontend and backend are hosted on Render
+   - Frontend: Render static site deployment
+   - Backend: Render web service deployment
+
+2. **📤 MANDATORY GITHUB PUSH**: All changes MUST be pushed to GitHub
+   - GitHub triggers auto-deployment on both Render services
+   - No changes take effect until pushed to main branch
+
+3. **📋 PLAN-FIRST DEVELOPMENT**: No coding without approval
+   - Present detailed step-by-step plan before any implementation
+   - Get explicit "OK" confirmation from user before proceeding
+   - No code changes without user approval
+
+4. **🔄 FRONTEND-TO-BACKEND WORKFLOW**: Development order is critical
+   - **Step 1**: Always start with frontend changes
+   - **Step 2**: Test frontend changes locally
+   - **Step 3**: Then proceed to backend changes  
+   - **Step 4**: Push both frontend and backend together
+   - **Step 5**: Verify production deployment
+
+**STEP-BY-STEP VERIFICATION**:
+After each step, user should see:
+- **Frontend Step**: Code changes made and ready for push
+- **Backend Step**: Code changes made and ready for push
+- **Push Step**: GitHub commit appears in repository
+- **Deploy Step**: Render services rebuild successfully
+- **Production Step**: Live URLs show updated functionality
+
+**MANDATORY WORKFLOW**:
+```
+1. Present Plan → Get User OK
+2. Frontend Changes → User Reviews Code
+3. Backend Changes → User Reviews Code  
+4. Push to GitHub → User Confirms Commit
+5. Render Deploy → User Confirms Live Site
+```
+
+*No exceptions to this workflow - ensures quality control and prevents production issues*

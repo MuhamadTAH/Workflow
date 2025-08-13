@@ -46,6 +46,7 @@ const App = () => {
   const [currentWorkflowId, setCurrentWorkflowId] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSavedState, setLastSavedState] = useState(null);
+  const [workflowStatus, setWorkflowStatus] = useState('inactive'); // inactive, listening, executing, completed
 
   // Generate a unique, readable workflow ID (moved to top to fix hoisting issue)
   const generateWorkflowId = useCallback(() => {
@@ -272,6 +273,34 @@ const App = () => {
     // Redo logic here
   }, []);
 
+  // Workflow activation handler
+  const handleActivateWorkflow = useCallback(() => {
+    if (workflowStatus === 'inactive' || workflowStatus === 'completed') {
+      setWorkflowStatus('listening');
+      console.log('Workflow activated - now listening for trigger data...');
+      
+      // TODO: Connect to backend activation API
+      // For now, simulate state changes for demo
+      setTimeout(() => {
+        // Simulate receiving trigger data
+        console.log('Trigger data received - executing workflow...');
+        setWorkflowStatus('executing');
+        
+        setTimeout(() => {
+          // Simulate workflow completion
+          console.log('Workflow execution completed');
+          setWorkflowStatus('completed');
+          
+          setTimeout(() => {
+            // Auto-reset to inactive after 3 seconds
+            setWorkflowStatus('inactive');
+            console.log('Workflow reset to inactive - ready for next activation');
+          }, 3000);
+        }, 2000);
+      }, 1000);
+    }
+  }, [workflowStatus]);
+
   return (
     <div className="professional-workflow-builder">
       <Toolbar
@@ -285,6 +314,8 @@ const App = () => {
         onWorkflowNameChange={setWorkflowName}
         lastSaved={lastSaved}
         hasUnsavedChanges={hasUnsavedChanges}
+        workflowStatus={workflowStatus}
+        onActivateWorkflow={handleActivateWorkflow}
       />
       <div className="workflow-content">
         <div className="workflow-canvas" ref={reactFlowWrapper}>

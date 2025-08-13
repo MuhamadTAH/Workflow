@@ -200,6 +200,102 @@ Professional toolbar styles for the workflow builder
     transform: none !important;
 }
 
+/* Activate Button Styles */
+.toolbar-btn.activate-btn {
+    font-weight: 700;
+    min-width: 120px;
+    justify-content: center;
+    position: relative;
+}
+
+.toolbar-btn.activate-btn.inactive {
+    background: rgba(59, 130, 246, 0.9);
+    color: white;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.toolbar-btn.activate-btn.inactive:hover:not(:disabled) {
+    background: rgba(59, 130, 246, 1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.toolbar-btn.activate-btn.listening {
+    background: rgba(16, 185, 129, 0.9);
+    color: white;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    animation: pulse-green 2s infinite;
+}
+
+.toolbar-btn.activate-btn.executing {
+    background: rgba(245, 158, 11, 0.9);
+    color: white;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.toolbar-btn.activate-btn.completed {
+    background: rgba(34, 197, 94, 0.9);
+    color: white;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+    animation: pulse-success 1s ease-in-out;
+}
+
+@keyframes pulse-green {
+    0%, 100% { 
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+    50% { 
+        box-shadow: 0 2px 20px rgba(16, 185, 129, 0.6);
+    }
+}
+
+@keyframes pulse-success {
+    0% { 
+        transform: scale(1);
+    }
+    50% { 
+        transform: scale(1.05);
+    }
+    100% { 
+        transform: scale(1);
+    }
+}
+
+/* Workflow Status Indicator */
+.workflow-status-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.status-text {
+    font-size: 10px;
+    font-weight: 500;
+    opacity: 0.8;
+    text-align: center;
+    min-height: 12px;
+}
+
+.status-text.inactive {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.status-text.listening {
+    color: #10b981;
+    animation: pulse 2s infinite;
+}
+
+.status-text.executing {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+.status-text.completed {
+    color: #22c55e;
+    font-weight: 600;
+}
+
 /* Right Section */
 .toolbar-right {
     display: flex;

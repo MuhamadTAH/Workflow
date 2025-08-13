@@ -37,8 +37,6 @@
     "create": "إنشاء سير عمل جديد",
     "edit": "تعديل سير العمل",
     "save": "حفظ سير العمل",
-    "activate": "تفعيل سير العمل",
-    "deactivate": "إلغاء تفعيل سير العمل",
     "delete": "حذف سير العمل",
     "nodes": "العقد",
     "connections": "الاتصالات",
@@ -75,7 +73,7 @@
   "chat": {
     "placeholder": "اكتب رسالتك...",
     "send": "إرسال",
-    "sessionEnded": "انتهت جلسة المحادثة - تم إلغاء تفعيل سير العمل",
+    "sessionEnded": "انتهت جلسة المحادثة",
     "connecting": "جار الاتصال...",
     "connected": "متصل",
     "disconnected": "منقطع"
@@ -122,8 +120,6 @@
   },
   "messages": {
     "workflowSaved": "تم حفظ سير العمل بنجاح",
-    "workflowActivated": "تم تفعيل سير العمل بنجاح",
-    "workflowDeactivated": "تم إلغاء تفعيل سير العمل بنجاح",
     "connectionSuccess": "تم الاتصال بنجاح",
     "connectionError": "فشل الاتصال",
     "unsavedChanges": "لديك تغييرات غير محفوظة. هل أنت متأكد من أنك تريد المغادرة؟",

@@ -16,7 +16,9 @@ const Toolbar = ({
     workflowName,
     onWorkflowNameChange,
     lastSaved,
-    hasUnsavedChanges
+    hasUnsavedChanges,
+    workflowStatus,
+    onActivateWorkflow
 }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -60,6 +62,47 @@ const Toolbar = ({
                         <i className="fa-solid fa-save"></i>
                         {hasUnsavedChanges ? 'Save Changes' : 'Save'}
                     </button>
+                </div>
+
+                <div className="action-group">
+                    <button 
+                        className={`toolbar-btn activate-btn ${workflowStatus}`}
+                        onClick={onActivateWorkflow}
+                        disabled={workflowStatus === 'listening' || workflowStatus === 'executing'}
+                    >
+                        {workflowStatus === 'inactive' && (
+                            <>
+                                <i className="fa-solid fa-play"></i>
+                                Activate
+                            </>
+                        )}
+                        {workflowStatus === 'listening' && (
+                            <>
+                                <i className="fa-solid fa-ear-listen"></i>
+                                Listening...
+                            </>
+                        )}
+                        {workflowStatus === 'executing' && (
+                            <>
+                                <i className="fa-solid fa-spinner fa-spin"></i>
+                                Executing...
+                            </>
+                        )}
+                        {workflowStatus === 'completed' && (
+                            <>
+                                <i className="fa-solid fa-check"></i>
+                                Completed
+                            </>
+                        )}
+                    </button>
+                    <div className="workflow-status-indicator">
+                        <span className={`status-text ${workflowStatus}`}>
+                            {workflowStatus === 'inactive' && 'Ready to activate'}
+                            {workflowStatus === 'listening' && 'Waiting for trigger data'}
+                            {workflowStatus === 'executing' && 'Running workflow'}
+                            {workflowStatus === 'completed' && 'Execution finished'}
+                        </span>
+                    </div>
                 </div>
 
                 <div className="action-group">

@@ -37,8 +37,6 @@
     "create": "Créer un Nouveau Flux de Travail",
     "edit": "Modifier le Flux de Travail",
     "save": "Enregistrer le Flux de Travail",
-    "activate": "Activer le Flux de Travail",
-    "deactivate": "Désactiver le Flux de Travail",
     "delete": "Supprimer le Flux de Travail",
     "nodes": "Nœuds",
     "connections": "Connexions",
@@ -75,7 +73,7 @@
   "chat": {
     "placeholder": "Tapez votre message...",
     "send": "Envoyer",
-    "sessionEnded": "Session de chat terminée - flux de travail désactivé",
+    "sessionEnded": "Session de chat terminée",
     "connecting": "Connexion...",
     "connected": "Connecté",
     "disconnected": "Déconnecté"
@@ -122,8 +120,6 @@
   },
   "messages": {
     "workflowSaved": "Flux de travail enregistré avec succès",
-    "workflowActivated": "Flux de travail activé avec succès",
-    "workflowDeactivated": "Flux de travail désactivé avec succès",
     "connectionSuccess": "Connecté avec succès",
     "connectionError": "Erreur de connexion",
     "unsavedChanges": "Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir partir ?",

@@ -37,8 +37,6 @@
     "create": "Create New Workflow",
     "edit": "Edit Workflow",
     "save": "Save Workflow",
-    "activate": "Activate Workflow",
-    "deactivate": "Deactivate Workflow",
     "delete": "Delete Workflow",
     "nodes": "Nodes",
     "connections": "Connections",
@@ -75,7 +73,7 @@
   "chat": {
     "placeholder": "Type your message...",
     "send": "Send",
-    "sessionEnded": "Chat session ended - workflow deactivated",
+    "sessionEnded": "Chat session ended",
     "connecting": "Connecting...",
     "connected": "Connected",
     "disconnected": "Disconnected"
@@ -122,8 +120,6 @@
   },
   "messages": {
     "workflowSaved": "Workflow saved successfully",
-    "workflowActivated": "Workflow activated successfully",
-    "workflowDeactivated": "Workflow deactivated successfully",
     "connectionSuccess": "Connected successfully",
     "connectionError": "Connection failed",
     "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?",

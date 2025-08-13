@@ -37,8 +37,6 @@
     "create": "Crear Nuevo Flujo de Trabajo",
     "edit": "Editar Flujo de Trabajo",
     "save": "Guardar Flujo de Trabajo",
-    "activate": "Activar Flujo de Trabajo",
-    "deactivate": "Desactivar Flujo de Trabajo",
     "delete": "Eliminar Flujo de Trabajo",
     "nodes": "Nodos",
     "connections": "Conexiones",
@@ -75,7 +73,7 @@
   "chat": {
     "placeholder": "Escribe tu mensaje...",
     "send": "Enviar",
-    "sessionEnded": "Sesión de chat terminada - flujo de trabajo desactivado",
+    "sessionEnded": "Sesión de chat terminada",
     "connecting": "Conectando...",
     "connected": "Conectado",
     "disconnected": "Desconectado"
@@ -122,8 +120,6 @@
   },
   "messages": {
     "workflowSaved": "Flujo de trabajo guardado exitosamente",
-    "workflowActivated": "Flujo de trabajo activado exitosamente",
-    "workflowDeactivated": "Flujo de trabajo desactivado exitosamente",
     "connectionSuccess": "Conectado exitosamente",
     "connectionError": "Error de conexión",
     "unsavedChanges": "Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?",
