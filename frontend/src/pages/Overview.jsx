@@ -10,8 +10,8 @@ function Overview() {
   const [filteredWorkflows, setFilteredWorkflows] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [sortField, setSortField] = useState('name');
-  const [sortDirection, setSortDirection] = useState('asc');
+  const [sortField, setSortField] = useState('updatedAt');
+  const [sortDirection, setSortDirection] = useState('desc');
   const [selectedWorkflows, setSelectedWorkflows] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [showLogs, setShowLogs] = useState(null);
@@ -94,7 +94,7 @@ function Overview() {
       let aValue = a[sortField];
       let bValue = b[sortField];
 
-      if (sortField === 'lastRun') {
+      if (sortField === 'lastRun' || sortField === 'updatedAt' || sortField === 'createdAt') {
         aValue = aValue ? new Date(aValue) : new Date(0);
         bValue = bValue ? new Date(bValue) : new Date(0);
       }

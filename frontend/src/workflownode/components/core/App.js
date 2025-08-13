@@ -62,6 +62,7 @@ const App = () => {
         const result = await response.json();
         if (result.success) {
           const count = result.workflows.length;
+          console.log(`📊 Current workflow count: ${count}, generating name: Workflow-${count + 1}`);
           return `Workflow-${count + 1}`;
         }
       }
@@ -71,7 +72,9 @@ const App = () => {
 
     // Fallback to localStorage count
     const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
-    return `Workflow-${savedWorkflows.length + 1}`;
+    const fallbackCount = savedWorkflows.length;
+    console.log(`📱 Using localStorage fallback count: ${fallbackCount}, generating name: Workflow-${fallbackCount + 1}`);
+    return `Workflow-${fallbackCount + 1}`;
   }, []);
 
   // Generate a unique, readable workflow ID (moved to top to fix hoisting issue)

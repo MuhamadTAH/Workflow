@@ -1,42 +1,53 @@
-[2025-08-13T14:54:55.033Z] INFO: Incoming request {"method":"OPTIONS","url":"/api/workflows/2/activate","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"}
+[2025-08-13T15:33:22.612Z] INFO: Incoming request {"method":"OPTIONS","url":"/api/workflows","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"}
 🌐 INCOMING REQUEST: {
   method: 'OPTIONS',
-  url: '/api/workflows/2/activate',
+  url: '/api/workflows',
   origin: 'https://frontend-dpcg.onrender.com',
   userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb',
-  timestamp: '2025-08-13T14:54:55.033Z'
+  timestamp: '2025-08-13T15:33:22.613Z'
 }
-[2025-08-13T14:54:55.034Z] INFO: Request completed {"method":"OPTIONS","url":"/api/workflows/2/activate","status":200,"duration":"1ms"}
-[2025-08-13T14:54:55.332Z] INFO: Incoming request {"method":"POST","url":"/api/workflows/2/activate","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"}
+[2025-08-13T15:33:22.613Z] INFO: Request completed {"method":"OPTIONS","url":"/api/workflows","status":200,"duration":"1ms"}
+[2025-08-13T15:33:22.929Z] INFO: Incoming request {"method":"POST","url":"/api/workflows","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"}
 🌐 INCOMING REQUEST: {
   method: 'POST',
-  url: '/api/workflows/2/activate',
+  url: '/api/workflows',
   origin: 'https://frontend-dpcg.onrender.com',
   userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb',
-  timestamp: '2025-08-13T14:54:55.333Z'
+  timestamp: '2025-08-13T15:33:22.929Z'
 }
-[workflows.activate] Raw workflow data: {
+[workflows.create] INSERT params {
+  userIdType: 'number',
+  userId: 2,
+  nameType: 'string',
+  name: 'Workflow-1',
+  descriptionType: 'string',
+  description: 'Workflow with 3 nodes',
   dataType: 'string',
-  dataLength: 1679,
-  dataPreview: '{"nodes":[{"id":"dndnode_0","type":"custom","position":{"x":289,"y":283},"data":{"label":"Telegram T'
+  dataLength: 825
 }
-[workflows.activate] All nodes: [
-  {
-    id: 'dndnode_0',
-    type: 'telegramTrigger',
-    category: undefined,
-    label: 'Telegram Trigger'
-  }
-]
-[workflows.activate] Found trigger nodes: 1 Types: [ 'telegramTrigger' ]
-✅ Registered workflow 2 for activation
-[2025-08-13T14:54:55.336Z] INFO: Workflow activated for single-run execution {"userId":2,"workflowId":"2","triggerCount":1,"mode":"single-run"}
-[2025-08-13T14:54:55.337Z] INFO: Request completed {"method":"POST","url":"/2/activate","status":200,"duration":"5ms"}
-
-the console 
-index-CGzdJeTn.js:32 Fetching user profile...
-index-CGzdJeTn.js:32 Profile loaded: Object
-index-CGzdJeTn.js:32 🆔 Setting currentWorkflowId to: 2
-index-CGzdJeTn.js:32 ✅ Workflow saved successfully to backend with ID: 2
-index-CGzdJeTn.js:32 📡 Loaded activation status for workflow 2: inactive
-index-CGzdJeTn.js:32 ✅ Workflow 2 activated successfully: Object
+[workflows.create] Database result: {
+  lastID: undefined,
+  lastInsertRowid: 2,
+  changes: 1,
+  resultType: 'number'
+}
+[2025-08-13T15:33:22.949Z] INFO: Workflow created successfully {"userId":2,"workflowId":2,"name":"Workflow-1","nodeCount":3,"edgeCount":0}
+[2025-08-13T15:33:22.990Z] INFO: Request completed {"method":"POST","url":"/","status":201,"duration":"61ms"}
+[2025-08-13T15:33:24.476Z] INFO: Incoming request {"method":"OPTIONS","url":"/api/workflows/2/status","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"}
+🌐 INCOMING REQUEST: {
+  method: 'OPTIONS',
+  url: '/api/workflows/2/status',
+  origin: 'https://frontend-dpcg.onrender.com',
+  userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb',
+  timestamp: '2025-08-13T15:33:24.476Z'
+}
+[2025-08-13T15:33:24.477Z] INFO: Request completed {"method":"OPTIONS","url":"/api/workflows/2/status","status":200,"duration":"2ms"}
+[2025-08-13T15:33:24.748Z] INFO: Incoming request {"method":"GET","url":"/api/workflows/2/status","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0"}
+🌐 INCOMING REQUEST: {
+  method: 'GET',
+  url: '/api/workflows/2/status',
+  origin: 'https://frontend-dpcg.onrender.com',
+  userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb',
+  timestamp: '2025-08-13T15:33:24.749Z'
+}
+[2025-08-13T15:33:24.751Z] INFO: Request completed {"method":"GET","url":"/2/status","status":200,"duration":"3ms"}
