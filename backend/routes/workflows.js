@@ -97,7 +97,7 @@ router.get('/:id', verifyToken, (req, res) => {
 });
 
 // POST /api/workflows - Create new workflow
-router.post('/', verifyToken, async (req, res) => {
+router.post('/', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const { name, description, nodes, edges, connections } = req.body;
 
@@ -141,21 +141,18 @@ router.post('/', verifyToken, async (req, res) => {
   });
 
   try {
-    // Use direct database run method to avoid wrapper complexity
-    const result = await db.run(
-      'INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)',
-      [userId, safeName, safeDescription, dataJson]
-    );
+    // Use synchronous database operation
+    const stmt = db.prepare('INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)');
+    const result = stmt.run(userId, safeName, safeDescription, dataJson);
 
     console.log('[workflows.create] Database result:', {
       lastID: result.lastID,
-      lastInsertRowid: result.lastInsertRowid,
       changes: result.changes,
-      resultType: typeof result.lastInsertRowid
+      resultType: typeof result.lastID
     });
 
-    // Use lastInsertRowid for sqlite3 wrapper compatibility
-    const workflowId = result.lastInsertRowid;
+    // Use lastID for better-sqlite3 compatibility
+    const workflowId = result.lastID;
 
     logger.info('Workflow created successfully', { 
       userId, 
@@ -417,14 +414,14 @@ router.get('/workflows/:id/simple-status', async (req, res) => {
 });
 
 // POST /api/workflows/:id/activate - Activate workflow for single-run execution
-router.post('/:id/activate', verifyToken, (req, res) => {
+router.post('/:id/activate', verifyToken, async (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
   try {
     // Verify workflow exists and belongs to user
     const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
-    const workflow = stmt.get(workflowId, userId);
+    const workflow = await stmt.get(workflowId, userId);
     
     if (!workflow) {
       return res.status(404).json({ 
@@ -529,14 +526,14 @@ router.post('/:id/activate', verifyToken, (req, res) => {
 });
 
 // POST /api/workflows/:id/deactivate - Deactivate workflow 
-router.post('/:id/deactivate', verifyToken, (req, res) => {
+router.post('/:id/deactivate', verifyToken, async (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
   try {
     // Verify workflow exists and belongs to user
     const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
-    const workflow = stmt.get(workflowId, userId);
+    const workflow = await stmt.get(workflowId, userId);
     
     if (!workflow) {
       return res.status(404).json({ 
@@ -574,14 +571,14 @@ router.post('/:id/deactivate', verifyToken, (req, res) => {
 });
 
 // GET /api/workflows/:id/status - Get workflow activation status
-router.get('/:id/status', verifyToken, (req, res) => {
+router.get('/:id/status', verifyToken, async (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
   try {
     // Verify workflow exists and belongs to user
     const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
-    const workflow = stmt.get(workflowId, userId);
+    const workflow = await stmt.get(workflowId, userId);
     
     if (!workflow) {
       return res.status(404).json({ 

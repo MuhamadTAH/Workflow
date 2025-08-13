@@ -64,15 +64,30 @@ const dbWrapper = {
   prepare: (sql) => {
     const stmt = db.prepare(sql);
     return {
-      get: promisify(stmt.get).bind(stmt),
-      all: promisify(stmt.all).bind(stmt),
-      run: function(params = []) {
+      get: (params = []) => {
         return new Promise((resolve, reject) => {
-          stmt.run(params, function(err) {
+          stmt.get(params, (err, row) => {
             if (err) reject(err);
-            else resolve({
-              changes: this.changes,
-              lastInsertRowid: this.lastID
+            else resolve(row);
+          });
+        });
+      },
+      all: (params = []) => {
+        return new Promise((resolve, reject) => {
+          stmt.all(params, (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+          });
+        });
+      },
+      run: function(...params) {
+        // Return a Promise like the main run method for consistency
+        return new Promise((resolve, reject) => {
+          stmt.run(...params, function(err) {
+            if (err) reject(err);
+            else resolve({ 
+              changes: this.changes, 
+              lastID: this.lastID
             });
           });
         });
