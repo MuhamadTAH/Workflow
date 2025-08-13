@@ -21,82 +21,23 @@ db.runAsync = promisify(db.run).bind(db);
 
 // Create better-sqlite3 compatible wrapper
 const dbWrapper = {
-  // Synchronous methods that return results directly
-  get: (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-      db.get(sql, params, (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
-  },
-  
-  all: (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-      db.all(sql, params, (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
-  },
-  
-  run: (sql, params = []) => {
-    return new Promise((resolve, reject) => {
-      db.run(sql, params, function(err) {
-        if (err) reject(err);
-        else resolve({ 
-          changes: this.changes, 
-          lastInsertRowid: this.lastID 
-        });
-      });
-    });
-  },
-  
-  exec: (sql) => {
-    return new Promise((resolve, reject) => {
-      db.exec(sql, (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
-    });
-  },
+  // Direct synchronous access using the original database object methods
+  get: db.get.bind(db),
+  all: db.all.bind(db), 
+  run: db.run.bind(db),
+  exec: db.exec.bind(db),
   
   prepare: (sql) => {
     const stmt = db.prepare(sql);
     return {
-      get: (params = []) => {
-        return new Promise((resolve, reject) => {
-          stmt.get(params, (err, row) => {
-            if (err) reject(err);
-            else resolve(row);
-          });
-        });
-      },
-      all: (params = []) => {
-        return new Promise((resolve, reject) => {
-          stmt.all(params, (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-          });
-        });
-      },
-      run: function(...params) {
-        // Return a Promise like the main run method for consistency
-        return new Promise((resolve, reject) => {
-          stmt.run(...params, function(err) {
-            if (err) reject(err);
-            else resolve({ 
-              changes: this.changes, 
-              lastID: this.lastID
-            });
-          });
-        });
-      },
-      finalize: promisify(stmt.finalize).bind(stmt)
+      get: stmt.get.bind(stmt),
+      all: stmt.all.bind(stmt),
+      run: stmt.run.bind(stmt),
+      finalize: stmt.finalize.bind(stmt)
     };
   },
   
-  close: promisify(db.close).bind(db)
+  close: db.close.bind(db)
 };
 
 // Create tables if they don't exist

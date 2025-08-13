@@ -132,47 +132,44 @@ router.post('/', verifyToken, (req, res) => {
   const safeDescription = typeof description === 'string' ? description : '';
   const dataJson = JSON.stringify(workflowData);
 
-  // Log exact values that will be bound to the statement
-  console.log('[workflows.create] INSERT params', {
-    userIdType: typeof userId, userId,
-    nameType: typeof safeName, name: safeName,
-    descriptionType: typeof safeDescription, description: safeDescription,
-    dataType: typeof dataJson, dataLength: dataJson.length
-  });
-
   try {
     // Use synchronous database operation
-    const stmt = db.prepare('INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)');
-    const result = stmt.run(userId, safeName, safeDescription, dataJson);
+    db.run(
+      'INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)',
+      [userId, safeName, safeDescription, dataJson],
+      function(err) {
+        if (err) {
+          logger.logError(err, { context: 'createWorkflow', userId });
+          return res.status(500).json({ 
+            success: false,
+            error: 'Failed to create workflow', 
+            details: err.message 
+          });
+        }
 
-    console.log('[workflows.create] Database result:', {
-      lastID: result.lastID,
-      changes: result.changes,
-      resultType: typeof result.lastID
-    });
+        const workflowId = this.lastID;
 
-    // Use lastID for better-sqlite3 compatibility
-    const workflowId = result.lastID;
+        logger.info('Workflow created successfully', { 
+          userId, 
+          workflowId: workflowId, 
+          name: safeName,
+          nodeCount: workflowNodes.length,
+          edgeCount: workflowEdges.length
+        });
 
-    logger.info('Workflow created successfully', { 
-      userId, 
-      workflowId: workflowId, 
-      name: safeName,
-      nodeCount: workflowNodes.length,
-      edgeCount: workflowEdges.length
-    });
-
-    res.status(201).json({
-      success: true,
-      workflow: {
-        id: workflowId,
-        name: safeName,
-        description: safeDescription,
-        data: workflowData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        res.status(201).json({
+          success: true,
+          workflow: {
+            id: workflowId,
+            name: safeName,
+            description: safeDescription,
+            data: workflowData,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        });
       }
-    });
+    );
 
   } catch (error) {
     logger.logError(error, { context: 'createWorkflow', userId });
@@ -414,14 +411,19 @@ router.get('/workflows/:id/simple-status', async (req, res) => {
 });
 
 // POST /api/workflows/:id/activate - Activate workflow for single-run execution
-router.post('/:id/activate', verifyToken, async (req, res) => {
+router.post('/:id/activate', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
-  try {
-    // Verify workflow exists and belongs to user
-    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
-    const workflow = await stmt.get(workflowId, userId);
+  // Use direct database call with callback
+  db.get('SELECT * FROM workflows WHERE id = ? AND user_id = ?', [workflowId, userId], (err, workflow) => {
+    if (err) {
+      logger.logError(err, { context: 'activateWorkflow', userId, workflowId });
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Database error' 
+      });
+    }
     
     if (!workflow) {
       return res.status(404).json({ 
@@ -515,25 +517,23 @@ router.post('/:id/activate', verifyToken, async (req, res) => {
       triggerUrls,
       activatedAt: new Date().toISOString()
     });
-
-  } catch (error) {
-    logger.logError(error, { context: 'activateWorkflow', userId, workflowId });
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to activate workflow' 
-    });
-  }
+  }); // Close database callback
 });
 
 // POST /api/workflows/:id/deactivate - Deactivate workflow 
-router.post('/:id/deactivate', verifyToken, async (req, res) => {
+router.post('/:id/deactivate', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
-  try {
-    // Verify workflow exists and belongs to user
-    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
-    const workflow = await stmt.get(workflowId, userId);
+  // Use direct database call with callback
+  db.get('SELECT * FROM workflows WHERE id = ? AND user_id = ?', [workflowId, userId], (err, workflow) => {
+    if (err) {
+      logger.logError(err, { context: 'deactivateWorkflow', userId, workflowId });
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Database error' 
+      });
+    }
     
     if (!workflow) {
       return res.status(404).json({ 
@@ -560,25 +560,23 @@ router.post('/:id/deactivate', verifyToken, async (req, res) => {
       message: 'Workflow deactivated successfully',
       deactivatedAt: new Date().toISOString()
     });
-
-  } catch (error) {
-    logger.logError(error, { context: 'deactivateWorkflow', userId, workflowId });
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to deactivate workflow' 
-    });
-  }
+  }); // Close database callback
 });
 
 // GET /api/workflows/:id/status - Get workflow activation status
-router.get('/:id/status', verifyToken, async (req, res) => {
+router.get('/:id/status', verifyToken, (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
   
-  try {
-    // Verify workflow exists and belongs to user
-    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
-    const workflow = await stmt.get(workflowId, userId);
+  // Use direct database call with callback
+  db.get('SELECT * FROM workflows WHERE id = ? AND user_id = ?', [workflowId, userId], (err, workflow) => {
+    if (err) {
+      logger.logError(err, { context: 'getWorkflowStatus', userId, workflowId });
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Database error' 
+      });
+    }
     
     if (!workflow) {
       return res.status(404).json({ 
@@ -619,14 +617,7 @@ router.get('/:id/status', verifyToken, async (req, res) => {
       },
       timestamp: new Date().toISOString()
     });
-
-  } catch (error) {
-    logger.logError(error, { context: 'getWorkflowStatus', userId, workflowId });
-    res.status(500).json({ 
-      success: false, 
-      error: 'Failed to get workflow status' 
-    });
-  }
+  }); // Close database callback
 });
 
 module.exports = router;
