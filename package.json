@@ -1,0 +1,16 @@
+{
+  "name": "shoppro-platform",
+  "version": "1.0.0",
+  "description": "ShopPro E-commerce Platform - Backend Service",
+  "main": "backend/index.js",
+  "scripts": {
+    "build": "cd backend && npm install",
+    "start": "cd backend && npm start"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["e-commerce", "shop", "platform"],
+  "author": "ShopPro Team",
+  "license": "ISC"
+}
