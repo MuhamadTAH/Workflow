@@ -68,36 +68,24 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: '✅ Hello from the backend!' });
 });
 
-// Test route for IF node routing fix
-app.post('/api/test-if-routing', (req, res) => {
-  const { condition } = req.body;
-  const testData = { message: { text: "Hello World" } };
+// Test route for shop validation
+app.post('/api/test-shop-validation', (req, res) => {
+  const { shopData } = req.body;
   
-  if (condition === true) {
-    res.json({
-      route: 'true',
-      trueOutput: {
-        inputData: testData,
-        message: 'Routed to TRUE output only'
-      },
-      falseOutput: null
-    });
-  } else {
-    res.json({
-      route: 'false',
-      trueOutput: null,
-      falseOutput: {
-        inputData: testData,
-        message: 'Routed to FALSE output only'
-      }
-    });
-  }
+  // Basic shop validation
+  const isValid = shopData && shopData.name && shopData.description;
+  
+  res.json({
+    valid: isValid,
+    message: isValid ? 'Shop data is valid' : 'Shop data validation failed',
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Test webhook route (for debugging)
-app.post('/api/test-webhook', (req, res) => {
-  logger.debug('Test webhook received', { body: req.body });
-  console.log('🧪 TEST WEBHOOK HIT:', req.body);
+// Test API route (for debugging)
+app.post('/api/test-api', (req, res) => {
+  logger.debug('Test API call received', { body: req.body });
+  console.log('🧪 TEST API HIT:', req.body);
   res.json({ 
     received: true, 
     data: req.body,
