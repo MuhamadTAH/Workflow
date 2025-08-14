@@ -24,7 +24,7 @@
   },
   "navigation": {
     "home": "Inicio",
-    "workflows": "Flujos de Trabajo",
+    "shops": "Mis Tiendas",
     "connections": "Conexiones",
     "profile": "Perfil",
     "settings": "Configuración",
@@ -32,20 +32,20 @@
     "login": "Iniciar Sesión",
     "signup": "Registrarse"
   },
-  "workflow": {
-    "title": "Constructor de Flujos de Trabajo",
-    "create": "Crear Nuevo Flujo de Trabajo",
-    "edit": "Editar Flujo de Trabajo",
-    "save": "Guardar Flujo de Trabajo",
-    "delete": "Eliminar Flujo de Trabajo",
-    "nodes": "Nodos",
-    "connections": "Conexiones",
+  "shop": {
+    "title": "Gestión de Tienda",
+    "create": "Crear Nueva Tienda",
+    "edit": "Editar Tienda",
+    "save": "Guardar Tienda",
+    "delete": "Eliminar Tienda",
+    "products": "Productos",
+    "orders": "Pedidos",
     "settings": "Configuración",
-    "run": "Ejecutar Flujo de Trabajo",
+    "publish": "Publicar Tienda",
     "status": {
       "active": "Activo",
       "inactive": "Inactivo",
-      "running": "Ejecutándose",
+      "processing": "Procesando",
       "completed": "Completado",
       "failed": "Fallido"
     }
@@ -119,7 +119,7 @@
     "french": "Français"
   },
   "messages": {
-    "workflowSaved": "Flujo de trabajo guardado exitosamente",
+    "shopSaved": "Tienda guardada exitosamente",
     "connectionSuccess": "Conectado exitosamente",
     "connectionError": "Error de conexión",
     "unsavedChanges": "Tienes cambios sin guardar. ¿Estás seguro de que quieres salir?",

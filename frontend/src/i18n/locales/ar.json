@@ -32,42 +32,41 @@
     "login": "تسجيل الدخول",
     "signup": "إنشاء حساب"
   },
-  "workflow": {
-    "title": "منشئ سير العمل",
-    "create": "إنشاء سير عمل جديد",
-    "edit": "تعديل سير العمل",
-    "save": "حفظ سير العمل",
-    "delete": "حذف سير العمل",
-    "nodes": "العقد",
-    "connections": "الاتصالات",
+  "shop": {
+    "title": "إدارة المتجر",
+    "create": "إنشاء متجر جديد",
+    "edit": "تحرير المتجر",
+    "save": "حفظ المتجر",
+    "delete": "حذف المتجر",
+    "products": "المنتجات",
+    "orders": "الطلبات",
     "settings": "الإعدادات",
-    "run": "تشغيل سير العمل",
+    "publish": "نشر المتجر",
     "status": {
       "active": "نشط",
       "inactive": "غير نشط",
-      "running": "قيد التشغيل",
+      "processing": "قيد المعالجة",
       "completed": "مكتمل",
       "failed": "فشل"
     }
   },
-  "nodes": {
-    "chatTrigger": "محفز المحادثة",
-    "chatTriggerResponse": "استجابة محفز المحادثة",
-    "telegramTrigger": "محفز تليجرام",
-    "telegramSendMessage": "إرسال رسالة تليجرام",
-    "aiAgent": "وكيل الذكاء الاصطناعي",
-    "dataStorage": "تخزين البيانات",
-    "googleDocs": "مستندات جوجل",
-    "ifCondition": "شرط إذا",
-    "switch": "تبديل",
-    "filter": "تصفية",
+  "products": {
+    "addProduct": "إضافة منتج",
+    "editProduct": "تحرير المنتج",
+    "deleteProduct": "حذف المنتج",
+    "productName": "اسم المنتج",
+    "productPrice": "سعر المنتج",
+    "productDescription": "وصف المنتج",
+    "productImage": "صورة المنتج",
+    "inStock": "متوفر",
+    "outOfStock": "نفد المخزون",
     "categories": {
-      "triggers": "المحفزات",
-      "actions": "الإجراءات",
-      "logic": "المنطق",
-      "ai": "الذكاء الاصطناعي",
-      "storage": "التخزين",
-      "social": "وسائل التواصل الاجتماعي"
+      "electronics": "الإلكترونيات",
+      "clothing": "الملابس",
+      "home": "المنزل",
+      "beauty": "الجمال",
+      "books": "الكتب",
+      "sports": "الرياضة"
     }
   },
   "chat": {
@@ -119,7 +118,7 @@
     "french": "Français"
   },
   "messages": {
-    "workflowSaved": "تم حفظ سير العمل بنجاح",
+    "shopSaved": "تم حفظ المتجر بنجاح",
     "connectionSuccess": "تم الاتصال بنجاح",
     "connectionError": "فشل الاتصال",
     "unsavedChanges": "لديك تغييرات غير محفوظة. هل أنت متأكد من أنك تريد المغادرة؟",
