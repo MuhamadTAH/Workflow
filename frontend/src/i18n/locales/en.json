@@ -50,24 +50,23 @@
       "failed": "Failed"
     }
   },
-  "nodes": {
-    "chatTrigger": "Chat Trigger",
-    "chatTriggerResponse": "Chat Trigger Response",
-    "telegramTrigger": "Telegram Trigger",
-    "telegramSendMessage": "Send Telegram Message",
-    "aiAgent": "AI Agent",
-    "dataStorage": "Data Storage",
-    "googleDocs": "Google Docs",
-    "ifCondition": "If Condition",
-    "switch": "Switch",
-    "filter": "Filter",
+  "products": {
+    "addProduct": "Add Product",
+    "editProduct": "Edit Product",
+    "deleteProduct": "Delete Product",
+    "productName": "Product Name",
+    "productPrice": "Product Price",
+    "productDescription": "Product Description",
+    "productImage": "Product Image",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
     "categories": {
-      "triggers": "Triggers",
-      "actions": "Actions",
-      "logic": "Logic",
-      "ai": "AI",
-      "storage": "Storage",
-      "social": "Social Media"
+      "electronics": "Electronics",
+      "clothing": "Clothing",
+      "home": "Home & Garden",
+      "beauty": "Beauty",
+      "books": "Books",
+      "sports": "Sports"
     }
   },
   "chat": {

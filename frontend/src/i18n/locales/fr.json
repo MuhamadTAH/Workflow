@@ -50,24 +50,23 @@
       "failed": "Échoué"
     }
   },
-  "nodes": {
-    "chatTrigger": "Déclencheur de Chat",
-    "chatTriggerResponse": "Réponse de Déclencheur de Chat",
-    "telegramTrigger": "Déclencheur Telegram",
-    "telegramSendMessage": "Envoyer Message Telegram",
-    "aiAgent": "Agent IA",
-    "dataStorage": "Stockage de Données",
-    "googleDocs": "Google Docs",
-    "ifCondition": "Condition Si",
-    "switch": "Commutateur",
-    "filter": "Filtrer",
+  "products": {
+    "addProduct": "Ajouter Produit",
+    "editProduct": "Éditer Produit",
+    "deleteProduct": "Supprimer Produit",
+    "productName": "Nom du Produit",
+    "productPrice": "Prix du Produit",
+    "productDescription": "Description du Produit",
+    "productImage": "Image du Produit",
+    "inStock": "En Stock",
+    "outOfStock": "Rupture de Stock",
     "categories": {
-      "triggers": "Déclencheurs",
-      "actions": "Actions",
-      "logic": "Logique",
-      "ai": "Intelligence Artificielle",
-      "storage": "Stockage",
-      "social": "Réseaux Sociaux"
+      "electronics": "Électronique",
+      "clothing": "Vêtements",
+      "home": "Maison",
+      "beauty": "Beauté",
+      "books": "Livres",
+      "sports": "Sport"
     }
   },
   "chat": {

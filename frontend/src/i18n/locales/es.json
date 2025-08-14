@@ -50,24 +50,23 @@
       "failed": "Fallido"
     }
   },
-  "nodes": {
-    "chatTrigger": "Disparador de Chat",
-    "chatTriggerResponse": "Respuesta de Disparador de Chat",
-    "telegramTrigger": "Disparador de Telegram",
-    "telegramSendMessage": "Enviar Mensaje de Telegram",
-    "aiAgent": "Agente de IA",
-    "dataStorage": "Almacenamiento de Datos",
-    "googleDocs": "Google Docs",
-    "ifCondition": "Condición Si",
-    "switch": "Cambiar",
-    "filter": "Filtrar",
+  "products": {
+    "addProduct": "Añadir Producto",
+    "editProduct": "Editar Producto",
+    "deleteProduct": "Eliminar Producto",
+    "productName": "Nombre del Producto",
+    "productPrice": "Precio del Producto",
+    "productDescription": "Descripción del Producto",
+    "productImage": "Imagen del Producto",
+    "inStock": "En Stock",
+    "outOfStock": "Agotado",
     "categories": {
-      "triggers": "Disparadores",
-      "actions": "Acciones",
-      "logic": "Lógica",
-      "ai": "Inteligencia Artificial",
-      "storage": "Almacenamiento",
-      "social": "Redes Sociales"
+      "electronics": "Electrónicos",
+      "clothing": "Ropa",
+      "home": "Hogar",
+      "beauty": "Belleza",
+      "books": "Libros",
+      "sports": "Deportes"
     }
   },
   "chat": {
