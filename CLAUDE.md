@@ -4,15 +4,15 @@
 
 ### How Backend & Frontend Connect
 This project uses a **full production deployment architecture**:
-- **Frontend**: Production hosted on Render (https://workflow-1-frkg.onrender.com)
-- **Backend**: Production hosted on Render (https://workflow-unlq.onrender.com)
+- **Frontend**: Production hosted on Render (https://frontend-dpcg.onrender.com)
+- **Backend**: Production hosted on Render (https://workflow-lg9z.onrender.com)
 - **Connection**: Frontend makes API calls directly to production backend via VITE_API_BASE_URL
 
 **Architecture Benefits**:
 1. **Full Production Setup**: Both frontend and backend hosted on Render
 2. **Environment Variables**: VITE_API_BASE_URL automatically configures API connections
 3. **Auto Deployment**: Both services auto-deploy on git push
-4. **No Local Development Required**: Complete cloud-based workflow
+4. **No Local Development Required**: Complete cloud-based development
 
 ### Development Workflow:
 ```bash
@@ -24,15 +24,15 @@ git commit -m "feature: description"
 git push origin main
 
 # 3. Render Auto-Deploys:
-#    - Backend: https://workflow-unlq.onrender.com (1-2 minutes)
-#    - Frontend: https://workflow-1-frkg.onrender.com (2-3 minutes)
+#    - Backend: https://workflow-lg9z.onrender.com (1-2 minutes)
+#    - Frontend: https://frontend-dpcg.onrender.com (2-3 minutes)
 
 # 4. Access live application at frontend URL
 ```
 
 ### URLs & Connections:
-- **Frontend**: https://workflow-1-frkg.onrender.com (Production)
-- **Backend**: https://workflow-unlq.onrender.com (Production API)
+- **Frontend**: https://frontend-dpcg.onrender.com (Production)
+- **Backend**: https://workflow-lg9z.onrender.com (Production API)
 - **GitHub**: https://github.com/MuhamadTAH/Workflow.git
 - **Database**: SQLite (hosted with backend on Render)
 - **Local Development**: `cd frontend && npm run dev` (optional, for hot reload)
@@ -47,15 +47,15 @@ git push origin main
 Most components use environment detection:
 ```javascript
 const API_BASE = process.env.NODE_ENV === 'production' 
-  ? 'https://workflow-unlq.onrender.com'
+  ? 'https://workflow-lg9z.onrender.com'
   : 'http://localhost:3001';
 ```
 
 #### 2. Production-Only API Calls
-Some features always use production (telegram validation, webhooks):
+Some features always use production for consistency:
 ```javascript
-// Always use production backend for telegram validation
-const API_BASE = 'https://workflow-unlq.onrender.com';
+// Always use production backend
+const API_BASE = 'https://workflow-lg9z.onrender.com';
 ```
 
 #### 3. CORS Configuration
@@ -63,10 +63,9 @@ Backend allows multiple frontend ports:
 ```javascript
 // backend/index.js
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 
-           'http://localhost:5176', 'http://localhost:5177', 'http://localhost:5178', 
-           'http://localhost:5179', 'http://localhost:3000'],
-  credentials: true
+  origin: true,
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
 ```
 
@@ -82,13 +81,12 @@ app.use(cors({
 ### Key API Endpoints:
 - `/api/signup`, `/api/login` - Authentication
 - `/api/profile` - User data  
-- `/api/workflows/*` - Workflow CRUD operations
-- `/api/nodes/*` - Node execution & validation
-- `/api/webhooks/*` - Telegram webhook handling
 - `/api/connections/*` - Social media OAuth
+- `/api/shops/*` - E-commerce shop management
+- `/api/products/*` - Product management
+- `/api/uploads/*` - File uploads
 
 ---
-
 
 ## 📱 OAUTH & SOCIAL MEDIA INTEGRATION
 
@@ -122,92 +120,46 @@ social_connections:
 
 ---
 
-## 🤖 TELEGRAM BOT INTEGRATION
+## 🛒 E-COMMERCE SHOP SYSTEM
 
-### Bot Configuration:
-- **Name**: AI Marketing Team
-- **Username**: @AI_MarketingTeambot  
-- **Token**: `8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ`
-- **Webhook**: https://workflow-unlq.onrender.com/api/webhooks/telegram
+### Shop Management Features:
+- **Shop Creation**: Users can create and manage their own shop
+- **Product Management**: Add, edit, delete products with images and videos
+- **Public Store**: Each shop gets a public URL for customers
+- **Analytics**: Track shop performance and sales
+- **Categories**: Organize products into categories
 
-### Webhook Flow:
+### Database Schema:
+```sql
+shops: 
+  - id, user_id, shop_name, shop_display_name
+  - description, contact_method, contact_value
+  - is_active, created_at, updated_at
+
+products:
+  - id, shop_id, title, description, price
+  - image_url, videos, is_active, is_visible
+  - created_at, updated_at
 ```
-1. User messages bot → Telegram sends POST to webhook
-2. Backend receives at /api/webhooks/telegram
-3. Workflow engine processes message through defined workflow
-4. Response generated and sent back to user via Telegram API
-```
-
-### Token Validation System:
-```javascript
-// frontend/src/workflownode/components/panels/ConfigPanel.js
-const validateTelegramToken = async (token) => {
-  const response = await fetch(`${API_BASE}/api/nodes/validate-telegram-token`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token })
-  });
-  return response.json();
-};
-```
-
----
-
-## 🎨 VISUAL WORKFLOW SYSTEM
-
-### WorkflowNode Architecture:
-```
-frontend/src/workflownode/
-├── components/
-│   ├── core/
-│   │   ├── App.js          ← Main workflow canvas  
-│   │   ├── Sidebar.js      ← Node palette
-│   │   └── Toolbar.js      ← Save/load controls
-│   ├── nodes/
-│   │   ├── NodeShape.js    ← 🎯 MASTER node controller
-│   │   ├── NodeStyles.css  ← 🎯 MASTER styling
-│   │   └── CustomLogicNode.js
-│   └── panels/
-│       └── ConfigPanel.js  ← Node configuration
-├── styles/                 ← Global themes
-└── utils/                  ← Helpers, constants
-```
-
-### Node System Features:
-- **17+ Node Types**: Triggers, Actions, Logic, AI, Social Media
-- **Real-time Configuration**: Instant parameter updates
-- **Visual Feedback**: Icons, colors, status indicators  
-- **Drag & Drop**: Intuitive workflow building
-- **Connection System**: Visual node linking with validation
-
-### Workflow Management:
-- **Save System**: localStorage + backend persistence
-- **Load System**: URL parameters (?load=workflowId)
-- **Unsaved Changes**: Smart detection with warnings
-- **Status Tracking**: Execution counts, last run times
-- **Manual Execution**: Execute individual nodes for testing and debugging
-- **Execution Engine**: Topological sort for correct node order, data flow between nodes
 
 ---
 
 ## 🚀 PROJECT OVERVIEW
 
 ### Technology Stack
-- **Frontend**: React 18 + Vite + ReactFlow + Axios + React Router DOM
+- **Frontend**: React 18 + Vite + Axios + React Router DOM
 - **Backend**: Node.js + Express + SQLite + JWT + bcrypt  
-- **Hosting**: Render (backend) + Local development (frontend)
-- **Integration**: Telegram Bot API + OAuth providers + AI APIs
+- **Hosting**: Render (both frontend and backend)
+- **Integration**: OAuth providers + File uploads
 
 ### Complete Feature Set:
 ✅ **Authentication**: Signup/login with JWT tokens  
-✅ **Visual Workflow Builder**: Drag-and-drop interface at `/workflow`  
-✅ **Workflow Management**: Save, load, edit workflows at `/workflows`  
-✅ **Telegram Integration**: Real bot with webhook processing  
 ✅ **Social Connections**: OAuth-ready for 8 platforms at `/connections`  
-✅ **Node Execution**: Real-time workflow processing  
-✅ **Unsaved Changes Detection**: Smart state tracking with warnings
-✅ **Manual Node Execution**: Execute individual nodes for testing and debugging
-✅ **Logic Nodes**: Complete backend support for If/Switch conditional routing  
+✅ **Shop Management**: Create and manage e-commerce shops at `/shop`
+✅ **Product Management**: Add products with images and videos
+✅ **Public Storefronts**: Customer-facing shop pages
+✅ **File Uploads**: Image and video upload system
+✅ **Responsive Design**: Mobile-friendly interface
 
 ### Database Schema:
 ```sql
@@ -216,6 +168,12 @@ users: id, name, email, password, created_at
 social_connections: id, user_id, platform, access_token, refresh_token,
                    token_expires_at, platform_user_id, platform_username, 
                    platform_profile_url, connected_at, updated_at, is_active
+
+shops: id, user_id, shop_name, shop_display_name, description, 
+       contact_method, contact_value, is_active, created_at, updated_at
+
+products: id, shop_id, title, description, price, image_url, videos,
+          is_active, is_visible, created_at, updated_at
 ```
 
 ---
@@ -226,11 +184,6 @@ social_connections: id, user_id, platform, access_token, refresh_token,
 ```bash
 # Start frontend (automatically connects to production backend)
 cd frontend && npm run dev
-
-# For Telegram webhook testing (optional)
-cd backend && npm start  # Local backend
-ngrok http 3001         # Expose to internet
-# Update webhook URL in Telegram trigger nodes
 ```
 
 ### Deployment (Automatic):
@@ -238,16 +191,16 @@ ngrok http 3001         # Expose to internet
 git add .
 git commit -m "feature: description"
 git push origin main
-# Render auto-deploys backend in 1-2 minutes
+# Render auto-deploys both services in 1-2 minutes
 ```
 
 ### Troubleshooting:
 ```bash  
 # Check backend logs
-# View at: Render dashboard → workflow-unlq → Logs
+# View at: Render dashboard → workflow-lg9z → Logs
 
 # Test API endpoints
-curl https://workflow-unlq.onrender.com/api/hello
+curl https://workflow-lg9z.onrender.com/api/hello
 
 # Install missing dependencies
 cd backend && npm install package-name
@@ -255,7 +208,6 @@ git add package.json && git commit -m "Add dependency" && git push
 ```
 
 ---
-
 
 ## 📞 QUICK REFERENCE
 
@@ -265,87 +217,23 @@ git add package.json && git commit -m "Add dependency" && git push
 3. **Run**: `npm run dev` (connects to production backend automatically)
 4. **Access**: Open browser to displayed localhost URL
 5. **Develop**: Edit code, changes auto-reload
-6. **Deploy**: Commit and push (backend auto-deploys)
+6. **Deploy**: Commit and push (auto-deploys)
 
 ### Key Files to Understand:
 - `frontend/src/App.jsx` - Main routing and authentication
-- `frontend/src/pages/Workflow.jsx` - Workflow builder page
-- `frontend/src/workflownode/components/core/App.js` - Workflow canvas
+- `frontend/src/pages/` - All application pages
 - `backend/index.js` - Server setup and route registration
 - `backend/routes/` - All API endpoints
-- `backend/services/telegramAPI.js` - Telegram integration
+- `backend/dbWrapper.js` - Database connection and schema
 
 ### Production URLs:
-- **Frontend**: https://workflow-1-frkg.onrender.com
-- **Backend API**: https://workflow-unlq.onrender.com
+- **Frontend**: https://frontend-dpcg.onrender.com
+- **Backend API**: https://workflow-lg9z.onrender.com
 - **GitHub Repo**: https://github.com/MuhamadTAH/Workflow.git
-- **Telegram Bot**: @AI_MarketingTeambot
 
 ---
 
-*Complete Full-Stack Workflow Builder Platform with Visual Designer, Telegram Integration, Social Media Connections, and Production-Ready Architecture*
-
-### 8. 🔧 RENDER DEPLOYMENT FIXES (Aug 12, 2025)
-**Major Issues Resolved**:
-
-**✅ Backend SQLite Fix**: 
-- **Problem**: better-sqlite3 native module compilation mismatch (Node.js 22 local vs Node.js 18 Render)
-- **Solution**: Migrated from better-sqlite3 to sqlite3 with compatibility wrapper
-- **Files**: `backend/package.json`, `backend/dbWrapper.js`, `backend/db.js`
-- **Result**: Backend now running successfully at https://workflow-lg9z.onrender.com
-
-
-**⚠️ Frontend Asset Serving Issue**:
-- **Problem**: 404 errors for JavaScript assets (index-C65KcPNE.js) causing blank page
-- **Partial Fix**: CSS files serve correctly, vendor/router JS files work, but main index.js (588KB) returns 404
-- **Attempted Solutions**: Cache clearing, clean rebuilds, aggressive code splitting
-- **Status**: Main JS bundle too large for Render static serving, needs further optimization
-
-**Production URLs**:
-- **Backend**: ✅ https://workflow-lg9z.onrender.com (Working)  
-- **Frontend**: ⚠️ https://frontend-dpcg.onrender.com (Assets issue)
-
-*Last Updated: August 12, 2025 - Backend fully operational, frontend assets issue requires code splitting optimization. For complete error history see error.md*
-
----
-
-### 10. 🚨 PRODUCTION BACKEND REQUIREMENT & LOGIN ISSUE (Aug 12, 2025)
-
-**CRITICAL POLICY**: This project uses **PRODUCTION-ONLY BACKEND**
-- ❌ **NO LOCAL BACKEND DEVELOPMENT** - Always use production Render backend
-- ✅ **Frontend Local Development**: `cd frontend && npm run dev` (connects to production API)
-- ✅ **Production Backend**: https://workflow-lg9z.onrender.com (Render hosted)
-
-**Current Login Issue**:
-- **User**: mhamadtah548@gmail.com / 1qazxsw2 ✅ (Credentials verified - working locally)
-- **Problem**: Render backend unresponsive (API timeouts on all endpoints)
-- **Symptom**: Login requests timeout, all `/api/*` calls fail
-- **Root Cause**: Production backend service down/sleeping/crashed on Render
-
-**Authentication System Status**:
-- ✅ **Database**: User exists, password hash correct
-- ✅ **Login Logic**: JWT generation working (tested locally)  
-- ✅ **Frontend**: Login form submits correctly
-- ❌ **Production API**: Render backend not responding to requests
-
-**Required Fix**:
-1. Check Render dashboard for backend service status
-2. Restart backend service if crashed/sleeping  
-3. Monitor backend logs for startup errors
-4. Verify database connectivity on production
-5. Test login flow after backend restoration
-
-**Production Architecture Reminder**:
-```
-Frontend (Local: npm run dev) → Production Backend (Render) → SQLite (Render)
-Frontend (Prod: Render) → Production Backend (Render) → SQLite (Render)
-```
-
-**No Local Backend Policy**: Always troubleshoot and fix production backend issues rather than falling back to local development. This ensures consistency with deployed environment and proper testing of production configurations.
-
----
-
-### 11. 🎯 DEVELOPMENT RULES & WORKFLOW (Aug 12, 2025)
+### 🎯 DEVELOPMENT RULES & Guidelines
 
 **CRITICAL DEVELOPMENT RULES**:
 
@@ -387,3 +275,7 @@ After each step, user should see:
 ```
 
 *No exceptions to this workflow - ensures quality control and prevents production issues*
+
+---
+
+*Complete E-Commerce Platform with Social Media Connections and Production-Ready Architecture*

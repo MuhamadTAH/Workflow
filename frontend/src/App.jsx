@@ -5,9 +5,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import Overview from './pages/Overview';
-import WorkflowsOverview from './pages/WorkflowsOverview';
 import Connections from './pages/Connections';
-import WorkflowBuilder from './pages/WorkflowBuilder';
 import LanguageSwitcher from './components/LanguageSwitcher';
 // Initialize i18n
 import './i18n/i18n';
@@ -144,11 +142,11 @@ function Home() {
             </p>
           </div>
           <div className="hero-actions">
-            <Link to="/workflow" className="btn btn-primary">
-              <i className="fas fa-plus"></i> {t('workflow.create')}
+            <Link to="/connections" className="btn btn-primary">
+              <i className="fas fa-plug"></i> Connect Apps
             </Link>
-            <Link to="/workflows" className="btn btn-secondary">
-              <i className="fas fa-list"></i> {t('common.viewAll')}
+            <Link to="/shop" className="btn btn-secondary">
+              <i className="fas fa-store"></i> My Shop
             </Link>
           </div>
         </header>
@@ -208,10 +206,6 @@ function Home() {
               <h3><i className="fas fa-bolt"></i> Quick Actions</h3>
             </div>
             <div className="actions-grid">
-              <Link to="/workflow" className="action-item">
-                <i className="fas fa-magic"></i>
-                <span>Build Workflow</span>
-              </Link>
               <Link to="/connections" className="action-item">
                 <i className="fas fa-plug"></i>
                 <span>Connect Apps</span>
@@ -231,7 +225,7 @@ function Home() {
           <div className="dashboard-card recent-activity">
             <div className="card-header">
               <h3><i className="fas fa-history"></i> Recent Activity</h3>
-              <Link to="/workflows" className="view-all-link">View All</Link>
+              <Link to="/connections" className="view-all-link">View All</Link>
             </div>
             <div className="activity-list">
               <div className="activity-item">
@@ -334,10 +328,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/overview" element={<Overview />} />
-        <Route path="/workflows" element={<WorkflowsOverview />} />
         <Route path="/connections" element={<Connections />} />
-        <Route path="/workflow" element={<WorkflowBuilder />} />
-        <Route path="/workflow-builder" element={<WorkflowBuilder />} />
         {/* <Route path="/workflownode" element={<WorkflowNode />} /> */}
         <Route path="/shop" element={<ShopDashboard />} />
         <Route path="/shop/add-product" element={<AddProduct />} />

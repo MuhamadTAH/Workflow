@@ -2,8 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
-const webhooksRoutes = require('./routes/webhooks');
-const workflowRoutes = require('./routes/workflows');
 const agentRoutes = require('./routes/agent');
 const connectionsRoutes = require('./routes/connections');
 const shopsRoutes = require('./routes/shops');
@@ -14,8 +12,6 @@ const aiRoutes = require('./routes/ai');
 const chatRoutes = require('./routes/chat');
 const languageRoutes = require('./routes/language');
 const debugRoutes = require('./routes/debug');
-// NEW ROUTES FROM WORKFLOWNODE
-const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const logger = require('./services/logger');
 require('./db'); // Initialize database
@@ -60,8 +56,6 @@ app.use('/public', express.static('public'));
 
 // Routes
 app.use('/api', authRoutes);
-app.use('/api/webhooks', webhooksRoutes);
-app.use('/api/workflows', workflowRoutes);
 app.use('/api/agent', agentRoutes);
 app.use('/api/connections', connectionsRoutes);
 app.use('/api/shops', shopsRoutes);
@@ -72,21 +66,6 @@ app.use('/api/ai', aiRoutes);
 app.use(chatRoutes);
 app.use(languageRoutes);
 app.use(debugRoutes);
-// Additional middleware to debug CORS and route issues
-app.use('/api/nodes', (req, res, next) => {
-  console.log('🔍 NODES API REQUEST DEBUG:', {
-    method: req.method,
-    url: req.url,
-    path: req.path,
-    origin: req.headers.origin,
-    headers: Object.keys(req.headers),
-    body: req.method === 'POST' ? req.body : 'N/A'
-  });
-  next();
-});
-
-// NEW ROUTES FROM WORKFLOWNODE
-app.use('/api/nodes', nodesRoutes);
 
 // Test route
 app.get('/api/hello', (req, res) => {
