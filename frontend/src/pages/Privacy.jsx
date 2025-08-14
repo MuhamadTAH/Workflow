@@ -38,9 +38,9 @@ function Privacy() {
               (e.g., display name, avatar).
             </p>
 
-            <h3>2.3. Workflow & Shop Data</h3>
+            <h3>2.3. Shop Data</h3>
             <p>
-              Workflows you create, node configurations, shop products (titles, descriptions, images, prices), 
+              Shop products you create (titles, descriptions, images, prices), 
               order/contact methods.
             </p>
 
@@ -59,9 +59,9 @@ function Privacy() {
           <div className="privacy-section">
             <h2>3. How We Use Your Data</h2>
             <ul>
-              <li><strong>Provide & improve the Service:</strong> authenticate you, run workflows, store configurations.</li>
+              <li><strong>Provide & improve the Service:</strong> authenticate you, manage shops, store product data.</li>
               <li><strong>Integrations:</strong> use your OAuth tokens to connect to third-party APIs (TikTok, Meta, etc.).</li>
-              <li><strong>Communication:</strong> send notifications, workflow results, shop inquiries.</li>
+              <li><strong>Communication:</strong> send notifications, shop updates, customer inquiries.</li>
               <li><strong>Analytics & troubleshooting:</strong> monitor performance, diagnose issues.</li>
               <li><strong>Marketing (optional):</strong> with your consent, email announcements about new features.</li>
             </ul>
@@ -72,7 +72,7 @@ function Privacy() {
             <p>We do not sell or rent your personal data.</p>
             <p>We share data with:</p>
             <ul>
-              <li>Third-party API providers (TikTok, Meta, Telegram, etc.) only to execute your workflows.</li>
+              <li>Third-party API providers (TikTok, Meta, Telegram, etc.) only to promote your shops.</li>
               <li>Service providers (hosting, analytics, email) under strict confidentiality agreements.</li>
               <li>Legal requirements: if compelled by law or to protect our rights.</li>
             </ul>

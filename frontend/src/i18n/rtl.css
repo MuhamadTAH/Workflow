@@ -58,9 +58,9 @@
   direction: ltr; /* Keep dropdown in LTR for better UX */
 }
 
-/* Workflow builder RTL support */
-[dir="rtl"] .workflow-canvas {
-  direction: ltr; /* Keep workflow canvas in LTR for node connections */
+/* Shop builder RTL support */
+[dir="rtl"] .shop-canvas {
+  direction: ltr; /* Keep shop canvas in LTR for product layouts */
 }
 
 [dir="rtl"] .sidebar {

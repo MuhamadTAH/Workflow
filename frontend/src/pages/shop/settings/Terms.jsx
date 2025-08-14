@@ -27,7 +27,7 @@ function Terms() {
           <div className="terms-section">
             <h2>2. Description of Service</h2>
             <p>
-              We provide a workflow automation and shop-creation platform that connects to third-party services 
+              We provide a shop-creation platform that connects to third-party services 
               (TikTok, Meta, Telegram, WhatsApp, X, LinkedIn, etc.).
             </p>
           </div>
@@ -41,9 +41,9 @@ function Terms() {
           </div>
 
           <div className="terms-section">
-            <h2>4. User Content & Workflows</h2>
+            <h2>4. User Content & Shops</h2>
             <ul>
-              <li>You retain ownership of your data (workflows, shop products, messages).</li>
+              <li>You retain ownership of your data (shop products, content, messages).</li>
               <li>You grant us a license to store and process your content to provide the Service.</li>
               <li>You represent that your content does not infringe third-party rights.</li>
             </ul>

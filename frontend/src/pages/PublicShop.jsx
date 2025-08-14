@@ -165,7 +165,7 @@ function PublicShop() {
         {/* Footer */}
         <div className="shop-footer">
           <p>© 2025 {shop.displayName}. All rights reserved.</p>
-          <p>Powered by Workflow Builder</p>
+          <p>Powered by ShopPro</p>
         </div>
       </div>
     </div>
