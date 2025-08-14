@@ -107,12 +107,12 @@ function handleAPIError(error, apiType = 'unknown', context = {}) {
   };
 }
 
-// Workflow execution error handler
-function handleWorkflowError(error, executionId, nodeId = null) {
+// Shop operation error handler
+function handleShopError(error, operationId, shopId = null) {
   const errorContext = {
-    type: 'application_error',
-    executionId,
-    nodeId
+    type: 'shop_error',
+    operationId,
+    shopId
   };
 
   logger.logError(error, errorContext);
@@ -121,8 +121,8 @@ function handleWorkflowError(error, executionId, nodeId = null) {
     success: false,
     error: {
       message: error.message,
-      executionId,
-      nodeId,
+      operationId,
+      shopId,
       timestamp: new Date().toISOString()
     }
   };
@@ -142,6 +142,6 @@ module.exports = {
   requestLogger,
   createValidationError,
   handleAPIError,
-  handleWorkflowError,
+  handleShopError,
   createRateLimitError
 };

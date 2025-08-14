@@ -9,11 +9,11 @@ const getApiBaseUrl = () => {
   
   // 2. Production detection (when served from production domain)
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return 'https://workflow-lg9z.onrender.com'; // Production backend
+    return 'https://shoppro-backend.onrender.com'; // Production backend
   }
   
   // 3. Development fallback - use production backend
-  return 'https://workflow-lg9z.onrender.com';
+  return 'https://shoppro-backend.onrender.com';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
@@ -25,12 +25,9 @@ export const API_ENDPOINTS = {
   SIGNUP: `${API_BASE_URL}/api/signup`,
   PROFILE: `${API_BASE_URL}/api/profile`,
   
-  // Nodes
-  RUN_NODE: `${API_BASE_URL}/api/nodes/run-node`,
-  VALIDATE_TELEGRAM: `${API_BASE_URL}/api/nodes/validate-telegram-token`,
-  GET_TELEGRAM_UPDATES: `${API_BASE_URL}/api/nodes/telegram-get-updates`,
-  VERIFY_CLAUDE: `${API_BASE_URL}/api/verify-claude`,
-  
+  // Shops
+  SHOPS: `${API_BASE_URL}/api/shops`,
+  PRODUCTS: `${API_BASE_URL}/api/products`,
   
   // Uploads
   UPLOAD_PRODUCT_IMAGE: `${API_BASE_URL}/api/uploads/product-image`,
@@ -39,8 +36,8 @@ export const API_ENDPOINTS = {
   // Health
   HEALTH_CHECK: `${API_BASE_URL}/api/health`,
   
-  // Chat Trigger
-  CHAT_WEBHOOK: `${API_BASE_URL}/api/webhooks/chatTrigger`
+  // Connections
+  CONNECTIONS: `${API_BASE_URL}/api/connections`
 };
 
 // Debug logging in development

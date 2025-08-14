@@ -2,16 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
-const agentRoutes = require('./routes/agent');
+// Agent routes removed - not needed for e-commerce platform
 const connectionsRoutes = require('./routes/connections');
 const shopsRoutes = require('./routes/shops');
 const productsRoutes = require('./routes/products');
 const publicRoutes = require('./routes/public');
 const uploadsRoutes = require('./routes/uploads');
 const aiRoutes = require('./routes/ai');
-const chatRoutes = require('./routes/chat');
-const languageRoutes = require('./routes/language');
-const debugRoutes = require('./routes/debug');
+// Chat, language, and debug routes removed - not needed for e-commerce platform
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const logger = require('./services/logger');
 require('./db'); // Initialize database
@@ -56,16 +54,14 @@ app.use('/public', express.static('public'));
 
 // Routes
 app.use('/api', authRoutes);
-app.use('/api/agent', agentRoutes);
+// Agent routes removed
 app.use('/api/connections', connectionsRoutes);
 app.use('/api/shops', shopsRoutes);
 app.use('/api/products', productsRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/uploads', uploadsRoutes);
 app.use('/api/ai', aiRoutes);
-app.use(chatRoutes);
-app.use(languageRoutes);
-app.use(debugRoutes);
+// Chat, language, and debug routes removed
 
 // Test route
 app.get('/api/hello', (req, res) => {
