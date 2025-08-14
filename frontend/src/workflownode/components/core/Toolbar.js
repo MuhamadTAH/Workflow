@@ -19,7 +19,10 @@ const Toolbar = ({
     hasUnsavedChanges,
     workflowStatus,
     onActivateWorkflow,
-    currentWorkflowId
+    currentWorkflowId,
+    isSaving,
+    saveMessage,
+    saveMessageType
 }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -57,12 +60,27 @@ const Toolbar = ({
             <div className="toolbar-center">
                 <div className="action-group">
                     <button 
-                        className={`toolbar-btn ${hasUnsavedChanges ? 'primary' : 'secondary'}`}
+                        className={`toolbar-btn ${hasUnsavedChanges ? 'primary' : 'secondary'} ${isSaving ? 'loading' : ''}`}
                         onClick={onSave}
+                        disabled={isSaving}
                     >
-                        <i className="fa-solid fa-save"></i>
-                        {hasUnsavedChanges ? 'Save Changes' : 'Save'}
+                        {isSaving ? (
+                            <>
+                                <i className="fa-solid fa-spinner fa-spin"></i>
+                                Saving...
+                            </>
+                        ) : (
+                            <>
+                                <i className="fa-solid fa-save"></i>
+                                {hasUnsavedChanges ? 'Save Changes' : 'Save'}
+                            </>
+                        )}
                     </button>
+                    {saveMessage && (
+                        <div className={`save-message ${saveMessageType}`}>
+                            {saveMessage}
+                        </div>
+                    )}
                 </div>
 
                 <div className="action-group">

@@ -47,6 +47,9 @@ const App = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [lastSavedState, setLastSavedState] = useState(null);
   const [workflowStatus, setWorkflowStatus] = useState('inactive'); // inactive, listening, executing, completed
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');  
+  const [saveMessageType, setSaveMessageType] = useState(''); // 'success' or 'error'
 
   // Simple workflow naming - no auto-incrementing
 
@@ -266,10 +269,26 @@ const App = () => {
     );
   }, [setNodes]);
 
+  // Clear save message after 3 seconds
+  useEffect(() => {
+    if (saveMessage) {
+      const timer = setTimeout(() => {
+        setSaveMessage('');
+        setSaveMessageType('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveMessage]);
+
   // Toolbar action handlers
   const handleSave = useCallback(async () => {
     // Define isUpdate at function level so it's available for the alert
     const isUpdate = currentWorkflowId !== null;
+    
+    // Set loading state
+    setIsSaving(true);
+    setSaveMessage('');
+    setSaveMessageType('');
     
     try {
       // Prepare workflow data for backend
@@ -304,6 +323,10 @@ const App = () => {
       if (result.success) {
         // Backend save successful - for updates keep same ID, for new workflows use returned ID
         const backendWorkflowId = isUpdate ? currentWorkflowId : result.workflow.id;
+        
+        // Show success message
+        setSaveMessage(`✅ Workflow "${workflowName}" ${isUpdate ? 'updated' : 'saved'} successfully!`);
+        setSaveMessageType('success');
         
         // Create workflow data with backend ID for localStorage
         const workflowData = {
@@ -345,22 +368,23 @@ const App = () => {
       } else {
         // Backend save failed
         console.error('❌ Backend save failed:', result.error);
-        alert(`Failed to save workflow: ${result.error}`);
+        setSaveMessage(`❌ Failed to save workflow: ${result.error}`);
+        setSaveMessageType('error');
         return; // Don't update localStorage if backend save failed
       }
     } catch (error) {
       console.error('❌ Error saving workflow:', error);
-      alert('Failed to save workflow. Please check your connection and try again.');
+      setSaveMessage('❌ Failed to save workflow. Please check your connection and try again.');
+      setSaveMessageType('error');
       return; // Don't update localStorage if there was an error
+    } finally {
+      setIsSaving(false);
     }
     
     // Update saved state to mark as no longer having unsaved changes
     const newSavedState = createStateSnapshot();
     setLastSavedState(newSavedState);
     setHasUnsavedChanges(false);
-    
-    
-    alert(`✅ Workflow "${workflowName}" ${isUpdate ? 'updated' : 'saved'} successfully!`);
   }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId, createStateSnapshot]);
 
 
@@ -470,6 +494,7 @@ const App = () => {
     <div className="professional-workflow-builder">
       <Toolbar
         onSave={handleSave}
+        isSaving={isSaving}
         onClear={handleClear}
         onUndo={handleUndo}
         onRedo={handleRedo}
@@ -482,6 +507,8 @@ const App = () => {
         workflowStatus={workflowStatus}
         onActivateWorkflow={handleActivateWorkflow}
         currentWorkflowId={currentWorkflowId}
+        saveMessage={saveMessage}
+        saveMessageType={saveMessageType}
       />
       <div className="workflow-content">
         <div className="workflow-canvas" ref={reactFlowWrapper}>
