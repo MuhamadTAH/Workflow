@@ -265,7 +265,7 @@ After each step, user should see:
 - **Deploy Step**: Render services rebuild successfully
 - **Production Step**: Live URLs show updated functionality
 
-**MANDATORY WORKFLOW**:
+**MANDATORY PROCESS**:
 ```
 1. Present Plan → Get User OK
 2. Frontend Changes → User Reviews Code
@@ -274,7 +274,7 @@ After each step, user should see:
 5. Render Deploy → User Confirms Live Site
 ```
 
-*No exceptions to this workflow - ensures quality control and prevents production issues*
+*No exceptions to this process - ensures quality control and prevents production issues*
 
 ---
 
