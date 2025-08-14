@@ -291,7 +291,7 @@ router.post('/register', (req, res) => {
     }
 
     // Check if workflow has a trigger
-    const hasTrigger = workflow.nodes.some(node => node.data.type === 'trigger');
+    const hasTrigger = workflow.nodes.some(node => node.data.type === 'trigger' || node.data.type === 'telegramTrigger');
     if (!hasTrigger) {
       return res.status(400).json({
         success: false,
@@ -299,27 +299,56 @@ router.post('/register', (req, res) => {
       });
     }
 
+    // Check if workflow has a Telegram trigger - if so, set up webhook
+    const hasTelegramTrigger = workflow.nodes.some(node => node.data.type === 'telegramTrigger');
+    
     console.log(`📝 Registering workflow ${workflowId} for execution`);
     console.log('Workflow structure:', {
       nodes: workflow.nodes.length,
       edges: workflow.edges.length,
-      nodeTypes: workflow.nodes.map(n => n.data.type)
+      nodeTypes: workflow.nodes.map(n => n.data.type),
+      hasTelegramTrigger: hasTelegramTrigger
     });
 
     // Register workflow with executor
-    const success = workflowExecutor.registerWorkflow(workflowId, workflow, {});
+    const success = workflowExecutor.registerWorkflow(workflowId, workflow, { mode: 'single-run' });
     
     if (success) {
+      // Set up Telegram webhook if needed
+      if (hasTelegramTrigger) {
+        try {
+          const { TelegramAPI } = require('../services/telegramAPI');
+          const telegramAPI = new TelegramAPI('8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ');
+          const webhookUrl = `https://workflow-lg9z.onrender.com/api/webhooks/telegram/${workflowId}`;
+          
+          // Set webhook asynchronously (don't wait for response)
+          telegramAPI.setWebhook(webhookUrl).then(result => {
+            if (result.success) {
+              console.log(`✅ Telegram webhook set for workflow ${workflowId}: ${webhookUrl}`);
+            } else {
+              console.error(`❌ Failed to set Telegram webhook for workflow ${workflowId}:`, result.error);
+            }
+          }).catch(error => {
+            console.error('❌ Error setting up Telegram webhook:', error);
+          });
+          
+        } catch (error) {
+          console.error('❌ Error loading TelegramAPI:', error);
+        }
+      }
+      
       logger.info('Workflow registered for execution', { 
         workflowId, 
         nodeCount: workflow.nodes.length,
-        edgeCount: workflow.edges.length 
+        edgeCount: workflow.edges.length,
+        hasTelegramTrigger: hasTelegramTrigger
       });
       
       res.json({
         success: true,
         message: `Workflow ${workflowId} registered successfully`,
-        workflowId
+        workflowId,
+        webhookSetup: hasTelegramTrigger ? 'telegram_webhook_configured' : 'no_webhook_needed'
       });
     } else {
       res.status(500).json({
