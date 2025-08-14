@@ -461,4 +461,23 @@ router.get('/debug/user/:email', async (req, res) => {
   }
 });
 
+// Test database connectivity
+router.get('/test-db', async (req, res) => {
+  try {
+    const result = await db.get('SELECT COUNT(*) as count FROM users');
+    res.json({
+      success: true,
+      userCount: result.count,
+      message: 'Database connection working'
+    });
+  } catch (error) {
+    console.error('❌ Database test error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: 'Database connection failed'
+    });
+  }
+});
+
 module.exports = router;
