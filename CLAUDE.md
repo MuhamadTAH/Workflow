@@ -5,7 +5,7 @@
 ### How Backend & Frontend Connect
 This project uses a **full production deployment architecture**:
 - **Frontend**: Production hosted on Render (https://frontend-dpcg.onrender.com)
-- **Backend**: Production hosted on Render (https://workflow-lg9z.onrender.com)
+- **Backend**: Production hosted on Render (https://shoppro-backend.onrender.com)
 - **Connection**: Frontend makes API calls directly to production backend via VITE_API_BASE_URL
 
 **Architecture Benefits**:
@@ -14,17 +14,17 @@ This project uses a **full production deployment architecture**:
 3. **Auto Deployment**: Both services auto-deploy on git push
 4. **No Local Development Required**: Complete cloud-based development
 
-### Development Workflow:
+### Development Process:
 ```bash
 # 1. Make Changes (edit frontend/backend code locally)
 
-# 2. Commit & Push (triggers auto-deployment of both services)
+# 2. Commit & Push (initiates auto-deployment of both services)
 git add .
 git commit -m "feature: description"
 git push origin main
 
 # 3. Render Auto-Deploys:
-#    - Backend: https://workflow-lg9z.onrender.com (1-2 minutes)
+#    - Backend: https://shoppro-backend.onrender.com (1-2 minutes)
 #    - Frontend: https://frontend-dpcg.onrender.com (2-3 minutes)
 
 # 4. Access live application at frontend URL
@@ -32,7 +32,7 @@ git push origin main
 
 ### URLs & Connections:
 - **Frontend**: https://frontend-dpcg.onrender.com (Production)
-- **Backend**: https://workflow-lg9z.onrender.com (Production API)
+- **Backend**: https://shoppro-backend.onrender.com (Production API)
 - **GitHub**: https://github.com/MuhamadTAH/Workflow.git
 - **Database**: SQLite (hosted with backend on Render)
 - **Local Development**: `cd frontend && npm run dev` (optional, for hot reload)
@@ -47,7 +47,7 @@ git push origin main
 Most components use environment detection:
 ```javascript
 const API_BASE = process.env.NODE_ENV === 'production' 
-  ? 'https://workflow-lg9z.onrender.com'
+  ? 'https://shoppro-backend.onrender.com'
   : 'http://localhost:3001';
 ```
 
@@ -55,7 +55,7 @@ const API_BASE = process.env.NODE_ENV === 'production'
 Some features always use production for consistency:
 ```javascript
 // Always use production backend
-const API_BASE = 'https://workflow-lg9z.onrender.com';
+const API_BASE = 'https://shoppro-backend.onrender.com';
 ```
 
 #### 3. CORS Configuration
@@ -197,10 +197,10 @@ git push origin main
 ### Troubleshooting:
 ```bash  
 # Check backend logs
-# View at: Render dashboard → workflow-lg9z → Logs
+# View at: Render dashboard → shoppro-backend → Logs
 
 # Test API endpoints
-curl https://workflow-lg9z.onrender.com/api/hello
+curl https://shoppro-backend.onrender.com/api/hello
 
 # Install missing dependencies
 cd backend && npm install package-name
@@ -228,7 +228,7 @@ git add package.json && git commit -m "Add dependency" && git push
 
 ### Production URLs:
 - **Frontend**: https://frontend-dpcg.onrender.com
-- **Backend API**: https://workflow-lg9z.onrender.com
+- **Backend API**: https://shoppro-backend.onrender.com
 - **GitHub Repo**: https://github.com/MuhamadTAH/Workflow.git
 
 ---
@@ -242,7 +242,7 @@ git add package.json && git commit -m "Add dependency" && git push
    - Backend: Render web service deployment
 
 2. **📤 MANDATORY GITHUB PUSH**: All changes MUST be pushed to GitHub
-   - GitHub triggers auto-deployment on both Render services
+   - GitHub initiates auto-deployment on both Render services
    - No changes take effect until pushed to main branch
 
 3. **📋 PLAN-FIRST DEVELOPMENT**: No coding without approval
@@ -250,7 +250,7 @@ git add package.json && git commit -m "Add dependency" && git push
    - Get explicit "OK" confirmation from user before proceeding
    - No code changes without user approval
 
-4. **🔄 FRONTEND-TO-BACKEND WORKFLOW**: Development order is critical
+4. **🔄 FRONTEND-TO-BACKEND PROCESS**: Development order is critical
    - **Step 1**: Always start with frontend changes
    - **Step 2**: Test frontend changes locally
    - **Step 3**: Then proceed to backend changes  
