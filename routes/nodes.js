@@ -124,56 +124,108 @@ router.post('/telegram-get-updates', async (req, res) => {
     const webhookInfo = await api.getWebhookInfo();
     
     if (webhookInfo.success && webhookInfo.data.url) {
-      // Webhook is active, provide stored message data instead
-      console.log('⚠️ Webhook active, cannot use getUpdates. Providing stored data.');
+      const currentWebhookUrl = webhookInfo.data.url;
       
-      // Check if we have any stored webhook messages in memory/database
-      const storedMessages = getStoredTelegramMessages() || [];
+      // Check if we have any active workflows listening
+      let workflowExecutor = null;
+      try {
+        workflowExecutor = require('../backend/services/workflowExecutor');
+      } catch (error) {
+        console.log('⚠️ WorkflowExecutor not available, proceeding with webhook disable');
+      }
       
-      if (storedMessages.length > 0) {
-        return res.json({
-          success: true,
-          updates: storedMessages.slice(0, Math.min(limit, 10)),
-          count: storedMessages.length,
-          source: 'webhook_storage',
-          webhook_url: webhookInfo.data.url,
-          message: 'Real messages from webhook storage (bot has active webhook)'
-        });
-      } else {
-        // Generate realistic sample data based on the actual bot
-        const botInfo = await api.validateToken();
-        const botName = botInfo.success ? botInfo.data.first_name : 'Bot';
+      // Check if any workflows are actually active/listening
+      const hasActiveWorkflows = workflowExecutor && workflowExecutor.activeWorkflows && workflowExecutor.activeWorkflows.size > 0;
+      
+      if (hasActiveWorkflows) {
+        // Webhook has active workflows, temporarily disable it to get real messages
+        console.log(`⚠️ Webhook active with ${workflowExecutor.activeWorkflows.size} listening workflows, temporarily disabling to fetch real messages...`);
         
-        const realisticSampleMessage = {
-          update_id: Date.now(),
-          message: {
-            message_id: Math.floor(Math.random() * 1000) + 1,
-            from: {
-              id: 123456789,
-              is_bot: false,
-              first_name: "Test User",
-              username: "testuser",
-              language_code: "en"
-            },
-            chat: {
-              id: 123456789,
-              first_name: "Test User",
-              username: "testuser",
-              type: "private"
-            },
-            date: Math.floor(Date.now() / 1000),
-            text: `Hello ${botName}! This is test data since webhook is active.`
+        try {
+          // Temporarily remove webhook
+          await api.deleteWebhook();
+          console.log('🔄 Webhook temporarily disabled');
+          
+          // Small delay to ensure webhook is fully disabled
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // Get real messages using getUpdates
+          const result = await api.getUpdates({ 
+            limit: Math.min(limit, 10),
+            offset: offset 
+          });
+          
+          // Restore webhook immediately
+          await api.setWebhook(currentWebhookUrl);
+          console.log('🔄 Webhook restored');
+          
+          if (result && result.success) {
+            return res.json({ 
+              success: true, 
+              updates: result.data,
+              count: result.data ? result.data.length : 0,
+              source: 'getUpdates_temp_webhook_disable',
+              message: 'Real messages from Telegram (webhook temporarily disabled)',
+              webhook_restored: currentWebhookUrl,
+              active_workflows: workflowExecutor.activeWorkflows.size
+            });
+          } else {
+            return res.status(400).json({
+              success: false,
+              error: result?.error?.message || 'Failed to fetch updates even with webhook disabled'
+            });
           }
-        };
+          
+        } catch (webhookError) {
+          // If webhook operations fail, try to restore and return error
+          try {
+            await api.setWebhook(currentWebhookUrl);
+            console.log('🔄 Webhook restored after error');
+          } catch (restoreError) {
+            console.error('❌ Failed to restore webhook:', restoreError);
+          }
+          
+          return res.status(500).json({
+            success: false,
+            error: `Failed to temporarily manage webhook: ${webhookError.message}`,
+            webhook_url: currentWebhookUrl
+          });
+        }
+      } else {
+        // Webhook exists but no active workflows, just disable it permanently and use getUpdates
+        console.log('⚠️ Webhook exists but no workflows are active, disabling webhook and using getUpdates');
         
-        return res.json({
-          success: true,
-          updates: [realisticSampleMessage],
-          count: 1,
-          source: 'realistic_sample',
-          webhook_url: webhookInfo.data.url,
-          message: 'Realistic sample data (webhook prevents real message polling)'
-        });
+        try {
+          await api.deleteWebhook();
+          console.log('🔄 Webhook disabled (no active workflows)');
+          
+          // Get real messages using getUpdates
+          const result = await api.getUpdates({ 
+            limit: Math.min(limit, 10),
+            offset: offset 
+          });
+          
+          if (result && result.success) {
+            return res.json({ 
+              success: true, 
+              updates: result.data,
+              count: result.data ? result.data.length : 0,
+              source: 'getUpdates_webhook_disabled',
+              message: 'Real messages from Telegram (webhook disabled - no active workflows)',
+              active_workflows: 0
+            });
+          } else {
+            return res.status(400).json({
+              success: false,
+              error: result?.error?.message || 'Failed to fetch updates'
+            });
+          }
+        } catch (error) {
+          return res.status(500).json({
+            success: false,
+            error: `Failed to disable webhook: ${error.message}`
+          });
+        }
       }
     }
 
