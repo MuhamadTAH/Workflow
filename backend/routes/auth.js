@@ -101,7 +101,8 @@ router.post('/login', async (req, res) => {
         token: token
       });
     } catch (dbError) {
-      return res.status(500).json({ message: 'Database error' });
+      console.error('❌ Login database error:', dbError);
+      return res.status(500).json({ message: 'Database error', error: dbError.message });
     }
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
