@@ -12,10 +12,10 @@ const axios = require('axios');
 // Telegram Bot Configuration from CLAUDE.md
 const TELEGRAM_BOT_TOKEN = '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ';
 const BOT_USERNAME = '@AI_MarketingTeambot';
-const BACKEND_URL = 'https://workflow-unlq.onrender.com';
+const BACKEND_URL = 'https://workflow-lg9z.onrender.com';
 
 // Test workflow ID (replace with actual workflow ID when testing)
-const TEST_WORKFLOW_ID = '4'; // Using the workflow ID from your recent tests
+const TEST_WORKFLOW_ID = '2'; // Using the workflow ID from logs
 
 async function setupTelegramWebhook() {
   console.log('🤖 Setting up Telegram Bot Webhook for Single-Run Activation');

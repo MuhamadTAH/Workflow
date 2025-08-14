@@ -19,25 +19,124 @@ db.getAsync = promisify(db.get).bind(db);
 db.allAsync = promisify(db.all).bind(db);
 db.runAsync = promisify(db.run).bind(db);
 
-// Create better-sqlite3 compatible wrapper
+// Create better-sqlite3 compatible wrapper with promise support
 const dbWrapper = {
-  // Direct synchronous access using the original database object methods
-  get: db.get.bind(db),
-  all: db.all.bind(db), 
-  run: db.run.bind(db),
-  exec: db.exec.bind(db),
+  // Promise-based methods for async/await compatibility
+  get: (sql, params = []) => {
+    return new Promise((resolve, reject) => {
+      db.get(sql, params, (err, row) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(row);
+        }
+      });
+    });
+  },
+  
+  all: (sql, params = []) => {
+    return new Promise((resolve, reject) => {
+      db.all(sql, params, (err, rows) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(rows);
+        }
+      });
+    });
+  },
+  
+  run: (sql, params = []) => {
+    return new Promise((resolve, reject) => {
+      db.run(sql, params, function(err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            lastInsertRowid: this.lastID,
+            changes: this.changes
+          });
+        }
+      });
+    });
+  },
+  
+  exec: (sql) => {
+    return new Promise((resolve, reject) => {
+      db.exec(sql, (err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  },
   
   prepare: (sql) => {
     const stmt = db.prepare(sql);
     return {
-      get: stmt.get.bind(stmt),
-      all: stmt.all.bind(stmt),
-      run: stmt.run.bind(stmt),
-      finalize: stmt.finalize.bind(stmt)
+      get: (params = []) => {
+        return new Promise((resolve, reject) => {
+          stmt.get(params, (err, row) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(row);
+            }
+          });
+        });
+      },
+      all: (params = []) => {
+        return new Promise((resolve, reject) => {
+          stmt.all(params, (err, rows) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(rows);
+            }
+          });
+        });
+      },
+      run: (params = []) => {
+        return new Promise((resolve, reject) => {
+          stmt.run(params, function(err) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve({
+                lastInsertRowid: this.lastID,
+                changes: this.changes
+              });
+            }
+          });
+        });
+      },
+      finalize: () => {
+        return new Promise((resolve, reject) => {
+          stmt.finalize((err) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+        });
+      }
     };
   },
   
-  close: db.close.bind(db)
+  close: () => {
+    return new Promise((resolve, reject) => {
+      db.close((err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+  }
 };
 
 // Create tables if they don't exist

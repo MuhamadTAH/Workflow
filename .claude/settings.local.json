@@ -68,8 +68,10 @@
       "Bash(ren:*)",
       "Bash(vite build)",
       "Bash(npx vite:*)",
-      "Bash(del \"C:\\Users\\tarqm\\Documents\\APP\\backend\\public\\hosted-chat.html\")"
+      "Bash(del \"C:\\Users\\tarqm\\Documents\\APP\\backend\\public\\hosted-chat.html\")",
+      "Bash(git checkout:*)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }
