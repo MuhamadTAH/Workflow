@@ -31,10 +31,6 @@ export const API_ENDPOINTS = {
   GET_TELEGRAM_UPDATES: `${API_BASE_URL}/api/nodes/telegram-get-updates`,
   VERIFY_CLAUDE: `${API_BASE_URL}/api/verify-claude`,
   
-  // Workflows
-  SAVE_WORKFLOW: `${API_BASE_URL}/api/workflows/save`,
-  LOAD_WORKFLOW: `${API_BASE_URL}/api/workflows/load`,
-  DELETE_WORKFLOW: `${API_BASE_URL}/api/workflows/delete`,
   
   // Uploads
   UPLOAD_PRODUCT_IMAGE: `${API_BASE_URL}/api/uploads/product-image`,

@@ -4,13 +4,11 @@ import { useTranslation } from 'react-i18next';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
-import Overview from './pages/Overview';
 import Connections from './pages/Connections';
 import LanguageSwitcher from './components/LanguageSwitcher';
 // Initialize i18n
 import './i18n/i18n';
 import './i18n/rtl.css';
-// import WorkflowNode from './pages/workflownode/WorkflowNode'; // Removed - using WorkflowBuilder instead
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import PublicShop from './pages/PublicShop';
@@ -39,9 +37,9 @@ function Home() {
   const [testLoading, setTestLoading] = useState(false);
   const [gradientVariant, setGradientVariant] = useState(1);
   const [stats] = useState({
-    totalWorkflows: 12,
+    totalShops: 3,
     activeConnections: 5,
-    monthlyExecutions: 1247,
+    monthlyOrders: 47,
     successRate: 98.5
   });
 
@@ -115,7 +113,7 @@ function Home() {
       <nav className="dashboard-nav">
         <div className="nav-container">
           <div className="nav-brand">
-            <h2>⚡ WorkflowPro</h2>
+            <h2>🛒 ShopPro</h2>
           </div>
           <div className="nav-user">
             <LanguageSwitcher className="mr-4" />
@@ -138,15 +136,15 @@ function Home() {
               {t('common.welcome', { name: user.name || (user.email ? user.email.split('@')[0] : 'User') })}
             </h1>
             <p className="hero-subtitle">
-              {t('common.dashboardSubtitle')}
+              Build your e-commerce empire with social media connections
             </p>
           </div>
           <div className="hero-actions">
-            <Link to="/connections" className="btn btn-primary">
-              <i className="fas fa-plug"></i> Connect Apps
+            <Link to="/shop" className="btn btn-primary">
+              <i className="fas fa-store"></i> Create Shop
             </Link>
-            <Link to="/shop" className="btn btn-secondary">
-              <i className="fas fa-store"></i> My Shop
+            <Link to="/connections" className="btn btn-secondary">
+              <i className="fas fa-plug"></i> Connect Platforms
             </Link>
           </div>
         </header>
@@ -155,12 +153,12 @@ function Home() {
         <div className="stats-grid">
           <div className="stat-card primary breathing">
             <div className="stat-icon">
-              <i className="fas fa-project-diagram"></i>
+              <i className="fas fa-store"></i>
             </div>
             <div className="stat-content">
-              <h3 className="stat-number">{stats.totalWorkflows}</h3>
-              <p className="stat-label">Total Workflows</p>
-              <span className="stat-change positive">+3 this month</span>
+              <h3 className="stat-number">{stats.totalShops}</h3>
+              <p className="stat-label">Active Shops</p>
+              <span className="stat-change positive">+1 this month</span>
             </div>
           </div>
 
@@ -177,11 +175,11 @@ function Home() {
 
           <div className="stat-card info">
             <div className="stat-icon">
-              <i className="fas fa-play"></i>
+              <i className="fas fa-shopping-cart"></i>
             </div>
             <div className="stat-content">
-              <h3 className="stat-number">{stats.monthlyExecutions.toLocaleString()}</h3>
-              <p className="stat-label">Monthly Executions</p>
+              <h3 className="stat-number">{stats.monthlyOrders.toLocaleString()}</h3>
+              <p className="stat-label">Monthly Orders</p>
               <span className="stat-change positive">+12% vs last month</span>
             </div>
           </div>
@@ -225,7 +223,7 @@ function Home() {
           <div className="dashboard-card recent-activity">
             <div className="card-header">
               <h3><i className="fas fa-history"></i> Recent Activity</h3>
-              <Link to="/connections" className="view-all-link">View All</Link>
+              <Link to="/shop" className="view-all-link">View Shop</Link>
             </div>
             <div className="activity-list">
               <div className="activity-item">
@@ -233,7 +231,7 @@ function Home() {
                   <i className="fas fa-check"></i>
                 </div>
                 <div className="activity-content">
-                  <p className="activity-title">Marketing Automation completed</p>
+                  <p className="activity-title">New product added to shop</p>
                   <span className="activity-time">2 hours ago</span>
                 </div>
               </div>
@@ -242,7 +240,7 @@ function Home() {
                   <i className="fas fa-plus"></i>
                 </div>
                 <div className="activity-content">
-                  <p className="activity-title">New Telegram connection added</p>
+                  <p className="activity-title">Instagram connection added</p>
                   <span className="activity-time">1 day ago</span>
                 </div>
               </div>
@@ -251,7 +249,7 @@ function Home() {
                   <i className="fas fa-edit"></i>
                 </div>
                 <div className="activity-content">
-                  <p className="activity-title">E-commerce workflow updated</p>
+                  <p className="activity-title">Shop settings updated</p>
                   <span className="activity-time">3 days ago</span>
                 </div>
               </div>
@@ -309,7 +307,7 @@ function Home() {
               </Link>
             </div>
             <p className="footer-text">
-              &copy; 2025 WorkflowPro. Built for professionals who automate.
+              &copy; 2025 ShopPro. Built for e-commerce entrepreneurs.
             </p>
           </div>
         </footer>
@@ -327,9 +325,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/overview" element={<Overview />} />
         <Route path="/connections" element={<Connections />} />
-        {/* <Route path="/workflownode" element={<WorkflowNode />} /> */}
         <Route path="/shop" element={<ShopDashboard />} />
         <Route path="/shop/add-product" element={<AddProduct />} />
         <Route path="/shop/manage-products" element={<ManageProducts />} />

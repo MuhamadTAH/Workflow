@@ -12,7 +12,7 @@ const PhoneMockup = ({ conversation, view }) => {
                             <div className="chat-avatar">
                                 <i className="fa-solid fa-user-circle"></i>
                             </div>
-                            <span className="chat-username">workflow_user</span>
+                            <span className="chat-username">shop_customer</span>
                         </div>
                         <div className="chat-header-actions">
                             <i className="fa-solid fa-phone"></i>

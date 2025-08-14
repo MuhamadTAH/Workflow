@@ -110,7 +110,7 @@ function handleAPIError(error, apiType = 'unknown', context = {}) {
 // Workflow execution error handler
 function handleWorkflowError(error, executionId, nodeId = null) {
   const errorContext = {
-    type: 'workflow_execution_error',
+    type: 'application_error',
     executionId,
     nodeId
   };

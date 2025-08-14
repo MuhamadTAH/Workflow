@@ -32,23 +32,6 @@ export const authAPI = {
   getProfile: () => api.get('/api/profile'),
 };
 
-// Workflow API functions
-export const workflowAPI = {
-  // Get all workflows for current user
-  getWorkflows: () => api.get('/api/workflows'),
-  
-  // Get specific workflow by ID
-  getWorkflow: (id) => api.get(`/api/workflows/${id}`),
-  
-  // Create new workflow
-  createWorkflow: (workflowData) => api.post('/api/workflows', workflowData),
-  
-  // Update existing workflow
-  updateWorkflow: (id, workflowData) => api.put(`/api/workflows/${id}`, workflowData),
-  
-  // Delete workflow
-  deleteWorkflow: (id) => api.delete(`/api/workflows/${id}`)
-};
 
 // Connections API functions
 export const connectionsAPI = {
