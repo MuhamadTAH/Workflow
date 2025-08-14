@@ -369,14 +369,13 @@ router.post('/register', (req, res) => {
 
 
 // GET /api/workflows/:id/hosted-url - Get hosted chat URL for workflow testing
-router.get('/:id/hosted-url', verifyToken, (req, res) => {
+router.get('/:id/hosted-url', verifyToken, async (req, res) => {
   const userId = req.user.userId;
   const workflowId = req.params.id;
 
   // Get workflow to find trigger node
   try {
-    const stmt = db.prepare('SELECT * FROM workflows WHERE id = ? AND user_id = ?');
-    const row = stmt.get(workflowId, userId);
+    const row = await db.get('SELECT * FROM workflows WHERE id = ? AND user_id = ?', [workflowId, userId]);
 
     if (!row) {
       return res.status(404).json({ error: 'Workflow not found' });
