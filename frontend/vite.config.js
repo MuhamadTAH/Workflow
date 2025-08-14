@@ -23,7 +23,7 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
-          workflow: ['reactflow'],
+          shop: ['reactflow'],
           utils: ['axios']
         },
         entryFileNames: 'assets/[name]-[hash].js',
@@ -39,12 +39,12 @@ export default defineConfig({
     historyApiFallback: true,
     proxy: {
       '/api': {
-        target: 'https://workflow-lg9z.onrender.com',
+        target: 'https://shoppro-backend.onrender.com',
         changeOrigin: true,
         secure: true
       },
       '/uploads': {
-        target: 'https://workflow-lg9z.onrender.com',
+        target: 'https://shoppro-backend.onrender.com',
         changeOrigin: true,
         secure: true
       }
