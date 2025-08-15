@@ -24,8 +24,8 @@ import {
   Privacy as ShopPrivacy,
   Terms as ShopTerms
 } from './pages/shop';
-// Import workflow components - TEMPORARILY DISABLED
-// import { WorkflowBuilder, WorkflowList } from './pages/workflow';
+// Import workflow components
+import { WorkflowBuilder, WorkflowList } from './pages/workflow';
 import ProductDetail from './pages/shop/product-detail/ProductDetail';
 import { authAPI, tokenManager } from './api';
 import './styles.css';
