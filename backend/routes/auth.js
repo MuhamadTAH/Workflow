@@ -211,15 +211,8 @@ router.post('/create-test-user', async (req, res) => {
     const testEmail = 'mhamadtah548@gmail.com';
     const testPassword = '1qazxsw2';
     
-    // Check if user exists
-    const existingUser = await db.get('SELECT * FROM users WHERE email = ?', [testEmail]);
-    
-    if (existingUser) {
-      return res.json({
-        message: 'Test user already exists',
-        email: testEmail
-      });
-    }
+    // Delete existing user first
+    await db.run('DELETE FROM users WHERE email = ?', [testEmail]);
     
     // Hash password and create user
     const saltRounds = 10;
