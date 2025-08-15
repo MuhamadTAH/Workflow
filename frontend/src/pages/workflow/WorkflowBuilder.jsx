@@ -3,7 +3,7 @@ import { ReactFlowProvider } from 'reactflow'; // Import the provider
 import WorkflowToolbar from './components/WorkflowToolbar';
 import NodePalette from './components/NodePalette';
 import WorkflowCanvas from './components/WorkflowCanvas';
-import '../styles/WorkflowBuilder.css';
+import './styles/WorkflowBuilder.css';
 import 'reactflow/dist/style.css'; // Import React Flow styles
 
 const WorkflowBuilder = () => {
