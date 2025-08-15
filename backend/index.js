@@ -9,6 +9,7 @@ const productsRoutes = require('./routes/products');
 const publicRoutes = require('./routes/public');
 const uploadsRoutes = require('./routes/uploads');
 const aiRoutes = require('./routes/ai');
+const workflowRoutes = require('./workflow/routes/workflows');
 // Chat, language, and debug routes removed - not needed for e-commerce platform
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const logger = require('./services/logger');
@@ -61,6 +62,7 @@ app.use('/api/products', productsRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/uploads', uploadsRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/workflow', workflowRoutes);
 // Chat, language, and debug routes removed
 
 // Test route
