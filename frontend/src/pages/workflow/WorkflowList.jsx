@@ -3,7 +3,7 @@
 // Allows creating new workflows, editing, deleting, and running existing ones
 import React from 'react';
 import { Link } from 'react-router-dom';
-import '../styles/WorkflowBuilder.css'; // Using shared styles for the workflow module
+import './styles/WorkflowBuilder.css'; // Using shared styles for the workflow module
 
 // Placeholder data to simulate a list of existing workflows
 const placeholderWorkflows = [
