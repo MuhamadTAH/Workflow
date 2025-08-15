@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { tokenManager, shopAPI } from '../../../api';
 import { FaStore, FaShoppingCart, FaEye, FaShare, FaHeart } from 'react-icons/fa';
 import ShopLayout from '../components/ShopLayout/ShopLayout';
 import './ViewStore.css';
 
 function ViewStore() {
+  const navigate = useNavigate();
   const [shop, setShop] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +35,15 @@ function ViewStore() {
       }
     } catch (error) {
       console.error('Error loading shop data:', error);
+      
+      // Check if it's a token-related error (400/401)
+      if (error.response && (error.response.status === 400 || error.response.status === 401)) {
+        console.log('Token invalid, clearing and redirecting to login');
+        tokenManager.removeToken();
+        navigate('/login');
+        return;
+      }
+      
       setError('Failed to load shop data');
     } finally {
       setLoading(false);

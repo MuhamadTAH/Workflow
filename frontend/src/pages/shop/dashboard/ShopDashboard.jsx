@@ -62,6 +62,15 @@ function ShopDashboard() {
       }
     } catch (error) {
       console.error('Error loading shop:', error);
+      
+      // Check if it's a token-related error (400/401)
+      if (error.response && (error.response.status === 400 || error.response.status === 401)) {
+        console.log('Token invalid, clearing and redirecting to login');
+        tokenManager.removeToken();
+        navigate('/login');
+        return;
+      }
+      
       setError('Unable to connect to backend. Please check if the server is running.');
       setShop(null);
     } finally {
