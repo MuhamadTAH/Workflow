@@ -1,5 +1,7 @@
+// /backend/dbWrapper.js
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs'); // Import the file system module
 const { promisify } = require('util');
 
 const dbPath = path.join(__dirname, 'database.sqlite');
@@ -231,6 +233,21 @@ db.serialize(() => {
       console.log('✅ Products table ready');
     }
   });
+  
+  // --- FIX: ADD WORKFLOW TABLES ---
+  const workflowSchemaPath = path.join(__dirname, 'workflow', 'database', 'workflowTables.sql');
+  if (fs.existsSync(workflowSchemaPath)) {
+    const workflowSchema = fs.readFileSync(workflowSchemaPath, 'utf8');
+    db.exec(workflowSchema, (err) => {
+      if (err) {
+        console.error("❌ Error initializing workflow tables:", err.message);
+      } else {
+        console.log("✅ Workflow tables ready");
+      }
+    });
+  } else {
+    console.error("❌ Could not find workflowTables.sql file.");
+  }
 
   // Try to add columns if they don't exist (for existing databases)
   db.run(`ALTER TABLE products ADD COLUMN videos TEXT`, (err) => {

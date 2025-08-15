@@ -2,23 +2,21 @@
 // Contains save, run, stop, and other workflow controls
 // Workflow name editing and status indicators
 // Undo/redo functionality
-import React, { useState } from 'react';
+import React from 'react';
 
-const WorkflowToolbar = () => {
-  const [workflowName, setWorkflowName] = useState('My New Automation Workflow');
-
+const WorkflowToolbar = ({ name, setName, onSave }) => {
   return (
     <header className="workflow-toolbar">
       <div className="workflow-title-container">
         <input
           type="text"
-          value={workflowName}
-          onChange={(e) => setWorkflowName(e.target.value)}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           className="workflow-title-input"
         />
       </div>
       <div className="workflow-actions">
-        <button className="btn-toolbar-action">
+        <button className="btn-toolbar-action" onClick={onSave}>
           <i className="fas fa-save" style={{ marginRight: '8px' }}></i>
           Save
         </button>
@@ -32,3 +30,4 @@ const WorkflowToolbar = () => {
 };
 
 export default WorkflowToolbar;
+

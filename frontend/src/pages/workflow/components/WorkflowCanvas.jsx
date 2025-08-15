@@ -1,26 +1,20 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import ReactFlow, {
   Background,
   Controls,
   MiniMap,
-  useNodesState,
-  useEdgesState,
   addEdge,
-  useReactFlow,
 } from 'reactflow';
-import BaseNode from './BaseNode'; // Import the custom node
+import BaseNode from './BaseNode';
 
-// We start with an empty array of nodes
-const initialNodes = [];
-let id = 0;
-const getId = () => `dnd-node_${id++}`;
-
-const WorkflowCanvas = () => {
-  const reactFlowWrapper = useRef(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const { screenToFlowPosition } = useReactFlow();
-
+const WorkflowCanvas = ({
+  nodes,
+  edges,
+  onNodesChange,
+  onEdgesChange,
+  setEdges,
+  onDrop,
+}) => {
   // Register our custom node type
   const nodeTypes = useMemo(() => ({ 
     telegramTrigger: BaseNode,
@@ -42,45 +36,8 @@ const WorkflowCanvas = () => {
     event.dataTransfer.dropEffect = 'move';
   }, []);
 
-  // This function handles the drop event
-  const onDrop = useCallback(
-    (event) => {
-      event.preventDefault();
-
-      // Get the node data from the data transfer object
-      const nodeDataString = event.dataTransfer.getData('application/reactflow');
-      
-      if (!nodeDataString) {
-        return;
-      }
-      
-      const nodeData = JSON.parse(nodeDataString);
-
-      // Calculate the position where the node should be created
-      const position = screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-      
-      const newNode = {
-        id: getId(),
-        type: nodeData.type,
-        position,
-        data: { 
-          label: nodeData.label,
-          description: nodeData.description,
-          icon: nodeData.icon,
-        },
-      };
-
-      // Add the new node to the existing nodes
-      setNodes((nds) => nds.concat(newNode));
-    },
-    [screenToFlowPosition, setNodes],
-  );
-
   return (
-    <main className="workflow-canvas" ref={reactFlowWrapper}>
+    <main className="workflow-canvas">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -89,7 +46,7 @@ const WorkflowCanvas = () => {
         onConnect={onConnect}
         onDrop={onDrop}
         onDragOver={onDragOver}
-        nodeTypes={nodeTypes} // Pass the custom node types
+        nodeTypes={nodeTypes}
         fitView
         className="react-flow-canvas"
       >
