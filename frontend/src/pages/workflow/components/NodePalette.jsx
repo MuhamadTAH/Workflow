@@ -1,7 +1,3 @@
-// Node palette/sidebar component
-// Lists all available nodes (triggers, actions, conditions)
-// Users can drag nodes from here to the canvas
-// Organized by categories (Telegram, Email, Conditions, etc.)
 import React from 'react';
 
 // Placeholder for the available nodes
@@ -14,12 +10,24 @@ const availableNodes = [
 ];
 
 const NodePalette = () => {
+  // This function is called when a drag operation starts from the palette
+  const onDragStart = (event, nodeType) => {
+    // We store the node type in the drag event's data transfer object
+    event.dataTransfer.setData('application/reactflow', nodeType);
+    event.dataTransfer.effectAllowed = 'move';
+  };
+
   return (
     <aside className="node-palette">
       <h2>Nodes</h2>
       <div className="node-list">
         {availableNodes.map(node => (
-          <div key={node.type} className="node-item">
+          <div
+            key={node.type}
+            className="node-item"
+            onDragStart={(event) => onDragStart(event, node.type)}
+            draggable // Make the element draggable
+          >
             <i className={node.icon}></i>
             <span>{node.label}</span>
           </div>

@@ -51,6 +51,8 @@
 
 .category-content {
   padding: 1.5rem;
+  position: relative;
+  z-index: 2;
 }
 
 .category-header {

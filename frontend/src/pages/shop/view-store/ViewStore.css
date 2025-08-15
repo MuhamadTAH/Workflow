@@ -1,19 +1,76 @@
-/* View Store Page Styles */
+/* ================================
+   MIDNIGHT SAPPHIRE & ROSE GOLD LUXURY VIEW STORE PAGE
+   ================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* View Store Page Styles - Luxury Theme */
 .view-store-page {
   max-width: 1400px;
   margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0A1628 0%, #1E293B 50%, #152A40 100%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #F8FAFC;
+  animation: fadeInUp 0.6s ease-out;
 }
 
-/* Preview Controls */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes luxuryShimmer {
+  0%, 100% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  50% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+/* Preview Controls - Luxury Theme */
 .preview-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(15, 42, 64, 0.9) 0%, rgba(26, 47, 69, 0.85) 100%);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(232, 180, 160, 0.2),
+    inset 0 1px 0 rgba(248, 250, 252, 0.1);
+  border: 1px solid rgba(232, 180, 160, 0.3);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.preview-controls::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(232, 180, 160, 0.15), transparent);
+  transform: rotate(45deg);
+  animation: luxuryShimmer 4s ease-in-out infinite;
+}
+
+.preview-controls:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 35px 70px rgba(0, 0, 0, 0.5),
+    0 0 50px rgba(232, 180, 160, 0.4),
+    inset 0 1px 0 rgba(248, 250, 252, 0.25);
+  border-color: rgba(212, 165, 116, 0.6);
 }
 
 .preview-modes {
@@ -22,23 +79,33 @@
 }
 
 .preview-btn {
-  padding: 0.5rem 1rem;
-  border: 2px solid #e5e7eb;
-  background: white;
-  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid rgba(232, 180, 160, 0.3);
+  background: rgba(248, 250, 252, 0.1);
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   font-size: 0.875rem;
+  font-weight: 600;
+  color: #E8B4A0;
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 2;
 }
 
 .preview-btn:hover {
-  border-color: #667eea;
+  border-color: #E8B4A0;
+  background: rgba(232, 180, 160, 0.2);
+  color: #F8FAFC;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
 .preview-btn.active {
-  border-color: #667eea;
-  background: #667eea;
-  color: white;
+  border-color: #E8B4A0;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  color: #0A1628;
+  box-shadow: 0 8px 25px rgba(232, 180, 160, 0.4);
 }
 
 .preview-actions {
@@ -46,13 +113,18 @@
   gap: 0.75rem;
 }
 
-/* Customer Store View Container */
+/* Customer Store View Container - Luxury Theme */
 .customer-store-view {
-  background: #f3f4f6;
+  background: linear-gradient(135deg, rgba(15, 42, 64, 0.5) 0%, rgba(26, 47, 69, 0.3) 100%);
+  backdrop-filter: blur(10px);
   padding: 2rem;
-  border-radius: 12px;
+  border-radius: 20px;
   min-height: 600px;
   transition: all 0.3s ease;
+  border: 1px solid rgba(232, 180, 160, 0.2);
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(248, 250, 252, 0.1);
 }
 
 .customer-store-view.desktop .customer-store-frame {
@@ -70,19 +142,25 @@
   margin: 0 auto;
 }
 
-/* Customer Store Frame */
+/* Customer Store Frame - Luxury Theme */
 .customer-store-frame {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, rgba(15, 42, 64, 0.9) 0%, rgba(26, 47, 69, 0.85) 100%);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(232, 180, 160, 0.2),
+    inset 0 1px 0 rgba(248, 250, 252, 0.1);
+  border: 1px solid rgba(232, 180, 160, 0.3);
   overflow: hidden;
   min-height: 800px;
 }
 
-/* Customer Navigation Header */
+/* Customer Navigation Header - Luxury Theme */
 .customer-nav-header {
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, rgba(10, 22, 40, 0.95) 0%, rgba(26, 47, 69, 0.9) 100%);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(232, 180, 160, 0.2);
   padding: 1rem 0;
   position: sticky;
   top: 0;
@@ -108,17 +186,24 @@
   font-size: 2rem;
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12px;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #0A1628;
+  font-weight: 700;
+  box-shadow: 0 8px 25px rgba(232, 180, 160, 0.4);
+  border: 1px solid rgba(212, 165, 116, 0.6);
 }
 
 .customer-store-name {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #111827;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin: 0;
 }
 
@@ -129,29 +214,47 @@
 
 .customer-nav-btn {
   padding: 0.75rem 1.5rem;
-  border: 2px solid #667eea;
-  background: white;
-  color: #667eea;
-  border-radius: 8px;
+  border: 1px solid rgba(232, 180, 160, 0.4);
+  background: rgba(248, 250, 252, 0.1);
+  color: #E8B4A0;
+  border-radius: 12px;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
+  font-weight: 600;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  backdrop-filter: blur(10px);
 }
 
 .customer-nav-btn:hover {
-  background: #667eea;
-  color: white;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  color: #0A1628;
+  border-color: #E8B4A0;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(232, 180, 160, 0.4);
 }
 
-/* Customer Hero Section */
+/* Customer Hero Section - Luxury Theme */
 .customer-hero-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 50%, #0A1628 100%);
+  color: #F8FAFC;
   padding: 4rem 0;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.customer-hero-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(248, 250, 252, 0.1), transparent);
+  transform: rotate(45deg);
+  animation: luxuryShimmer 6s ease-in-out infinite;
 }
 
 .customer-hero-content {
@@ -162,15 +265,20 @@
 
 .customer-hero-title {
   font-size: 3rem;
-  font-weight: 700;
+  font-weight: 800;
   margin: 0 0 1rem 0;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  position: relative;
+  z-index: 2;
 }
 
 .customer-hero-description {
   font-size: 1.25rem;
-  opacity: 0.9;
+  color: #CBD5E1;
   margin: 0 0 2rem 0;
   line-height: 1.6;
+  position: relative;
+  z-index: 2;
 }
 
 .customer-hero-stats {
@@ -207,9 +315,13 @@
 
 .customer-section-header h2 {
   font-size: 2.5rem;
-  font-weight: 700;
-  color: #111827;
+  font-weight: 800;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin: 0;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .customer-filters {
@@ -220,11 +332,28 @@
 .customer-filter-select,
 .customer-sort-select {
   padding: 0.75rem 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: white;
+  border: 1px solid rgba(232, 180, 160, 0.3);
+  border-radius: 12px;
+  background: rgba(10, 22, 40, 0.7);
+  backdrop-filter: blur(10px);
+  color: #F8FAFC;
   font-size: 0.875rem;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.customer-filter-select:focus,
+.customer-sort-select:focus {
+  outline: none;
+  border-color: #E8B4A0;
+  box-shadow: 0 0 20px rgba(232, 180, 160, 0.3);
+  background: rgba(10, 22, 40, 0.9);
+}
+
+.customer-filter-select option,
+.customer-sort-select option {
+  background: #0A1628;
+  color: #F8FAFC;
 }
 
 /* Customer Products Grid */
@@ -245,26 +374,53 @@
   gap: 1rem;
 }
 
-/* Customer Product Card */
+/* Customer Product Card - Luxury Theme */
 .customer-product-card {
-  background: white;
-  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(15, 42, 64, 0.9) 0%, rgba(26, 47, 69, 0.85) 100%);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(232, 180, 160, 0.2),
+    inset 0 1px 0 rgba(248, 250, 252, 0.1);
+  border: 1px solid rgba(232, 180, 160, 0.3);
   transition: all 0.3s ease;
   position: relative;
 }
 
+.customer-product-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(232, 180, 160, 0.1), transparent);
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
 .customer-product-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 
+    0 35px 70px rgba(0, 0, 0, 0.5),
+    0 0 50px rgba(232, 180, 160, 0.4),
+    inset 0 1px 0 rgba(248, 250, 252, 0.25);
+  border-color: rgba(212, 165, 116, 0.6);
+}
+
+.customer-product-card:hover::before {
+  opacity: 1;
+  animation: luxuryShimmer 2s ease-in-out;
 }
 
 .customer-product-image {
   width: 100%;
   height: 240px;
   overflow: hidden;
-  background: #f9fafb;
+  background: rgba(10, 22, 40, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -287,8 +443,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
+  color: #94A3B8;
   font-size: 0.875rem;
+  position: relative;
+  z-index: 2;
 }
 
 .placeholder-icon {
@@ -315,36 +473,45 @@
 }
 
 .quick-view-btn {
-  background: white;
-  color: #667eea;
-  border: none;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  color: #0A1628;
+  border: 1px solid rgba(212, 165, 116, 0.6);
   padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(232, 180, 160, 0.4);
 }
 
 .quick-view-btn:hover {
-  background: #667eea;
-  color: white;
+  background: linear-gradient(135deg, #D4A574 0%, #C19A5B 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(232, 180, 160, 0.5);
 }
 
 /* Customer Product Info */
 .customer-product-info {
   padding: 1.5rem;
+  position: relative;
+  z-index: 2;
 }
 
 .customer-product-title {
   font-size: 1.125rem;
-  font-weight: 600;
-  color: #111827;
+  font-weight: 700;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin: 0 0 0.5rem 0;
   line-height: 1.4;
+  position: relative;
+  z-index: 2;
 }
 
 .customer-product-description {
-  color: #6b7280;
+  color: #CBD5E1;
   font-size: 0.875rem;
   line-height: 1.4;
   margin: 0 0 1rem 0;
@@ -352,6 +519,8 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  position: relative;
+  z-index: 2;
 }
 
 .customer-product-pricing {
@@ -364,16 +533,24 @@
 .customer-product-price {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #059669;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  z-index: 2;
 }
 
 .customer-price-label {
-  background: #d1fae5;
-  color: #065f46;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: #F8FAFC;
+  padding: 0.5rem 0.75rem;
+  border-radius: 20px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  position: relative;
+  z-index: 2;
 }
 
 .customer-product-actions {
@@ -383,45 +560,56 @@
 
 .customer-add-to-cart {
   flex: 1;
-  background: #667eea;
-  color: white;
-  border: none;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  color: #0A1628;
+  border: 1px solid rgba(212, 165, 116, 0.6);
   padding: 0.75rem 1rem;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  box-shadow: 0 8px 25px rgba(232, 180, 160, 0.4);
+  position: relative;
+  z-index: 2;
 }
 
 .customer-add-to-cart:hover {
-  background: #5a67d8;
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #D4A574 0%, #C19A5B 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(232, 180, 160, 0.5);
 }
 
 .customer-wishlist {
-  background: #f3f4f6;
-  color: #e11d48;
-  border: none;
+  background: rgba(248, 250, 252, 0.1);
+  color: #E11D48;
+  border: 1px solid rgba(225, 29, 72, 0.3);
   padding: 0.75rem;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   font-size: 1.25rem;
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 2;
 }
 
 .customer-wishlist:hover {
-  background: #fee2e2;
-  transform: translateY(-1px);
+  background: rgba(225, 29, 72, 0.2);
+  border-color: #E11D48;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(225, 29, 72, 0.3);
 }
 
-/* Customer Trust Section */
+/* Customer Trust Section - Luxury Theme */
 .customer-trust-section {
-  background: #f9fafb;
+  background: linear-gradient(135deg, rgba(10, 22, 40, 0.8) 0%, rgba(26, 47, 69, 0.6) 100%);
+  backdrop-filter: blur(10px);
   padding: 4rem 2rem;
+  border-top: 1px solid rgba(232, 180, 160, 0.2);
 }
 
 .customer-trust-content {
@@ -432,9 +620,13 @@
 
 .customer-trust-content h3 {
   font-size: 2rem;
-  font-weight: 700;
-  color: #111827;
+  font-weight: 800;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin: 0 0 3rem 0;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .customer-trust-features {
@@ -446,33 +638,81 @@
 .trust-feature {
   text-align: center;
   padding: 2rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, rgba(15, 42, 64, 0.9) 0%, rgba(26, 47, 69, 0.85) 100%);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(232, 180, 160, 0.2),
+    inset 0 1px 0 rgba(248, 250, 252, 0.1);
+  border: 1px solid rgba(232, 180, 160, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.trust-feature::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(232, 180, 160, 0.1), transparent);
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.trust-feature:hover {
+  transform: translateY(-8px);
+  box-shadow: 
+    0 35px 70px rgba(0, 0, 0, 0.5),
+    0 0 50px rgba(232, 180, 160, 0.4),
+    inset 0 1px 0 rgba(248, 250, 252, 0.25);
+  border-color: rgba(212, 165, 116, 0.6);
+}
+
+.trust-feature:hover::before {
+  opacity: 1;
+  animation: luxuryShimmer 2s ease-in-out;
 }
 
 .trust-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
+  color: #E8B4A0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  position: relative;
+  z-index: 2;
 }
 
 .trust-feature h4 {
-  color: #111827;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0 0 0.5rem 0;
+  position: relative;
+  z-index: 2;
 }
 
 .trust-feature p {
-  color: #6b7280;
+  color: #CBD5E1;
   margin: 0;
+  position: relative;
+  z-index: 2;
 }
 
-/* Customer Contact Section */
+/* Customer Contact Section - Luxury Theme */
 .customer-contact-section {
   padding: 4rem 2rem;
-  background: white;
+  background: linear-gradient(135deg, rgba(15, 42, 64, 0.9) 0%, rgba(26, 47, 69, 0.85) 100%);
+  backdrop-filter: blur(20px);
   text-align: center;
+  border-top: 1px solid rgba(232, 180, 160, 0.2);
 }
 
 .customer-contact-content {
@@ -482,13 +722,17 @@
 
 .customer-contact-content h3 {
   font-size: 2rem;
-  font-weight: 700;
-  color: #111827;
+  font-weight: 800;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin: 0 0 1rem 0;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .customer-contact-content p {
-  color: #6b7280;
+  color: #CBD5E1;
   font-size: 1.125rem;
   margin: 0 0 2rem 0;
 }
@@ -502,39 +746,45 @@
 
 .customer-contact-btn {
   padding: 1rem 2rem;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s;
-  border: none;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(232, 180, 160, 0.3);
   font-size: 1rem;
+  backdrop-filter: blur(10px);
 }
 
 .customer-contact-btn.whatsapp {
-  background: #25d366;
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
   color: white;
+  box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
 }
 
 .customer-contact-btn.whatsapp:hover {
-  background: #128c7e;
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #128c7e 0%, #0f6b56 100%);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 35px rgba(37, 211, 102, 0.5);
 }
 
 .customer-contact-btn.email {
-  background: #667eea;
-  color: white;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  color: #0A1628;
+  box-shadow: 0 8px 25px rgba(232, 180, 160, 0.4);
 }
 
 .customer-contact-btn.email:hover {
-  background: #5a67d8;
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #D4A574 0%, #C19A5B 100%);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 35px rgba(232, 180, 160, 0.5);
 }
 
-/* Customer Footer */
+/* Customer Footer - Luxury Theme */
 .customer-footer {
-  background: #111827;
-  color: white;
+  background: linear-gradient(135deg, #0A1628 0%, #111827 100%);
+  color: #F8FAFC;
+  border-top: 1px solid rgba(232, 180, 160, 0.2);
 }
 
 .customer-footer-content {
@@ -547,14 +797,17 @@
 }
 
 .customer-footer-section h4 {
-  color: white;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0 0 1rem 0;
 }
 
 .customer-footer-section p {
-  color: #9ca3af;
+  color: #94A3B8;
   margin: 0;
 }
 
@@ -569,13 +822,14 @@
 }
 
 .customer-footer-section a {
-  color: #9ca3af;
+  color: #94A3B8;
   text-decoration: none;
-  transition: color 0.2s;
+  transition: all 0.3s ease;
 }
 
 .customer-footer-section a:hover {
-  color: white;
+  color: #E8B4A0;
+  text-shadow: 0 2px 4px rgba(232, 180, 160, 0.3);
 }
 
 .customer-social-links {
@@ -585,13 +839,13 @@
 }
 
 .customer-footer-bottom {
-  border-top: 1px solid #374151;
+  border-top: 1px solid rgba(232, 180, 160, 0.2);
   padding: 1rem 2rem;
   text-align: center;
-  color: #9ca3af;
+  color: #94A3B8;
 }
 
-/* Customer Empty State */
+/* Customer Empty State - Luxury Theme */
 .customer-no-products {
   display: flex;
   justify-content: center;
@@ -602,67 +856,89 @@
 .customer-empty-state {
   text-align: center;
   padding: 3rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, rgba(15, 42, 64, 0.9) 0%, rgba(26, 47, 69, 0.85) 100%);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(232, 180, 160, 0.2),
+    inset 0 1px 0 rgba(248, 250, 252, 0.1);
+  border: 1px solid rgba(232, 180, 160, 0.3);
   max-width: 500px;
 }
 
 .customer-empty-icon {
   font-size: 4rem;
   margin-bottom: 1rem;
+  color: #E8B4A0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .customer-empty-state h3 {
-  color: #111827;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0 0 0.5rem 0;
 }
 
 .customer-empty-state p {
-  color: #6b7280;
+  color: #CBD5E1;
   margin: 0 0 2rem 0;
 }
 
 .customer-notify-btn {
-  background: #667eea;
-  color: white;
-  border: none;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  color: #0A1628;
+  border: 1px solid rgba(212, 165, 116, 0.6);
   padding: 1rem 2rem;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(232, 180, 160, 0.4);
 }
 
 .customer-notify-btn:hover {
-  background: #5a67d8;
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #D4A574 0%, #C19A5B 100%);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 35px rgba(232, 180, 160, 0.5);
 }
 
-/* No Shop State */
+/* No Shop State - Luxury Theme */
 .no-shop-message {
   text-align: center;
   padding: 3rem;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, rgba(15, 42, 64, 0.9) 0%, rgba(26, 47, 69, 0.85) 100%);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(232, 180, 160, 0.2),
+    inset 0 1px 0 rgba(248, 250, 252, 0.1);
+  border: 1px solid rgba(232, 180, 160, 0.3);
 }
 
 .no-shop-icon {
   font-size: 3rem;
-  color: #d1d5db;
+  color: #E8B4A0;
   margin-bottom: 1rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .no-shop-message h2 {
-  color: #374151;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin-bottom: 0.5rem;
+  font-weight: 700;
 }
 
 .no-shop-message p {
-  color: #6b7280;
+  color: #CBD5E1;
 }
 
 /* Responsive Design */
@@ -710,11 +986,14 @@
 .customer-videos-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 8px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border-radius: 12px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  color: #0A1628;
+  border-radius: 20px;
   font-size: 0.75rem;
-  font-weight: 500;
-  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(232, 180, 160, 0.4);
+  border: 1px solid rgba(212, 165, 116, 0.6);
+  position: relative;
+  z-index: 2;
 }
