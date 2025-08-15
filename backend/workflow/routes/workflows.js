@@ -9,6 +9,27 @@ const router = express.Router();
 const WorkflowController = require('../controllers/WorkflowController');
 const authMiddleware = require('../middleware/WorkflowAuth');
 
+// Test database connection WITHOUT auth (for debugging)
+router.get('/debug-db', async (req, res) => {
+  try {
+    console.log('🔧 Debug database test (no auth)');
+    
+    // Test basic database connection
+    const db = require('../../dbWrapper');
+    const tables = await db.all("SELECT name FROM sqlite_master WHERE type='table'");
+    
+    console.log('📊 Available tables:', tables);
+    res.json({ 
+      message: 'Database debug successful', 
+      tables: tables,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Database debug error:', error);
+    res.status(500).json({ message: 'Database debug error', error: error.message, stack: error.stack });
+  }
+});
+
 // Protect all workflow routes with the authentication middleware
 router.use(authMiddleware);
 
