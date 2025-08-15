@@ -10,6 +10,22 @@ const WorkflowController = {
   async getAll(req, res) {
     try {
       console.log('🔍 Getting workflows for user:', req.user.userId);
+      
+      // Ensure workflow table exists
+      const dbWrapper = require('../../dbWrapper');
+      await dbWrapper.run(`
+        CREATE TABLE IF NOT EXISTS workflows (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          data TEXT,
+          is_active BOOLEAN DEFAULT 0,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+      `);
+      
       const workflows = await Workflow.findAllByUserId(req.user.userId);
       console.log('✅ Found workflows:', workflows.length);
       res.status(200).json(workflows);
