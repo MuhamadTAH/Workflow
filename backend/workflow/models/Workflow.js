@@ -9,16 +9,27 @@ const Workflow = {
   // Find all workflows for a specific user
   async findAllByUserId(userId) {
     try {
+      console.log('🔍 Workflow.findAllByUserId called with userId:', userId);
+      console.log('📊 About to query database...');
+      
       const workflows = await dbWrapper.all(
         'SELECT id, name, data, is_active, created_at, updated_at FROM workflows WHERE user_id = ? ORDER BY updated_at DESC',
         [userId]
       );
-      return workflows.map(workflow => ({
+      
+      console.log('✅ Database query successful, found workflows:', workflows.length);
+      
+      const processedWorkflows = workflows.map(workflow => ({
         ...workflow,
         data: workflow.data ? JSON.parse(workflow.data) : null
       }));
+      
+      console.log('✅ Workflows processed successfully');
+      return processedWorkflows;
     } catch (error) {
-      console.error('Error finding workflows by user ID:', error);
+      console.error('❌ Error in Workflow.findAllByUserId:', error);
+      console.error('❌ Error details:', error.message);
+      console.error('❌ Error stack:', error.stack);
       throw error;
     }
   },
