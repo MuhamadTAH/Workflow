@@ -1,4 +1,3 @@
-// /frontend/src/api.js
 import axios from 'axios';
 import { API_BASE_URL } from './config/api.js';
 
@@ -24,13 +23,13 @@ export const authAPI = {
   testConnection: () => api.get('/api/hello'),
   
   // Signup new user
-  signup: (userData) => api.post('/api/signup', userData),
+  signup: (userData) => api.post('/api/auth/signup', userData),
   
   // Login user
-  login: (credentials) => api.post('/api/login', credentials),
+  login: (credentials) => api.post('/api/auth/login', credentials),
   
   // Get user profile (protected)
-  getProfile: () => api.get('/api/profile'),
+  getProfile: () => api.get('/api/auth/profile'),
 };
 
 

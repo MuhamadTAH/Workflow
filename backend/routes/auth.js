@@ -205,4 +205,43 @@ router.get('/test-db', async (req, res) => {
   }
 });
 
+// Create test user if it doesn't exist
+router.post('/create-test-user', async (req, res) => {
+  try {
+    const testEmail = 'mhamadtah548@gmail.com';
+    const testPassword = '1qazxsw2';
+    
+    // Check if user exists
+    const existingUser = await db.get('SELECT * FROM users WHERE email = ?', [testEmail]);
+    
+    if (existingUser) {
+      return res.json({
+        message: 'Test user already exists',
+        email: testEmail
+      });
+    }
+    
+    // Hash password and create user
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(testPassword, saltRounds);
+    
+    const result = await db.run(
+      'INSERT INTO users (name, email, password) VALUES (?, ?, ?)', 
+      ['Test User', testEmail, hashedPassword]
+    );
+    
+    res.json({
+      message: 'Test user created successfully',
+      email: testEmail,
+      userId: result.lastInsertRowid
+    });
+  } catch (error) {
+    console.error('❌ Create test user error:', error);
+    res.status(500).json({
+      error: error.message,
+      message: 'Failed to create test user'
+    });
+  }
+});
+
 module.exports = router;

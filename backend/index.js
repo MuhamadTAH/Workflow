@@ -1,5 +1,13 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
+
+// Check if JWT_SECRET is set
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️  JWT_SECRET not set, using fallback');
+  process.env.JWT_SECRET = 'fallback-secret-key-for-development-only';
+}
+
 const authRoutes = require('./routes/auth');
 const shopRoutes = require('./routes/shops');
 const workflowRoutes = require('./workflow/routes/workflows');
