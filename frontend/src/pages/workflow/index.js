@@ -1,3 +1,3 @@
 // Workflow module exports
-// Export all workflow-related components
-// Main entry point for importing workflow functionality
+export { default as WorkflowBuilder } from './WorkflowBuilder';
+export { default as WorkflowList } from './WorkflowList';
