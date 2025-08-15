@@ -1,4 +1,3 @@
-// /backend/db.js
 const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs');
 const path = require('path');
@@ -33,7 +32,7 @@ const initDb = () => {
     )`);
     
     // Read and execute the workflow schema
-    const workflowSchemaPath = path.join(__dirname, 'workflow', 'database', 'workflowTables.sql');
+    const workflowSchemaPath = path.join(__dirname, 'workflow', 'middleware', 'workflowTables.sql');
     const workflowSchema = fs.readFileSync(workflowSchemaPath, 'utf8');
     db.exec(workflowSchema, (err) => {
       if (err) {
