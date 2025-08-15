@@ -1,9 +1,9 @@
+/* FontAwesome CSS */
+@import '@fortawesome/fontawesome-free/css/all.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* FontAwesome CSS */
-@import '@fortawesome/fontawesome-free/css/all.css';
 
 /* Add some basic styling for the app */
 body {
