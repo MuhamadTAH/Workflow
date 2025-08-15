@@ -2,3 +2,98 @@
 /* Node types: triggers (green), actions (blue), conditions (orange) */
 /* Connection points, hover states, selection states */
 /* Node animations and transitions */
+/* /frontend/src/pages/workflow/styles/Nodes.css */
+
+/* --- Custom Node Main Container --- */
+.custom-node {
+    background-color: #ffffff;
+    border: 1px solid #b0c4de;
+    border-radius: 9999px; /* Pill shape */
+    padding: 10px 20px;
+    font-family: 'Inter', sans-serif;
+    width: 300px;
+    height: 70px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .custom-node:hover {
+    box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
+    border-color: #4a90e2;
+  }
+  
+  /* --- Node Body Layout --- */
+  .node-body {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+  }
+  
+  /* --- Icon Styling --- */
+  .node-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #6c5ce7; /* Purple background for the icon */
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  
+  /* --- Text Content Styling --- */
+  .node-content {
+    flex-grow: 1;
+  }
+  
+  .node-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #2d3748;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .node-description {
+    font-size: 0.8rem;
+    color: #718096;
+  }
+  
+  /* --- Connection Handles Styling --- */
+  .handle-left, .handle-right {
+    background-color: #718096 !important;
+    border: 2px solid white !important;
+    width: 20px !important;
+    height: 40px !important;
+    border-radius: 6px !important;
+  }
+  
+  .handle-left {
+    left: -12px !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+  }
+  
+  .handle-right {
+    right: -12px !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* Plus icon for the right handle */
+  .handle-right::after {
+    content: '+';
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+  
