@@ -125,6 +125,38 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: '✅ Hello from the backend! (Updated)' });
 });
 
+// Quick login bypass for testing
+app.post('/api/quick-login', (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (email === 'mhamadtah548@gmail.com') {
+      // Generate a simple token
+      const jwt = require('jsonwebtoken');
+      const token = jwt.sign(
+        { userId: 1, email: email },
+        process.env.JWT_SECRET || 'fallback-secret-key',
+        { expiresIn: '7d' }
+      );
+      
+      res.json({
+        message: 'Login successful',
+        token: token,
+        user: {
+          id: 1,
+          email: email,
+          name: 'Mhamad'
+        }
+      });
+    } else {
+      res.status(401).json({ message: 'Invalid email' });
+    }
+  } catch (error) {
+    console.error('Quick login error:', error);
+    res.status(500).json({ message: 'Login error', error: error.message });
+  }
+});
+
 // Database debug route (no auth required)
 app.get('/api/workflow-debug', async (req, res) => {
   try {

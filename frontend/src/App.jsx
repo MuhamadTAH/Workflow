@@ -28,6 +28,7 @@ import {
 import { WorkflowBuilder, WorkflowList } from './pages/workflow';
 import SimpleWorkflowList from './pages/workflow/SimpleWorkflowList';
 import SimpleWorkflowBuilder from './pages/workflow/SimpleWorkflowBuilder';
+import QuickLogin from './pages/QuickLogin';
 import ProductDetail from './pages/shop/product-detail/ProductDetail';
 import { authAPI, tokenManager } from './api';
 import './styles.css';
@@ -333,6 +334,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/quick-login" element={<QuickLogin />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/connections" element={<Connections />} />
