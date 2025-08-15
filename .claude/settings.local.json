@@ -70,7 +70,8 @@
       "Bash(npx vite:*)",
       "Bash(del \"C:\\Users\\tarqm\\Documents\\APP\\backend\\public\\hosted-chat.html\")",
       "Bash(git checkout:*)",
-      "Bash(del \"C:\\Users\\tarqm\\Documents\\APP\\frontend\\src\\styles\\WorkflowsOverview.css\")"
+      "Bash(del \"C:\\Users\\tarqm\\Documents\\APP\\frontend\\src\\styles\\WorkflowsOverview.css\")",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
