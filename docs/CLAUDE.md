@@ -276,6 +276,39 @@ After each step, user should see:
 
 *No exceptions to this process - ensures quality control and prevents production issues*
 
+**🚨 CRITICAL FILES PROTOCOL**:
+
+**SHARED DEVELOPMENT WARNING**: The following files are being worked on by multiple AIs and require special handling:
+
+**Frontend Critical Files**:
+1. `/frontend/src/App.jsx` - Main routing and authentication
+2. `/frontend/src/api.js` - API configuration and calls  
+3. `/frontend/src/config/api.js` - API base URL configuration
+4. `/frontend/package.json` - Frontend dependencies
+
+**Backend Critical Files**:
+5. `/backend/index.js` - Main server file and route setup
+6. `/backend/dbWrapper.js` - Database wrapper and schema
+7. `/backend/db.js` - Database connection
+8. `/backend/package.json` - Backend dependencies
+
+**MANDATORY PROTOCOL FOR CRITICAL FILES**:
+```
+BEFORE editing any critical file:
+1. Read current file content completely
+2. Inform user: "CRITICAL FILE CHANGE: Updating [filename] - another AI may have modified this"
+3. Show exact changes being made
+4. Get explicit user confirmation
+5. After changes: Document what was changed in this CLAUDE.md file
+```
+
+**DOCUMENTATION REQUIREMENT**:
+Any changes to critical files must be logged here with:
+- Date and time of change
+- Which file was modified  
+- What was added/removed/modified
+- Reason for the change
+
 ---
 
 *Complete E-Commerce Platform with Social Media Connections and Production-Ready Architecture*

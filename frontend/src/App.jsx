@@ -1,3 +1,4 @@
+// /frontend/src/App.jsx
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -13,16 +14,18 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import PublicShop from './pages/PublicShop';
 // Import shop components using the modular router
-import { 
-  ShopDashboard, 
-  AddProduct, 
-  ManageProducts, 
+import {
+  ShopDashboard,
+  AddProduct,
+  ManageProducts,
   Analytics as ShopAnalytics,
   ViewStore,
   Categories,
   Privacy as ShopPrivacy,
   Terms as ShopTerms
 } from './pages/shop';
+// Import workflow components
+import { WorkflowBuilder, WorkflowList } from './pages/workflow';
 import ProductDetail from './pages/shop/product-detail/ProductDetail';
 import { authAPI, tokenManager } from './api';
 import './styles.css';
@@ -212,6 +215,11 @@ function Home() {
                 <i className="fas fa-store"></i>
                 <span>My Shop</span>
               </Link>
+              {/* --- NEW WORKFLOW LINK --- */}
+              <Link to="/workflow" className="action-item">
+                <i className="fas fa-project-diagram"></i>
+                <span>Workflows</span>
+              </Link>
               <button onClick={callBackend} className="action-item" disabled={testLoading}>
                 <i className={testLoading ? "fas fa-spinner fa-spin" : "fas fa-server"}></i>
                 <span>{testLoading ? 'Testing...' : 'Test Backend'}</span>
@@ -338,6 +346,10 @@ function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/shop/:shopName" element={<PublicShop />} />
+
+        {/* --- NEW WORKFLOW ROUTES --- */}
+        <Route path="/workflow" element={<WorkflowList />} />
+        <Route path="/workflow/builder/:id?" element={<WorkflowBuilder />} />
       </Routes>
     </Router>
   );
