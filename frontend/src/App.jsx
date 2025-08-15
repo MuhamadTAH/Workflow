@@ -1,4 +1,3 @@
-// /frontend/src/App.jsx
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -24,7 +23,6 @@ import {
   Privacy as ShopPrivacy,
   Terms as ShopTerms
 } from './pages/shop';
-// Workflow components temporarily removed
 import ProductDetail from './pages/shop/product-detail/ProductDetail';
 import { authAPI, tokenManager } from './api';
 import './styles.css';

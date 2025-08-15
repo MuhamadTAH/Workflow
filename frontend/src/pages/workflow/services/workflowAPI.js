@@ -1,4 +1,3 @@
-// /frontend/src/pages/workflow/services/workflowAPI.js
 import api from '../../../api'; // Import the main configured axios instance
 
 const BASE_URL = '/api/workflow';
