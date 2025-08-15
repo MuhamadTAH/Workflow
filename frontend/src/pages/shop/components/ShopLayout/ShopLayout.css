@@ -1,20 +1,21 @@
 /* Shop Layout Framework Styles */
 
-/* Main Shop Dashboard Container */
+/* Main Shop Dashboard Container - Midnight Sapphire & Rose Gold */
 .shop-dashboard {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #0A1628 0%, #1E293B 50%, #152A40 100%);
   display: flex;
 }
 
 /* Sidebar Styles */
 .shop-sidebar {
   width: 280px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, rgba(15, 42, 64, 0.95) 0%, rgba(26, 47, 69, 0.9) 100%);
+  backdrop-filter: blur(20px);
   border-radius: 0 20px 20px 0;
   padding: 2rem 0;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(232, 180, 160, 0.3);
   overflow-y: auto;
   position: fixed;
   height: 100vh;
@@ -40,7 +41,7 @@
   top: 2rem;
   left: 2rem;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.95);
+  background: linear-gradient(135deg, rgba(232, 180, 160, 0.9) 0%, rgba(212, 165, 116, 0.9) 100%);
   backdrop-filter: blur(10px);
   border: none;
   border-radius: 12px;
@@ -50,15 +51,17 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 25px rgba(232, 180, 160, 0.4);
+  border: 1px solid rgba(232, 180, 160, 0.6);
   transition: all 0.3s ease, left 0.3s ease;
-  color: #667eea;
+  color: #0A1628;
   font-size: 1.2rem;
 }
 
 .sidebar-toggle:hover {
-  background: rgba(102, 126, 234, 0.1);
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.95) 0%, rgba(193, 154, 91, 0.95) 100%);
   transform: scale(1.05);
+  box-shadow: 0 12px 35px rgba(232, 180, 160, 0.5);
 }
 
 .sidebar-toggle.sidebar-open {
@@ -84,19 +87,20 @@
 .sidebar-header {
   text-align: center;
   padding: 0 2rem 2rem 2rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(232, 180, 160, 0.2);
   margin-bottom: 2rem;
 }
 
 .sidebar-logo {
   font-size: 2.5rem;
-  color: #667eea;
+  color: #E8B4A0;
   margin-bottom: 0.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .sidebar-header h3 {
   margin: 0;
-  color: #333;
+  color: #F8FAFC;
   font-weight: 600;
 }
 
@@ -110,7 +114,7 @@
 
 .nav-section h4 {
   margin: 0 0 1rem 1rem;
-  color: #666;
+  color: #94A3B8;
   font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -123,7 +127,7 @@
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   margin-bottom: 0.25rem;
-  color: #555;
+  color: #CBD5E1;
   text-decoration: none;
   border-radius: 10px;
   transition: all 0.2s;
@@ -136,15 +140,15 @@
 }
 
 .nav-item:hover {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+  background: rgba(232, 180, 160, 0.1);
+  color: #E8B4A0;
   transform: translateX(4px);
 }
 
 .nav-item.active {
-  background: #667eea;
-  color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 100%);
+  color: #0A1628;
+  box-shadow: 0 8px 25px rgba(232, 180, 160, 0.4);
 }
 
 .nav-item svg {
@@ -175,26 +179,33 @@
 .shop-dashboard-header {
   text-align: center;
   margin-bottom: 3rem;
-  color: white;
+  color: #F8FAFC;
 }
 
 .shop-dashboard-title {
   font-size: 2.5rem;
-  font-weight: 700;
+  font-weight: 800;
+  background: linear-gradient(135deg, #E8B4A0 0%, #D4A574 50%, #F8FAFC 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin-bottom: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
 .shop-icon {
   font-size: 2rem;
+  color: #E8B4A0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .shop-dashboard-subtitle {
   font-size: 1.2rem;
+  color: #CBD5E1;
   opacity: 0.9;
   max-width: 600px;
   margin: 0 auto;
