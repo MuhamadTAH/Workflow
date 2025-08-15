@@ -1,13 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FaSave, FaArrowLeft, FaPlus } from 'react-icons/fa';
 import './styles/WorkflowBuilder.css';
 
 function SimpleWorkflowBuilder() {
   const { id } = useParams();
-  const [workflowName, setWorkflowName] = useState('My Workflow');
+  const [workflowName, setWorkflowName] = useState('Loading...');
   const [nodes, setNodes] = useState([]);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    // Load workflow data when component mounts
+    loadWorkflow();
+  }, [id]);
+
+  const loadWorkflow = async () => {
+    try {
+      // Get all workflows to find the one with this ID
+      const response = await fetch('https://workflow-lg9z.onrender.com/api/workflows-simple');
+      const workflows = await response.json();
+      
+      // Find the workflow with matching ID
+      const workflow = workflows.find(w => w.id.toString() === id);
+      
+      if (workflow) {
+        setWorkflowName(workflow.name); // This will be "Workflow - X"
+      } else {
+        setWorkflowName('Workflow Not Found');
+      }
+    } catch (error) {
+      console.error('Error loading workflow:', error);
+      setWorkflowName('Error Loading Workflow');
+    }
+  };
 
   const addNode = (type) => {
     const newNode = {
