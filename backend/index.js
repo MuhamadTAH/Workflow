@@ -62,30 +62,30 @@ app.use('/api/products', productsRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/uploads', uploadsRoutes);
 app.use('/api/ai', aiRoutes);
+// Store workflows in memory (simple approach)
+let workflows = [
+  {
+    id: 1,
+    name: 'Workflow - 1',
+    description: 'A simple example workflow',
+    nodes: 2,
+    status: 'active',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 2,
+    name: 'Workflow - 2',
+    description: 'Another workflow example',
+    nodes: 5,
+    status: 'draft',
+    created_at: new Date().toISOString()
+  }
+];
+
 // Simple workflow routes without complex auth
 app.get('/api/workflows-simple', (req, res) => {
   try {
-    // Return sample workflows for now
-    const sampleWorkflows = [
-      {
-        id: 1,
-        name: 'Welcome Workflow',
-        description: 'A simple example workflow',
-        nodes: 2,
-        status: 'active',
-        created_at: new Date().toISOString()
-      },
-      {
-        id: 2,
-        name: 'Demo Process',
-        description: 'Another workflow example',
-        nodes: 5,
-        status: 'draft',
-        created_at: new Date().toISOString()
-      }
-    ];
-    
-    res.json(sampleWorkflows);
+    res.json(workflows);
   } catch (error) {
     res.status(500).json({ message: 'Error loading workflows', error: error.message });
   }
@@ -93,16 +93,24 @@ app.get('/api/workflows-simple', (req, res) => {
 
 app.post('/api/workflows-simple', (req, res) => {
   try {
-    const { name } = req.body;
+    // Calculate next workflow number
+    const workflowNumbers = workflows
+      .map(w => w.name.match(/Workflow - (\d+)/))
+      .filter(match => match)
+      .map(match => parseInt(match[1]));
+    
+    const nextNumber = workflowNumbers.length > 0 ? Math.max(...workflowNumbers) + 1 : workflows.length + 1;
+    
     const newWorkflow = {
       id: Date.now(),
-      name: name || 'New Workflow',
+      name: `Workflow - ${nextNumber}`,
       description: 'Created workflow',
       nodes: 0,
       status: 'draft',
       created_at: new Date().toISOString()
     };
     
+    workflows.push(newWorkflow);
     res.status(201).json(newWorkflow);
   } catch (error) {
     res.status(500).json({ message: 'Error creating workflow', error: error.message });
