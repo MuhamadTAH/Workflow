@@ -55,6 +55,7 @@ const dbWrapper = {
           reject(err);
         } else {
           resolve({
+            lastID: this.lastID,
             lastInsertRowid: this.lastID,
             changes: this.changes
           });
@@ -107,6 +108,7 @@ const dbWrapper = {
               reject(err);
             } else {
               resolve({
+                lastID: this.lastID,
                 lastInsertRowid: this.lastID,
                 changes: this.changes
               });
