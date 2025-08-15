@@ -70,6 +70,41 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: '✅ Hello from the backend! (Updated)' });
 });
 
+// Database debug route (no auth required)
+app.get('/api/workflow-debug', async (req, res) => {
+  try {
+    console.log('🔧 Workflow debug - checking database');
+    
+    const db = require('./dbWrapper');
+    const tables = await db.all("SELECT name FROM sqlite_master WHERE type='table'");
+    
+    console.log('📊 Available tables:', tables);
+    
+    // Test workflow table specifically
+    let workflowCount = 0;
+    try {
+      const count = await db.all('SELECT COUNT(*) as count FROM workflows');
+      workflowCount = count[0]?.count || 0;
+    } catch (tableError) {
+      console.log('❌ Workflow table error:', tableError.message);
+    }
+    
+    res.json({ 
+      message: 'Workflow debug successful', 
+      tables: tables,
+      workflowCount: workflowCount,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Workflow debug error:', error);
+    res.status(500).json({ 
+      message: 'Workflow debug error', 
+      error: error.message, 
+      stack: error.stack 
+    });
+  }
+});
+
 // Test route for shop validation
 app.post('/api/test-shop-validation', (req, res) => {
   const { shopData } = req.body;
