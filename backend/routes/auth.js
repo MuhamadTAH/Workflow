@@ -162,7 +162,7 @@ router.post('/verify-claude', async (req, res) => {
 router.get('/debug/user/:email', async (req, res) => {
   try {
     const { email } = req.params;
-    const user = await db.get('SELECT id, name, email FROM users WHERE email = ?', [email]);
+    const user = await db.get('SELECT id, name, email, password FROM users WHERE email = ?', [email]);
     
     if (user) {
       res.json({
@@ -170,7 +170,9 @@ router.get('/debug/user/:email', async (req, res) => {
         user: {
           id: user.id,
           name: user.name,
-          email: user.email
+          email: user.email,
+          hasPassword: !!user.password,
+          passwordLength: user.password ? user.password.length : 0
         }
       });
     } else {
