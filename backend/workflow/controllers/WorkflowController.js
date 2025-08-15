@@ -9,7 +9,7 @@ const WorkflowController = {
   // Get all workflows for the authenticated user
   async getAll(req, res) {
     try {
-      const workflows = await Workflow.findAllByUserId(req.user.id);
+      const workflows = await Workflow.findAllByUserId(req.user.userId);
       res.status(200).json(workflows);
     } catch (error) {
       res.status(500).json({ message: 'Error fetching workflows', error: error.message });
@@ -20,7 +20,7 @@ const WorkflowController = {
   async getById(req, res) {
     try {
       const { id } = req.params;
-      const workflow = await Workflow.findById(id, req.user.id);
+      const workflow = await Workflow.findById(id, req.user.userId);
       if (!workflow) {
         return res.status(404).json({ message: 'Workflow not found or you do not have permission to view it.' });
       }
@@ -39,7 +39,7 @@ const WorkflowController = {
       if (!name) {
         return res.status(400).json({ message: 'Workflow name is required.' });
       }
-      const newWorkflow = await Workflow.create(name, req.user.id);
+      const newWorkflow = await Workflow.create(name, req.user.userId);
       res.status(201).json(newWorkflow);
     } catch (error) {
       res.status(500).json({ message: 'Error creating workflow', error: error.message });
@@ -56,7 +56,7 @@ const WorkflowController = {
         return res.status(400).json({ message: 'Workflow data is required.' });
       }
 
-      const success = await Workflow.updateById(id, data, req.user.id);
+      const success = await Workflow.updateById(id, data, req.user.userId);
       
       if (!success) {
         return res.status(404).json({ message: 'Workflow not found or you do not have permission to update it.' });
