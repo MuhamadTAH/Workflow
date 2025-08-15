@@ -67,7 +67,7 @@ app.use('/api/workflow', workflowRoutes);
 
 // Test route
 app.get('/api/hello', (req, res) => {
-  res.json({ message: '✅ Hello from the backend!' });
+  res.json({ message: '✅ Hello from the backend! (Updated)' });
 });
 
 // Test route for shop validation

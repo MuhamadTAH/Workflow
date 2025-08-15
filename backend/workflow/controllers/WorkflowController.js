@@ -9,9 +9,12 @@ const WorkflowController = {
   // Get all workflows for the authenticated user
   async getAll(req, res) {
     try {
+      console.log('🔍 Getting workflows for user:', req.user.userId);
       const workflows = await Workflow.findAllByUserId(req.user.userId);
+      console.log('✅ Found workflows:', workflows.length);
       res.status(200).json(workflows);
     } catch (error) {
+      console.error('❌ Error in WorkflowController.getAll:', error);
       res.status(500).json({ message: 'Error fetching workflows', error: error.message });
     }
   },
