@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaPlus, FaCog, FaPlay, FaEye } from 'react-icons/fa';
 import './styles/WorkflowBuilder.css';
 
 function SimpleWorkflowList() {
+  const navigate = useNavigate();
   const [workflows, setWorkflows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -36,6 +37,9 @@ function SimpleWorkflowList() {
       });
       const newWorkflow = await response.json();
       setWorkflows([newWorkflow, ...workflows]);
+      
+      // Navigate to workflow builder page
+      navigate(`/workflow-builder/${newWorkflow.id}`);
     } catch (error) {
       console.error('Error creating workflow:', error);
       setError('Failed to create workflow');
