@@ -1,7 +1,4 @@
-// Workflow list page component
-// Shows all user's workflows in a list/grid view
-// Allows creating new workflows, editing, deleting, and running existing ones
-import React, { useState, useEffect } from 'react';
+// Workflow functionality removedimport React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { workflowAPI } from './services/workflowAPI';
 import './styles/WorkflowBuilder.css';
@@ -106,4 +103,3 @@ const WorkflowList = () => {
 };
 
 export default WorkflowList;
-

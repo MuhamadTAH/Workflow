@@ -1,88 +1,33 @@
-// Workflow database model
-// Defines workflow schema: id, user_id, name, description, nodes, connections
-// Database operations for workflows
-// Relationships with executions and logs
-
-const dbWrapper = require('../../dbWrapper');
+// /backend/workflow/models/Workflow.js
+const db = require('../../dbWrapper');
 
 const Workflow = {
   // Find all workflows for a specific user
   async findAllByUserId(userId) {
-    try {
-      console.log('🔍 Workflow.findAllByUserId called with userId:', userId);
-      console.log('📊 About to query database...');
-      
-      const workflows = await dbWrapper.all(
-        'SELECT id, name, data, is_active, created_at, updated_at FROM workflows WHERE user_id = ? ORDER BY updated_at DESC',
-        [userId]
-      );
-      
-      console.log('✅ Database query successful, found workflows:', workflows.length);
-      
-      const processedWorkflows = workflows.map(workflow => ({
-        ...workflow,
-        data: workflow.data ? JSON.parse(workflow.data) : null
-      }));
-      
-      console.log('✅ Workflows processed successfully');
-      return processedWorkflows;
-    } catch (error) {
-      console.error('❌ Error in Workflow.findAllByUserId:', error);
-      console.error('❌ Error details:', error.message);
-      console.error('❌ Error stack:', error.stack);
-      throw error;
-    }
+    const query = 'SELECT id, name, is_active, updated_at FROM workflows WHERE user_id = ? ORDER BY updated_at DESC';
+    return await db.all(query, [userId]);
   },
 
-  // Find a specific workflow by ID and user ID
-  async findById(workflowId, userId) {
-    try {
-      const workflow = await dbWrapper.get(
-        'SELECT id, name, data, is_active, created_at, updated_at FROM workflows WHERE id = ? AND user_id = ?',
-        [workflowId, userId]
-      );
-      return workflow;
-    } catch (error) {
-      console.error('Error finding workflow by ID:', error);
-      throw error;
-    }
+  // Find a single workflow by its ID and user ID to ensure ownership
+  async findById(id, userId) {
+    const query = 'SELECT * FROM workflows WHERE id = ? AND user_id = ?';
+    return await db.get(query, [id, userId]);
   },
 
   // Create a new workflow
   async create(name, userId) {
-    try {
-      const result = await dbWrapper.run(
-        'INSERT INTO workflows (user_id, name, data, is_active) VALUES (?, ?, ?, ?)',
-        [userId, name, JSON.stringify({ nodes: [], edges: [] }), 1]
-      );
-      
-      return {
-        id: result.lastID,
-        name,
-        data: { nodes: [], edges: [] },
-        is_active: 1,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-    } catch (error) {
-      console.error('Error creating workflow:', error);
-      throw error;
-    }
+    const query = 'INSERT INTO workflows (name, user_id, data) VALUES (?, ?, ?)';
+    // Initialize with empty data for a new workflow
+    const initialData = JSON.stringify({ nodes: [], edges: [], viewport: {} });
+    const result = await db.run(query, [name, userId, initialData]);
+    return { id: result.lastID, name, userId };
   },
 
-  // Update a workflow's data
-  async updateById(workflowId, data, userId) {
-    try {
-      const result = await dbWrapper.run(
-        'UPDATE workflows SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
-        [JSON.stringify(data), workflowId, userId]
-      );
-      
-      return result.changes > 0;
-    } catch (error) {
-      console.error('Error updating workflow:', error);
-      throw error;
-    }
+  // Update an existing workflow
+  async updateById(id, data, userId) {
+    const query = 'UPDATE workflows SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?';
+    const result = await db.run(query, [JSON.stringify(data), id, userId]);
+    return result.changes > 0;
   }
 };
 

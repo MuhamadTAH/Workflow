@@ -1,3 +1,4 @@
+// /frontend/src/config/api.js
 // Centralized API configuration for all environments
 // Uses VITE_API_BASE_URL environment variable set in Render
 

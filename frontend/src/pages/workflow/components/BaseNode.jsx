@@ -1,8 +1,3 @@
-// Base node component
-// All specific nodes (triggers, actions, conditions) extend this
-// Handles common node functionality like selection, connection points, dragging
-// Provides consistent node styling and behavior
-
 import React from 'react';
 import { Handle, Position } from 'reactflow';
 import '../styles/Nodes.css'; // We will create styles for this component

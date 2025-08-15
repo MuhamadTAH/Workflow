@@ -1,7 +1,3 @@
--- Database schema for workflow tables
--- Creates workflows, workflow_nodes, workflow_executions tables
--- Indexes for performance optimization
--- Foreign key relationships and constraints
 -- /backend/workflow/database/workflowTables.sql
 
 -- This table stores the main workflow configurations.

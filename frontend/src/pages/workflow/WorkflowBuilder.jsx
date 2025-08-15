@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+// Workflow functionality removedimport React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { ReactFlowProvider, useNodesState, useEdgesState, useReactFlow } from 'reactflow';
 import { workflowAPI } from './services/workflowAPI';
 import WorkflowToolbar from './components/WorkflowToolbar';
-import NodePalette from './components/NodePalette';
 import WorkflowCanvas from './components/WorkflowCanvas';
 import './styles/WorkflowBuilder.css';
 import 'reactflow/dist/style.css';

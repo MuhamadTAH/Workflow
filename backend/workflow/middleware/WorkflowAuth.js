@@ -1,51 +1,24 @@
-// Workflow authentication middleware
-// Validates user permissions for workflow access
-// Checks workflow ownership and sharing permissions
-// API key validation for webhook triggers
-
+// /backend/workflow/middleware/WorkflowAuth.js
 const jwt = require('jsonwebtoken');
 
-const verifyToken = (req, res, next) => {
-  // Allow OPTIONS requests (CORS preflight) to pass through without authentication
-  if (req.method === 'OPTIONS') {
-    return next();
+// This middleware will protect our workflow routes
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Authentication token required.' });
   }
 
-  console.log('🔐 WorkflowAuth called for:', req.method, req.url);
-
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-  
-  if (!token) {
-    console.log('❌ No token provided');
-    return res.status(401).json({ message: 'Access denied. No token provided.' });
-  }
-
-  // Check if JWT_SECRET exists
-  if (!process.env.JWT_SECRET) {
-    console.log('❌ JWT_SECRET not set in environment');
-    return res.status(500).json({ message: 'Server configuration error' });
-  }
+  const token = authHeader.split(' ')[1];
 
   try {
-    console.log('🔑 JWT_SECRET available:', !!process.env.JWT_SECRET);
-    console.log('🎫 Token length:', token.length);
-    
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    console.log('✅ Token valid for user:', decoded.userId);
+    // In a real app, use a secret from environment variables
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret'); 
+    req.user = decoded; // Add user payload to the request object
     next();
   } catch (error) {
-    console.log('❌ JWT verification error:', error.message);
-    console.log('❌ Error code:', error.code);
-    console.log('❌ Error name:', error.name);
-    
-    // If it's a JWT error, return 401, if it's something else, return 500
-    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-      res.status(401).json({ message: 'Invalid or expired token.' });
-    } else {
-      res.status(500).json({ message: 'Authentication error', error: error.message });
-    }
+    return res.status(401).json({ message: 'Invalid or expired token.' });
   }
 };
 
-module.exports = verifyToken;
+module.exports = authMiddleware;

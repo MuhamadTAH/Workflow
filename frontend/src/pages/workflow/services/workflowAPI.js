@@ -1,7 +1,3 @@
-// API service for workflow operations
-// CRUD operations for workflows
-// Node configuration and validation
-// Execution control (start, stop, status)
 // /frontend/src/pages/workflow/services/workflowAPI.js
 import api from '../../../api'; // Import the main configured axios instance
 
