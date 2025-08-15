@@ -26,6 +26,8 @@ import {
 } from './pages/shop';
 // Import workflow components
 import { WorkflowBuilder, WorkflowList } from './pages/workflow';
+import SimpleWorkflowList from './pages/workflow/SimpleWorkflowList';
+import SimpleWorkflowBuilder from './pages/workflow/SimpleWorkflowBuilder';
 import ProductDetail from './pages/shop/product-detail/ProductDetail';
 import { authAPI, tokenManager } from './api';
 import './styles.css';
@@ -348,8 +350,10 @@ function App() {
         <Route path="/shop/:shopName" element={<PublicShop />} />
 
         {/* --- NEW WORKFLOW ROUTES --- */}
-        <Route path="/workflow" element={<WorkflowList />} />
-        <Route path="/workflow/builder/:id?" element={<WorkflowBuilder />} />
+        <Route path="/workflows" element={<SimpleWorkflowList />} />
+        <Route path="/workflow-builder/:id?" element={<SimpleWorkflowBuilder />} />
+        <Route path="/workflow" element={<SimpleWorkflowList />} />
+        <Route path="/workflow/builder/:id?" element={<SimpleWorkflowBuilder />} />
       </Routes>
     </Router>
   );
