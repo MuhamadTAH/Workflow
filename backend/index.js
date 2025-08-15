@@ -1,9 +1,8 @@
-// /backend/index.js
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
-const shopRoutes = require('./routes/shop');
-const workflowRoutes = require('./workflow'); // Import the workflow module
+const shopRoutes = require('./routes/shops');
+const workflowRoutes = require('./workflow/routes/workflows');
 
 const app = express();
 app.use(cors());
