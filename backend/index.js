@@ -16,6 +16,7 @@ const uploadsRoutes = require('./routes/uploads');
 const publicRoutes = require('./routes/public');
 const aiRoutes = require('./routes/ai');
 const languageRoutes = require('./routes/language');
+const workflowRoutes = require('./routes/workflow/workflows');
 
 const app = express();
 app.use(cors({
@@ -34,6 +35,7 @@ app.use('/api/uploads', uploadsRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/language', languageRoutes);
+app.use('/api/workflows', workflowRoutes);
 
 // Test route
 app.get('/api/test', (req, res) => {

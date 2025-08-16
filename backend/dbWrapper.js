@@ -233,6 +233,49 @@ db.serialize(() => {
     }
   });
 
+  // Create workflows table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS workflows (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      description TEXT,
+      status TEXT DEFAULT 'inactive' CHECK(status IN ('active', 'inactive')),
+      flow_data TEXT DEFAULT '{}',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_executed_at DATETIME,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating workflows table:', err);
+    } else {
+      console.log('✅ Workflows table ready');
+    }
+  });
+
+  // Create workflow_executions table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS workflow_executions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      workflow_id INTEGER NOT NULL,
+      status TEXT DEFAULT 'running' CHECK(status IN ('running', 'completed', 'failed')),
+      started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      finished_at DATETIME,
+      input_data TEXT DEFAULT '{}',
+      output_data TEXT DEFAULT '{}',
+      error_message TEXT,
+      FOREIGN KEY (workflow_id) REFERENCES workflows(id)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating workflow_executions table:', err);
+    } else {
+      console.log('✅ Workflow executions table ready');
+    }
+  });
+
   // Try to add columns if they don't exist (for existing databases)
   db.run(`ALTER TABLE products ADD COLUMN videos TEXT`, (err) => {
     // Column already exists or other error, ignore
