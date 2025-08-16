@@ -9,11 +9,11 @@ const getApiBaseUrl = () => {
   
   // 2. Production detection (when served from production domain)
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return 'https://shoppro-backend.onrender.com'; // Production backend
+    return 'https://workflow-lg9z.onrender.com'; // Production backend
   }
   
   // 3. Development fallback - use production backend
-  return 'https://shoppro-backend.onrender.com';
+  return 'https://workflow-lg9z.onrender.com';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
