@@ -288,44 +288,8 @@ const WorkflowBuilder = () => {
       )}
 
       {/* N8N-Style Workflow Canvas */}
-      <div style={{
-        background: 'white',
-        borderRadius: '8px',
-        padding: '16px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-      }}>
-        <WorkflowCanvas />
-      </div>
+      <WorkflowCanvas />
 
-      {/* Workflow Details Panel (Optional - can be toggled) */}
-      {isEditing && workflow && (
-        <div style={{
-          background: 'white',
-          borderRadius: '8px',
-          padding: '24px',
-          marginTop: '16px',
-          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-        }}>
-          <h3 style={{ color: '#1f2937', marginBottom: '16px', fontSize: '16px' }}>Workflow Details</h3>
-          <div style={{ 
-            background: '#f9fafb', 
-            padding: '16px', 
-            borderRadius: '8px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '12px',
-            fontSize: '14px'
-          }}>
-            <div><strong>ID:</strong> {workflow.id}</div>
-            <div><strong>Status:</strong> <span style={{ 
-              color: workflow.status === 'active' ? '#16a085' : '#f39c12',
-              fontWeight: '600'
-            }}>{workflow.status}</span></div>
-            <div><strong>Created:</strong> {new Date(workflow.created_at).toLocaleDateString()}</div>
-            <div><strong>Last Updated:</strong> {new Date(workflow.updated_at).toLocaleDateString()}</div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

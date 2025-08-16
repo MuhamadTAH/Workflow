@@ -32,32 +32,35 @@ const WorkflowCanvas = () => {
     });
   }, []);
 
-  // Initialize nodes with double-click handler
-  const initialNodes = [
-    {
-      id: '1',
-      type: 'telegramTrigger',
-      position: { x: 250, y: 100 },
-      data: {
-        icon: 'fab fa-telegram-plane',
-        label: 'Telegram Trigger',
-        description: 'Triggered when a message is received',
-        onDoubleClick: handleNodeDoubleClick,
-        config: {
-          botToken: '',
-          isValid: null
-        }
-      }
-    }
-  ];
-
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   
   // Keep nodes ref updated
   React.useEffect(() => {
     nodesRef.current = nodes;
   }, [nodes]);
+
+  // Initialize nodes with double-click handler on mount
+  React.useEffect(() => {
+    const initialNodes = [
+      {
+        id: '1',
+        type: 'telegramTrigger',
+        position: { x: 250, y: 100 },
+        data: {
+          icon: 'fab fa-telegram-plane',
+          label: 'Telegram Trigger',
+          description: 'Triggered when a message is received',
+          onDoubleClick: handleNodeDoubleClick,
+          config: {
+            botToken: '',
+            isValid: null
+          }
+        }
+      }
+    ];
+    setNodes(initialNodes);
+  }, []); // Empty dependencies to run only once
 
   // Handle config panel close
   const handleConfigClose = useCallback(() => {
