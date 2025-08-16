@@ -10,7 +10,6 @@ if (!process.env.JWT_SECRET) {
 
 const authRoutes = require('./routes/auth');
 const shopRoutes = require('./routes/shops');
-const workflowRoutes = require('./workflow/routes/workflows');
 
 const app = express();
 app.use(cors());
@@ -19,9 +18,6 @@ app.use(express.json());
 // Main application routes
 app.use('/api/auth', authRoutes);
 app.use('/api/shop', shopRoutes);
-
-// Register the new workflow routes under the /api/workflow prefix
-app.use('/api/workflow', workflowRoutes);
 
 // Test route
 app.get('/api/test', (req, res) => {

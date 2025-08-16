@@ -30,17 +30,6 @@ const initDb = () => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users (id)
     )`);
-    
-    // Read and execute the workflow schema
-    const workflowSchemaPath = path.join(__dirname, 'workflow', 'middleware', 'workflowTables.sql');
-    const workflowSchema = fs.readFileSync(workflowSchemaPath, 'utf8');
-    db.exec(workflowSchema, (err) => {
-      if (err) {
-        console.error("Error initializing workflow tables:", err.message);
-      } else {
-        console.log("Workflow tables initialized successfully.");
-      }
-    });
   });
 };
 
