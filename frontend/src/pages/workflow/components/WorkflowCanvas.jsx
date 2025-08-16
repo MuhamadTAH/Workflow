@@ -43,35 +43,36 @@ const WorkflowCanvas = () => {
   setConfigPanelRef.current = setConfigPanel;
   WorkflowCanvas.setConfigPanelRef = setConfigPanelRef;
 
-  // Static initial nodes - no dependencies that change
-  const [isInitialized, setIsInitialized] = React.useState(false);
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-
-  // Initialize nodes only once
-  React.useEffect(() => {
-    if (!isInitialized) {
-      console.log('Initializing nodes for the first time');
-      const initialNodes = [
-        {
-          id: '1',
-          type: 'telegramTrigger',
-          position: { x: 250, y: 100 },
-          data: {
-            icon: 'fab fa-telegram-plane',
-            label: 'Telegram Trigger',
-            description: 'Triggered when a message is received',
-            onDoubleClick: globalDoubleClickHandler,
-            config: {
-              botToken: '',
-              isValid: null
-            }
-          }
+  // Try direct initialization with useNodesState
+  const initialNodesStatic = React.useMemo(() => [
+    {
+      id: '1',
+      type: 'telegramTrigger',
+      position: { x: 250, y: 100 },
+      data: {
+        icon: 'fab fa-telegram-plane',
+        label: 'Telegram Trigger',
+        description: 'Triggered when a message is received',
+        onDoubleClick: globalDoubleClickHandler,
+        config: {
+          botToken: '',
+          isValid: null
         }
-      ];
-      setNodes(initialNodes);
-      setIsInitialized(true);
+      }
     }
-  }, [isInitialized, setNodes]);
+  ], []); // Empty deps - create only once
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodesStatic);
+  
+  console.log('Component render - nodes length:', nodes.length);
+
+  // Debug: Log when nodes change
+  React.useEffect(() => {
+    console.log('Current nodes array:', nodes.length, nodes.map(n => n.id));
+    if (nodes.length === 0) {
+      console.warn('⚠️ Nodes array is empty! Something cleared it.');
+    }
+  }, [nodes]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   
   // Keep nodes ref updated (no console log to prevent spam)
