@@ -8,7 +8,7 @@ n8n-style execution context engine for backend workflow execution
 // Environment variables from process.env
 const getEnvironmentVariables = () => ({
   NODE_ENV: process.env.NODE_ENV || 'development',
-  API_BASE: process.env.API_BASE || 'https://workflow-lg9z.onrender.com',
+  API_BASE: process.env.API_BASE || 'https://workflow-unlq.onrender.com',
   WORKFLOW_VERSION: process.env.WORKFLOW_VERSION || '1.0.0',
   PORT: process.env.PORT || '3001'
 });

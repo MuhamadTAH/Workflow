@@ -3,7 +3,7 @@ const logger = require('./logger');
 
 // Bot configuration
 const botToken = '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ';
-const webhookUrl = 'https://workflow-lg9z.onrender.com/api/webhooks/telegram';
+const webhookUrl = 'https://workflow-unlq.onrender.com/api/webhooks/telegram';
 
 // Function to set Telegram webhook
 async function setTelegramWebhook() {

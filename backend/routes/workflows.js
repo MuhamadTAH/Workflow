@@ -442,7 +442,7 @@ router.get('/:id/hosted-url', verifyToken, (req, res) => {
           });
         }
 
-        const baseUrl = process.env.BASE_URL || 'https://workflow-lg9z.onrender.com';
+        const baseUrl = process.env.BASE_URL || 'https://workflow-unlq.onrender.com';
         const hostedUrl = `${baseUrl}/public/hosted-chat.html?workflowId=${workflowId}`;
         
         res.json({
