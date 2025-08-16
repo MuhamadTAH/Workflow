@@ -2,7 +2,7 @@
   "name": "n8n-clone-backend",
   "version": "1.0.0",
   "description": "Backend server for n8n-clone workflow builder",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
