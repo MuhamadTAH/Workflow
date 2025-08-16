@@ -23,44 +23,48 @@ const WorkflowCanvas = () => {
   
   const nodesRef = React.useRef([]);
 
-  // Handle double-click on nodes
-  const handleNodeDoubleClick = useCallback((nodeId, nodeType) => {
+  // Stable double-click handler using useRef
+  const handleNodeDoubleClickRef = React.useRef();
+  handleNodeDoubleClickRef.current = (nodeId, nodeType) => {
     const node = nodesRef.current.find(n => n.id === nodeId);
     setConfigPanel({
       isOpen: true,
       selectedNode: node || { id: nodeId, type: nodeType, data: { config: {} } }
     });
+  };
+
+  // Wrapper function that stays stable
+  const handleNodeDoubleClick = useCallback((nodeId, nodeType) => {
+    handleNodeDoubleClickRef.current(nodeId, nodeType);
   }, []);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  // Initialize with stable initial nodes
+  const getInitialNodes = React.useCallback(() => [
+    {
+      id: '1',
+      type: 'telegramTrigger',
+      position: { x: 250, y: 100 },
+      data: {
+        icon: 'fab fa-telegram-plane',
+        label: 'Telegram Trigger',
+        description: 'Triggered when a message is received',
+        onDoubleClick: handleNodeDoubleClick,
+        config: {
+          botToken: '',
+          isValid: null
+        }
+      }
+    }
+  ], [handleNodeDoubleClick]);
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(getInitialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   
   // Keep nodes ref updated
   React.useEffect(() => {
+    console.log('Nodes updated:', nodes.length, nodes);
     nodesRef.current = nodes;
   }, [nodes]);
-
-  // Initialize nodes with double-click handler on mount
-  React.useEffect(() => {
-    const initialNodes = [
-      {
-        id: '1',
-        type: 'telegramTrigger',
-        position: { x: 250, y: 100 },
-        data: {
-          icon: 'fab fa-telegram-plane',
-          label: 'Telegram Trigger',
-          description: 'Triggered when a message is received',
-          onDoubleClick: handleNodeDoubleClick,
-          config: {
-            botToken: '',
-            isValid: null
-          }
-        }
-      }
-    ];
-    setNodes(initialNodes);
-  }, []); // Empty dependencies to run only once
 
   // Handle config panel close
   const handleConfigClose = useCallback(() => {
@@ -78,7 +82,8 @@ const WorkflowCanvas = () => {
           ...node,
           data: {
             ...node.data,
-            config: config
+            config: config,
+            onDoubleClick: node.data.onDoubleClick // Preserve the handler
           }
         };
       }
