@@ -61,6 +61,7 @@ app.use(cors({
       'http://localhost:5179', 'http://localhost:3000',
       // Production frontend and backend (for self-referencing)
       'https://workflow-1-frkg.onrender.com',
+      'https://frontend-dpcg.onrender.com',
       'https://workflow-unlq.onrender.com'
     ];
     
