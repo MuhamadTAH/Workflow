@@ -919,6 +919,107 @@ router.get('/_dev/check-runWorkflow', (req, res) => {
   });
 });
 
+// Test endpoint to verify workflow-specific webhook URL
+router.get('/test-telegram/:workflowId', (req, res) => {
+  const { workflowId } = req.params;
+  console.log(`🧪 TEST: Telegram webhook test for workflow: ${workflowId}`);
+  
+  res.json({
+    success: true,
+    message: `Webhook endpoint is reachable for workflow: ${workflowId}`,
+    url: `/api/webhooks/telegram/${workflowId}`,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Test POST endpoint with fake Telegram data that actually triggers workflow
+router.post('/test-telegram-post/:workflowId', async (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    console.log(`🧪 TEST POST: Simulating Telegram message for workflow: ${workflowId}`);
+    
+    // Create fake Telegram update
+    const fakeUpdate = {
+      update_id: 123456789,
+      message: {
+        message_id: 1,
+        from: {
+          id: 12345,
+          is_bot: false,
+          first_name: "Test",
+          username: "testuser"
+        },
+        chat: {
+          id: 12345,
+          first_name: "Test",
+          username: "testuser",
+          type: "private"
+        },
+        date: Math.floor(Date.now() / 1000),
+        text: "Test message from API endpoint"
+      }
+    };
+    
+    console.log('🧪 TEST POST: Fake update:', JSON.stringify(fakeUpdate, null, 2));
+    
+    // Standardize trigger data using processor
+    const standardizedData = TriggerDataProcessor.standardizeTriggerData(
+      'telegramTrigger', 
+      fakeUpdate, 
+      `telegram-trigger-${workflowId}`
+    );
+    
+    // Check if workflow is active and queue for execution
+    if (workflowExecutor && workflowExecutor.activeWorkflows.has(workflowId)) {
+      console.log(`🧪 TEST POST: Workflow ${workflowId} is active, triggering execution`);
+      
+      // Prepare trigger data for workflow execution
+      const triggerData = TriggerDataProcessor.toExecutionFormat(standardizedData);
+      
+      // Add job to queue
+      const jobResult = await jobQueue.addJob({
+        workflowId,
+        triggerData,
+        triggerType: 'telegramTrigger',
+        priority: 'high',
+        metadata: {
+          source: 'test_api',
+          chatId: fakeUpdate.message.chat.id,
+          messageText: fakeUpdate.message.text
+        }
+      });
+      
+      console.log(`🧪 TEST POST: Job queued successfully:`, jobResult.jobId);
+      
+      res.json({
+        success: true,
+        message: `Test workflow execution triggered for: ${workflowId}`,
+        jobId: jobResult.jobId,
+        fakeUpdate: fakeUpdate,
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      console.log(`🧪 TEST POST: Workflow ${workflowId} not found or not active`);
+      const availableWorkflows = workflowExecutor ? Array.from(workflowExecutor.activeWorkflows.keys()) : [];
+      
+      res.json({
+        success: false,
+        message: `Workflow ${workflowId} not found or not active`,
+        availableWorkflows: availableWorkflows,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+  } catch (error) {
+    console.error('🧪 TEST POST: Error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Update Telegram webhook for a specific workflow
 router.post('/update-telegram-webhook/:workflowId', async (req, res) => {
   try {
