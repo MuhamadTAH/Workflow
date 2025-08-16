@@ -14,6 +14,7 @@ const aiRoutes = require('./routes/ai');
 const chatRoutes = require('./routes/chat');
 const languageRoutes = require('./routes/language');
 const debugRoutes = require('./routes/debug');
+const jobsRoutes = require('./routes/jobs');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
@@ -145,6 +146,7 @@ app.use('/api/ai', aiRoutes);
 app.use(chatRoutes);
 app.use(languageRoutes);
 app.use(debugRoutes);
+app.use('/api/jobs', jobsRoutes);
 // Additional middleware to debug CORS and route issues
 app.use('/api/nodes', (req, res, next) => {
   console.log('🔍 NODES API REQUEST DEBUG:', {
@@ -227,14 +229,19 @@ app.listen(PORT, async () => {
   console.log(`🚀 Backend server with IF node routing fix started on port ${PORT}`);
   logger.info(`Backend server started on port ${PORT}`, { port: PORT });
   
-  // Initialize scheduler with workflow executor
+  // Initialize scheduler and job queue with workflow executor
   try {
     const scheduler = require('./services/scheduler');
+    const jobQueue = require('./services/jobQueue');
     const workflowExecutor = require('./services/workflowExecutor');
+    
     scheduler.setWorkflowExecutor(workflowExecutor);
+    jobQueue.setWorkflowExecutor(workflowExecutor);
+    
     console.log('📅 Scheduler initialized successfully');
+    console.log('🔄 Job Queue initialized successfully');
   } catch (error) {
-    console.warn('⚠️ Failed to initialize scheduler:', error.message);
+    console.warn('⚠️ Failed to initialize scheduler/queue:', error.message);
   }
   
   // Restore active workflows from database

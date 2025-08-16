@@ -88,9 +88,21 @@ class WorkflowScheduler {
             // Log the workflow trigger event
             logWorkflowTriggered(workflowId, 'scheduleTrigger', triggerData[0].json);
 
-            // Execute the workflow
-            const executionResult = await this.workflowExecutor.executeWorkflow(workflowId, triggerData);
-            console.log(`✅ Scheduled workflow ${workflowId} executed successfully:`, executionResult.status);
+            // Add to job queue instead of direct execution
+            const jobQueue = require('./jobQueue');
+            const jobResult = await jobQueue.addJob({
+                workflowId,
+                triggerData,
+                triggerType: 'scheduleTrigger',
+                priority: 'normal',
+                metadata: {
+                    source: 'scheduler',
+                    scheduleConfig: scheduleConfig,
+                    executionNumber: this.getExecutionCount(workflowId)
+                }
+            });
+            
+            console.log(`✅ Scheduled workflow ${workflowId} queued for execution:`, jobResult.jobId);
 
             // Increment execution count
             this.incrementExecutionCount(workflowId);

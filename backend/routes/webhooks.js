@@ -4,6 +4,7 @@ const { getMessages } = require('../services/chatSessions');
 const { logWorkflowTriggered } = require('../controllers/workflowController');
 const scheduler = require('../services/scheduler');
 const TriggerDataProcessor = require('../services/triggerDataProcessor');
+const jobQueue = require('../services/jobQueue');
 
 const express = require('express');
 const router = express.Router();
@@ -149,7 +150,7 @@ router.post('/telegram/:workflowId', async (req, res) => {
       return res.status(400).json({ ok: false, errors: validation.errors });
     }
     
-    // Check if workflow is active and execute
+    // Check if workflow is active and queue for execution
     if (workflowExecutor && workflowExecutor.activeWorkflows.has(workflowId)) {
       try {
         // Log the workflow trigger event
@@ -159,11 +160,23 @@ router.post('/telegram/:workflowId', async (req, res) => {
         // Prepare trigger data for workflow execution
         const triggerData = TriggerDataProcessor.toExecutionFormat(standardizedData);
         
-        console.log('[telegram-webhook] 🚀 Executing workflow with trigger data:', JSON.stringify(triggerData, null, 2));
+        console.log('[telegram-webhook] 📥 Queuing workflow for execution:', workflowId);
         
-        // Execute the workflow automatically
-        const executionResult = await workflowExecutor.executeWorkflow(workflowId, triggerData);
-        console.log('[telegram-webhook] ✅ Workflow executed successfully:', executionResult.status);
+        // Add job to queue instead of direct execution
+        const jobResult = await jobQueue.addJob({
+          workflowId,
+          triggerData,
+          triggerType: 'telegramTrigger',
+          priority: 'normal',
+          metadata: {
+            source: 'telegram_webhook',
+            chatId: standardizedData.telegram?.chatId,
+            updateId: standardizedData.telegram?.updateId,
+            messageText: standardizedData.message?.text
+          }
+        });
+        
+        console.log('[telegram-webhook] ✅ Job queued successfully:', jobResult.jobId);
         
         // Store the successful execution
         logger.logTelegramEvent('workflow_triggered', 'execution_success', {
@@ -231,7 +244,7 @@ router.post('/manual/:workflowId', async (req, res) => {
       return res.status(400).json({ success: false, errors: validation.errors });
     }
     
-    // Check if workflow is active and execute
+    // Check if workflow is active and queue for execution
     if (workflowExecutor && workflowExecutor.activeWorkflows.has(workflowId)) {
       try {
         // Log the workflow trigger event
@@ -241,17 +254,28 @@ router.post('/manual/:workflowId', async (req, res) => {
         // Prepare trigger data for workflow execution
         const executionTriggerData = TriggerDataProcessor.toExecutionFormat(standardizedData);
         
-        console.log('[manual-trigger] 🚀 Executing workflow with trigger data:', JSON.stringify(executionTriggerData, null, 2));
+        console.log('[manual-trigger] 📥 Queuing workflow for execution:', workflowId);
         
-        // Execute the workflow automatically
-        const executionResult = await workflowExecutor.executeWorkflow(workflowId, executionTriggerData);
-        console.log('[manual-trigger] ✅ Workflow executed successfully:', executionResult.status);
+        // Add job to queue instead of direct execution
+        const jobResult = await jobQueue.addJob({
+          workflowId,
+          triggerData: executionTriggerData,
+          triggerType: 'manualTrigger',
+          priority: 'high', // Manual triggers get high priority
+          metadata: {
+            source: 'manual_api',
+            triggeredBy: 'user',
+            ip: req.ip
+          }
+        });
+        
+        console.log('[manual-trigger] ✅ Job queued successfully:', jobResult.jobId);
         
         res.status(200).json({
           success: true,
-          message: 'Workflow executed successfully',
+          message: 'Workflow queued for execution',
           workflowId: workflowId,
-          executionResult: executionResult,
+          job: jobResult,
           triggeredAt: new Date().toISOString()
         });
         
@@ -755,11 +779,22 @@ router.post('/chatTrigger/:workflowId/:nodeId/:path', async (req, res) => {
           timestamp: new Date().toISOString()
         });
         
-        console.log('[webhook] 🚀 Executing workflow with trigger data:', JSON.stringify(triggerData, null, 2));
+        console.log('[webhook] 📥 Queuing workflow for execution:', workflowId);
         
-        // Execute the workflow automatically
-        const executionResult = await workflowExecutor.executeWorkflow(workflowId, triggerData);
-        console.log('[webhook] ✅ Workflow executed successfully:', executionResult.status);
+        // Add to job queue instead of direct execution
+        const jobResult = await jobQueue.addJob({
+          workflowId,
+          triggerData,
+          triggerType: 'chatTrigger',
+          priority: 'normal',
+          metadata: {
+            source: 'chat_trigger',
+            sessionId: processed.json.sessionId,
+            messageText: processed.json.message || 'No message'
+          }
+        });
+        
+        console.log('[webhook] ✅ Job queued successfully:', jobResult.jobId);
       } catch (execError) {
         console.error('[webhook] ❌ Workflow execution failed:', execError.message);
         // Continue processing even if execution fails
