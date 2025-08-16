@@ -5,8 +5,6 @@ module.exports = {
     "./src/**/*.{js,jsx,ts,tsx}",
     "./src/pages/**/*.{js,jsx}",
     "./src/components/**/*.{js,jsx}",
-    "./src/pages/workflownode/**/*.{js,jsx}",
-    "./src/components/workflownode/**/*.{js,jsx}",
   ],
   theme: {
     extend: {},

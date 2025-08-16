@@ -212,7 +212,6 @@ function Home() {
                 <i className="fas fa-store"></i>
                 <span>My Shop</span>
               </Link>
-              {/* Workflow link temporarily removed */}
               <button onClick={callBackend} className="action-item" disabled={testLoading}>
                 <i className={testLoading ? "fas fa-spinner fa-spin" : "fas fa-server"}></i>
                 <span>{testLoading ? 'Testing...' : 'Test Backend'}</span>
@@ -340,7 +339,6 @@ function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/shop/:shopName" element={<PublicShop />} />
 
-        {/* Workflow routes temporarily removed */}
       </Routes>
     </Router>
   );
