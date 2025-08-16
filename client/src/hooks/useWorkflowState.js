@@ -35,10 +35,24 @@ const useWorkflowState = () => {
       type,
       position,
       data: { label: `${type.charAt(0).toUpperCase() + type.slice(1)} Node` },
+      selectable: true,
+      deletable: true,
     };
     setNodes((nds) => nds.concat(newNode));
   }, [setNodes]);
 
+  /**
+   * Updates the data of a specific node by ID
+   */
+  const updateNodeData = useCallback((nodeId, newData) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, ...newData } }
+          : node
+      )
+    );
+  }, [setNodes]);
 
   return {
     nodes,
@@ -47,6 +61,7 @@ const useWorkflowState = () => {
     onEdgesChange,
     onConnect,
     addNewNode,
+    updateNodeData,
   };
 };
 
