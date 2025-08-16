@@ -77,39 +77,66 @@ router.post('/signup', async (req, res) => {
 router.post('/login', (req, res) => {
   try {
     const { email, password } = req.body;
+    
+    console.log('🔐 LOGIN REQUEST:', {
+      email: email,
+      hasPassword: !!password,
+      timestamp: new Date().toISOString()
+    });
 
     // Validate input
     if (!email || !password) {
+      console.log('❌ Missing email or password');
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
     // Find user by email
     db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user) => {
       if (err) {
+        console.log('❌ Database error:', err);
         return res.status(500).json({ message: 'Database error' });
       }
 
       if (!user) {
+        console.log('❌ User not found for email:', email);
         return res.status(400).json({ message: 'Invalid credentials' });
       }
+      
+      console.log('✅ User found:', { id: user.id, email: user.email });
 
-      // Compare password
-      const validPassword = await bcrypt.compare(password, user.password);
-      if (!validPassword) {
-        return res.status(400).json({ message: 'Invalid credentials' });
+      try {
+        // Compare password
+        const validPassword = await bcrypt.compare(password, user.password);
+        console.log('🔑 Password validation result:', validPassword);
+        
+        if (!validPassword) {
+          console.log('❌ Invalid password for user:', email);
+          return res.status(400).json({ message: 'Invalid credentials' });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign(
+          { userId: user.id, email: user.email },
+          process.env.JWT_SECRET,
+          { expiresIn: '24h' }
+        );
+        
+        console.log('✅ Login successful for user:', email);
+        console.log('🎫 Token generated:', token.substring(0, 50) + '...');
+
+        res.json({
+          message: 'Login successful',
+          token: token,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email
+          }
+        });
+      } catch (passwordError) {
+        console.log('❌ Password comparison error:', passwordError);
+        return res.status(500).json({ message: 'Authentication error' });
       }
-
-      // Generate JWT token
-      const token = jwt.sign(
-        { userId: user.id, email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: '24h' }
-      );
-
-      res.json({
-        message: 'Login successful',
-        token: token
-      });
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });

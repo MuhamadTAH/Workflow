@@ -11,7 +11,8 @@ async function callClaudeApi(request) {
   });
 
   try {
-    const anthropic = new Anthropic({ apiKey: request.apiKey });
+    const apiKey = request.apiKey || process.env.ANTHROPIC_API_KEY;
+    const anthropic = new Anthropic({ apiKey });
     
     const response = await anthropic.messages.create({
       model: request.model || 'claude-3-5-sonnet-20241022',
