@@ -20,7 +20,11 @@ const SettingsPanel = ({ node, onSave, onClose }) => {
     onSave(node.id, { botToken: value });
   };
 
+  // DEBUG: Log when component renders
+  console.log('SettingsPanel render - node:', node);
+
   if (!node) {
+    console.log('SettingsPanel: No node selected, hiding panel');
     return null;
   }
 

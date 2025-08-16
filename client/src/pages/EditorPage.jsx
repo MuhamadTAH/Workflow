@@ -25,6 +25,11 @@ const EditorPage = () => {
   } = useWorkflowState();
   
   const [selectedNode, setSelectedNode] = useState(null);
+  
+  // DEBUG: Log when selectedNode changes
+  React.useEffect(() => {
+    console.log('EditorPage: selectedNode changed to:', selectedNode);
+  }, [selectedNode]);
   const reactFlowWrapper = useRef(null);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
 
@@ -67,6 +72,8 @@ const EditorPage = () => {
   // DEBUG: Add a single-click handler to see if any click events are registered.
   const onNodeClick = useCallback((event, node) => {
     console.log('Node single-clicked:', node);
+    // For now, let's use single-click to open the panel for testing
+    setSelectedNode(node);
   }, []);
 
   // This function handles the double-click event to open the panel.
