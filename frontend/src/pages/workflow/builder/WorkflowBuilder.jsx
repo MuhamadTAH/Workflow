@@ -28,12 +28,16 @@ const WorkflowBuilder = () => {
       try {
         setLoading(true);
         setError('');
+        console.log('Fetching workflow with ID:', id);
         const response = await workflowAPI.getWorkflow(id);
+        console.log('Workflow API response:', response.data);
         
         if (response.data.success) {
           setWorkflow(response.data.workflow);
           setEditTitle(response.data.workflow.name || 'Untitled Workflow');
+          console.log('Workflow loaded successfully:', response.data.workflow);
         } else {
+          console.log('Failed to load workflow:', response.data);
           setError('Failed to load workflow');
         }
       } catch (error) {

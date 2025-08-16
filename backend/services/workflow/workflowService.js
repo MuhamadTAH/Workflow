@@ -133,10 +133,47 @@ class WorkflowService {
       updateFields.push('updated_at = CURRENT_TIMESTAMP');
       updateValues.push(workflowId, userId);
 
-      const result = await db.run(
-        `UPDATE workflows SET ${updateFields.join(', ')} WHERE id = ? AND user_id = ?`,
-        updateValues
-      );
+      // Try the update, fallback if flow_data column doesn't exist
+      let result;
+      try {
+        result = await db.run(
+          `UPDATE workflows SET ${updateFields.join(', ')} WHERE id = ? AND user_id = ?`,
+          updateValues
+        );
+      } catch (error) {
+        if (error.message.includes('no column named flow_data') && flow_data !== undefined) {
+          // Rebuild with data column instead
+          const fallbackFields = [];
+          const fallbackValues = [];
+          
+          if (name !== undefined) {
+            fallbackFields.push('name = ?');
+            fallbackValues.push(name);
+          }
+          if (description !== undefined) {
+            fallbackFields.push('description = ?');
+            fallbackValues.push(description);
+          }
+          if (flow_data !== undefined) {
+            fallbackFields.push('data = ?');
+            fallbackValues.push(JSON.stringify(flow_data));
+          }
+          if (status !== undefined) {
+            fallbackFields.push('status = ?');
+            fallbackValues.push(status);
+          }
+          
+          fallbackFields.push('updated_at = CURRENT_TIMESTAMP');
+          fallbackValues.push(workflowId, userId);
+          
+          result = await db.run(
+            `UPDATE workflows SET ${fallbackFields.join(', ')} WHERE id = ? AND user_id = ?`,
+            fallbackValues
+          );
+        } else {
+          throw error;
+        }
+      }
 
       if (result.changes === 0) {
         return null; // Workflow not found or not owned by user
