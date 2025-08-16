@@ -61,8 +61,42 @@ const WorkflowDashboard = () => {
     totalExecutions: workflows.reduce((sum, w) => sum + w.executions, 0)
   };
 
-  const handleCreateWorkflow = () => {
-    navigate('/workflow/builder');
+  const handleCreateWorkflow = async () => {
+    try {
+      // Calculate next workflow number
+      const nextNumber = workflows.length + 1;
+      const workflowName = `Workflow - ${nextNumber}`;
+      
+      // Create workflow via API
+      const response = await workflowAPI.createWorkflow({
+        name: workflowName,
+        description: 'New workflow created from dashboard',
+        flow_data: {}
+      });
+      
+      if (response.data.success) {
+        // Add new workflow to the list
+        const newWorkflow = {
+          id: response.data.workflow.id,
+          name: response.data.workflow.name,
+          description: response.data.workflow.description || 'No description',
+          status: response.data.workflow.status || 'inactive',
+          lastRun: 'Never',
+          executions: 0,
+          successRate: 0
+        };
+        
+        setWorkflows([...workflows, newWorkflow]);
+        
+        // Navigate to builder to edit the new workflow
+        navigate(`/workflow/builder/${response.data.workflow.id}`);
+      } else {
+        setError('Failed to create workflow');
+      }
+    } catch (error) {
+      console.error('Error creating workflow:', error);
+      setError('Error creating workflow. Please try again.');
+    }
   };
 
   const handleEditWorkflow = (id) => {

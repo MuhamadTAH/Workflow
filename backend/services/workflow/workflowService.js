@@ -21,11 +21,19 @@ class WorkflowService {
           ? Math.round((workflow.success_count / workflow.execution_count) * 100)
           : 0;
 
+        // Handle both flow_data and data column names
+        let flowData = {};
+        if (workflow.flow_data) {
+          flowData = JSON.parse(workflow.flow_data);
+        } else if (workflow.data) {
+          flowData = JSON.parse(workflow.data);
+        }
+
         return {
           ...workflow,
           execution_count: workflow.execution_count || 0,
           success_rate: successRate,
-          flow_data: workflow.flow_data ? JSON.parse(workflow.flow_data) : {}
+          flow_data: flowData
         };
       });
     } catch (error) {
@@ -46,9 +54,17 @@ class WorkflowService {
         return null;
       }
 
+      // Handle both flow_data and data column names
+      let flowData = {};
+      if (workflow.flow_data) {
+        flowData = JSON.parse(workflow.flow_data);
+      } else if (workflow.data) {
+        flowData = JSON.parse(workflow.data);
+      }
+
       return {
         ...workflow,
-        flow_data: workflow.flow_data ? JSON.parse(workflow.flow_data) : {}
+        flow_data: flowData
       };
     } catch (error) {
       console.error('Error fetching workflow:', error);
@@ -61,11 +77,26 @@ class WorkflowService {
     try {
       const { name, description, flow_data = {} } = workflowData;
       
-      const result = await db.run(
-        `INSERT INTO workflows (user_id, name, description, flow_data, updated_at) 
-         VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-        [userId, name, description, JSON.stringify(flow_data)]
-      );
+      // Try with flow_data first, fallback to data column if flow_data doesn't exist
+      let result;
+      try {
+        result = await db.run(
+          `INSERT INTO workflows (user_id, name, description, flow_data, updated_at) 
+           VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+          [userId, name, description, JSON.stringify(flow_data)]
+        );
+      } catch (error) {
+        if (error.message.includes('no column named flow_data')) {
+          // Fallback to data column for existing database
+          result = await db.run(
+            `INSERT INTO workflows (user_id, name, description, data, updated_at) 
+             VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+            [userId, name, description, JSON.stringify(flow_data)]
+          );
+        } else {
+          throw error;
+        }
+      }
 
       return await this.getWorkflowById(result.lastInsertRowid, userId);
     } catch (error) {
