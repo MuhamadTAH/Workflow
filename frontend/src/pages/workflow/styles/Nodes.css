@@ -1,0 +1,125 @@
+/* Main container for the pill shape */
+.custom-node {
+  background-color: #ffffff;
+  border: 1px solid #b0c4de;
+  border-radius: 9999px; /* This creates the pill shape */
+  padding: 10px 20px;
+  width: 300px;
+  height: 70px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  transition: box-shadow 0.2s ease;
+}
+
+.custom-node:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Node body container */
+.node-body {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* The circular icon */
+.node-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #6c5ce7; /* Purple background */
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+/* Node content area */
+.node-content {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Node title */
+.node-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Node description */
+.node-description {
+  font-size: 12px;
+  color: #718096;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The connection points */
+.handle-left, .handle-right {
+  background-color: #718096 !important;
+  border: 2px solid white !important;
+  width: 20px !important;
+  height: 40px !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+.handle-left:hover, .handle-right:hover {
+  background-color: #4a5568 !important;
+  transform: scale(1.1) !important;
+}
+
+.handle-left {
+  left: -12px !important;
+}
+
+.handle-right {
+  right: -12px !important;
+}
+
+/* The plus icon inside the right handle */
+.handle-right::after {
+  content: '+';
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Telegram specific styling */
+.custom-node[data-type="telegramTrigger"] .node-icon,
+.telegram-icon {
+  background-color: #0088cc; /* Telegram blue */
+}
+
+.node-telegramTrigger {
+  border-color: #0088cc;
+}
+
+.node-telegramTrigger:hover {
+  box-shadow: 0 8px 25px rgba(0, 136, 204, 0.25);
+}
+
+/* Selected node styling */
+.custom-node.selected {
+  border-color: #6c5ce7;
+  box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
+}
+
+/* Node hover effects */
+.custom-node:hover .node-icon {
+  transform: scale(1.05);
+}

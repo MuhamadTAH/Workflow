@@ -93,9 +93,16 @@ router.get('/:id', verifyToken, async (req, res) => {
 // POST /api/workflows - Create new workflow
 router.post('/', verifyToken, async (req, res) => {
   try {
+    console.log('🔥 WORKFLOW CREATION REQUEST RECEIVED');
+    console.log('📧 User ID:', req.user.userId);
+    console.log('📧 User Email:', req.user.email);
+    console.log('📋 Request Body:', JSON.stringify(req.body, null, 2));
+    console.log('🕒 Timestamp:', new Date().toISOString());
+    
     const { name, description, flow_data } = req.body;
 
     if (!name || name.trim().length === 0) {
+      console.log('❌ Validation failed: Workflow name is required');
       return res.status(400).json({
         success: false,
         message: 'Workflow name is required'
@@ -108,7 +115,14 @@ router.post('/', verifyToken, async (req, res) => {
       flow_data: flow_data || {}
     };
 
+    console.log('📦 Workflow data to create:', JSON.stringify(workflowData, null, 2));
+    console.log('🔨 Calling workflowService.createWorkflow...');
+
     const workflow = await workflowService.createWorkflow(req.user.userId, workflowData);
+
+    console.log('✅ Workflow created successfully!');
+    console.log('🆔 New workflow ID:', workflow.id);
+    console.log('📝 Workflow details:', JSON.stringify(workflow, null, 2));
 
     res.status(201).json({
       success: true,
@@ -116,7 +130,8 @@ router.post('/', verifyToken, async (req, res) => {
       workflow
     });
   } catch (error) {
-    console.error('Error creating workflow:', error);
+    console.error('❌ Error creating workflow:', error);
+    console.error('❌ Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Error creating workflow',

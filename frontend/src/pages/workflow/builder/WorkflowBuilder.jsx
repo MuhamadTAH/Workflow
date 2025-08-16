@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaSave, FaPlay, FaEdit, FaCheck, FaTimes, FaSpinner } from 'react-icons/fa';
 import { workflowAPI } from '../../../api';
+import WorkflowCanvas from '../components/WorkflowCanvas';
 
 const WorkflowBuilder = () => {
   const { id } = useParams();
@@ -286,31 +287,45 @@ const WorkflowBuilder = () => {
         </div>
       )}
 
+      {/* N8N-Style Workflow Canvas */}
       <div style={{
         background: 'white',
         borderRadius: '8px',
-        padding: '32px',
-        textAlign: 'center',
+        padding: '16px',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
       }}>
-        <h2>Workflow Builder</h2>
-        <p style={{ color: '#6b7280', marginBottom: '24px' }}>
-          This is a placeholder for the workflow builder. The visual editor will be implemented in the next steps.
-        </p>
-        {isEditing && workflow && (
-          <div style={{ marginTop: '24px', textAlign: 'left' }}>
-            <h3 style={{ color: '#1f2937', marginBottom: '16px' }}>Workflow Details:</h3>
-            <div style={{ background: '#f9fafb', padding: '16px', borderRadius: '8px' }}>
-              <p><strong>ID:</strong> {workflow.id}</p>
-              <p><strong>Name:</strong> {workflow.name}</p>
-              <p><strong>Description:</strong> {workflow.description || 'No description'}</p>
-              <p><strong>Status:</strong> {workflow.status}</p>
-              <p><strong>Created:</strong> {new Date(workflow.created_at).toLocaleString()}</p>
-              <p><strong>Last Updated:</strong> {new Date(workflow.updated_at).toLocaleString()}</p>
-            </div>
-          </div>
-        )}
+        <WorkflowCanvas />
       </div>
+
+      {/* Workflow Details Panel (Optional - can be toggled) */}
+      {isEditing && workflow && (
+        <div style={{
+          background: 'white',
+          borderRadius: '8px',
+          padding: '24px',
+          marginTop: '16px',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+        }}>
+          <h3 style={{ color: '#1f2937', marginBottom: '16px', fontSize: '16px' }}>Workflow Details</h3>
+          <div style={{ 
+            background: '#f9fafb', 
+            padding: '16px', 
+            borderRadius: '8px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '12px',
+            fontSize: '14px'
+          }}>
+            <div><strong>ID:</strong> {workflow.id}</div>
+            <div><strong>Status:</strong> <span style={{ 
+              color: workflow.status === 'active' ? '#16a085' : '#f39c12',
+              fontWeight: '600'
+            }}>{workflow.status}</span></div>
+            <div><strong>Created:</strong> {new Date(workflow.created_at).toLocaleDateString()}</div>
+            <div><strong>Last Updated:</strong> {new Date(workflow.updated_at).toLocaleDateString()}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -17,6 +17,54 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle token expiration and automatic refresh
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // If we get 401 and haven't already tried to refresh
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      // Try to refresh the token using stored credentials
+      const savedEmail = localStorage.getItem('userEmail');
+      const savedPassword = localStorage.getItem('userPassword');
+      
+      if (savedEmail && savedPassword) {
+        try {
+          console.log('Token expired, attempting to refresh...');
+          const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
+            email: savedEmail,
+            password: savedPassword
+          });
+          
+          if (response.data.token) {
+            localStorage.setItem('token', response.data.token);
+            originalRequest.headers.Authorization = `Bearer ${response.data.token}`;
+            console.log('Token refreshed successfully');
+            return api(originalRequest);
+          }
+        } catch (refreshError) {
+          console.error('Failed to refresh token:', refreshError);
+          // Clear stored credentials and redirect to login
+          localStorage.removeItem('token');
+          localStorage.removeItem('userEmail');
+          localStorage.removeItem('userPassword');
+          window.location.href = '/login';
+          return Promise.reject(refreshError);
+        }
+      } else {
+        // No stored credentials, redirect to login
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
 // Auth API functions
 export const authAPI = {
   // Test backend connection
@@ -25,8 +73,26 @@ export const authAPI = {
   // Signup new user
   signup: (userData) => api.post('/api/auth/signup', userData),
   
-  // Login user
-  login: (credentials) => api.post('/api/auth/login', credentials),
+  // Login user with credential storage for auto-refresh
+  login: async (credentials) => {
+    const response = await api.post('/api/auth/login', credentials);
+    
+    // Store credentials for token refresh (only if login successful)
+    if (response.data.token) {
+      localStorage.setItem('userEmail', credentials.email);
+      localStorage.setItem('userPassword', credentials.password);
+      localStorage.setItem('token', response.data.token);
+    }
+    
+    return response;
+  },
+  
+  // Logout and clear stored credentials
+  logout: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userPassword');
+  },
   
   // Get user profile (protected)
   getProfile: () => api.get('/api/auth/profile'),

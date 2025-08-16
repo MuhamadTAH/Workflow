@@ -75,32 +75,50 @@ class WorkflowService {
   // Create a new workflow
   async createWorkflow(userId, workflowData) {
     try {
+      console.log('🔧 WorkflowService.createWorkflow called');
+      console.log('👤 User ID:', userId);
+      console.log('📋 Workflow data:', JSON.stringify(workflowData, null, 2));
+      
       const { name, description, flow_data = {} } = workflowData;
+      
+      console.log('🔍 Parsed data - Name:', name, 'Description:', description, 'Flow data:', JSON.stringify(flow_data));
       
       // Try with flow_data first, fallback to data column if flow_data doesn't exist
       let result;
       try {
+        console.log('💾 Attempting database insert with flow_data column...');
         result = await db.run(
           `INSERT INTO workflows (user_id, name, description, flow_data, updated_at) 
            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
           [userId, name, description, JSON.stringify(flow_data)]
         );
+        console.log('✅ Database insert successful with flow_data column');
       } catch (error) {
         if (error.message.includes('no column named flow_data')) {
+          console.log('⚠️ flow_data column not found, trying with data column...');
           // Fallback to data column for existing database
           result = await db.run(
             `INSERT INTO workflows (user_id, name, description, data, updated_at) 
              VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
             [userId, name, description, JSON.stringify(flow_data)]
           );
+          console.log('✅ Database insert successful with data column');
         } else {
+          console.error('❌ Database insert error:', error);
           throw error;
         }
       }
 
-      return await this.getWorkflowById(result.lastInsertRowid, userId);
+      console.log('🆔 New workflow lastInsertRowid:', result.lastInsertRowid);
+      console.log('📊 Insert result:', result);
+      
+      const newWorkflow = await this.getWorkflowById(result.lastInsertRowid, userId);
+      console.log('📄 Retrieved new workflow:', JSON.stringify(newWorkflow, null, 2));
+      
+      return newWorkflow;
     } catch (error) {
-      console.error('Error creating workflow:', error);
+      console.error('❌ WorkflowService.createWorkflow error:', error);
+      console.error('❌ Error stack:', error.stack);
       throw error;
     }
   }

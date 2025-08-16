@@ -22,27 +22,111 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: [
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://frontend-dpcg.onrender.com',
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000'
+    ];
+    
+    console.log('🔍 CORS Check - Origin:', origin);
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      console.log('✅ CORS: No origin, allowing request');
+      return callback(null, true);
+    }
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log('✅ CORS: Origin allowed');
+      callback(null, true);
+    } else {
+      console.log('❌ CORS: Origin not allowed');
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Accept',
+    'Origin',
+    'Access-Control-Request-Method',
+    'Access-Control-Request-Headers'
+  ],
+  exposedHeaders: ['Authorization'],
+  preflightContinue: false
+};
+
+// Apply CORS globally
+app.use(cors(corsOptions));
+
+// Explicit preflight handler for all routes
+app.options('*', (req, res) => {
+  console.log('🔄 Preflight request received for:', req.path);
+  console.log('🔄 Origin:', req.headers.origin);
+  console.log('🔄 Method:', req.headers['access-control-request-method']);
+  console.log('🔄 Headers:', req.headers['access-control-request-headers']);
+  
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Max-Age', '86400'); // 24 hours
+  res.status(200).end();
+});
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Additional CORS headers middleware
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
     'https://frontend-dpcg.onrender.com',
     'http://localhost:5173',
     'http://localhost:3000',
     'http://127.0.0.1:5173',
     'http://127.0.0.1:3000'
-  ],
-  credentials: true,
-  optionsSuccessStatus: 200,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  preflightContinue: false
-};
+  ];
+  
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  
+  next();
+});
 
-app.use(cors(corsOptions));
-
-// Handle preflight requests
-app.options('*', cors(corsOptions));
-
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Request logging middleware
+app.use((req, res, next) => {
+  const timestamp = new Date().toISOString();
+  console.log(`🌐 [${timestamp}] ${req.method} ${req.path}`);
+  
+  // Log workflow-related requests with more detail
+  if (req.path.startsWith('/api/workflows')) {
+    console.log(`🔗 Headers:`, {
+      'content-type': req.headers['content-type'],
+      'authorization': req.headers.authorization ? 'Bearer ***' : 'None',
+      'user-agent': req.headers['user-agent'],
+      'origin': req.headers.origin
+    });
+    
+    if (req.method === 'POST' && req.body) {
+      console.log(`📋 Body:`, JSON.stringify(req.body, null, 2));
+    }
+  }
+  
+  next();
+});
 
 // Main application routes
 app.use('/api/auth', authRoutes);
