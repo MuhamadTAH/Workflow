@@ -52,6 +52,11 @@ const Toolbar = ({
                             <i className="fa-solid fa-circle text-orange-500 text-xs"></i>
                             Unsaved changes
                         </span>
+                    ) : isActivated ? (
+                        <span className="workflow-status active">
+                            <i className="fa-solid fa-circle text-green-500 text-xs"></i>
+                            Workflow Active
+                        </span>
                     ) : lastSaved && (
                         <span className="last-saved">
                             <i className="fa-solid fa-check text-green-500 text-xs"></i>
