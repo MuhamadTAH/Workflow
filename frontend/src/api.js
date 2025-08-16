@@ -81,6 +81,39 @@ export const publicShopAPI = {
   getShopProducts: (shopName) => api.get(`/api/public/shop/${shopName}/products`)
 };
 
+// Workflow API functions
+export const workflowAPI = {
+  // Get all workflows for user
+  getWorkflows: () => api.get('/api/workflows'),
+  
+  // Get workflow statistics
+  getStats: () => api.get('/api/workflows/stats'),
+  
+  // Get specific workflow
+  getWorkflow: (id) => api.get(`/api/workflows/${id}`),
+  
+  // Create new workflow
+  createWorkflow: (workflowData) => api.post('/api/workflows', workflowData),
+  
+  // Update workflow
+  updateWorkflow: (id, workflowData) => api.put(`/api/workflows/${id}`, workflowData),
+  
+  // Delete workflow
+  deleteWorkflow: (id) => api.delete(`/api/workflows/${id}`),
+  
+  // Toggle workflow status (active/inactive)
+  toggleStatus: (id) => api.post(`/api/workflows/${id}/toggle`),
+  
+  // Duplicate workflow
+  duplicateWorkflow: (id) => api.post(`/api/workflows/${id}/duplicate`),
+  
+  // Execute workflow
+  executeWorkflow: (id, inputData = {}) => api.post(`/api/workflows/${id}/execute`, { input_data: inputData }),
+  
+  // Get workflow execution history
+  getExecutions: (id, limit = 10) => api.get(`/api/workflows/${id}/executions?limit=${limit}`)
+};
+
 // Token management
 export const tokenManager = {
   setToken: (token) => localStorage.setItem('token', token),

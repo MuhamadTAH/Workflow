@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaPlay, FaPause, FaEdit, FaCopy, FaTrash, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaPlay, FaPause, FaEdit, FaCopy, FaTrash, FaSearch, FaSpinner } from 'react-icons/fa';
+import { workflowAPI } from '../../../api';
 import './WorkflowDashboard.css';
 
 const WorkflowDashboard = () => {
@@ -8,40 +9,42 @@ const WorkflowDashboard = () => {
   const [workflows, setWorkflows] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Mock data for now
-  const mockWorkflows = [
-    {
-      id: 1,
-      name: 'Customer Email Automation',
-      description: 'Send welcome emails to new customers',
-      status: 'active',
-      lastRun: '2025-01-15 10:30 AM',
-      executions: 145,
-      successRate: 98.5
-    },
-    {
-      id: 2,
-      name: 'Order Processing Workflow',
-      description: 'Automate order confirmation and tracking',
-      status: 'inactive',
-      lastRun: '2025-01-14 3:15 PM',
-      executions: 89,
-      successRate: 95.2
-    },
-    {
-      id: 3,
-      name: 'Inventory Alert System',
-      description: 'Alert when product stock is low',
-      status: 'active',
-      lastRun: '2025-01-15 2:45 PM',
-      executions: 67,
-      successRate: 100
-    }
-  ];
-
+  // Fetch workflows from API
   useEffect(() => {
-    setWorkflows(mockWorkflows);
+    const fetchWorkflows = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const response = await workflowAPI.getWorkflows();
+        
+        if (response.data.success) {
+          // Transform API data to match our component structure
+          const transformedWorkflows = response.data.workflows.map(workflow => ({
+            id: workflow.id,
+            name: workflow.name || 'Untitled Workflow',
+            description: workflow.description || 'No description',
+            status: workflow.status || 'inactive',
+            lastRun: workflow.last_executed_at ? new Date(workflow.last_executed_at).toLocaleString() : 'Never',
+            executions: workflow.execution_count || 0,
+            successRate: workflow.success_rate || 0
+          }));
+          
+          setWorkflows(transformedWorkflows);
+        } else {
+          setError('Failed to fetch workflows');
+        }
+      } catch (error) {
+        console.error('Error fetching workflows:', error);
+        setError('Error connecting to server. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkflows();
   }, []);
 
   const filteredWorkflows = workflows.filter(workflow => {
@@ -66,35 +69,88 @@ const WorkflowDashboard = () => {
     navigate(`/workflow/builder/${id}`);
   };
 
-  const handleToggleStatus = (id) => {
-    setWorkflows(workflows.map(workflow => 
-      workflow.id === id 
-        ? { ...workflow, status: workflow.status === 'active' ? 'inactive' : 'active' }
-        : workflow
-    ));
-  };
-
-  const handleDuplicateWorkflow = (id) => {
-    const workflowToDuplicate = workflows.find(w => w.id === id);
-    const newWorkflow = {
-      ...workflowToDuplicate,
-      id: Date.now(),
-      name: `${workflowToDuplicate.name} (Copy)`,
-      status: 'inactive',
-      executions: 0,
-      lastRun: 'Never'
-    };
-    setWorkflows([...workflows, newWorkflow]);
-  };
-
-  const handleDeleteWorkflow = (id) => {
-    if (window.confirm('Are you sure you want to delete this workflow?')) {
-      setWorkflows(workflows.filter(w => w.id !== id));
+  const handleToggleStatus = async (id) => {
+    try {
+      const response = await workflowAPI.toggleStatus(id);
+      if (response.data.success) {
+        // Update the workflow in the list
+        setWorkflows(workflows.map(workflow => 
+          workflow.id === id 
+            ? { ...workflow, status: response.data.workflow.status }
+            : workflow
+        ));
+      } else {
+        setError('Failed to toggle workflow status');
+      }
+    } catch (error) {
+      console.error('Error toggling workflow status:', error);
+      setError('Error updating workflow status');
     }
   };
 
+  const handleDuplicateWorkflow = async (id) => {
+    try {
+      const response = await workflowAPI.duplicateWorkflow(id);
+      if (response.data.success) {
+        // Transform and add the duplicated workflow to the list
+        const newWorkflow = {
+          id: response.data.workflow.id,
+          name: response.data.workflow.name,
+          description: response.data.workflow.description || 'No description',
+          status: response.data.workflow.status || 'inactive',
+          lastRun: 'Never',
+          executions: 0,
+          successRate: 0
+        };
+        setWorkflows([...workflows, newWorkflow]);
+      } else {
+        setError('Failed to duplicate workflow');
+      }
+    } catch (error) {
+      console.error('Error duplicating workflow:', error);
+      setError('Error duplicating workflow');
+    }
+  };
+
+  const handleDeleteWorkflow = async (id) => {
+    if (window.confirm('Are you sure you want to delete this workflow?')) {
+      try {
+        const response = await workflowAPI.deleteWorkflow(id);
+        if (response.data.success) {
+          setWorkflows(workflows.filter(w => w.id !== id));
+        } else {
+          setError('Failed to delete workflow');
+        }
+      } catch (error) {
+        console.error('Error deleting workflow:', error);
+        setError('Error deleting workflow');
+      }
+    }
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="workflow-dashboard">
+        <div className="loading-state">
+          <FaSpinner className="loading-spinner" />
+          <h3>Loading workflows...</h3>
+          <p>Please wait while we fetch your workflows</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="workflow-dashboard">
+      {/* Error Message */}
+      {error && (
+        <div className="error-message">
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()}>Retry</button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="dashboard-header">
         <div className="header-content">
