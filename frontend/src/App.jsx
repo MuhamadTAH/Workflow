@@ -24,6 +24,8 @@ import {
   Terms as ShopTerms
 } from './pages/shop';
 import ProductDetail from './pages/shop/product-detail/ProductDetail';
+import WorkflowDashboard from './pages/workflow/dashboard/WorkflowDashboard';
+import WorkflowBuilder from './pages/workflow/builder/WorkflowBuilder';
 import { authAPI, tokenManager } from './api';
 import './styles.css';
 import './styles/AuthStyles.css';
@@ -146,6 +148,9 @@ function Home() {
             <Link to="/connections" className="btn btn-secondary">
               <i className="fas fa-plug"></i> Connect Platforms
             </Link>
+            <Link to="/workflow/dashboard" className="btn btn-accent">
+              <i className="fas fa-project-diagram"></i> Workflows
+            </Link>
           </div>
         </header>
 
@@ -211,6 +216,10 @@ function Home() {
               <Link to="/shop" className="action-item premium shop-action">
                 <i className="fas fa-store"></i>
                 <span>My Shop</span>
+              </Link>
+              <Link to="/workflow/dashboard" className="action-item">
+                <i className="fas fa-project-diagram"></i>
+                <span>Workflows</span>
               </Link>
               <button onClick={callBackend} className="action-item" disabled={testLoading}>
                 <i className={testLoading ? "fas fa-spinner fa-spin" : "fas fa-server"}></i>
@@ -338,6 +347,11 @@ function App() {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/shop/:shopName" element={<PublicShop />} />
+        
+        {/* Workflow Routes */}
+        <Route path="/workflow/dashboard" element={<WorkflowDashboard />} />
+        <Route path="/workflow/builder" element={<WorkflowBuilder />} />
+        <Route path="/workflow/builder/:id" element={<WorkflowBuilder />} />
 
       </Routes>
     </Router>
