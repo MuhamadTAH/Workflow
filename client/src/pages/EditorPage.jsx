@@ -66,7 +66,14 @@ const EditorPage = () => {
 
   // This function now handles the double-click event to open the panel.
   const onNodeDoubleClick = useCallback((event, node) => {
+    // DEBUG: Log to the console to confirm the event is firing.
+    console.log('Node double-clicked:', node);
     setSelectedNode(node);
+  }, []);
+
+  // Add a handler to close the panel when clicking the canvas background.
+  const onPaneClick = useCallback(() => {
+    setSelectedNode(null);
   }, []);
 
   const closeSettingsPanel = () => {
@@ -88,6 +95,7 @@ const EditorPage = () => {
             onDrop={onDrop}
             onDragOver={onDragOver}
             onNodeDoubleClick={onNodeDoubleClick} // Changed from onNodeClick
+            onPaneClick={onPaneClick} // Add pane click handler
             nodeTypes={nodeTypes}
             fitView
           >
