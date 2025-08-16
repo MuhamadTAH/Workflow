@@ -136,10 +136,21 @@ class WorkflowExecutor {
                             console.log('Extracted trigger message data:', JSON.stringify(currentData, null, 2));
                         }
                         
-                        // Add trigger data to step tracking with proper naming
-                        const triggerStepName = (node.data.label || 'Telegram_Trigger').replace(/ /g, '_');
-                        stepData[`step_${i + 1}_${triggerStepName}`] = currentData;
-                        console.log(`Added trigger step: step_${i + 1}_${triggerStepName}`);
+                        // Add trigger data to step tracking with enhanced naming
+                        const triggerStepName = (node.data.label || node.data.type || 'Trigger').replace(/ /g, '_');
+                        const stepKey = `step_${i + 1}_${triggerStepName}`;
+                        stepData[stepKey] = currentData;
+                        
+                        // Also add common aliases for easier template access
+                        stepData['trigger'] = currentData;
+                        stepData['triggerData'] = currentData;
+                        if (node.data.type === 'telegramTrigger') {
+                            stepData['telegram'] = currentData;
+                        } else if (node.data.type === 'chatTrigger') {
+                            stepData['chat'] = currentData;
+                        }
+                        
+                        console.log(`✅ Added trigger step: ${stepKey} with aliases: trigger, triggerData, ${node.data.type}`);
                     } else {
                         // Create step-based input data that matches frontend expectations
                         const stepBasedInputData = { ...stepData }; // Include all previous step data
@@ -150,10 +161,24 @@ class WorkflowExecutor {
                         const result = await this.executeNode(node, stepBasedInputData, workflow);
                         currentData = result; // Use output as input for next node
                         
-                        // Add this node's output to step tracking
+                        // Add this node's output to step tracking with enhanced naming
                         const nodeStepName = (node.data.label || `${node.data.type}_${node.id.slice(-4)}`).replace(/ /g, '_');
-                        stepData[`step_${i + 1}_${nodeStepName}`] = result;
-                        console.log(`Added node step: step_${i + 1}_${nodeStepName}`);
+                        const stepKey = `step_${i + 1}_${nodeStepName}`;
+                        stepData[stepKey] = result;
+                        
+                        // Add type-based aliases for easier template access
+                        stepData[node.data.type] = result;
+                        if (node.data.type === 'aiAgent') {
+                            stepData['ai'] = result;
+                            stepData['response'] = result.response || result;
+                        } else if (node.data.type === 'telegramSendMessage') {
+                            stepData['sentMessage'] = result;
+                        } else if (node.data.type === 'dataStorage') {
+                            stepData['storage'] = result;
+                            stepData['data'] = result;
+                        }
+                        
+                        console.log(`✅ Added node step: ${stepKey} with type alias: ${node.data.type}`);
                         
                         stepLog.outputData = result;
                         stepLog.status = 'success';
@@ -281,6 +306,9 @@ class WorkflowExecutor {
     // Execute a single node
     async executeNode(node, inputData, workflow) {
         const nodeConfig = node.data;
+        
+        console.log(`🔧 Executing node: ${nodeConfig.type} (${node.id})`);
+        console.log(`📋 Raw ConfigPanel data:`, JSON.stringify(nodeConfig, null, 2));
 
         // Find connected Data Storage nodes if this is an AI Agent
         let connectedNodes = [];
@@ -298,28 +326,31 @@ class WorkflowExecutor {
             }
         }
 
+        // ENHANCED: Resolve templates in nodeConfig for ALL node types
+        console.log(`🔍 Resolving templates for ${nodeConfig.type} node...`);
+        const resolvedConfig = this.resolveNodeTemplates(nodeConfig, inputData, workflow);
+        console.log(`✨ Resolved ConfigPanel data:`, JSON.stringify(resolvedConfig, null, 2));
+
         // Execute based on node type
         switch (nodeConfig.type) {
             case 'aiAgent':
-                return await aiAgentNode.execute(nodeConfig, inputData, connectedNodes);
+                return await aiAgentNode.execute(resolvedConfig, inputData, connectedNodes);
             
             case 'modelNode':
-                return await modelNode.execute(nodeConfig, inputData);
+                return await modelNode.execute(resolvedConfig, inputData);
             
             case 'googleDocs':
-                return await googleDocsNode.execute(nodeConfig, inputData);
+                return await googleDocsNode.execute(resolvedConfig, inputData);
             
             case 'dataStorage':
-                const dataStorageInstance = new DataStorageNode(nodeConfig);
+                const dataStorageInstance = new DataStorageNode(resolvedConfig);
                 return await dataStorageInstance.process(inputData);
             
             case 'telegramSendMessage':
-                return await telegramSendMessageNode.execute(nodeConfig, inputData, connectedNodes);
+                return await telegramSendMessageNode.execute(resolvedConfig, inputData, connectedNodes);
             
             case 'chatTriggerResponse':
                 const chatResponseInstance = new ChatTriggerResponseNode();
-                // Resolve templates in nodeConfig before execution
-                const resolvedConfig = this.resolveNodeTemplates(nodeConfig, inputData, workflow);
                 
                 // Filter config to only include Chat Trigger Response specific fields
                 const cleanConfig = {
@@ -335,10 +366,8 @@ class WorkflowExecutor {
             
             case 'multiLanguageChatResponse':
                 const multiLangResponseInstance = new MultiLanguageChatResponseNode();
-                // Resolve templates in nodeConfig before execution
-                const resolvedMultiLangConfig = this.resolveNodeTemplates(nodeConfig, inputData, workflow);
-                console.log('🌍 Multi-Language Chat Response resolved config:', JSON.stringify(resolvedMultiLangConfig, null, 2));
-                return await multiLangResponseInstance.execute(resolvedMultiLangConfig, inputData);
+                console.log('🌍 Multi-Language Chat Response resolved config:', JSON.stringify(resolvedConfig, null, 2));
+                return await multiLangResponseInstance.execute(resolvedConfig, inputData);
             
             default:
                 throw new Error(`Unsupported node type: ${nodeConfig.type}`);
@@ -384,13 +413,21 @@ class WorkflowExecutor {
     resolveNodeTemplates(nodeConfig, inputData, workflow) {
         const resolved = JSON.parse(JSON.stringify(nodeConfig)); // Deep clone
         
-        // Build context with all available node data
+        // Build enhanced context with all available node data
         const context = {
             ...inputData, // Contains step data and node outputs
             $json: inputData, // Legacy compatibility
+            $input: inputData, // Alternative access pattern
+            // Add direct field access for common patterns
+            message: inputData.message || {},
+            text: inputData.text || '',
+            data: inputData
         };
 
-        console.log('🔍 Template resolution context:', JSON.stringify(context, null, 2));
+        console.log('🔍 Enhanced template resolution context:');
+        console.log('  - Available step keys:', Object.keys(inputData).filter(k => k.startsWith('step_')));
+        console.log('  - Total context keys:', Object.keys(context).length);
+        console.log('  - Sample context:', JSON.stringify(context, null, 2).substring(0, 500) + '...');
 
         // Recursively resolve all string values in the config
         const resolveValue = (value) => {
@@ -416,14 +453,33 @@ class WorkflowExecutor {
         return resolved;
     }
 
-    // Template resolver that handles $node syntax
+    // Enhanced template resolver that handles multiple syntax patterns
     resolveTemplate(template, context) {
         if (!template || typeof template !== 'string') {
             return template;
         }
 
-        // Handle $node["NodeName"].path syntax
-        return template.replace(/\{\{\s*\$node\["([^"]+)"\]\.([^}]+)\s*\}\}/g, (match, nodeName, path) => {
+        let resolved = template;
+
+        // 1. Handle simple field access: {{ message.text }}, {{ text }}, {{ data.field }}
+        resolved = resolved.replace(/\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s*\}\}/g, (match, path) => {
+            try {
+                console.log(`🔍 Resolving simple template: ${match} (path: ${path})`);
+                const value = this.getNestedValue(context, path);
+                if (value !== undefined) {
+                    console.log(`✅ Simple template resolved: ${match} → ${value}`);
+                    return value;
+                }
+                console.log(`❌ Simple template not found: ${match}`);
+                return match;
+            } catch (error) {
+                console.error(`Error resolving simple template ${match}:`, error.message);
+                return match;
+            }
+        });
+
+        // 2. Handle $node["NodeName"].path syntax
+        resolved = resolved.replace(/\{\{\s*\$node\["([^"]+)"\]\.([^}]+)\s*\}\}/g, (match, nodeName, path) => {
             try {
                 console.log(`🔧 Resolving template: ${match} (looking for node: ${nodeName})`);
                 
@@ -490,6 +546,33 @@ class WorkflowExecutor {
                 return match;
             }
         });
+
+        return resolved;
+    }
+
+    // Helper method to get nested values from objects using dot notation
+    getNestedValue(obj, path) {
+        if (!obj || !path) return undefined;
+        
+        const parts = path.split('.');
+        let current = obj;
+        
+        for (const part of parts) {
+            if (current === null || current === undefined) {
+                return undefined;
+            }
+            
+            // Handle array access like data[0]
+            if (part.includes('[') && part.includes(']')) {
+                const arrayName = part.split('[')[0];
+                const index = parseInt(part.match(/\[(\d+)\]/)[1]);
+                current = current[arrayName] ? current[arrayName][index] : undefined;
+            } else {
+                current = current[part];
+            }
+        }
+        
+        return current;
     }
 }
 
