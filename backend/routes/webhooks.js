@@ -1,6 +1,7 @@
 // Chat Trigger webhook integration with existing webhook system
 const ChatTriggerNode = require('../nodes/triggers/chatTriggerNode');
 const { getMessages } = require('../services/chatSessions');
+const { logWorkflowTriggered } = require('../controllers/workflowController');
 
 const express = require('express');
 const router = express.Router();
@@ -457,6 +458,13 @@ router.post('/chatTrigger/:workflowId/:nodeId/:path', async (req, res) => {
           nodeId: nodeId,
           nodeType: 'chatTrigger'
         }];
+        
+        // Log the workflow trigger event with enhanced visibility
+        logWorkflowTriggered(workflowId, 'chatTrigger', {
+          message: messageText,
+          nodeId: nodeId,
+          timestamp: new Date().toISOString()
+        });
         
         console.log('[webhook] 🚀 Executing workflow with trigger data:', JSON.stringify(triggerData, null, 2));
         

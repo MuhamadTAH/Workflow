@@ -9,6 +9,26 @@ Copied from WorkflowNode and adapted for main backend.
 const workflowExecutor = require('../services/workflowExecutor');
 const workflowState = require('../services/workflowState');
 
+// Enhanced logging function for workflow events
+const logWorkflowEvent = (type, message, details = {}) => {
+    const timestamp = new Date().toISOString();
+    const separator = '='.repeat(70);
+    
+    console.log('\n' + separator);
+    console.log(`🎯 WORKFLOW EVENT: ${type.toUpperCase()}`);
+    console.log(`📅 ${timestamp}`);
+    console.log(`📝 ${message}`);
+    
+    if (Object.keys(details).length > 0) {
+        console.log('📊 Details:');
+        Object.entries(details).forEach(([key, value]) => {
+            console.log(`   • ${key}: ${value}`);
+        });
+    }
+    
+    console.log(separator + '\n');
+};
+
 // Simple in-memory storage for active workflows (in production, use database)
 const activeWorkflows = new Map();
 
@@ -41,9 +61,12 @@ const activateWorkflow = async (req, res) => {
             return res.status(400).json({ message: 'Workflow must contain at least one trigger node (Chat Trigger or Telegram Trigger).' });
         }
 
-        console.log(`🔄 Activating workflow ${workflowId}...`);
-        console.log(`Found ${triggerNodes.length} trigger node(s):`, triggerNodes.map(n => n.data.type));
-        console.log(`Current active workflows count: ${activeWorkflows.size}`);
+        console.log('\n' + '='.repeat(60));
+        console.log(`🚀 WORKFLOW ACTIVATION STARTED`);
+        console.log(`🔄 Activating workflow: ${workflowId}`);
+        console.log(`📋 Found ${triggerNodes.length} trigger node(s):`, triggerNodes.map(n => n.data.type));
+        console.log(`📊 Current active workflows count: ${activeWorkflows.size}`);
+        console.log('='.repeat(60));
 
         // Register trigger handlers for each trigger node (URLs handled internally)
         const triggerUrls = [];
@@ -91,7 +114,17 @@ const activateWorkflow = async (req, res) => {
             status: 'active'
         });
 
-        console.log(`📊 Activation complete - Controller active workflows: ${activeWorkflows.size}, Executor active workflows: ${workflowExecutor.activeWorkflows.size}`);
+        console.log('\n' + '='.repeat(60));
+        console.log(`✅ WORKFLOW ACTIVATION COMPLETED SUCCESSFULLY!`);
+        console.log(`🎯 Workflow ID: ${workflowId}`);
+        console.log(`📊 Controller active workflows: ${activeWorkflows.size}`);
+        console.log(`🚀 Executor active workflows: ${workflowExecutor.activeWorkflows.size}`);
+        console.log(`🔗 Trigger URLs generated: ${triggerUrls.length}`);
+        triggerUrls.forEach((trigger, index) => {
+            console.log(`   ${index + 1}. ${trigger.type}: ${trigger.webhookUrl}`);
+        });
+        console.log(`⏰ Activated at: ${new Date().toISOString()}`);
+        console.log('='.repeat(60) + '\n');
 
         // Store in database for persistence
         await workflowState.storeActiveWorkflow(workflowId, workflow, triggerUrls);
@@ -118,8 +151,11 @@ const deactivateWorkflow = async (req, res) => {
     try {
         const workflowId = req.params.id;
 
-        console.log(`🔄 Deactivating workflow ${workflowId}...`);
-        console.log(`Before deactivation - Controller active workflows: ${activeWorkflows.size}, Executor active workflows: ${workflowExecutor.activeWorkflows.size}`);
+        console.log('\n' + '='.repeat(60));
+        console.log(`🛑 WORKFLOW DEACTIVATION STARTED`);
+        console.log(`🔄 Deactivating workflow: ${workflowId}`);
+        console.log(`📊 Before deactivation - Controller: ${activeWorkflows.size}, Executor: ${workflowExecutor.activeWorkflows.size}`);
+        console.log('='.repeat(60));
 
         // Check if workflow is active
         if (!activeWorkflows.has(workflowId)) {
@@ -136,7 +172,12 @@ const deactivateWorkflow = async (req, res) => {
         
         // Remove from active workflows
         activeWorkflows.delete(workflowId);
-        console.log(`📊 After deactivation - Controller active workflows: ${activeWorkflows.size}, Executor active workflows: ${workflowExecutor.activeWorkflows.size}`);
+        console.log('\n' + '='.repeat(60));
+        console.log(`✅ WORKFLOW DEACTIVATION COMPLETED SUCCESSFULLY!`);
+        console.log(`🎯 Workflow ID: ${workflowId}`);
+        console.log(`📊 After deactivation - Controller: ${activeWorkflows.size}, Executor: ${workflowExecutor.activeWorkflows.size}`);
+        console.log(`⏰ Deactivated at: ${new Date().toISOString()}`);
+        console.log('='.repeat(60) + '\n');
         
         // Remove from database
         await workflowState.removeActiveWorkflow(workflowId);
@@ -208,9 +249,21 @@ const restoreActiveWorkflowsOnStartup = async () => {
     }
 };
 
+// Function to log when a workflow is triggered 
+const logWorkflowTriggered = (workflowId, triggerType, triggerData) => {
+    logWorkflowEvent('TRIGGERED', `Workflow ${workflowId} was triggered`, {
+        'Trigger Type': triggerType,
+        'Trigger Data': JSON.stringify(triggerData).substring(0, 100) + '...',
+        'Active Workflows': activeWorkflows.size,
+        'Triggered At': new Date().toISOString()
+    });
+};
+
 module.exports = {
     activateWorkflow,
     deactivateWorkflow,
     getWorkflowStatus,
-    restoreActiveWorkflowsOnStartup
+    restoreActiveWorkflowsOnStartup,
+    logWorkflowEvent,
+    logWorkflowTriggered
 };
