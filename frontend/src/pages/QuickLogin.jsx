@@ -12,7 +12,7 @@ function QuickLogin() {
     setError('');
     
     try {
-      const response = await fetch('https://workflow-lg9z.onrender.com/api/quick-login', {
+      const response = await fetch('https://shoppro-backend.onrender.com/api/quick-login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
