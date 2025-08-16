@@ -16,45 +16,48 @@ const TelegramTriggerNode = (props) => <BaseNode {...props} type="telegramTrigge
 import '../styles/WorkflowCanvas.css';
 
 const WorkflowCanvas = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [configPanel, setConfigPanel] = useState({
     isOpen: false,
     selectedNode: null
   });
+  
+  const nodesRef = React.useRef([]);
 
   // Handle double-click on nodes
   const handleNodeDoubleClick = useCallback((nodeId, nodeType) => {
-    const node = nodes.find(n => n.id === nodeId);
-    if (node) {
-      setConfigPanel({
-        isOpen: true,
-        selectedNode: node
-      });
-    }
-  }, [nodes]);
+    const node = nodesRef.current.find(n => n.id === nodeId);
+    setConfigPanel({
+      isOpen: true,
+      selectedNode: node || { id: nodeId, type: nodeType, data: { config: {} } }
+    });
+  }, []);
 
   // Initialize nodes with double-click handler
-  React.useEffect(() => {
-    const initialNodes = [
-      {
-        id: '1',
-        type: 'telegramTrigger',
-        position: { x: 250, y: 100 },
-        data: {
-          icon: 'fab fa-telegram-plane',
-          label: 'Telegram Trigger',
-          description: 'Triggered when a message is received',
-          onDoubleClick: handleNodeDoubleClick,
-          config: {
-            botToken: '',
-            isValid: null
-          }
+  const initialNodes = [
+    {
+      id: '1',
+      type: 'telegramTrigger',
+      position: { x: 250, y: 100 },
+      data: {
+        icon: 'fab fa-telegram-plane',
+        label: 'Telegram Trigger',
+        description: 'Triggered when a message is received',
+        onDoubleClick: handleNodeDoubleClick,
+        config: {
+          botToken: '',
+          isValid: null
         }
       }
-    ];
-    setNodes(initialNodes);
-  }, [handleNodeDoubleClick, setNodes]);
+    }
+  ];
+
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  
+  // Keep nodes ref updated
+  React.useEffect(() => {
+    nodesRef.current = nodes;
+  }, [nodes]);
 
   // Handle config panel close
   const handleConfigClose = useCallback(() => {
