@@ -19,12 +19,30 @@ const languageRoutes = require('./routes/language');
 const workflowRoutes = require('./routes/workflow/workflows');
 
 const app = express();
-app.use(cors({
-  origin: true,
+
+// CORS configuration
+const corsOptions = {
+  origin: [
+    'https://frontend-dpcg.onrender.com',
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000'
+  ],
   credentials: true,
-  optionsSuccessStatus: 200
-}));
-app.use(express.json());
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  preflightContinue: false
+};
+
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Main application routes
 app.use('/api/auth', authRoutes);

@@ -63,9 +63,18 @@ const WorkflowDashboard = () => {
 
   const handleCreateWorkflow = async () => {
     try {
-      // Calculate next workflow number
-      const nextNumber = workflows.length + 1;
+      // Calculate next workflow number by finding highest existing number
+      const workflowNumbers = workflows
+        .map(w => {
+          const match = w.name.match(/^Workflow - (\d+)$/);
+          return match ? parseInt(match[1]) : 0;
+        })
+        .filter(num => num > 0);
+      
+      const nextNumber = workflowNumbers.length > 0 ? Math.max(...workflowNumbers) + 1 : 1;
       const workflowName = `Workflow - ${nextNumber}`;
+      
+      console.log('Creating workflow with name:', workflowName);
       
       // Create workflow via API
       const response = await workflowAPI.createWorkflow({
