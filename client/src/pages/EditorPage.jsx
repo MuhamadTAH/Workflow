@@ -64,7 +64,8 @@ const EditorPage = () => {
     }
   };
 
-  const onNodeClick = useCallback((event, node) => {
+  // This function now handles the double-click event to open the panel.
+  const onNodeDoubleClick = useCallback((event, node) => {
     setSelectedNode(node);
   }, []);
 
@@ -86,7 +87,7 @@ const EditorPage = () => {
             onInit={setReactFlowInstance}
             onDrop={onDrop}
             onDragOver={onDragOver}
-            onNodeClick={onNodeClick}
+            onNodeDoubleClick={onNodeDoubleClick} // Changed from onNodeClick
             nodeTypes={nodeTypes}
             fitView
           >
