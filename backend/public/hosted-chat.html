@@ -109,7 +109,7 @@
         // Function to fetch trigger information
         async function fetchTriggerInfo() {
             try {
-                const response = await fetch(`https://workflow-unlq.onrender.com/api/workflows/${workflowId}/trigger-info`);
+                const response = await fetch(`https://workflow-lg9z.onrender.com/api/workflows/${workflowId}/trigger-info`);
                 const data = await response.json();
                 
                 if (!data.success) {
@@ -117,7 +117,7 @@
                 }
                 
                 triggerInfo = data;
-                webhookUrl = `https://workflow-unlq.onrender.com/api/webhooks/chatTrigger/${workflowId}/${data.triggerNodeId}/${data.webhookPath}`;
+                webhookUrl = `https://workflow-lg9z.onrender.com/api/webhooks/chatTrigger/${workflowId}/${data.triggerNodeId}/${data.webhookPath}`;
                 
                 console.log('✅ Trigger info loaded:', {
                     workflowId,
@@ -136,7 +136,7 @@
         // Function to poll for replies from Chat Trigger Response
         async function pollReplies(sessionId) {
             try {
-                const res = await fetch(`https://workflow-unlq.onrender.com/api/chat-messages/${sessionId}`);
+                const res = await fetch(`https://workflow-lg9z.onrender.com/api/chat-messages/${sessionId}`);
                 
                 // If request fails (e.g., 404 when no active workflows), stop polling
                 if (!res.ok) {
