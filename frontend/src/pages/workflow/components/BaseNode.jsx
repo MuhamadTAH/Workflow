@@ -2,8 +2,8 @@ import React from 'react';
 import { Handle, Position } from 'reactflow';
 import '../styles/Nodes.css';
 
-const BaseNode = ({ data, type }) => {
-  const { icon, label, description } = data;
+const BaseNode = ({ data, type, id }) => {
+  const { icon, label, description, onDoubleClick } = data;
 
   // Telegram-specific icon and styling
   const getTelegramIcon = () => {
@@ -28,8 +28,19 @@ const BaseNode = ({ data, type }) => {
     return 'node-icon';
   };
 
+  const handleDoubleClick = () => {
+    if (onDoubleClick) {
+      onDoubleClick(id, type);
+    }
+  };
+
   return (
-    <div className={`custom-node ${type ? `node-${type}` : ''}`} data-type={type}>
+    <div 
+      className={`custom-node ${type ? `node-${type}` : ''}`} 
+      data-type={type}
+      onDoubleClick={handleDoubleClick}
+      style={{ cursor: 'pointer' }}
+    >
       {/* Input Handle (Left) */}
       <Handle type="target" position={Position.Left} className="handle-left" />
 

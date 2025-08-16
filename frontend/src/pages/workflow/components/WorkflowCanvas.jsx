@@ -9,35 +9,81 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import BaseNode from './BaseNode';
+import ConfigPanel from './ConfigPanel';
 
 // Wrapper components to pass the node type
 const TelegramTriggerNode = (props) => <BaseNode {...props} type="telegramTrigger" />;
 import '../styles/WorkflowCanvas.css';
 
-// Initial nodes - starting with just the Telegram trigger
-const initialNodes = [
-  {
-    id: '1',
-    type: 'telegramTrigger',
-    position: { x: 250, y: 100 },
-    data: {
-      icon: 'fab fa-telegram-plane',
-      label: 'Telegram Trigger',
-      description: 'Triggered when a message is received'
-    }
-  }
-];
-
-const initialEdges = [];
-
-// Define custom node types
-const nodeTypes = { 
-  telegramTrigger: TelegramTriggerNode,
-};
-
 const WorkflowCanvas = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [configPanel, setConfigPanel] = useState({
+    isOpen: false,
+    selectedNode: null
+  });
+
+  // Handle double-click on nodes
+  const handleNodeDoubleClick = useCallback((nodeId, nodeType) => {
+    const node = nodes.find(n => n.id === nodeId);
+    if (node) {
+      setConfigPanel({
+        isOpen: true,
+        selectedNode: node
+      });
+    }
+  }, [nodes]);
+
+  // Initialize nodes with double-click handler
+  React.useEffect(() => {
+    const initialNodes = [
+      {
+        id: '1',
+        type: 'telegramTrigger',
+        position: { x: 250, y: 100 },
+        data: {
+          icon: 'fab fa-telegram-plane',
+          label: 'Telegram Trigger',
+          description: 'Triggered when a message is received',
+          onDoubleClick: handleNodeDoubleClick,
+          config: {
+            botToken: '',
+            isValid: null
+          }
+        }
+      }
+    ];
+    setNodes(initialNodes);
+  }, [handleNodeDoubleClick, setNodes]);
+
+  // Handle config panel close
+  const handleConfigClose = useCallback(() => {
+    setConfigPanel({
+      isOpen: false,
+      selectedNode: null
+    });
+  }, []);
+
+  // Handle config save
+  const handleConfigSave = useCallback((nodeId, config) => {
+    setNodes(nds => nds.map(node => {
+      if (node.id === nodeId) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            config: config
+          }
+        };
+      }
+      return node;
+    }));
+  }, [setNodes]);
+
+  // Define custom node types
+  const nodeTypes = { 
+    telegramTrigger: TelegramTriggerNode,
+  };
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
@@ -104,6 +150,14 @@ const WorkflowCanvas = () => {
           pannable
         />
       </ReactFlow>
+
+      {/* Configuration Panel */}
+      <ConfigPanel
+        node={configPanel.selectedNode}
+        isOpen={configPanel.isOpen}
+        onClose={handleConfigClose}
+        onSave={handleConfigSave}
+      />
     </div>
   );
 };
