@@ -919,6 +919,52 @@ router.get('/_dev/check-runWorkflow', (req, res) => {
   });
 });
 
+// Update Telegram webhook for a specific workflow
+router.post('/update-telegram-webhook/:workflowId', async (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    const botToken = '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ';
+    const webhookUrl = `https://workflow-lg9z.onrender.com/api/webhooks/telegram/${workflowId}`;
+    
+    console.log(`🔄 Updating Telegram webhook for workflow: ${workflowId}`);
+    console.log(`📡 New webhook URL: ${webhookUrl}`);
+    
+    const axios = require('axios');
+    const telegramApiUrl = `https://api.telegram.org/bot${botToken}/setWebhook`;
+    
+    const response = await axios.post(telegramApiUrl, {
+      url: webhookUrl,
+      allowed_updates: ['message', 'callback_query']
+    });
+    
+    if (response.data.ok) {
+      console.log('✅ Telegram webhook updated successfully');
+      res.json({
+        success: true,
+        message: 'Telegram webhook updated successfully',
+        workflowId: workflowId,
+        webhookUrl: webhookUrl,
+        telegramResponse: response.data
+      });
+    } else {
+      console.error('❌ Telegram webhook update failed:', response.data);
+      res.status(400).json({
+        success: false,
+        error: 'Failed to update Telegram webhook',
+        telegramError: response.data
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ Error updating Telegram webhook:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+});
+
 // Health check endpoint
 router.get('/health', (req, res) => {
   res.json({
