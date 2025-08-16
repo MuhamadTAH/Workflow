@@ -2,6 +2,8 @@
 const ChatTriggerNode = require('../nodes/triggers/chatTriggerNode');
 const { getMessages } = require('../services/chatSessions');
 const { logWorkflowTriggered } = require('../controllers/workflowController');
+const scheduler = require('../services/scheduler');
+const TriggerDataProcessor = require('../services/triggerDataProcessor');
 
 const express = require('express');
 const router = express.Router();
@@ -117,6 +119,293 @@ router.post('/telegram', asyncHandler(async (req, res) => {
     res.status(500).json({ ok: false, error: 'Failed to process message' });
   }
 }));
+
+// Workflow-specific Telegram trigger endpoint
+router.post('/telegram/:workflowId', async (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    const update = req.body;
+    
+    console.log(`📥 Telegram trigger received for workflow: ${workflowId}`);
+    console.log('📦 Update data:', JSON.stringify(update, null, 2));
+    
+    // Validate Telegram update format
+    if (!update || !update.message) {
+      console.log('❌ Invalid Telegram update format');
+      return res.status(400).json({ ok: false, error: 'Invalid update format' });
+    }
+    
+    // Standardize trigger data using processor
+    const standardizedData = TriggerDataProcessor.standardizeTriggerData(
+      'telegramTrigger', 
+      update, 
+      `telegram-trigger-${workflowId}`
+    );
+    
+    // Validate the data
+    const validation = TriggerDataProcessor.validateTriggerData(standardizedData);
+    if (!validation.isValid) {
+      console.log('❌ Invalid trigger data:', validation.errors);
+      return res.status(400).json({ ok: false, errors: validation.errors });
+    }
+    
+    // Check if workflow is active and execute
+    if (workflowExecutor && workflowExecutor.activeWorkflows.has(workflowId)) {
+      try {
+        // Log the workflow trigger event
+        const summary = TriggerDataProcessor.getSummary(standardizedData);
+        logWorkflowTriggered(workflowId, 'telegramTrigger', summary);
+        
+        // Prepare trigger data for workflow execution
+        const triggerData = TriggerDataProcessor.toExecutionFormat(standardizedData);
+        
+        console.log('[telegram-webhook] 🚀 Executing workflow with trigger data:', JSON.stringify(triggerData, null, 2));
+        
+        // Execute the workflow automatically
+        const executionResult = await workflowExecutor.executeWorkflow(workflowId, triggerData);
+        console.log('[telegram-webhook] ✅ Workflow executed successfully:', executionResult.status);
+        
+        // Store the successful execution
+        logger.logTelegramEvent('workflow_triggered', 'execution_success', {
+          workflowId: workflowId,
+          updateId: update.update_id,
+          chatId: messageData.chatId,
+          executionStatus: executionResult.status
+        });
+        
+      } catch (execError) {
+        console.error('[telegram-webhook] ❌ Workflow execution failed:', execError.message);
+        logger.logError(execError, { 
+          context: 'telegram_workflow_execution', 
+          workflowId: workflowId,
+          updateId: update.update_id 
+        });
+        // Continue processing even if execution fails
+      }
+    } else {
+      console.warn('[telegram-webhook] ⚠️ Workflow not found or not active:', workflowId);
+      if (workflowExecutor) {
+        console.log(`[telegram-webhook] 📋 Available workflows: [${Array.from(workflowExecutor.activeWorkflows.keys()).join(', ')}]`);
+      }
+    }
+    
+    // Always respond success to Telegram to prevent retries
+    res.status(200).json({ ok: true, message: 'Update processed successfully' });
+    
+  } catch (error) {
+    console.error('❌ Telegram webhook processing failed:', error.message);
+    logger.logError(error, { context: 'telegram_workflow_webhook' });
+    res.status(500).json({ ok: false, error: 'Failed to process telegram update' });
+  }
+});
+
+// Manual trigger endpoint for testing workflows
+router.post('/manual/:workflowId', async (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    const { triggerData, nodeId } = req.body;
+    
+    console.log(`🎯 Manual trigger received for workflow: ${workflowId}`);
+    console.log('📦 Manual trigger data:', JSON.stringify(triggerData, null, 2));
+    
+    // Default trigger data if none provided
+    const defaultTriggerData = {
+      message: 'Manual workflow execution',
+      source: 'api_endpoint',
+      triggeredBy: 'api_user'
+    };
+    
+    const rawTriggerData = triggerData || defaultTriggerData;
+    
+    // Standardize trigger data using processor
+    const standardizedData = TriggerDataProcessor.standardizeTriggerData(
+      'manualTrigger', 
+      rawTriggerData, 
+      nodeId || `manual-trigger-${workflowId}`
+    );
+    
+    // Validate the data
+    const validation = TriggerDataProcessor.validateTriggerData(standardizedData);
+    if (!validation.isValid) {
+      console.log('❌ Invalid manual trigger data:', validation.errors);
+      return res.status(400).json({ success: false, errors: validation.errors });
+    }
+    
+    // Check if workflow is active and execute
+    if (workflowExecutor && workflowExecutor.activeWorkflows.has(workflowId)) {
+      try {
+        // Log the workflow trigger event
+        const summary = TriggerDataProcessor.getSummary(standardizedData);
+        logWorkflowTriggered(workflowId, 'manualTrigger', summary);
+        
+        // Prepare trigger data for workflow execution
+        const executionTriggerData = TriggerDataProcessor.toExecutionFormat(standardizedData);
+        
+        console.log('[manual-trigger] 🚀 Executing workflow with trigger data:', JSON.stringify(executionTriggerData, null, 2));
+        
+        // Execute the workflow automatically
+        const executionResult = await workflowExecutor.executeWorkflow(workflowId, executionTriggerData);
+        console.log('[manual-trigger] ✅ Workflow executed successfully:', executionResult.status);
+        
+        res.status(200).json({
+          success: true,
+          message: 'Workflow executed successfully',
+          workflowId: workflowId,
+          executionResult: executionResult,
+          triggeredAt: new Date().toISOString()
+        });
+        
+      } catch (execError) {
+        console.error('[manual-trigger] ❌ Workflow execution failed:', execError.message);
+        res.status(500).json({
+          success: false,
+          message: 'Workflow execution failed',
+          error: execError.message,
+          workflowId: workflowId
+        });
+      }
+    } else {
+      console.warn('[manual-trigger] ⚠️ Workflow not found or not active:', workflowId);
+      if (workflowExecutor) {
+        console.log(`[manual-trigger] 📋 Available workflows: [${Array.from(workflowExecutor.activeWorkflows.keys()).join(', ')}]`);
+      }
+      
+      res.status(404).json({
+        success: false,
+        message: 'Workflow not found or not active',
+        workflowId: workflowId,
+        availableWorkflows: workflowExecutor ? Array.from(workflowExecutor.activeWorkflows.keys()) : []
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ Manual trigger processing failed:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process manual trigger',
+      error: error.message
+    });
+  }
+});
+
+// Schedule management endpoints
+router.post('/schedule/:workflowId', async (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    const { intervalMinutes, enabled = true, description } = req.body;
+    
+    console.log(`⏰ Schedule request for workflow ${workflowId}:`, { intervalMinutes, enabled, description });
+    
+    if (!intervalMinutes || intervalMinutes <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid intervalMinutes is required (must be > 0)'
+      });
+    }
+    
+    // Check if workflow is active
+    if (!workflowExecutor || !workflowExecutor.activeWorkflows.has(workflowId)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Workflow not found or not active',
+        workflowId: workflowId
+      });
+    }
+    
+    const scheduleConfig = {
+      intervalMinutes,
+      enabled,
+      description: description || `Run every ${intervalMinutes} minutes`,
+      createdAt: new Date().toISOString()
+    };
+    
+    const success = scheduler.scheduleWorkflow(workflowId, scheduleConfig);
+    
+    if (success) {
+      res.status(200).json({
+        success: true,
+        message: 'Workflow scheduled successfully',
+        workflowId: workflowId,
+        schedule: scheduler.getScheduleInfo(workflowId)
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to schedule workflow'
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ Schedule creation failed:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create schedule',
+      error: error.message
+    });
+  }
+});
+
+// Get schedule info
+router.get('/schedule/:workflowId', async (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    const scheduleInfo = scheduler.getScheduleInfo(workflowId);
+    
+    res.status(200).json({
+      success: true,
+      schedule: scheduleInfo
+    });
+  } catch (error) {
+    console.error('❌ Failed to get schedule info:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get schedule info',
+      error: error.message
+    });
+  }
+});
+
+// Delete schedule
+router.delete('/schedule/:workflowId', async (req, res) => {
+  try {
+    const { workflowId } = req.params;
+    
+    scheduler.unscheduleWorkflow(workflowId);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Schedule removed successfully',
+      workflowId: workflowId
+    });
+  } catch (error) {
+    console.error('❌ Failed to remove schedule:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to remove schedule',
+      error: error.message
+    });
+  }
+});
+
+// List all schedules
+router.get('/schedules', async (req, res) => {
+  try {
+    const allSchedules = scheduler.getAllSchedules();
+    
+    res.status(200).json({
+      success: true,
+      schedules: allSchedules,
+      count: allSchedules.length
+    });
+  } catch (error) {
+    console.error('❌ Failed to list schedules:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to list schedules',
+      error: error.message
+    });
+  }
+});
 
 // Register Telegram webhook for specific node
 router.post('/register-telegram', asyncHandler(async (req, res) => {

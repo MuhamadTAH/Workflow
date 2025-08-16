@@ -227,6 +227,16 @@ app.listen(PORT, async () => {
   console.log(`🚀 Backend server with IF node routing fix started on port ${PORT}`);
   logger.info(`Backend server started on port ${PORT}`, { port: PORT });
   
+  // Initialize scheduler with workflow executor
+  try {
+    const scheduler = require('./services/scheduler');
+    const workflowExecutor = require('./services/workflowExecutor');
+    scheduler.setWorkflowExecutor(workflowExecutor);
+    console.log('📅 Scheduler initialized successfully');
+  } catch (error) {
+    console.warn('⚠️ Failed to initialize scheduler:', error.message);
+  }
+  
   // Restore active workflows from database
   try {
     const { restoreActiveWorkflowsOnStartup } = require('./controllers/workflowController');
