@@ -1,4 +1,4 @@
-const db = require('../../db');
+const db = require('../../dbWrapper');
 
 class WorkflowService {
   // Get all workflows for a user
