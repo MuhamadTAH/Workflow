@@ -9,7 +9,15 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
-  transition: box-shadow 0.2s ease;
+  
+  /* THIS IS THE KEY LINE FOR SMOOTH MOVEMENT */
+  /* It tells the browser to animate any change to the 'transform' property over 0.25 seconds. */
+  transition: transform 0.25s ease, box-shadow 0.2s ease;
+
+  /* This part creates the initial "pop-in" effect when you drop a new node */
+  transform: scale(0.95);
+  opacity: 0;
+  animation: popIn 0.25s ease forwards;
 }
 
 .custom-node:hover {
@@ -122,4 +130,18 @@
 /* Node hover effects */
 .custom-node:hover .node-icon {
   transform: scale(1.05);
+}
+
+/* These are the instructions for the "pop-in" animation */
+@keyframes popIn {
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* This class is automatically added by React Flow while you are dragging a node. */
+/* We use it to temporarily turn OFF the smooth transition so the node feels snappy and responsive to your mouse. */
+.react-flow__node.dragging .custom-node {
+  transition: none; /* No transition while dragging */
 }
