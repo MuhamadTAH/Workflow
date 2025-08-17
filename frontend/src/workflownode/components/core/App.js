@@ -26,6 +26,7 @@ import { ConfigPanel } from '../panels';
 import { getId } from '../../utils';
 import WorkflowExecutor from '../../utils/workflowExecutor';
 import { API_BASE_URL } from '../../../config/api.js';
+import ChatWidget from '../../../components/ChatWidget';
 import '../../styles/index.css';
 
 // Register the custom node type so ReactFlow knows how to render it.
@@ -50,6 +51,7 @@ const App = () => {
   const [isActivated, setIsActivated] = useState(false);
   const [executionProgress, setExecutionProgress] = useState('');
   const [workflowExecutor, setWorkflowExecutor] = useState(null);
+  const [showChatWidget, setShowChatWidget] = useState(false);
 
   // Generate a unique, readable workflow ID (moved to top to fix hoisting issue)
   const generateWorkflowId = useCallback(() => {
@@ -191,6 +193,12 @@ const App = () => {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [currentWorkflowId, isActivated]);
+
+  // 🤖 CHAT WIDGET: Show/hide based on Chat Trigger nodes
+  useEffect(() => {
+    const hasChatTrigger = nodes.some(node => node.data.type === 'chatTrigger');
+    setShowChatWidget(hasChatTrigger);
+  }, [nodes]);
 
   // Handles creating a new edge when connecting two nodes.
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
@@ -549,6 +557,12 @@ const App = () => {
           onNodeUpdate={onNodeUpdate}
         />
       )}
+      
+      {/* 🤖 Chat Widget - appears when Chat Trigger nodes are present */}
+      <ChatWidget 
+        isVisible={showChatWidget}
+        onClose={() => setShowChatWidget(false)}
+      />
     </div>
   );
 };
