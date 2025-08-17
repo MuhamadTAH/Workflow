@@ -231,6 +231,34 @@ Professional styles for the Workflows Overview page
   border-color: #667eea;
 }
 
+/* Sort Dropdown */
+.sort-dropdown {
+  margin-left: 1rem;
+}
+
+.sort-select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #64748b;
+  min-width: 180px;
+}
+
+.sort-select:hover {
+  border-color: #667eea;
+}
+
+.sort-select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
 /* View Toggle */
 .view-toggle {
   display: flex;

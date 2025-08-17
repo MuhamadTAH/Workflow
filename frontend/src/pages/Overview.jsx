@@ -18,19 +18,48 @@ function Overview() {
 
   // Load workflows from localStorage and enhance with status/execution data
   useEffect(() => {
-    const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
-    const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
-    const workflowExecutions = JSON.parse(localStorage.getItem('workflowExecutions') || '{}');
+    const loadWorkflows = () => {
+      const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
+      const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
+      const workflowExecutions = JSON.parse(localStorage.getItem('workflowExecutions') || '{}');
 
-    const enhancedWorkflows = savedWorkflows.map(workflow => ({
-      ...workflow,
-      status: workflowStatuses[workflow.id] || 'inactive',
-      runCount: workflowExecutions[workflow.id]?.runCount || 0,
-      lastRun: workflowExecutions[workflow.id]?.lastRun || null,
-      logs: workflowExecutions[workflow.id]?.logs || []
-    }));
+      const enhancedWorkflows = savedWorkflows.map(workflow => ({
+        ...workflow,
+        status: workflowStatuses[workflow.id] || 'inactive',
+        runCount: workflowExecutions[workflow.id]?.runCount || 0,
+        lastRun: workflowExecutions[workflow.id]?.lastRun || null,
+        logs: workflowExecutions[workflow.id]?.logs || []
+      }));
 
-    setWorkflows(enhancedWorkflows);
+      setWorkflows(enhancedWorkflows);
+    };
+
+    // Initial load
+    loadWorkflows();
+
+    // 🔄 SYNC FIX: Listen for changes from other pages
+    const handleStorageChange = (event) => {
+      if (event.key === 'workflowStatuses') {
+        console.log('🔄 Other page changed status - updating Overview');
+        loadWorkflows();
+      }
+    };
+
+    const handleCustomStatusChange = (event) => {
+      console.log('🔄 Custom workflow status change detected in Overview:', event.detail);
+      loadWorkflows();
+    };
+
+    // Listen for localStorage changes from other tabs/pages
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Listen for same-page custom events
+    window.addEventListener('workflowStatusChanged', handleCustomStatusChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('workflowStatusChanged', handleCustomStatusChange);
+    };
   }, []);
 
   // Filter and sort workflows
@@ -88,6 +117,11 @@ function Overview() {
     
     workflowStatuses[workflowId] = newStatus;
     localStorage.setItem('workflowStatuses', JSON.stringify(workflowStatuses));
+
+    // 🔄 SYNC FIX: Trigger custom event for sync with other pages
+    window.dispatchEvent(new CustomEvent('workflowStatusChanged', { 
+      detail: { workflowId, status: newStatus } 
+    }));
 
     setWorkflows(prev => prev.map(workflow =>
       workflow.id === workflowId ? { ...workflow, status: newStatus } : workflow
@@ -175,6 +209,13 @@ function Overview() {
     });
     localStorage.setItem('workflowStatuses', JSON.stringify(workflowStatuses));
 
+    // 🔄 SYNC FIX: Trigger custom events for each activated workflow
+    selectedWorkflows.forEach(workflowId => {
+      window.dispatchEvent(new CustomEvent('workflowStatusChanged', { 
+        detail: { workflowId, status: 'active' } 
+      }));
+    });
+
     setWorkflows(prev => prev.map(workflow =>
       selectedWorkflows.includes(workflow.id) ? { ...workflow, status: 'active' } : workflow
     ));
@@ -187,6 +228,13 @@ function Overview() {
       workflowStatuses[id] = 'inactive';
     });
     localStorage.setItem('workflowStatuses', JSON.stringify(workflowStatuses));
+
+    // 🔄 SYNC FIX: Trigger custom events for each deactivated workflow
+    selectedWorkflows.forEach(workflowId => {
+      window.dispatchEvent(new CustomEvent('workflowStatusChanged', { 
+        detail: { workflowId, status: 'inactive' } 
+      }));
+    });
 
     setWorkflows(prev => prev.map(workflow =>
       selectedWorkflows.includes(workflow.id) ? { ...workflow, status: 'inactive' } : workflow

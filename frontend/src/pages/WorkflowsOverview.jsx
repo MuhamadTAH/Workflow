@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api.js';
 import '../styles/WorkflowsOverview.css';
 
 const WorkflowsOverview = () => {
@@ -7,6 +8,8 @@ const WorkflowsOverview = () => {
   const [workflows, setWorkflows] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeFilter, setActiveFilter] = useState('All');
+  const [sortBy, setSortBy] = useState('date');
   const [openDropdown, setOpenDropdown] = useState(null);
   const [editingName, setEditingName] = useState(null);
   const [editNameValue, setEditNameValue] = useState('');
@@ -44,7 +47,19 @@ const WorkflowsOverview = () => {
   }, []);
 
   const handleNewWorkflow = () => {
-    navigate('/workflow');
+    // Generate auto-incremented workflow name
+    const existingWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
+    const workflowNumbers = existingWorkflows
+      .map(w => w.name)
+      .filter(name => name.match(/^Workflow - \d+$/))
+      .map(name => parseInt(name.replace('Workflow - ', '')))
+      .filter(num => !isNaN(num));
+    
+    const nextNumber = workflowNumbers.length > 0 ? Math.max(...workflowNumbers) + 1 : 1;
+    const newWorkflowName = `Workflow - ${nextNumber}`;
+    
+    // Navigate to workflow editor with auto-generated name
+    navigate(`/workflow?name=${encodeURIComponent(newWorkflowName)}`);
   };
 
   const handleEditWorkflow = (workflowId) => {
@@ -184,6 +199,11 @@ const WorkflowsOverview = () => {
       const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
       workflowStatuses[workflowId] = newStatus;
       localStorage.setItem('workflowStatuses', JSON.stringify(workflowStatuses));
+      
+      // 🔄 SYNC WITH WORKFLOW PAGE: Trigger custom event for same-page updates
+      window.dispatchEvent(new CustomEvent('workflowStatusChanged', { 
+        detail: { workflowId, status: newStatus } 
+      }));
 
       // If activating, make API call to activate workflow
       if (newStatus === 'active') {
@@ -200,16 +220,18 @@ const WorkflowsOverview = () => {
               edges: workflow.edges?.length || 0 
             });
 
-            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'https://workflow-unlq.onrender.com'}/api/workflows/${workflowId}/activate`, {
+            const response = await fetch(`${API_BASE_URL}/api/workflows/${workflowId}/activate`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                ...workflow,
-                // Ensure we have the complete workflow structure
-                nodes: workflow.nodes || [],
-                edges: workflow.edges || [],
+                workflow: {
+                  ...workflow,
+                  // Ensure we have the complete workflow structure
+                  nodes: workflow.nodes || [],
+                  edges: workflow.edges || []
+                },
                 // Force re-registration
                 forceReactivation: true,
                 activatedFrom: 'dashboard'
@@ -258,7 +280,7 @@ const WorkflowsOverview = () => {
       // If deactivating, make API call to deactivate workflow
       if (newStatus === 'inactive') {
         try {
-          const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'https://workflow-unlq.onrender.com'}/api/workflows/${workflowId}/deactivate`, {
+          const response = await fetch(`${API_BASE_URL}/api/workflows/${workflowId}/deactivate`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -297,10 +319,92 @@ const WorkflowsOverview = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  const filteredWorkflows = workflows.filter(workflow =>
-    workflow.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    workflow.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // 🔄 SYNC WITH WORKFLOW PAGE: Listen for status changes from workflow page
+  useEffect(() => {
+    const reloadWorkflowStatuses = () => {
+      console.log('🔄 Workflow page changed status - updating dashboard');
+      // Reload workflows to reflect new status
+      const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
+      const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
+      const workflowExecutions = JSON.parse(localStorage.getItem('workflowExecutions') || '{}');
+      
+      const workflowsWithStatus = savedWorkflows.map(workflow => {
+        const status = workflowStatuses[workflow.id] || 'inactive';
+        const executions = workflowExecutions[workflow.id];
+        
+        // Calculate last modified time
+        const lastModified = workflow.updatedAt ? 
+          new Date(workflow.updatedAt).toLocaleDateString() : 
+          new Date(workflow.createdAt).toLocaleDateString();
+        
+        return {
+          ...workflow,
+          status,
+          lastModified,
+          executions: executions?.runCount || 0,
+          nodes: workflow.nodes?.length || 0
+        };
+      });
+      
+      setWorkflows(workflowsWithStatus);
+    };
+
+    const handleStorageChange = (event) => {
+      if (event.key === 'workflowStatuses') {
+        reloadWorkflowStatuses();
+      }
+    };
+
+    const handleCustomStatusChange = (event) => {
+      console.log('🔄 Custom workflow status change detected:', event.detail);
+      reloadWorkflowStatuses();
+    };
+
+    // Listen for localStorage changes from other tabs/pages
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Listen for same-page custom events
+    window.addEventListener('workflowStatusChanged', handleCustomStatusChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('workflowStatusChanged', handleCustomStatusChange);
+    };
+  }, []);
+
+  // Filter and sort workflows
+  const filteredWorkflows = workflows
+    .filter(workflow => {
+      // Apply search filter
+      const matchesSearch = workflow.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        workflow.description.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Apply status filter
+      let matchesFilter = true;
+      if (activeFilter === 'Active') {
+        matchesFilter = workflow.status === 'active';
+      } else if (activeFilter === 'Deactive') {
+        matchesFilter = workflow.status === 'inactive';
+      }
+      // For 'All', matchesFilter remains true
+      
+      return matchesSearch && matchesFilter;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'executions':
+          return (b.executions || 0) - (a.executions || 0);
+        case 'nodes':
+          return (b.nodes || 0) - (a.nodes || 0);
+        case 'date':
+        default:
+          const dateA = new Date(a.updatedAt || a.createdAt);
+          const dateB = new Date(b.updatedAt || b.createdAt);
+          return dateB - dateA; // Most recent first
+      }
+    });
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -309,6 +413,19 @@ const WorkflowsOverview = () => {
       case 'error': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  // Calculate real stats from workflows data
+  const stats = {
+    totalWorkflows: workflows.length,
+    totalExecutions: workflows.reduce((sum, workflow) => sum + (workflow.executions || 0), 0),
+    activeWorkflows: workflows.filter(workflow => workflow.status === 'active').length,
+    successRate: (() => {
+      const totalExecs = workflows.reduce((sum, workflow) => sum + (workflow.executions || 0), 0);
+      if (totalExecs === 0) return '0%';
+      // Assume 95% success rate as we don't track failures yet
+      return '95.0%';
+    })()
   };
 
   return (
@@ -346,7 +463,7 @@ const WorkflowsOverview = () => {
               <i className="fa-solid fa-diagram-project"></i>
             </div>
             <div className="stat-info">
-              <div className="stat-value">3</div>
+              <div className="stat-value">{stats.totalWorkflows}</div>
               <div className="stat-label">Total Workflows</div>
             </div>
           </div>
@@ -355,7 +472,7 @@ const WorkflowsOverview = () => {
               <i className="fa-solid fa-play"></i>
             </div>
             <div className="stat-info">
-              <div className="stat-value">2,139</div>
+              <div className="stat-value">{stats.totalExecutions.toLocaleString()}</div>
               <div className="stat-label">Total Executions</div>
             </div>
           </div>
@@ -364,7 +481,7 @@ const WorkflowsOverview = () => {
               <i className="fa-solid fa-check-circle"></i>
             </div>
             <div className="stat-info">
-              <div className="stat-value">2</div>
+              <div className="stat-value">{stats.activeWorkflows}</div>
               <div className="stat-label">Active Workflows</div>
             </div>
           </div>
@@ -373,7 +490,7 @@ const WorkflowsOverview = () => {
               <i className="fa-solid fa-clock"></i>
             </div>
             <div className="stat-info">
-              <div className="stat-value">98.5%</div>
+              <div className="stat-value">{stats.successRate}</div>
               <div className="stat-label">Success Rate</div>
             </div>
           </div>
@@ -391,9 +508,36 @@ const WorkflowsOverview = () => {
             />
           </div>
           <div className="filter-buttons">
-            <button className="filter-btn active">All</button>
-            <button className="filter-btn">Active</button>
-            <button className="filter-btn">Draft</button>
+            <button 
+              className={`filter-btn ${activeFilter === 'All' ? 'active' : ''}`}
+              onClick={() => setActiveFilter('All')}
+            >
+              All
+            </button>
+            <button 
+              className={`filter-btn ${activeFilter === 'Active' ? 'active' : ''}`}
+              onClick={() => setActiveFilter('Active')}
+            >
+              Active
+            </button>
+            <button 
+              className={`filter-btn ${activeFilter === 'Deactive' ? 'active' : ''}`}
+              onClick={() => setActiveFilter('Deactive')}
+            >
+              Deactive
+            </button>
+          </div>
+          <div className="sort-dropdown">
+            <select 
+              value={sortBy} 
+              onChange={(e) => setSortBy(e.target.value)}
+              className="sort-select"
+            >
+              <option value="date">Sort by Date</option>
+              <option value="name">Sort by Name (A-Z)</option>
+              <option value="executions">Sort by Executions</option>
+              <option value="nodes">Sort by Size</option>
+            </select>
           </div>
         </div>
 

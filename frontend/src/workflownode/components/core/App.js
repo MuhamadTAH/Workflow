@@ -85,8 +85,10 @@ const App = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const loadWorkflowId = urlParams.get('load');
+    const newWorkflowName = urlParams.get('name');
     
     if (loadWorkflowId && currentWorkflowId !== loadWorkflowId) {
+      // Loading existing workflow
       const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
       const workflowToLoad = savedWorkflows.find(w => w.id === loadWorkflowId);
       
@@ -107,10 +109,24 @@ const App = () => {
           setLastSavedState(initialState);
           setHasUnsavedChanges(false);
         }, 100);
-        
       }
-    } else if (!loadWorkflowId && !currentWorkflowId && lastSavedState === null) {
-      // For new workflows, set initial state only once
+    } else if (newWorkflowName && workflowName !== newWorkflowName) {
+      // Creating new workflow with auto-generated name
+      setWorkflowName(newWorkflowName);
+      setCurrentWorkflowId(null); // Clear current workflow ID for new workflow
+      
+      // Set initial saved state with new name
+      setTimeout(() => {
+        const initialState = JSON.stringify({
+          name: newWorkflowName,
+          nodes: [],
+          edges: []
+        });
+        setLastSavedState(initialState);
+        setHasUnsavedChanges(false);
+      }, 100);
+    } else if (!loadWorkflowId && !newWorkflowName && !currentWorkflowId && lastSavedState === null) {
+      // For new workflows without specified name, set initial state only once
       setTimeout(() => {
         const initialState = JSON.stringify({
           name: 'Untitled Workflow',
@@ -121,7 +137,7 @@ const App = () => {
         setHasUnsavedChanges(false);
       }, 100);
     }
-  }, [setNodes, setEdges, currentWorkflowId, lastSavedState]);
+  }, [setNodes, setEdges, currentWorkflowId, lastSavedState, workflowName]);
 
   // Add beforeunload listener for unsaved changes warning
   useEffect(() => {
@@ -139,6 +155,42 @@ const App = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [hasUnsavedChanges]);
+
+  // 🔄 SYNC WITH DASHBOARD: Listen for status changes from dashboard
+  useEffect(() => {
+    const handleStorageChange = (event) => {
+      if (event.key === 'workflowStatuses' && currentWorkflowId) {
+        const workflowStatuses = JSON.parse(event.newValue || '{}');
+        const newStatus = workflowStatuses[currentWorkflowId];
+        
+        if (newStatus === 'active' && !isActivated) {
+          console.log('🔄 Dashboard activated workflow - updating button state');
+          setIsActivated(true);
+        } else if (newStatus === 'inactive' && isActivated) {
+          console.log('🔄 Dashboard deactivated workflow - updating button state');
+          setIsActivated(false);
+        }
+      }
+    };
+
+    // Listen for localStorage changes from other tabs/pages
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check current status on page load/workflow change
+    if (currentWorkflowId) {
+      const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
+      const currentStatus = workflowStatuses[currentWorkflowId];
+      if (currentStatus === 'active' && !isActivated) {
+        setIsActivated(true);
+      } else if (currentStatus === 'inactive' && isActivated) {
+        setIsActivated(false);
+      }
+    }
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [currentWorkflowId, isActivated]);
 
   // Handles creating a new edge when connecting two nodes.
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
@@ -329,6 +381,16 @@ const App = () => {
         setIsActivated(true);
         setExecutionProgress(`✅ Workflow activated! Listening for triggers...`);
         
+        // 🔄 SYNC WITH DASHBOARD: Update shared workflow status
+        const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
+        workflowStatuses[workflowId] = 'active';
+        localStorage.setItem('workflowStatuses', JSON.stringify(workflowStatuses));
+        
+        // Trigger custom event for same-page updates
+        window.dispatchEvent(new CustomEvent('workflowStatusChanged', { 
+          detail: { workflowId, status: 'active' } 
+        }));
+        
         // Show activation success with trigger URLs
         let message = result.message + '\n\n';
         if (result.triggerUrls && result.triggerUrls.length > 0) {
@@ -380,6 +442,17 @@ const App = () => {
       if (response.ok && result.success) {
         setIsActivated(false);
         setExecutionProgress('');
+        
+        // 🔄 SYNC WITH DASHBOARD: Update shared workflow status
+        const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
+        workflowStatuses[currentWorkflowId] = 'inactive';
+        localStorage.setItem('workflowStatuses', JSON.stringify(workflowStatuses));
+        
+        // Trigger custom event for same-page updates
+        window.dispatchEvent(new CustomEvent('workflowStatusChanged', { 
+          detail: { workflowId: currentWorkflowId, status: 'inactive' } 
+        }));
+        
         alert(`✅ Workflow deactivated successfully! No longer listening for triggers.`);
       } else {
         throw new Error(result.message || 'Failed to deactivate workflow');

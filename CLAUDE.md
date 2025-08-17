@@ -4,8 +4,8 @@
 
 ### How Backend & Frontend Connect
 This project uses a **full production deployment architecture**:
-- **Frontend**: Production hosted on Render (https://workflow-1-frkg.onrender.com)
-- **Backend**: Production hosted on Render (https://workflow-unlq.onrender.com)
+- **Frontend**: Production hosted on Render (https://frontend-dpcg.onrender.com)
+- **Backend**: Production hosted on Render (https://workflow-lg9z.onrender.com)
 - **Connection**: Frontend makes API calls directly to production backend via VITE_API_BASE_URL
 
 **Architecture Benefits**:
