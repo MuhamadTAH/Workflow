@@ -8,6 +8,8 @@ Chat Trigger node implementation for processing chat messages
 const chatMessageStorage = require('../../services/chatMessageStorage');
 const logger = require('../../services/logger');
 
+console.log('🔄 ChatTriggerNode module loading - v2.0 with full functionality');
+
 const chatTriggerNode = {
   description: {
     displayName: 'Chat Trigger',
