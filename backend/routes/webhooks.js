@@ -951,6 +951,86 @@ router.get('/test-telegram/:workflowId', (req, res) => {
   });
 });
 
+// Dry run test endpoint for workflows
+router.post('/dry-run/:workflowId', async (req, res) => {
+    try {
+        const { workflowId } = req.params;
+        const { triggerData } = req.body;
+        
+        console.log(`🧪 DRY RUN: Testing workflow: ${workflowId}`);
+        console.log('🧪 DRY RUN: Trigger data:', JSON.stringify(triggerData, null, 2));
+        
+        // Default trigger data if none provided
+        const defaultTriggerData = {
+            message: 'DRY RUN: Test workflow execution',
+            source: 'dry_run_test',
+            triggeredBy: 'test_user',
+            testMode: true
+        };
+        
+        const rawTriggerData = triggerData || defaultTriggerData;
+        
+        // Standardize trigger data using processor
+        const standardizedData = TriggerDataProcessor.standardizeTriggerData(
+            'manualTrigger', 
+            rawTriggerData, 
+            `dry-run-trigger-${workflowId}`
+        );
+        
+        // Check if workflow is active and queue for execution in dry run mode
+        if (workflowExecutor && workflowExecutor.activeWorkflows.has(workflowId)) {
+            console.log(`🧪 DRY RUN: Workflow ${workflowId} is active, starting dry run execution`);
+            
+            // Prepare trigger data for workflow execution
+            const executionTriggerData = TriggerDataProcessor.toExecutionFormat(standardizedData);
+            
+            // Add job to queue with dry run flag
+            const jobResult = await jobQueue.addJob({
+                workflowId,
+                triggerData: executionTriggerData,
+                triggerType: 'dryRunTest',
+                priority: 'high',
+                metadata: {
+                    source: 'dry_run_api',
+                    testMode: true,
+                    triggeredBy: 'user',
+                    ip: req.ip
+                }
+            });
+            
+            console.log(`🧪 DRY RUN: Job queued successfully:`, jobResult.jobId);
+            
+            res.json({
+                success: true,
+                message: `DRY RUN: Workflow test execution triggered for: ${workflowId}`,
+                jobId: jobResult.jobId,
+                triggerData: executionTriggerData,
+                dryRun: true,
+                timestamp: new Date().toISOString()
+            });
+        } else {
+            console.log(`🧪 DRY RUN: Workflow ${workflowId} not found or not active`);
+            const availableWorkflows = workflowExecutor ? Array.from(workflowExecutor.activeWorkflows.keys()) : [];
+            
+            res.json({
+                success: false,
+                message: `DRY RUN: Workflow ${workflowId} not found or not active`,
+                availableWorkflows: availableWorkflows,
+                timestamp: new Date().toISOString()
+            });
+        }
+        
+    } catch (error) {
+        console.error('🧪 DRY RUN: Error:', error.message);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            dryRun: true,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // Test POST endpoint with fake Telegram data that actually triggers workflow
 router.post('/test-telegram-post/:workflowId', async (req, res) => {
   try {

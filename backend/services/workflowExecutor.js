@@ -21,8 +21,9 @@ class WorkflowExecutor {
     }
 
     // Register a workflow for automatic execution
-    registerWorkflow(workflowId, workflowConfig, credentials) {
-        console.log(`Registering workflow ${workflowId} for automatic execution`);
+    registerWorkflow(workflowId, workflowConfig, options = {}) {
+        const { credentials = {}, dryRun = false } = options;
+        console.log(`Registering workflow ${workflowId} for automatic execution${dryRun ? ' (DRY RUN MODE)' : ''}`);
         console.log('Workflow config received:', {
             nodes: workflowConfig.nodes?.length || 0,
             edges: workflowConfig.edges?.length || 0,
@@ -53,7 +54,8 @@ class WorkflowExecutor {
             triggerNodeId: triggerNode.id,
             credentials: credentials, // Store credentials for trigger access
             isActive: true,
-            registeredAt: new Date().toISOString()
+            registeredAt: new Date().toISOString(),
+            dryRun: dryRun
         });
 
         console.log(`Workflow ${workflowId} registered successfully with ${workflowConfig.nodes.length} nodes and ${workflowConfig.edges.length} edges`);
@@ -80,10 +82,12 @@ class WorkflowExecutor {
 
     // Execute a complete workflow when triggered
     async executeWorkflow(workflowId, triggerData) {
-        console.log(`\n=== EXECUTING WORKFLOW ${workflowId} ===`);
+        const workflow = this.activeWorkflows.get(workflowId);
+        const isDryRun = workflow?.dryRun || false;
+        
+        console.log(`\n=== EXECUTING WORKFLOW ${workflowId}${isDryRun ? ' (DRY RUN)' : ''} ===`);
         console.log('Trigger data:', JSON.stringify(triggerData, null, 2));
 
-        const workflow = this.activeWorkflows.get(workflowId);
         if (!workflow || !workflow.isActive) {
             throw new Error(`Workflow ${workflowId} is not active`);
         }
@@ -94,7 +98,8 @@ class WorkflowExecutor {
             executionId,
             startTime: new Date().toISOString(),
             steps: [],
-            triggerData
+            triggerData,
+            dryRun: isDryRun
         };
 
         try {
@@ -157,8 +162,16 @@ class WorkflowExecutor {
                         
                         console.log('Step-based input data for node:', JSON.stringify(stepBasedInputData, null, 2));
                         
-                        // Execute the node with error handling
-                        const result = await this.executeNode(node, stepBasedInputData, workflow);
+                        let result;
+                        
+                        // In dry run mode, simulate execution for external action nodes
+                        if (isDryRun && this.shouldSimulateInDryRun(node.data.type)) {
+                            console.log(`🧪 DRY RUN: Simulating execution for ${node.data.type} node`);
+                            result = this.createDryRunResult(node, stepBasedInputData);
+                        } else {
+                            // Execute the node normally (or dry run mode for trigger/logic nodes)
+                            result = await this.executeNode(node, stepBasedInputData, workflow);
+                        }
                         
                         // Check for execution errors
                         if (result && result.success === false && result.error) {
@@ -750,6 +763,113 @@ class WorkflowExecutor {
         });
 
         return resolved;
+    }
+    
+    // Determine if a node type should be simulated in dry run mode
+    shouldSimulateInDryRun(nodeType) {
+        // External action nodes that should be simulated
+        const externalActionNodes = [
+            'telegramSendMessage',
+            'chatTriggerResponse',
+            'multiLanguageChatResponse',
+            'googleDocs',
+            'dataStorage' // Can still simulate data storage
+        ];
+        
+        // Trigger nodes should execute normally to test data flow
+        const triggerNodes = [
+            'trigger',
+            'telegramTrigger',
+            'chatTrigger'
+        ];
+        
+        return externalActionNodes.includes(nodeType);
+    }
+    
+    // Create a simulated result for dry run mode
+    createDryRunResult(node, inputData) {
+        const nodeType = node.data.type;
+        const nodeLabel = node.data.label || nodeType;
+        
+        console.log(`🧪 Creating dry run result for ${nodeType}`);
+        
+        switch (nodeType) {
+            case 'telegramSendMessage':
+                return {
+                    success: true,
+                    message: 'DRY RUN: Telegram message would be sent',
+                    outputData: {
+                        messageId: 'dry_run_message_' + Date.now(),
+                        chatId: node.data.chatId || 'dry_run_chat',
+                        text: node.data.messageText || 'DRY RUN: Message content',
+                        sentAt: new Date().toISOString(),
+                        dryRun: true
+                    }
+                };
+                
+            case 'chatTriggerResponse':
+                return {
+                    success: true,
+                    message: 'DRY RUN: Chat response would be sent',
+                    outputData: {
+                        sessionId: node.data.sessionId || 'dry_run_session',
+                        message: node.data.message || 'DRY RUN: Chat response',
+                        sentAt: new Date().toISOString(),
+                        dryRun: true
+                    }
+                };
+                
+            case 'multiLanguageChatResponse':
+                return {
+                    success: true,
+                    message: 'DRY RUN: Multi-language chat response would be sent',
+                    outputData: {
+                        sessionId: node.data.sessionId || 'dry_run_session',
+                        message: node.data.message || 'DRY RUN: Multi-language response',
+                        language: node.data.language || 'en',
+                        sentAt: new Date().toISOString(),
+                        dryRun: true
+                    }
+                };
+                
+            case 'googleDocs':
+                return {
+                    success: true,
+                    message: 'DRY RUN: Google Docs operation would be performed',
+                    outputData: {
+                        documentId: 'dry_run_doc_' + Date.now(),
+                        operation: node.data.operation || 'read',
+                        content: 'DRY RUN: Document content',
+                        modifiedAt: new Date().toISOString(),
+                        dryRun: true
+                    }
+                };
+                
+            case 'dataStorage':
+                return {
+                    success: true,
+                    message: 'DRY RUN: Data would be stored',
+                    outputData: {
+                        stored: true,
+                        data: inputData,
+                        storedAt: new Date().toISOString(),
+                        dryRun: true
+                    }
+                };
+                
+            default:
+                return {
+                    success: true,
+                    message: `DRY RUN: ${nodeLabel} would execute normally`,
+                    outputData: {
+                        nodeType: nodeType,
+                        nodeLabel: nodeLabel,
+                        inputData: inputData,
+                        simulatedAt: new Date().toISOString(),
+                        dryRun: true
+                    }
+                };
+        }
     }
 
     // Helper method to get nested values from objects using dot notation

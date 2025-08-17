@@ -46,7 +46,7 @@ const getCredentials = (nodeType) => {
 const activateWorkflow = async (req, res) => {
     try {
         const workflowId = req.params.id;
-        const { workflow } = req.body; 
+        const { workflow, dryRun = false } = req.body; 
 
         if (!workflow || !workflow.nodes || !workflow.edges) {
             return res.status(400).json({ message: 'Complete workflow data (nodes and edges) is required for activation.' });
@@ -63,9 +63,12 @@ const activateWorkflow = async (req, res) => {
 
         console.log('\n' + '='.repeat(60));
         console.log(`🚀 WORKFLOW ACTIVATION STARTED`);
-        console.log(`🔄 Activating workflow: ${workflowId}`);
+        console.log(`🔄 Activating workflow: ${workflowId}${dryRun ? ' (DRY RUN MODE)' : ''}`);
         console.log(`📋 Found ${triggerNodes.length} trigger node(s):`, triggerNodes.map(n => n.data.type));
         console.log(`📊 Current active workflows count: ${activeWorkflows.size}`);
+        if (dryRun) {
+            console.log(`🧪 DRY RUN: No actual external actions will be performed`);
+        }
         console.log('='.repeat(60));
 
         // Register trigger handlers for each trigger node (URLs handled internally)
@@ -97,8 +100,8 @@ const activateWorkflow = async (req, res) => {
 
         // Register workflow for automatic execution
         try {
-            workflowExecutor.registerWorkflow(workflowId, workflow, {});
-            console.log(`✅ Workflow ${workflowId} registered for auto-execution`);
+            workflowExecutor.registerWorkflow(workflowId, workflow, { dryRun });
+            console.log(`✅ Workflow ${workflowId} registered for auto-execution${dryRun ? ' (DRY RUN)' : ''}`);
             console.log(`WorkflowExecutor active workflows count: ${workflowExecutor.activeWorkflows.size}`);
         } catch (error) {
             console.error('Failed to register workflow:', error.message);
@@ -107,7 +110,7 @@ const activateWorkflow = async (req, res) => {
 
         // AUTO-UPDATE TELEGRAM WEBHOOK: If this workflow has a Telegram trigger, update the webhook automatically
         const telegramTrigger = triggerNodes.find(node => node.data.type === 'telegramTrigger');
-        if (telegramTrigger) {
+        if (telegramTrigger && !dryRun) {
             console.log(`🔄 Auto-updating Telegram webhook for workflow: ${workflowId}`);
             try {
                 const axios = require('axios');
@@ -127,6 +130,8 @@ const activateWorkflow = async (req, res) => {
             } catch (error) {
                 console.error(`❌ Error during Telegram webhook auto-update:`, error.message);
             }
+        } else if (telegramTrigger && dryRun) {
+            console.log(`🧪 DRY RUN: Skipping Telegram webhook update for workflow: ${workflowId}`);
         }
 
         // Store active workflow
@@ -135,7 +140,8 @@ const activateWorkflow = async (req, res) => {
             workflow,
             triggerUrls,
             activatedAt: new Date().toISOString(),
-            status: 'active'
+            status: 'active',
+            dryRun: dryRun
         });
 
         console.log('\n' + '='.repeat(60));
