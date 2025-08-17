@@ -75,11 +75,11 @@ const activateWorkflow = async (req, res) => {
 
         // Find trigger nodes in the workflow
         const triggerNodes = workflow.nodes.filter(node => 
-            node.data.type === 'chatTrigger' || node.data.type === 'telegramTrigger'
+            node.data.type === 'telegramTrigger'
         );
 
         if (triggerNodes.length === 0) {
-            return res.status(400).json({ message: 'Workflow must contain at least one trigger node (Chat Trigger or Telegram Trigger).' });
+            return res.status(400).json({ message: 'Workflow must contain at least one trigger node (Telegram Trigger).' });
         }
 
         console.log('\n' + '='.repeat(60));
@@ -95,21 +95,7 @@ const activateWorkflow = async (req, res) => {
         // Register trigger handlers for each trigger node (URLs handled internally)
         const triggerUrls = [];
         for (const triggerNode of triggerNodes) {
-            if (triggerNode.data.type === 'chatTrigger') {
-                const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/chatTrigger/${workflowId}/${triggerNode.id}/chat`;
-                
-                console.log('🔗 Registered Chat Trigger:', {
-                    workflowId: workflowId,
-                    nodeId: triggerNode.id,
-                    webhookUrl: webhookUrl
-                });
-                
-                triggerUrls.push({
-                    nodeId: triggerNode.id,
-                    type: 'chatTrigger',
-                    webhookUrl: webhookUrl
-                });
-            } else if (triggerNode.data.type === 'telegramTrigger') {
+            if (triggerNode.data.type === 'telegramTrigger') {
                 const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram/${workflowId}`;
                 triggerUrls.push({
                     nodeId: triggerNode.id,

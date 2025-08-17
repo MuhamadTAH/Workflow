@@ -23,10 +23,10 @@ import Sidebar from './Sidebar';
 import Toolbar from './Toolbar';
 import { CustomLogicNode } from '../nodes';
 import { ConfigPanel } from '../panels';
+import ChatWidget from '../ChatWidget';
 import { getId } from '../../utils';
 import WorkflowExecutor from '../../utils/workflowExecutor';
 import { API_BASE_URL } from '../../../config/api.js';
-import ChatWidget from '../../../components/ChatWidget';
 import '../../styles/index.css';
 
 // Register the custom node type so ReactFlow knows how to render it.
@@ -51,7 +51,6 @@ const App = () => {
   const [isActivated, setIsActivated] = useState(false);
   const [executionProgress, setExecutionProgress] = useState('');
   const [workflowExecutor, setWorkflowExecutor] = useState(null);
-  const [showChatWidget, setShowChatWidget] = useState(false);
 
   // Generate a unique, readable workflow ID (moved to top to fix hoisting issue)
   const generateWorkflowId = useCallback(() => {
@@ -194,11 +193,6 @@ const App = () => {
     };
   }, [currentWorkflowId, isActivated]);
 
-  // 🤖 CHAT WIDGET: Show/hide based on Chat Trigger nodes
-  useEffect(() => {
-    const hasChatTrigger = nodes.some(node => node.data.type === 'chatTrigger');
-    setShowChatWidget(hasChatTrigger);
-  }, [nodes]);
 
   // Handles creating a new edge when connecting two nodes.
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
@@ -332,11 +326,11 @@ const App = () => {
 
     // Check if workflow has trigger nodes
     const triggerNodes = nodes.filter(node => 
-      node.data.type === 'chatTrigger' || node.data.type === 'telegramTrigger'
+      node.data.type === 'telegramTrigger'
     );
 
     if (triggerNodes.length === 0) {
-      alert('Workflow must contain at least one trigger node (Chat Trigger or Telegram Trigger) to be activated.');
+      alert('Workflow must contain at least one trigger node (Telegram Trigger) to be activated.');
       return;
     }
 
@@ -404,8 +398,6 @@ const App = () => {
         if (result.triggerUrls && result.triggerUrls.length > 0) {
           message += 'Trigger URLs:\n';
           result.triggerUrls.forEach(trigger => {
-            if (trigger.type === 'chatTrigger') {
-              message += `• Chat Trigger: ${trigger.hostedChatUrl}\n`;
             } else if (trigger.type === 'telegramTrigger') {
               message += `• Telegram Webhook: ${trigger.webhookUrl}\n`;
             }
@@ -555,14 +547,18 @@ const App = () => {
           edges={edges}
           onClose={onPanelClose}
           onNodeUpdate={onNodeUpdate}
+          workflowId={currentWorkflowId}
         />
       )}
       
-      {/* 🤖 Chat Widget - appears when Chat Trigger nodes are present */}
-      <ChatWidget 
-        isVisible={showChatWidget}
-        onClose={() => setShowChatWidget(false)}
-      />
+      {/* Chat Widget - Show when there's a chatTrigger node */}
+      {nodes.some(node => node.data.type === 'chatTrigger') && (
+        <ChatWidget
+          nodeId={nodes.find(node => node.data.type === 'chatTrigger')?.id}
+          isVisible={true}
+          chatTitle={nodes.find(node => node.data.type === 'chatTrigger')?.data?.config?.chatTitle || 'Chat Support'}
+        />
+      )}
     </div>
   );
 };

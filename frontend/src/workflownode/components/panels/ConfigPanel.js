@@ -389,7 +389,7 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
 };
 
 
-const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
+const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) => {
   const [formData, setFormData] = useState({
       label: node.data.label || '',
       description: node.data.description || '',
@@ -456,13 +456,6 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
       model: node.data.model || 'claude-3-5-sonnet-20241022',
       systemPrompt: node.data.systemPrompt || '',
       userMessage: node.data.userMessage || '',
-      // Chat Trigger specific fields
-      webhookPath: node.data.webhookPath || 'chat',
-      secret: node.data.secret || '',
-      chatTitle: node.data.chatTitle || 'Chat Support',
-      // Chat Trigger Response specific fields
-      sessionId: node.data.sessionId || '{{$json.sessionId}}',
-      message: node.data.message || 'Hello! I received your message: {{$json.text}}',
   });
 
   useEffect(() => {
@@ -532,13 +525,6 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
       model: node.data.model || 'claude-3-5-sonnet-20241022',
       systemPrompt: node.data.systemPrompt || '',
       userMessage: node.data.userMessage || '',
-      // Chat Trigger specific fields
-      webhookPath: node.data.webhookPath || 'chat',
-      secret: node.data.secret || '',
-      chatTitle: node.data.chatTitle || 'Chat Support',
-      // Chat Trigger Response specific fields
-      sessionId: node.data.sessionId || '{{$json.sessionId}}',
-      message: node.data.message || 'Hello! I received your message: {{$json.text}}',
     });
   }, [node.id]);
   
@@ -811,7 +797,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                 },
                 inputData: inputData,
                 connectedNodes: collectAllPreviousNodeData(node.id) || [],
-                workflowId: 'live_test_workflow',
+                workflowId: workflowId || 'live_test_workflow',
                 workflowName: 'Live Test Workflow',
                 executionId: `live_${Date.now()}`
             })
@@ -1166,98 +1152,55 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate }) => {
                                 <label>Chat Trigger Configuration</label>
                                 
                                 <div className="form-group">
-                                    <label htmlFor="mode">Mode</label>
-                                    <div className="custom-select-wrapper">
-                                        <select name="mode" id="mode" value={formData.mode || 'hosted'} onChange={handleInputChange}>
-                                            <option value="hosted">Hosted Chat</option>
-                                            <option value="embedded">Embedded Widget</option>
-                                        </select>
-                                    </div>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        {formData.mode === 'hosted' ? 'Opens a hosted chat page on your domain' : 'Provides webhook URL for embedding in other sites'}
-                                    </p>
+                                    <label htmlFor="chatTitle">Chat Title</label>
+                                    <input 
+                                        type="text" 
+                                        name="chatTitle" 
+                                        id="chatTitle" 
+                                        value={formData.chatTitle || 'Chat Support'} 
+                                        onChange={handleInputChange} 
+                                        placeholder="Chat Support"
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Title displayed in the chat widget header</p>
                                 </div>
                                 
                                 <div className="form-group">
-                                    <label htmlFor="webhookPath">Webhook Path</label>
-                                    <ExpressionInput 
-                                        name="webhookPath" 
-                                        value={formData.webhookPath || 'chat'} 
+                                    <label htmlFor="welcomeMessage">Welcome Message</label>
+                                    <textarea 
+                                        name="welcomeMessage" 
+                                        id="welcomeMessage" 
+                                        rows="3"
+                                        value={formData.welcomeMessage || '👋 Welcome! Send a message to start the conversation.'} 
                                         onChange={handleInputChange} 
-                                        inputData={inputData} 
-                                        placeholder="chat"
-                                        currentNode={node} 
-                                        allNodes={nodes}
+                                        placeholder="👋 Welcome! Send a message to start the conversation."
                                     />
-                                    <p className="text-sm text-gray-500 mt-1">Custom path for the webhook URL</p>
+                                    <p className="text-sm text-gray-500 mt-1">Initial message shown to users</p>
                                 </div>
                                 
                                 <div className="form-group">
-                                    <label htmlFor="secret">Webhook Secret (Optional)</label>
-                                    <ExpressionInput 
-                                        name="secret" 
-                                        value={formData.secret || ''} 
+                                    <label htmlFor="sessionId">Chat Session ID</label>
+                                    <input 
+                                        type="text" 
+                                        name="sessionId" 
+                                        id="sessionId" 
+                                        value={formData.sessionId || node.id} 
                                         onChange={handleInputChange} 
-                                        inputData={inputData} 
-                                        placeholder="Optional security token"
-                                        currentNode={node} 
-                                        allNodes={nodes}
+                                        disabled
                                     />
-                                    <p className="text-sm text-gray-500 mt-1">Token for webhook security verification</p>
+                                    <p className="text-sm text-gray-500 mt-1">Unique identifier for this chat session (auto-generated)</p>
                                 </div>
                                 
-                                {formData.mode === 'hosted' && (
-                                    <div className="form-group">
-                                        <label htmlFor="chatTitle">Chat Title</label>
-                                        <ExpressionInput 
-                                            name="chatTitle" 
-                                            value={formData.chatTitle || 'Chat Support'} 
+                                <div className="form-group">
+                                    <label>
+                                        <input 
+                                            type="checkbox" 
+                                            name="enableWidget" 
+                                            checked={formData.enableWidget !== false} 
                                             onChange={handleInputChange} 
-                                            inputData={inputData} 
-                                            placeholder="Chat Support"
-                                            currentNode={node} 
-                                            allNodes={nodes}
                                         />
-                                        <p className="text-sm text-gray-500 mt-1">Title shown on hosted chat page</p>
-                                    </div>
-                                )}
-                                
-                                <div className="webhook-info" style={{ background: '#f8f9fa', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
-                                    <strong>Webhook URL:</strong><br/>
-                                    <code style={{ wordBreak: 'break-all' }}>
-                                        {API_BASE_URL}/api/webhooks/chatTrigger/test-workflow/{node.id}/{formData.webhookPath || 'chat'}
-                                    </code>
-                                    <br/><br/>
-                                    
-                                    {formData.mode === 'hosted' && (
-                                        <>
-                                            <strong>Hosted Chat URL:</strong><br/>
-                                            <code style={{ wordBreak: 'break-all' }}>
-                                                {API_BASE_URL}/chat/test-workflow/{node.id}/{formData.webhookPath || 'chat'}?title={encodeURIComponent(formData.chatTitle || 'Chat Support')}
-                                            </code>
-                                            <br/><br/>
-                                        </>
-                                    )}
-                                    
-                                    {formData.mode === 'embedded' && (
-                                        <>
-                                            <strong>Widget Integration:</strong><br/>
-                                            <code style={{ display: 'block', marginTop: '8px', padding: '8px', background: 'white', borderRadius: '4px' }}>
-                                                {`<script type="module" src="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
-
-<script>
-window.addEventListener('DOMContentLoaded', () => {
-  createChat({
-    webhookUrl: '${API_BASE_URL}/api/webhooks/chatTrigger/{workflow-id}/${node.id}/${formData.webhookPath || "chat"}',
-    target: '#n8n-chat'
-  });
-});
-</script>
-<div id="n8n-chat"></div>`}
-                                            </code>
-                                        </>
-                                    )}
+                                        <span className="ml-2">Enable Chat Widget</span>
+                                    </label>
+                                    <p className="text-sm text-gray-500 mt-1">Show the floating chat interface when this node is active</p>
                                 </div>
                             </div>
                         )}
@@ -1372,60 +1315,6 @@ window.addEventListener('DOMContentLoaded', () => {
                             </div>
                         )}
 
-                        {node.data.type === 'chatTriggerResponse' && (
-                            <div className="form-group mt-6">
-                                <label>Chat Trigger Response Configuration</label>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="sessionId">Session ID</label>
-                                    <ExpressionInput 
-                                        name="sessionId" 
-                                        value={formData.sessionId || '{{$json.sessionId}}'} 
-                                        onChange={handleInputChange} 
-                                        inputData={inputData} 
-                                        placeholder="{{$json.sessionId}} or static-session-id"
-                                        currentNode={node} 
-                                        allNodes={nodes}
-                                    />
-                                    <p className="text-sm text-gray-500 mt-1">Session ID to send the response to</p>
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="message">Response Message</label>
-                                    <ExpressionInput 
-                                        name="message" 
-                                        value={formData.message || 'Hello! I received your message: {{$json.text}}'} 
-                                        onChange={handleInputChange} 
-                                        inputData={inputData} 
-                                        placeholder="Hello! Your message was: {{$json.text}}"
-                                        isTextarea={true}
-                                        currentNode={node} 
-                                        allNodes={nodes}
-                                    />
-                                    <p className="text-sm text-gray-500 mt-1">Response message to send back to the user</p>
-                                </div>
-                                
-                                <div className="template-examples" style={{ background: '#f0f9ff', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
-                                    <strong>💬 Chat Response Examples:</strong><br/>
-                                    <code>{'{{$json.sessionId}}'}</code> - Use incoming session ID<br/>
-                                    <code>{'{{$json.text}}'}</code> - Echo user's message<br/>
-                                    <code>{'{{$node["AI Agent"].json.response}}'}</code> - Use AI response<br/>
-                                    <code>{'Thanks for your message: "{{$json.text}}"'}</code> - Custom response
-                                </div>
-                                
-                                <div className="info-box" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
-                                    <div style={{ color: '#166534', fontWeight: '600', marginBottom: '4px' }}>
-                                        🔄 How Chat Responses Work:
-                                    </div>
-                                    <div style={{ color: '#166534', fontSize: '14px' }}>
-                                        1. User sends message → Chat Trigger receives with sessionId<br/>
-                                        2. Workflow processes message through your nodes<br/>
-                                        3. Chat Trigger Response sends reply back to same session<br/>
-                                        4. User sees bot response automatically (no refresh needed)
-                                    </div>
-                                </div>
-                            </div>
-                        )}
 
                         {node.data.type === 'executeSubWorkflow' && (
                             <>

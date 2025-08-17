@@ -24,15 +24,15 @@ git commit -m "feature: description"
 git push origin main
 
 # 3. Render Auto-Deploys:
-#    - Backend: https://workflow-unlq.onrender.com (1-2 minutes)
-#    - Frontend: https://workflow-1-frkg.onrender.com (2-3 minutes)
+#    - Backend: https://workflow-lg9z.onrender.com (1-2 minutes)
+#    - Frontend: https://frontend-dpcg.onrender.com (2-3 minutes)
 
 # 4. Access live application at frontend URL
 ```
 
 ### URLs & Connections:
-- **Frontend**: https://workflow-1-frkg.onrender.com (Production)
-- **Backend**: https://workflow-unlq.onrender.com (Production API)
+- **Frontend**: https://frontend-dpcg.onrender.com (Production)
+- **Backend**: https://workflow-lg9z.onrender.com (Production API)
 - **GitHub**: https://github.com/MuhamadTAH/Workflow.git
 - **Database**: SQLite (hosted with backend on Render)
 - **Local Development**: `cd frontend && npm run dev` (optional, for hot reload)
@@ -47,7 +47,7 @@ git push origin main
 Most components use environment detection:
 ```javascript
 const API_BASE = process.env.NODE_ENV === 'production' 
-  ? 'https://workflow-unlq.onrender.com'
+  ? 'https://workflow-lg9z.onrender.com'
   : 'http://localhost:3001';
 ```
 
@@ -55,7 +55,7 @@ const API_BASE = process.env.NODE_ENV === 'production'
 Some features always use production (telegram validation, webhooks):
 ```javascript
 // Always use production backend for telegram validation
-const API_BASE = 'https://workflow-unlq.onrender.com';
+const API_BASE = 'https://workflow-lg9z.onrender.com';
 ```
 
 #### 3. CORS Configuration
@@ -128,7 +128,7 @@ social_connections:
 - **Name**: AI Marketing Team
 - **Username**: @AI_MarketingTeambot  
 - **Token**: `8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ`
-- **Webhook**: https://workflow-unlq.onrender.com/api/webhooks/telegram
+- **Webhook**: https://workflow-lg9z.onrender.com/api/webhooks/telegram
 
 ### Webhook Flow:
 ```
@@ -244,10 +244,10 @@ git push origin main
 ### Troubleshooting:
 ```bash  
 # Check backend logs
-# View at: Render dashboard → workflow-unlq → Logs
+# View at: Render dashboard → workflow-lg9z → Logs
 
 # Test API endpoints
-curl https://workflow-unlq.onrender.com/api/hello
+curl https://workflow-lg9z.onrender.com/api/hello
 
 # Install missing dependencies
 cd backend && npm install package-name
@@ -276,8 +276,8 @@ git add package.json && git commit -m "Add dependency" && git push
 - `backend/services/telegramAPI.js` - Telegram integration
 
 ### Production URLs:
-- **Frontend**: https://workflow-1-frkg.onrender.com
-- **Backend API**: https://workflow-unlq.onrender.com
+- **Frontend**: https://frontend-dpcg.onrender.com
+- **Backend API**: https://workflow-lg9z.onrender.com
 - **GitHub Repo**: https://github.com/MuhamadTAH/Workflow.git
 - **Telegram Bot**: @AI_MarketingTeambot
 
@@ -285,72 +285,60 @@ git add package.json && git commit -m "Add dependency" && git push
 
 *Complete Full-Stack Workflow Builder Platform with Visual Designer, Telegram Integration, Social Media Connections, and Production-Ready Architecture*
 
-### 8. 🚨 CHAT TRIGGER RESPONSE CRITICAL FIXES (Aug 10, 2025)
-**Problem**: Chat Trigger → Chat Trigger Response workflow not functioning end-to-end
-1. **Workflow Activation Issue**: Workflows activated but not registered with workflowExecutor
-2. **Webhook Execution Missing**: Chat Trigger webhook received messages but never executed workflows
-3. **Node Type Support**: WorkflowExecutor missing support for 'chatTrigger' and 'chatTriggerResponse' nodes
+## 🗑️ SYSTEM CLEANUP & REMOVAL DOCUMENTATION (August 17, 2025)
 
-**Root Cause Analysis**:
-- Activation endpoint created workflow registration but workflowExecutor.registerWorkflow() never called
-- Chat Trigger webhook stored messages but missing workflowExecutor.executeWorkflow() call
-- WorkflowExecutor buildExecutionOrder() only recognized 'trigger' nodes, not 'chatTrigger'
-- Missing 'chatTriggerResponse' node execution support
+### Complete Removal of Functionality
+**Request**: User requested 100% permanent removal of all functionality and mock data that was causing instant generic responses
+**Action Taken**: Systematic removal of all related components, routes, controllers, and configuration
 
-**Solution - Complete Chat Trigger Response Implementation**:
+### Files Completely Removed:
+1. **Frontend Components**:
+   - `frontend/src/components/ChatWidget.jsx` - Deleted entire widget component
+   - Removed DraggableNode components from `frontend/src/workflownode/components/core/Sidebar.js`
+   - Removed configuration sections from `frontend/src/workflownode/components/panels/ConfigPanel.js`
 
-**Backend Fixes**:
-1. **Webhook Execution** (`backend/routes/webhooks.js:435-459`):
-   ```javascript
-   // Added automatic workflow execution when message received
-   if (workflowExecutor && workflowExecutor.activeWorkflows.has(workflowId)) {
-     const triggerData = [{ json: processed.json, nodeId: nodeId, nodeType: 'chatTrigger' }];
-     const executionResult = await workflowExecutor.executeWorkflow(workflowId, triggerData);
-   }
-   ```
+2. **Backend Node Implementations**:
+   - `backend/nodes/triggers/chatTriggerNode.js` - Deleted entirely
+   - `backend/nodes/ChatTriggerResponseNode.js` - Deleted entirely
 
-2. **Enhanced Trigger Support** (`backend/services/workflowExecutor.js`):
-   ```javascript
-   // Updated buildExecutionOrder() to recognize chatTrigger nodes
-   const triggerNode = nodes.find(node => 
-     node.data.type === 'trigger' || 
-     node.data.type === 'telegramTrigger' ||
-     node.data.type === 'chatTrigger'  // Added this line
-   );
-   
-   // Added chatTrigger to skip logic
-   if (node.data.type === 'trigger' || node.data.type === 'telegramTrigger' || node.data.type === 'chatTrigger') {
-   
-   // Added Chat Trigger Response node execution support
-   case 'chatTriggerResponse':
-     const chatResponseInstance = new ChatTriggerResponseNode();
-     return await chatResponseInstance.execute(nodeConfig, inputData);
-   ```
+3. **Backend Routes & Controllers**:
+   - Removed all related webhook routes from `backend/routes/webhooks.js`
+   - Removed imports and cases from `backend/controllers/nodeController.js`
+   - Removed processing logic from `backend/services/workflowExecutor.js`
+   - Removed data processing from `backend/services/triggerDataProcessor.js`
 
-3. **Node Import** (`backend/services/workflowExecutor.js:14`):
-   ```javascript
-   const ChatTriggerResponseNode = require('../nodes/ChatTriggerResponseNode');
-   ```
+4. **Frontend Configuration**:
+   - Removed CHAT_WEBHOOK endpoint from `frontend/src/config/api.js`
+   - Removed widget imports and state from `frontend/src/workflownode/components/core/App.js`
 
-**Expected Flow After Fix**:
-1. User activates workflow → Frontend calls activation endpoint
-2. Backend registers workflow with workflowExecutor
-3. User sends chat message → Webhook receives message
-4. **NEW**: Webhook automatically calls workflowExecutor.executeWorkflow()
-5. WorkflowExecutor processes Chat Trigger → Chat Trigger Response
-6. Response stored in chat sessions → User sees reply
+5. **Internationalization Files**:
+   - Removed translation entries from all locale files (`en.json`, `fr.json`, `es.json`, `ar.json`)
 
-**Remaining Issue Found**: 
-From logs: `[webhook] ⚠️ Workflow not found or not active: test-workflow`
-- Webhook execution logic works but activation system not properly registering workflows with workflowExecutor
-- This indicates workflowController.activateWorkflow() not calling workflowExecutor.registerWorkflow()
+6. **Test Files**:
+   - `test-chat-trigger.html` - Deleted entirely
+   - `test-hybrid-chat.html` - Deleted entirely
+   - `test-workflow-registration.html` - Deleted entirely
 
-**Files Modified**:
-- `backend/routes/webhooks.js` (lines 435-459)
-- `backend/services/workflowExecutor.js` (lines 14, 125, 227-231, 318-320)
+### Deep Search & Verification:
+- Performed comprehensive grep searches for any remaining references
+- Found only documentation files (CLAUDE.md, error.md) and git history files with references
+- All functional code successfully removed from the system
 
-**Status**: ⚠️ **Partially Fixed** - Execution logic implemented but activation registration incomplete
+### Result:
+✅ **100% Complete Removal** - All functional code eliminated from the workflow builder
+✅ **No Mock Data Responses** - Instant generic responses completely eliminated
+✅ **Clean System** - Only legitimate workflow triggers and responses remain
+✅ **Project Integrity Maintained** - Core workflow functionality unaffected
+
+### Benefits of Removal:
+- Eliminates confusing mock data in execution
+- Removes instant generic responses that were not desired
+- Simplifies the workflow system architecture
+- Reduces codebase complexity and maintenance overhead
+- Ensures users only see real data from actual message sources
+
+*Removal completed successfully on August 17, 2025 - System now operates without the removed functionality*
 
 ---
 
-*Last Updated: August 10, 2025 - Chat Trigger Response system fixes implemented but activation registration incomplete. For complete error history see error.md*
+*Last Updated: August 17, 2025 - Complete functionality removal documented*

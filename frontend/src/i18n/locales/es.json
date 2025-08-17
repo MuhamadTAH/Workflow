@@ -53,8 +53,6 @@
     }
   },
   "nodes": {
-    "chatTrigger": "Disparador de Chat",
-    "chatTriggerResponse": "Respuesta de Disparador de Chat",
     "telegramTrigger": "Disparador de Telegram",
     "telegramSendMessage": "Enviar Mensaje de Telegram",
     "aiAgent": "Agente de IA",

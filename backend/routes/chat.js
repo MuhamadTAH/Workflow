@@ -50,15 +50,15 @@ router.get('/api/chat-messages/:sessionId', (req, res) => {
 // Extract workflow ID from session ID pattern
 function extractWorkflowIdFromSession(sessionId) {
   // Session IDs often contain workflow context in URL params or metadata
-  // For now, we'll check all active workflows to see if they have chat triggers
+  // For now, we'll check all active workflows to see if they have telegram triggers
   if (workflowExecutor && workflowExecutor.activeWorkflows) {
     for (const [workflowId, workflow] of workflowExecutor.activeWorkflows) {
-      // Check if this workflow has chat triggers
+      // Check if this workflow has telegram triggers
       const hasChatTrigger = workflow.nodes && workflow.nodes.some(node => 
-        node.data && node.data.type === 'chatTrigger'
+        node.data && node.data.type === 'telegramTrigger'
       );
       if (hasChatTrigger) {
-        return workflowId; // Return first workflow with chat trigger
+        return workflowId; // Return first workflow with telegram trigger
       }
     }
   }

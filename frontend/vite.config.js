@@ -33,12 +33,12 @@ export default defineConfig({
     historyApiFallback: true,
     proxy: {
       '/api': {
-        target: 'https://workflow-unlq.onrender.com',
+        target: 'https://workflow-lg9z.onrender.com',
         changeOrigin: true,
         secure: true
       },
       '/uploads': {
-        target: 'https://workflow-unlq.onrender.com',
+        target: 'https://workflow-lg9z.onrender.com',
         changeOrigin: true,
         secure: true
       }

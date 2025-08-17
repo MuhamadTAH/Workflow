@@ -11,7 +11,6 @@ const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
 const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
-const ChatTriggerResponseNode = require('../nodes/ChatTriggerResponseNode');
 const MultiLanguageChatResponseNode = require('../nodes/MultiLanguageChatResponseNode');
 
 class WorkflowExecutor {
@@ -40,10 +39,9 @@ class WorkflowExecutor {
         const triggerNode = workflowConfig.nodes.find(node => 
             node.data.type === 'trigger' || 
             node.data.type === 'telegramTrigger' ||
-            node.data.type === 'chatTrigger'
         );
         if (!triggerNode) {
-            throw new Error('Workflow must contain a trigger node (trigger, telegramTrigger, or chatTrigger)');
+            throw new Error('Workflow must contain a trigger node (trigger or telegramTrigger)');
         }
 
         console.log(`Found trigger node: ${triggerNode.data.label || triggerNode.data.type} (${triggerNode.id})`);
@@ -129,7 +127,7 @@ class WorkflowExecutor {
 
                 try {
                     // Skip trigger node (already executed)
-                    if (node.data.type === 'trigger' || node.data.type === 'telegramTrigger' || node.data.type === 'chatTrigger') {
+                    if (node.data.type === 'trigger' || node.data.type === 'telegramTrigger') {
                         stepLog.outputData = currentData;
                         stepLog.status = 'skipped';
                         stepLog.message = 'Trigger node - using trigger data';
@@ -151,7 +149,6 @@ class WorkflowExecutor {
                         stepData['triggerData'] = currentData;
                         if (node.data.type === 'telegramTrigger') {
                             stepData['telegram'] = currentData;
-                        } else if (node.data.type === 'chatTrigger') {
                             stepData['chat'] = currentData;
                         }
                         
@@ -216,7 +213,6 @@ class WorkflowExecutor {
                         } else if (node.data.type === 'dataStorage') {
                             stepData['storage'] = result;
                             stepData['data'] = result;
-                        }
                         
                         console.log(`✅ Added node step: ${stepKey} with type alias: ${node.data.type}`);
                         
@@ -302,8 +298,7 @@ class WorkflowExecutor {
         // Find trigger node (starting point)
         const triggerNode = nodes.find(node => 
             node.data.type === 'trigger' || 
-            node.data.type === 'telegramTrigger' ||
-            node.data.type === 'chatTrigger'
+            node.data.type === 'telegramTrigger'
         );
         if (!triggerNode) {
             throw new Error('No trigger node found in workflow');
@@ -447,20 +442,6 @@ class WorkflowExecutor {
             case 'telegramSendMessage':
                 return await telegramSendMessageNode.execute(resolvedConfig, inputData, connectedNodes);
             
-            case 'chatTriggerResponse':
-                const chatResponseInstance = new ChatTriggerResponseNode();
-                
-                // Filter config to only include Chat Trigger Response specific fields
-                const cleanConfig = {
-                    type: resolvedConfig.type,
-                    sessionId: resolvedConfig.sessionId,
-                    message: resolvedConfig.message,
-                    chatTitle: resolvedConfig.chatTitle,
-                    webhookPath: resolvedConfig.webhookPath
-                };
-                console.log('🧹 BEFORE CLEANING - Full resolved config contains', Object.keys(resolvedConfig).length, 'fields');
-                console.log('✨ AFTER CLEANING - Clean config:', JSON.stringify(cleanConfig, null, 2));
-                return await chatResponseInstance.execute(cleanConfig, inputData);
             
             case 'multiLanguageChatResponse':
                 const multiLangResponseInstance = new MultiLanguageChatResponseNode();
@@ -544,7 +525,6 @@ class WorkflowExecutor {
         const criticalNodeTypes = [
             'trigger',
             'telegramTrigger', 
-            'chatTrigger'
         ];
         
         // If it's a critical node, stop execution
@@ -782,8 +762,7 @@ class WorkflowExecutor {
                 if (fromFailedStep && i < startStep && (
                     node.data.type === 'trigger' || 
                     node.data.type === 'telegramTrigger' || 
-                    node.data.type === 'chatTrigger'
-                )) {
+                        )) {
                     console.log(`🔄 REPLAY: Skipping trigger node ${node.data.type} (using restored data)`);
                     continue;
                 }
@@ -964,7 +943,7 @@ class WorkflowExecutor {
                 
                 // Look for step data that matches the node name
                 for (const [stepKey, stepValue] of Object.entries(context)) {
-                    if (stepKey.includes(nodeName.replace(/ /g, '_')) || stepKey.includes('Chat_Trigger') || stepKey.includes('Telegram_Trigger')) {
+                    if (stepKey.includes(nodeName.replace(/ /g, '_')) || stepKey.includes('Telegram_Trigger') || stepKey.includes('Telegram_Trigger')) {
                         console.log(`📍 Found matching step: ${stepKey}`, JSON.stringify(stepValue, null, 2));
                         
                         // Special handling for Telegram Trigger nodes
@@ -1010,29 +989,29 @@ class WorkflowExecutor {
                             }
                         }
                         
-                        // Special handling for Chat Trigger nodes - they have flat data structure
-                        if (nodeName === 'Chat Trigger' || stepKey.includes('Chat_Trigger')) {
-                            console.log(`🔍 Chat Trigger special handling - nodeName: "${nodeName}", stepKey: "${stepKey}", path: "${path}"`);
+                        // Special handling for Telegram Trigger nodes - they have flat data structure
+                        if (nodeName === 'Telegram Trigger' || stepKey.includes('Telegram_Trigger')) {
+                            console.log(`🔍 Telegram Trigger special handling - nodeName: "${nodeName}", stepKey: "${stepKey}", path: "${path}"`);
                             console.log(`🔍 stepValue.sessionId: "${stepValue.sessionId}", stepValue.text: "${stepValue.text}"`);
                             
-                            // For Chat Trigger, map common template paths to actual data structure
+                            // For Telegram Trigger, map common template paths to actual data structure
                             if (path === 'json.result.data[0].sessionId' && stepValue.sessionId) {
-                                console.log(`✅ Template resolved (Chat Trigger sessionId): ${match} → ${stepValue.sessionId}`);
+                                console.log(`✅ Template resolved (Telegram Trigger sessionId): ${match} → ${stepValue.sessionId}`);
                                 return stepValue.sessionId;
                             }
                             if (path === 'json.result.data[0].text' && stepValue.text) {
-                                console.log(`✅ Template resolved (Chat Trigger text): ${match} → ${stepValue.text}`);
+                                console.log(`✅ Template resolved (Telegram Trigger text): ${match} → ${stepValue.text}`);
                                 return stepValue.text;
                             }
                             if (path === 'json.result.data[0].userId' && stepValue.userId) {
-                                console.log(`✅ Template resolved (Chat Trigger userId): ${match} → ${stepValue.userId}`);
+                                console.log(`✅ Template resolved (Telegram Trigger userId): ${match} → ${stepValue.userId}`);
                                 return stepValue.userId;
                             }
-                            // For other Chat Trigger fields, try direct access
+                            // For other Telegram Trigger fields, try direct access
                             const simplePath = path.split('.').pop(); // Get last part (e.g., "sessionId")
                             console.log(`🔍 Trying direct access with simplePath: "${simplePath}"`);
                             if (stepValue[simplePath]) {
-                                console.log(`✅ Template resolved (Chat Trigger direct): ${match} → ${stepValue[simplePath]}`);
+                                console.log(`✅ Template resolved (Telegram Trigger direct): ${match} → ${stepValue[simplePath]}`);
                                 return stepValue[simplePath];
                             }
                         }
@@ -1092,7 +1071,6 @@ class WorkflowExecutor {
         // External action nodes that should be simulated
         const externalActionNodes = [
             'telegramSendMessage',
-            'chatTriggerResponse',
             'multiLanguageChatResponse',
             'googleDocs',
             'dataStorage' // Can still simulate data storage
@@ -1102,7 +1080,6 @@ class WorkflowExecutor {
         const triggerNodes = [
             'trigger',
             'telegramTrigger',
-            'chatTrigger'
         ];
         
         return externalActionNodes.includes(nodeType);
@@ -1129,7 +1106,6 @@ class WorkflowExecutor {
                     }
                 };
                 
-            case 'chatTriggerResponse':
                 return {
                     success: true,
                     message: 'DRY RUN: Chat response would be sent',

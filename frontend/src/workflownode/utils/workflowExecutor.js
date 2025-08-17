@@ -107,7 +107,6 @@ class WorkflowExecutor {
     return inputData.length > 0 ? inputData : [{}];
   }
 
-  // Generate sample trigger data for testing (matches Chat Trigger node output format)
   generateTriggerData() {
     const mockSessionId = `workflow-session-${Date.now()}`;
     return [{

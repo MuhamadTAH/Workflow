@@ -53,8 +53,6 @@
     }
   },
   "nodes": {
-    "chatTrigger": "Déclencheur de Chat",
-    "chatTriggerResponse": "Réponse de Déclencheur de Chat",
     "telegramTrigger": "Déclencheur Telegram",
     "telegramSendMessage": "Envoyer Message Telegram",
     "aiAgent": "Agent IA",

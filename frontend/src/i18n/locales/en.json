@@ -53,8 +53,6 @@
     }
   },
   "nodes": {
-    "chatTrigger": "Chat Trigger",
-    "chatTriggerResponse": "Chat Trigger Response",
     "telegramTrigger": "Telegram Trigger",
     "telegramSendMessage": "Send Telegram Message",
     "aiAgent": "AI Agent",

@@ -81,7 +81,6 @@ All nodes follow a consistent visual design system for professional appearance a
 // Color scheme by category (use these exact colors)
 TRIGGER_NODES = {
   colors: ['text-green-500', 'text-blue-500', 'text-purple-500'],
-  examples: 'Chat Trigger (green), Telegram Trigger (blue)'
 }
 
 ACTION_NODES = {
@@ -104,7 +103,6 @@ LOGIC_NODES = {
 ```javascript
 // Icon categories and when to use them
 TRIGGER_ICONS = {
-  'fa-comments': 'Chat/Message triggers',
   'fa-clock': 'Time-based triggers',
   'fa-bell': 'Notification triggers',
   'fa-bolt': 'Event triggers'

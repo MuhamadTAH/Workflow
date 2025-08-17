@@ -18,8 +18,6 @@ class TriggerDataProcessor {
         };
 
         switch (triggerType) {
-            case 'chatTrigger':
-                return this.processChatTriggerData(rawData, baseData);
             
             case 'telegramTrigger':
                 return this.processTelegramTriggerData(rawData, baseData);
@@ -38,20 +36,6 @@ class TriggerDataProcessor {
         }
     }
 
-    // Process chat trigger data
-    static processChatTriggerData(rawData, baseData) {
-        return {
-            ...baseData,
-            type: 'chat_message',
-            message: {
-                text: rawData.message || rawData.text || '',
-                userId: rawData.userId || rawData.user_id || 'anonymous',
-                sessionId: rawData.sessionId || rawData.session_id || `session-${Date.now()}`,
-                metadata: rawData.metadata || {}
-            },
-            raw: rawData
-        };
-    }
 
     // Process Telegram trigger data
     static processTelegramTriggerData(rawData, baseData) {

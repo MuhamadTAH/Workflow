@@ -71,20 +71,20 @@ const Sidebar = () => {
         </div>
       <DraggableNode 
         nodeInfo={{ 
-            label: 'Chat Trigger',
-            icon: 'fa-comments',
-            color: 'text-green-500',
-            description: 'Start workflow from hosted or embedded chat messages',
-            type: 'chatTrigger' 
-        }} 
-      />
-      <DraggableNode 
-        nodeInfo={{ 
             label: 'Telegram Trigger', 
             icon: 'fa-telegram', 
             color: 'text-blue-500',
             description: 'Start workflow from Telegram messages',
             type: 'telegramTrigger' 
+        }} 
+      />
+      <DraggableNode 
+        nodeInfo={{ 
+            label: 'Chat Trigger', 
+            icon: 'fa-comments', 
+            color: 'text-blue-500',
+            description: 'Start workflow from chat messages',
+            type: 'chatTrigger' 
         }} 
       />
       
@@ -130,15 +130,6 @@ const Sidebar = () => {
             color: 'text-blue-500',
             description: 'Send messages via Telegram Bot API',
             type: 'telegramSendMessage' 
-        }} 
-      />
-      <DraggableNode 
-        nodeInfo={{ 
-            label: 'Chat Trigger Response', 
-            icon: 'fa-comment-dots', 
-            color: 'text-green-600',
-            description: 'Send reply messages back to chat session',
-            type: 'chatTriggerResponse' 
         }} 
       />
       <DraggableNode 

@@ -53,8 +53,6 @@
     }
   },
   "nodes": {
-    "chatTrigger": "محفز المحادثة",
-    "chatTriggerResponse": "استجابة محفز المحادثة",
     "telegramTrigger": "محفز تليجرام",
     "telegramSendMessage": "إرسال رسالة تليجرام",
     "aiAgent": "وكيل الذكاء الاصطناعي",

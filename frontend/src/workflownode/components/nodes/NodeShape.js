@@ -96,9 +96,7 @@ const NodeShape = ({ data = {}, nodeHeight, totalInputHandles, totalOutputHandle
       'fa-slack': 'fa-brands fa-slack',
       'fa-github': 'fa-brands fa-github',
       
-      // Chat Trigger
       'fa-comments': 'fa-solid fa-comments'
-
     };
     
     // Return mapped class or default to solid

@@ -12,8 +12,6 @@ const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
 const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
-const ChatTriggerNode = require('../nodes/triggers/chatTriggerNode');
-const ChatTriggerResponseNode = require('../nodes/ChatTriggerResponseNode');
 const ifNode = require('../nodes/logic/ifNode');
 const switchNode = require('../nodes/logic/switchNode');
 const waitNode = require('../nodes/logic/waitNode');
@@ -101,7 +99,7 @@ const runNode = async (req, res) => {
         console.log(`📋 Processing ${inputItems.length} item(s) for node ${node.type}`);
         
         // Check if this is an output node that should execute once regardless of input items
-        const outputNodes = ['telegramSendMessage', 'chatTriggerResponse'];
+        const outputNodes = ['telegramSendMessage'];
         const shouldExecuteOnce = outputNodes.includes(node.type);
         
         if (shouldExecuteOnce) {
@@ -119,28 +117,11 @@ const runNode = async (req, res) => {
                     itemResult = await telegramSendMessageNode.execute(processedConfig, contextItem, connectedNodes, executionContext);
                     break;
                 
-                case 'chatTriggerResponse':
-                    const chatTriggerResponseInstance = new ChatTriggerResponseNode();
-                    const contextItemChat = allInputData[0] || {};
-                    
-                    // Filter config to only include Chat Trigger Response specific fields
-                    const cleanConfig = {
-                        type: processedConfig.type,
-                        sessionId: processedConfig.sessionId,
-                        message: processedConfig.message,
-                        chatTitle: processedConfig.chatTitle,
-                        webhookPath: processedConfig.webhookPath
-                    };
-                    console.log('🧹 [NodeController] BEFORE CLEANING - Full config contains', Object.keys(processedConfig).length, 'fields');
-                    console.log('✨ [NodeController] AFTER CLEANING - Clean config:', JSON.stringify(cleanConfig, null, 2));
-                    
-                    itemResult = await chatTriggerResponseInstance.execute(cleanConfig, contextItemChat, executionContext);
-                    break;
                 
                 default:
                     return res.status(400).json({ 
                         message: `Unsupported output node type: ${node.type}`,
-                        supportedOutputTypes: ['telegramSendMessage', 'chatTriggerResponse']
+                        supportedOutputTypes: ['telegramSendMessage']
                     });
             }
             
@@ -198,40 +179,6 @@ const runNode = async (req, res) => {
                         };
                         break;
 
-                    case 'chatTrigger':
-                        // Chat Trigger node - retrieve stored messages from webhook
-                        const messageKey = `${node.config?.workflowId || 'test-workflow'}-${node.id}`;
-                        const nodeMessages = req.app.get('nodeMessages');
-                        const storedMessages = nodeMessages?.get(messageKey) || [];
-                        
-                        console.log(`🔍 Checking for messages with key: ${messageKey}`);
-                        console.log(`📋 Found ${storedMessages.length} stored messages`);
-                        
-                        if (storedMessages.length > 0) {
-                            // Return ONLY the latest message (not accumulated history)
-                            const latestMessage = storedMessages[storedMessages.length - 1]; // Get only the most recent message
-                            
-                            // Clear the messages after retrieving to prevent accumulation
-                            nodeMessages.set(messageKey, []);
-                            
-                            itemResult = {
-                                success: true,
-                                nodeType: 'chatTrigger',
-                                data: [latestMessage], // Wrap in array for consistency
-                                message: `Retrieved latest chat message`,
-                                timestamp: new Date().toISOString()
-                            };
-                        } else {
-                            // No messages yet
-                            itemResult = {
-                                success: true,
-                                nodeType: 'chatTrigger',
-                                data: [],
-                                message: 'No chat messages received yet',
-                                timestamp: new Date().toISOString()
-                            };
-                        }
-                        break;
                     
                     case 'if':
                         itemResult = await ifNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
@@ -261,7 +208,7 @@ const runNode = async (req, res) => {
                     default:
                         return res.status(400).json({ 
                             message: `Unsupported node type: ${node.type}`,
-                            supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'chatTrigger', 'if', 'switch', 'wait', 'merge', 'filter']
+                            supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'if', 'switch', 'wait', 'merge', 'filter']
                         });
                 }
                 

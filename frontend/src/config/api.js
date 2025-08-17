@@ -43,8 +43,6 @@ export const API_ENDPOINTS = {
   // Health
   HEALTH_CHECK: `${API_BASE_URL}/api/health`,
   
-  // Chat Trigger
-  CHAT_WEBHOOK: `${API_BASE_URL}/api/webhooks/chatTrigger`
 };
 
 // Debug logging in development
