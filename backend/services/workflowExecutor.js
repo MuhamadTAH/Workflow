@@ -157,9 +157,36 @@ class WorkflowExecutor {
                         
                         console.log('Step-based input data for node:', JSON.stringify(stepBasedInputData, null, 2));
                         
-                        // Execute the node
+                        // Execute the node with error handling
                         const result = await this.executeNode(node, stepBasedInputData, workflow);
-                        currentData = result; // Use output as input for next node
+                        
+                        // Check for execution errors
+                        if (result && result.success === false && result.error) {
+                            console.error(`🚨 Node execution failed in workflow:`, result.error);
+                            
+                            // Update execution log with error details
+                            executionLog.status = 'failed';
+                            executionLog.error = result.error;
+                            executionLog.failedNode = {
+                                id: node.id,
+                                type: node.data.type,
+                                label: node.data.label || node.data.type
+                            };
+                            
+                            // Decide whether to continue or stop workflow execution
+                            const shouldContinue = this.shouldContinueAfterError(node.data, result.error);
+                            
+                            if (!shouldContinue) {
+                                console.error(`🛑 Stopping workflow execution due to critical error`);
+                                throw new Error(`Workflow stopped: ${result.error.message}`);
+                            } else {
+                                console.warn(`⚠️ Continuing workflow execution despite node error`);
+                                // Use empty result to continue workflow
+                                currentData = { success: false, error: result.error, outputData: null };
+                            }
+                        } else {
+                            currentData = result; // Use output as input for next node
+                        }
                         
                         // Add this node's output to step tracking with enhanced naming
                         const nodeStepName = (node.data.label || `${node.data.type}_${node.id.slice(-4)}`).replace(/ /g, '_');
@@ -226,12 +253,21 @@ class WorkflowExecutor {
             console.error(`Workflow execution failed:`, error.message);
             executionLog.endTime = new Date().toISOString();
             executionLog.status = 'failed';
-            executionLog.error = error.message;
+            executionLog.error = {
+                message: error.message,
+                type: error.constructor.name,
+                stack: error.stack,
+                timestamp: new Date().toISOString()
+            };
             
+            // Store detailed execution log
             if (!this.executionHistory.has(workflowId)) {
                 this.executionHistory.set(workflowId, []);
             }
             this.executionHistory.get(workflowId).push(executionLog);
+            
+            // Log workflow-level error
+            this.logWorkflowError(workflowId, error, executionLog);
 
             throw error;
         }
@@ -303,35 +339,84 @@ class WorkflowExecutor {
         return executionOrder;
     }
 
-    // Execute a single node
-    async executeNode(node, inputData, workflow) {
+    // Execute a single node with error handling and retries
+    async executeNode(node, inputData, workflow, retryCount = 0) {
         const nodeConfig = node.data;
+        const maxRetries = 3;
+        const retryDelay = 1000; // 1 second base delay
         
-        console.log(`🔧 Executing node: ${nodeConfig.type} (${node.id})`);
+        console.log(`🔧 Executing node: ${nodeConfig.type} (${node.id}) [Attempt ${retryCount + 1}/${maxRetries + 1}]`);
         console.log(`📋 Raw ConfigPanel data:`, JSON.stringify(nodeConfig, null, 2));
 
-        // Find connected Data Storage nodes if this is an AI Agent
-        let connectedNodes = [];
-        if (nodeConfig.type === 'aiAgent') {
-            const incomingEdges = workflow.edges.filter(edge => edge.target === node.id);
-            for (const edge of incomingEdges) {
-                const sourceNode = workflow.nodes.find(n => n.id === edge.source);
-                if (sourceNode && sourceNode.data.type === 'dataStorage') {
-                    connectedNodes.push({
-                        type: 'dataStorage',
-                        data: sourceNode.data.storedData || {},
-                        nodeId: sourceNode.id
-                    });
+        try {
+            // Find connected Data Storage nodes if this is an AI Agent
+            let connectedNodes = [];
+            if (nodeConfig.type === 'aiAgent') {
+                const incomingEdges = workflow.edges.filter(edge => edge.target === node.id);
+                for (const edge of incomingEdges) {
+                    const sourceNode = workflow.nodes.find(n => n.id === edge.source);
+                    if (sourceNode && sourceNode.data.type === 'dataStorage') {
+                        connectedNodes.push({
+                            type: 'dataStorage',
+                            data: sourceNode.data.storedData || {},
+                            nodeId: sourceNode.id
+                        });
+                    }
                 }
             }
+
+            // ENHANCED: Resolve templates in nodeConfig for ALL node types
+            console.log(`🔍 Resolving templates for ${nodeConfig.type} node...`);
+            const resolvedConfig = this.resolveNodeTemplates(nodeConfig, inputData, workflow);
+            console.log(`✨ Resolved ConfigPanel data:`, JSON.stringify(resolvedConfig, null, 2));
+
+            // Execute based on node type
+            return await this.executeNodeByType(nodeConfig, resolvedConfig, inputData, connectedNodes);
+            
+        } catch (error) {
+            console.error(`❌ Node execution failed: ${nodeConfig.type} (${node.id})`);
+            console.error(`❌ Error details:`, error.message);
+            console.error(`❌ Stack trace:`, error.stack);
+            
+            // Determine if error is retryable
+            const isRetryable = this.isRetryableError(error);
+            
+            if (isRetryable && retryCount < maxRetries) {
+                const delay = retryDelay * Math.pow(2, retryCount); // Exponential backoff
+                console.log(`🔄 Retrying node execution in ${delay}ms... (${retryCount + 1}/${maxRetries})`);
+                
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return await this.executeNode(node, inputData, workflow, retryCount + 1);
+            } else {
+                console.error(`💥 Node execution failed permanently after ${retryCount + 1} attempts`);
+                
+                // Create error result with detailed information
+                const errorResult = {
+                    success: false,
+                    error: {
+                        message: error.message,
+                        type: error.constructor.name,
+                        code: error.code || 'EXECUTION_ERROR',
+                        retryCount: retryCount + 1,
+                        isRetryable: isRetryable,
+                        timestamp: new Date().toISOString(),
+                        nodeId: node.id,
+                        nodeType: nodeConfig.type,
+                        nodeLabel: nodeConfig.label || nodeConfig.type
+                    },
+                    outputData: null
+                };
+                
+                // Log structured error for monitoring
+                this.logNodeError(nodeConfig, error, retryCount + 1);
+                
+                return errorResult;
+            }
         }
-
-        // ENHANCED: Resolve templates in nodeConfig for ALL node types
-        console.log(`🔍 Resolving templates for ${nodeConfig.type} node...`);
-        const resolvedConfig = this.resolveNodeTemplates(nodeConfig, inputData, workflow);
-        console.log(`✨ Resolved ConfigPanel data:`, JSON.stringify(resolvedConfig, null, 2));
-
-        // Execute based on node type
+    }
+    
+    // Execute node by type with enhanced error handling
+    async executeNodeByType(nodeConfig, resolvedConfig, inputData, connectedNodes) {
         switch (nodeConfig.type) {
             case 'aiAgent':
                 return await aiAgentNode.execute(resolvedConfig, inputData, connectedNodes);
@@ -372,6 +457,123 @@ class WorkflowExecutor {
             default:
                 throw new Error(`Unsupported node type: ${nodeConfig.type}`);
         }
+    }
+    
+    // Determine if an error is retryable
+    isRetryableError(error) {
+        // Network-related errors are usually retryable
+        const retryableErrors = [
+            'ECONNRESET',
+            'ECONNREFUSED', 
+            'ETIMEDOUT',
+            'ENOTFOUND',
+            'NETWORK_ERROR',
+            'FETCH_ERROR',
+            'TIMEOUT',
+            'SERVICE_UNAVAILABLE'
+        ];
+        
+        // HTTP status codes that are retryable
+        const retryableHttpCodes = [408, 429, 500, 502, 503, 504];
+        
+        // Check error code
+        if (error.code && retryableErrors.includes(error.code)) {
+            return true;
+        }
+        
+        // Check HTTP status
+        if (error.response && retryableHttpCodes.includes(error.response.status)) {
+            return true;
+        }
+        
+        // Check error message for common network issues
+        const errorMessage = error.message.toLowerCase();
+        const retryableMessages = [
+            'network error',
+            'connection timeout',
+            'request timeout',
+            'socket hang up',
+            'connect timeout',
+            'read timeout',
+            'service unavailable',
+            'temporary failure',
+            'rate limit'
+        ];
+        
+        return retryableMessages.some(msg => errorMessage.includes(msg));
+    }
+    
+    // Log structured error information
+    logNodeError(nodeConfig, error, attemptCount) {
+        const errorLog = {
+            timestamp: new Date().toISOString(),
+            nodeId: nodeConfig.id,
+            nodeType: nodeConfig.type,
+            nodeLabel: nodeConfig.label || nodeConfig.type,
+            errorType: error.constructor.name,
+            errorMessage: error.message,
+            errorCode: error.code,
+            httpStatus: error.response?.status,
+            attemptCount: attemptCount,
+            isRetryable: this.isRetryableError(error),
+            stackTrace: error.stack
+        };
+        
+        console.error('📊 STRUCTURED ERROR LOG:', JSON.stringify(errorLog, null, 2));
+        
+        // In production, this could be sent to logging service
+        // logger.error('Node execution failed', errorLog);
+    }
+    
+    // Determine if workflow should continue after a node error
+    shouldContinueAfterError(nodeConfig, error) {
+        // Critical node types that should stop workflow on error
+        const criticalNodeTypes = [
+            'trigger',
+            'telegramTrigger', 
+            'chatTrigger'
+        ];
+        
+        // If it's a critical node, stop execution
+        if (criticalNodeTypes.includes(nodeConfig.type)) {
+            return false;
+        }
+        
+        // Configuration errors should usually stop execution
+        const criticalErrors = [
+            'INVALID_CONFIG',
+            'MISSING_REQUIRED_FIELD',
+            'AUTHENTICATION_ERROR',
+            'PERMISSION_DENIED'
+        ];
+        
+        if (error.code && criticalErrors.includes(error.code)) {
+            return false;
+        }
+        
+        // For other errors, continue execution
+        return true;
+    }
+    
+    // Log workflow-level errors
+    logWorkflowError(workflowId, error, executionLog) {
+        const workflowErrorLog = {
+            timestamp: new Date().toISOString(),
+            workflowId: workflowId,
+            errorType: error.constructor.name,
+            errorMessage: error.message,
+            executionId: executionLog.executionId,
+            totalSteps: executionLog.totalSteps,
+            completedSteps: executionLog.completedSteps,
+            failedNode: executionLog.failedNode,
+            executionTime: new Date(executionLog.endTime) - new Date(executionLog.startTime),
+            stackTrace: error.stack
+        };
+        
+        console.error('🔥 WORKFLOW ERROR LOG:', JSON.stringify(workflowErrorLog, null, 2));
+        
+        // In production, send to monitoring service
+        // logger.error('Workflow execution failed', workflowErrorLog);
     }
 
     // Get workflow status
