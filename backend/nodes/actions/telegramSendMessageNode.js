@@ -110,7 +110,7 @@ class TelegramSendMessageNode {
             console.log('🔒 Processed config with n8n context:', processedConfig);
 
             // Validate required parameters
-            const validation = this.validateParameters(processedConfig);
+            const validation = this.validateParameters(processedConfig, inputData);
             if (!validation.valid) {
                 throw new Error(`Parameter validation failed: ${validation.errors.join(', ')}`);
             }
@@ -192,7 +192,7 @@ class TelegramSendMessageNode {
     /**
      * Validate required parameters
      */
-    validateParameters(config) {
+    validateParameters(config, inputData = null) {
         const errors = [];
         
         // Debug validation inputs
@@ -214,10 +214,20 @@ class TelegramSendMessageNode {
             errors.push('Message text is required');
         }
         
-        // Auto-provide system bot token if none configured
+        // Auto-provide bot token if none configured
         if (!config.botToken || config.botToken.trim() === '') {
-            console.log('🔧 No bot token provided, using system default');
-            config.botToken = '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ';
+            // Try to find bot token from trigger node in inputData
+            const triggerBotToken = inputData?.trigger?.data?.botToken || 
+                                   inputData?.triggerData?.data?.botToken ||
+                                   inputData?.telegram?.data?.botToken;
+            
+            if (triggerBotToken && triggerBotToken.trim() !== '') {
+                console.log('🔧 Using bot token from trigger node');
+                config.botToken = triggerBotToken;
+            } else {
+                console.log('🔧 No bot token provided, using system default');
+                config.botToken = '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ';
+            }
         }
         
         // Validate parse mode

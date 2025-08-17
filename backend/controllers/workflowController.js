@@ -135,7 +135,14 @@ const activateWorkflow = async (req, res) => {
             console.log(`🔄 Auto-updating Telegram webhook for workflow: ${workflowId}`);
             try {
                 const axios = require('axios');
-                const botToken = '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ';
+                
+                // Extract bot token from the telegramTrigger node configuration
+                const configuredBotToken = telegramTrigger.data.botToken || telegramTrigger.data.telegramBotToken;
+                const systemBotToken = '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ';
+                const botToken = configuredBotToken || systemBotToken;
+                
+                console.log(`🔧 Using bot token: ${configuredBotToken ? 'from node config' : 'system default'} (${botToken.substring(0, 10)}...)`);
+                
                 const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram/${workflowId}`;
                 
                 // Update Telegram webhook in the background (don't wait for response)
