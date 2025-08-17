@@ -182,8 +182,8 @@ router.post('/telegram/:workflowId', async (req, res) => {
         logger.logTelegramEvent('workflow_triggered', 'execution_success', {
           workflowId: workflowId,
           updateId: update.update_id,
-          chatId: messageData.chatId,
-          executionStatus: executionResult.status
+          chatId: update.message?.chat?.id,
+          executionStatus: 'completed'
         });
         
       } catch (execError) {
