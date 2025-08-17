@@ -215,7 +215,33 @@ const runNode = async (req, res) => {
                         break;
                     
                     case 'chatTrigger':
-                        itemResult = await chatTriggerNode.execute(currentItem, processedConfig, executionContext);
+                        // Chat trigger nodes execute to fetch messages
+                        console.log('🔍 About to execute chatTriggerNode:', {
+                            nodeExists: !!chatTriggerNode,
+                            hasExecute: typeof chatTriggerNode?.execute === 'function',
+                            executeType: typeof chatTriggerNode?.execute
+                        });
+                        
+                        if (!chatTriggerNode || typeof chatTriggerNode.execute !== 'function') {
+                            console.error('❌ chatTriggerNode or execute function missing!');
+                            itemResult = {
+                                success: false,
+                                error: 'Chat Trigger node not properly loaded',
+                                data: null
+                            };
+                            break;
+                        }
+                        
+                        try {
+                            itemResult = await chatTriggerNode.execute(currentItem, processedConfig, executionContext);
+                        } catch (error) {
+                            console.error('❌ Chat Trigger execution error:', error);
+                            itemResult = {
+                                success: false,
+                                error: `Chat Trigger failed: ${error.message}`,
+                                data: null
+                            };
+                        }
                         break;
                     
                     default:
