@@ -334,9 +334,6 @@ const WorkflowsOverview = () => {
                       <p className="workflow-description">{workflow.description}</p>
                     </div>
                     <div className="workflow-actions">
-                      <button className="action-btn" title="Edit workflow" onClick={(e) => { e.stopPropagation(); handleEditWorkflow(workflow.id); }}>
-                        <i className="fa-solid fa-edit"></i>
-                      </button>
                       <div className="dropdown-container">
                         <button 
                           className="action-btn" 
