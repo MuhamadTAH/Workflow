@@ -120,12 +120,38 @@ router.post('/telegram-get-updates', async (req, res) => {
 
     const api = new TelegramAPI(token.trim());
     
-    // First, check if webhook is active
+    // Check if there's a workflow active for this bot token
+    let workflowExecutor = null;
+    try {
+      workflowExecutor = require('../services/workflowExecutor');
+    } catch (error) {
+      console.warn('⚠️ WorkflowExecutor not available:', error.message);
+    }
+    
+    let hasActiveWorkflowWithThisToken = false;
+    if (workflowExecutor && workflowExecutor.activeWorkflows) {
+      for (const [workflowId, workflow] of workflowExecutor.activeWorkflows) {
+        if (workflow.isActive && workflow.nodes) {
+          // Check if this workflow has a Telegram trigger with the same bot token
+          const telegramTrigger = workflow.nodes.find(node => 
+            node.data.type === 'telegramTrigger' && 
+            (node.data.botToken === token.trim() || node.data.telegramBotToken === token.trim())
+          );
+          if (telegramTrigger) {
+            hasActiveWorkflowWithThisToken = true;
+            console.log(`🔍 Found active workflow ${workflowId} using this bot token`);
+            break;
+          }
+        }
+      }
+    }
+    
+    // First, check if webhook is active at Telegram API level
     const webhookInfo = await api.getWebhookInfo();
     
-    if (webhookInfo.success && webhookInfo.data.url) {
-      // Webhook is active, provide stored message data instead
-      console.log('⚠️ Webhook active, cannot use getUpdates. Providing stored data.');
+    if (webhookInfo.success && webhookInfo.data.url && hasActiveWorkflowWithThisToken) {
+      // Webhook is active AND we have an active workflow, provide stored/mock data
+      console.log('⚠️ Webhook active with active workflow, cannot use getUpdates. Providing stored data.');
       
       // Check if we have any stored webhook messages in memory/database
       const storedMessages = getStoredTelegramMessages() || [];
@@ -172,8 +198,19 @@ router.post('/telegram-get-updates', async (req, res) => {
           count: 1,
           source: 'realistic_sample',
           webhook_url: webhookInfo.data.url,
-          message: 'Realistic sample data (webhook prevents real message polling)'
+          message: 'Mock data (workflow active with webhook)'
         });
+      }
+    } else if (webhookInfo.success && webhookInfo.data.url && !hasActiveWorkflowWithThisToken) {
+      // Webhook exists but no active workflow - delete the webhook and use getUpdates
+      console.log('🗑️ Webhook exists but no active workflow found. Deleting webhook to enable getUpdates.');
+      
+      try {
+        await api.deleteWebhook();
+        console.log('✅ Webhook deleted successfully');
+      } catch (deleteError) {
+        console.error('❌ Failed to delete webhook:', deleteError.message);
+        // Continue anyway and try getUpdates
       }
     }
 
