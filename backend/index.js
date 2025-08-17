@@ -176,6 +176,16 @@ app.use('/api/nodes', (req, res, next) => {
 // NEW ROUTES FROM WORKFLOWNODE
 app.use('/api/nodes', nodesRoutes);
 
+// Root health endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    message: '✅ Workflow Backend API is running!',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0'
+  });
+});
+
 // Test route
 app.get('/api/hello', (req, res) => {
   res.json({ message: '✅ Hello from the backend!' });

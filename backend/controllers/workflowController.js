@@ -45,10 +45,31 @@ const getCredentials = (nodeType) => {
 
 const activateWorkflow = async (req, res) => {
     try {
+        console.log('\n🚀 WORKFLOW ACTIVATION REQUEST RECEIVED!');
+        console.log('📋 Request details:', {
+            method: req.method,
+            url: req.url,
+            params: req.params,
+            bodyKeys: Object.keys(req.body || {}),
+            origin: req.headers.origin,
+            timestamp: new Date().toISOString()
+        });
+        
         const workflowId = req.params.id;
         const { workflow, dryRun = false } = req.body; 
 
+        console.log('🔍 Activation data validation:', {
+            workflowId: workflowId,
+            hasWorkflow: !!workflow,
+            hasNodes: !!(workflow?.nodes),
+            hasEdges: !!(workflow?.edges),
+            nodeCount: workflow?.nodes?.length || 0,
+            edgeCount: workflow?.edges?.length || 0,
+            dryRun: dryRun
+        });
+
         if (!workflow || !workflow.nodes || !workflow.edges) {
+            console.log('❌ Activation failed: Missing workflow data');
             return res.status(400).json({ message: 'Complete workflow data (nodes and edges) is required for activation.' });
         }
 
