@@ -8,7 +8,10 @@ const logger = require('../services/logger');
 const { 
   activateWorkflow, 
   deactivateWorkflow, 
-  getWorkflowStatus 
+  getWorkflowStatus,
+  getFailedExecutions,
+  replayFailedExecution,
+  getExecutionHistory
 } = require('../controllers/workflowController');
 
 // Import workflow executor
@@ -277,6 +280,15 @@ router.post('/:id/deactivate', deactivateWorkflow);
 
 // GET /api/workflows/:id/status - Get workflow execution status
 router.get('/:id/status', getWorkflowStatus);
+
+// GET /api/workflows/:id/failed-executions - Get failed executions for replay
+router.get('/:id/failed-executions', getFailedExecutions);
+
+// POST /api/workflows/:id/replay/:executionId - Replay a failed execution
+router.post('/:id/replay/:executionId', replayFailedExecution);
+
+// GET /api/workflows/:id/history - Get execution history
+router.get('/:id/history', getExecutionHistory);
 
 // POST /api/workflows/register - Register workflow for chat execution
 router.post('/register', (req, res) => {

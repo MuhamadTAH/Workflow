@@ -610,6 +610,270 @@ class WorkflowExecutor {
         const history = this.executionHistory.get(workflowId) || [];
         return history.slice(-limit).reverse(); // Return most recent first
     }
+    
+    // Get failed executions for replay
+    getFailedExecutions(workflowId) {
+        const history = this.executionHistory.get(workflowId) || [];
+        return history.filter(execution => execution.status === 'failed').reverse();
+    }
+    
+    // Replay a failed execution
+    async replayFailedExecution(workflowId, executionId, options = {}) {
+        console.log(`🔄 REPLAY: Starting replay of failed execution ${executionId} for workflow ${workflowId}`);
+        
+        // Find the failed execution
+        const history = this.executionHistory.get(workflowId) || [];
+        const failedExecution = history.find(exec => exec.executionId === executionId);
+        
+        if (!failedExecution) {
+            throw new Error(`Failed execution ${executionId} not found for workflow ${workflowId}`);
+        }
+        
+        if (failedExecution.status !== 'failed') {
+            throw new Error(`Execution ${executionId} is not in failed state (status: ${failedExecution.status})`);
+        }
+        
+        // Check if workflow is still active
+        const workflow = this.activeWorkflows.get(workflowId);
+        if (!workflow || !workflow.isActive) {
+            throw new Error(`Workflow ${workflowId} is not active and cannot be replayed`);
+        }
+        
+        console.log(`🔄 REPLAY: Found failed execution from ${failedExecution.startTime}`);
+        console.log(`🔄 REPLAY: Failed at step ${failedExecution.completedSteps || 0} with error:`, failedExecution.error);
+        
+        // Determine replay strategy
+        const { 
+            fromFailedStep = false,  // If true, start from failed step; if false, start from beginning
+            useOriginalData = true,  // Use original trigger data vs allow new data
+            fixNodeConfigs = {}      // Object with nodeId -> new config for fixing issues
+        } = options;
+        
+        let triggerData = failedExecution.triggerData;
+        
+        // Allow override of trigger data for replay
+        if (!useOriginalData && options.newTriggerData) {
+            triggerData = options.newTriggerData;
+            console.log(`🔄 REPLAY: Using new trigger data instead of original`);
+        }
+        
+        // Apply any node configuration fixes
+        if (Object.keys(fixNodeConfigs).length > 0) {
+            console.log(`🔄 REPLAY: Applying configuration fixes to ${Object.keys(fixNodeConfigs).length} nodes`);
+            
+            // Temporarily update node configurations
+            const originalConfigs = {};
+            
+            for (const [nodeId, newConfig] of Object.entries(fixNodeConfigs)) {
+                const node = workflow.nodes.find(n => n.id === nodeId);
+                if (node) {
+                    originalConfigs[nodeId] = { ...node.data };
+                    Object.assign(node.data, newConfig);
+                    console.log(`🔄 REPLAY: Updated config for node ${nodeId}`);
+                }
+            }
+            
+            try {
+                // Execute with fixed configurations
+                const replayResult = await this.executeWorkflowReplay(
+                    workflowId, 
+                    triggerData, 
+                    failedExecution,
+                    { fromFailedStep }
+                );
+                
+                // Restore original configurations
+                for (const [nodeId, originalConfig] of Object.entries(originalConfigs)) {
+                    const node = workflow.nodes.find(n => n.id === nodeId);
+                    if (node) {
+                        node.data = originalConfig;
+                    }
+                }
+                
+                return replayResult;
+                
+            } catch (error) {
+                // Restore original configurations on error
+                for (const [nodeId, originalConfig] of Object.entries(originalConfigs)) {
+                    const node = workflow.nodes.find(n => n.id === nodeId);
+                    if (node) {
+                        node.data = originalConfig;
+                    }
+                }
+                throw error;
+            }
+        } else {
+            // Execute replay without configuration changes
+            return await this.executeWorkflowReplay(
+                workflowId, 
+                triggerData, 
+                failedExecution,
+                { fromFailedStep }
+            );
+        }
+    }
+    
+    // Execute workflow replay with special handling
+    async executeWorkflowReplay(workflowId, triggerData, originalExecution, options = {}) {
+        const { fromFailedStep = false } = options;
+        const workflow = this.activeWorkflows.get(workflowId);
+        
+        if (!workflow || !workflow.isActive) {
+            throw new Error(`Workflow ${workflowId} is not active`);
+        }
+
+        const replayExecutionId = `replay_${originalExecution.executionId}_${Date.now()}`;
+        const executionLog = {
+            workflowId,
+            executionId: replayExecutionId,
+            originalExecutionId: originalExecution.executionId,
+            startTime: new Date().toISOString(),
+            steps: [],
+            triggerData,
+            isReplay: true,
+            replayStrategy: fromFailedStep ? 'from_failed_step' : 'from_beginning'
+        };
+
+        console.log(`🔄 REPLAY: Starting execution ${replayExecutionId} (strategy: ${executionLog.replayStrategy})`);
+
+        try {
+            // Build execution order from workflow graph
+            const executionOrder = this.buildExecutionOrder(workflow);
+            
+            let startStep = 0;
+            let currentData = triggerData;
+            let stepData = {};
+
+            // If replaying from failed step, restore previous step data
+            if (fromFailedStep && originalExecution.steps) {
+                console.log(`🔄 REPLAY: Restoring data from ${originalExecution.steps.length} previous steps`);
+                
+                // Find the last successful step
+                const lastSuccessfulStep = originalExecution.steps
+                    .filter(step => step.success !== false)
+                    .pop();
+                
+                if (lastSuccessfulStep) {
+                    startStep = lastSuccessfulStep.step;
+                    
+                    // Restore step data up to the failed step
+                    for (const step of originalExecution.steps) {
+                        if (step.success !== false && step.outputData) {
+                            stepData[step.stepKey] = step.outputData;
+                            // Add aliases
+                            if (step.nodeType) {
+                                stepData[step.nodeType] = step.outputData;
+                            }
+                        }
+                    }
+                    
+                    console.log(`🔄 REPLAY: Starting from step ${startStep + 1}, restored ${Object.keys(stepData).length} step data entries`);
+                }
+            }
+
+            // Execute each node in order (starting from appropriate step)
+            for (let i = startStep; i < executionOrder.length; i++) {
+                const step = executionOrder[i];
+                const node = step.node;
+                
+                console.log(`\n🔄 REPLAY Step ${i + 1}: Executing ${node.data.label || node.data.type} ---`);
+                
+                // Skip trigger nodes if replaying from failed step (already have their data)
+                if (fromFailedStep && i < startStep && (
+                    node.data.type === 'trigger' || 
+                    node.data.type === 'telegramTrigger' || 
+                    node.data.type === 'chatTrigger'
+                )) {
+                    console.log(`🔄 REPLAY: Skipping trigger node ${node.data.type} (using restored data)`);
+                    continue;
+                }
+
+                const stepBasedInputData = { ...stepData };
+                
+                let result;
+                try {
+                    result = await this.executeNode(node, stepBasedInputData, workflow);
+                    
+                    if (result && result.success === false && result.error) {
+                        console.error(`🔄 REPLAY: Node execution failed again:`, result.error);
+                        throw new Error(`Replay failed at same node: ${result.error.message}`);
+                    }
+                    
+                    currentData = result;
+                    
+                    // Add step tracking
+                    const nodeStepName = (node.data.label || `${node.data.type}_${node.id.slice(-4)}`).replace(/ /g, '_');
+                    const stepKey = `step_${i + 1}_${nodeStepName}`;
+                    stepData[stepKey] = result;
+                    stepData[node.data.type] = result;
+                    
+                    executionLog.steps.push({
+                        step: i + 1,
+                        nodeId: node.id,
+                        nodeType: node.data.type,
+                        nodeLabel: node.data.label || node.data.type,
+                        success: true,
+                        outputData: result,
+                        stepKey: stepKey,
+                        executedAt: new Date().toISOString()
+                    });
+                    
+                    console.log(`🔄 REPLAY: Step ${i + 1} completed successfully`);
+                    
+                } catch (error) {
+                    console.error(`🔄 REPLAY: Step ${i + 1} failed:`, error.message);
+                    
+                    executionLog.steps.push({
+                        step: i + 1,
+                        nodeId: node.id,
+                        nodeType: node.data.type,
+                        nodeLabel: node.data.label || node.data.type,
+                        success: false,
+                        error: error.message,
+                        executedAt: new Date().toISOString()
+                    });
+                    
+                    throw error;
+                }
+            }
+
+            // Mark execution as completed
+            executionLog.endTime = new Date().toISOString();
+            executionLog.status = 'completed';
+            executionLog.completedSteps = executionOrder.length;
+            executionLog.totalSteps = executionOrder.length;
+
+            // Store execution history
+            if (!this.executionHistory.has(workflowId)) {
+                this.executionHistory.set(workflowId, []);
+            }
+            this.executionHistory.get(workflowId).push(executionLog);
+
+            console.log(`🔄 REPLAY: Execution ${replayExecutionId} completed successfully`);
+            console.log(`🔄 REPLAY: Total steps: ${executionOrder.length}, Duration: ${new Date(executionLog.endTime) - new Date(executionLog.startTime)}ms`);
+
+            return executionLog;
+
+        } catch (error) {
+            console.error(`🔄 REPLAY: Execution failed:`, error.message);
+            executionLog.endTime = new Date().toISOString();
+            executionLog.status = 'failed';
+            executionLog.error = {
+                message: error.message,
+                type: error.constructor.name,
+                stack: error.stack,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Store failed replay execution
+            if (!this.executionHistory.has(workflowId)) {
+                this.executionHistory.set(workflowId, []);
+            }
+            this.executionHistory.get(workflowId).push(executionLog);
+            
+            throw error;
+        }
+    }
 
     // Get node prefix for template access
     getNodePrefix(nodeType) {

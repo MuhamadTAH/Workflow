@@ -289,11 +289,122 @@ const logWorkflowTriggered = (workflowId, triggerType, triggerData) => {
     });
 };
 
+// Get failed executions for a workflow
+const getFailedExecutions = async (req, res) => {
+    try {
+        const workflowId = req.params.id;
+        
+        console.log(`📋 Getting failed executions for workflow: ${workflowId}`);
+        
+        // Get failed executions from workflow executor
+        const failedExecutions = workflowExecutor.getFailedExecutions(workflowId);
+        
+        res.json({
+            success: true,
+            workflowId: workflowId,
+            failedExecutions: failedExecutions,
+            count: failedExecutions.length
+        });
+        
+    } catch (error) {
+        console.error('❌ Failed to get failed executions:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to get failed executions',
+            error: error.message
+        });
+    }
+};
+
+// Replay a failed execution
+const replayFailedExecution = async (req, res) => {
+    try {
+        const workflowId = req.params.id;
+        const executionId = req.params.executionId;
+        const { 
+            fromFailedStep = false,
+            useOriginalData = true,
+            newTriggerData = null,
+            fixNodeConfigs = {}
+        } = req.body;
+        
+        console.log(`🔄 REPLAY REQUEST: Replaying execution ${executionId} for workflow ${workflowId}`);
+        console.log(`🔄 REPLAY OPTIONS:`, {
+            fromFailedStep,
+            useOriginalData,
+            hasNewTriggerData: !!newTriggerData,
+            fixNodeConfigsCount: Object.keys(fixNodeConfigs).length
+        });
+        
+        // Start the replay
+        const replayResult = await workflowExecutor.replayFailedExecution(workflowId, executionId, {
+            fromFailedStep,
+            useOriginalData,
+            newTriggerData,
+            fixNodeConfigs
+        });
+        
+        console.log(`✅ REPLAY SUCCESS: Execution replayed successfully`);
+        
+        res.json({
+            success: true,
+            message: 'Failed execution replayed successfully',
+            workflowId: workflowId,
+            originalExecutionId: executionId,
+            replayExecutionId: replayResult.executionId,
+            replayResult: replayResult,
+            completedAt: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error(`❌ REPLAY FAILED: ${error.message}`);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to replay execution',
+            error: error.message,
+            workflowId: workflowId,
+            executionId: req.params.executionId
+        });
+    }
+};
+
+// Get execution history for a workflow
+const getExecutionHistory = async (req, res) => {
+    try {
+        const workflowId = req.params.id;
+        const limit = parseInt(req.query.limit) || 10;
+        
+        console.log(`📋 Getting execution history for workflow: ${workflowId} (limit: ${limit})`);
+        
+        // Get execution history from workflow executor
+        const history = workflowExecutor.getExecutionHistory(workflowId, limit);
+        
+        res.json({
+            success: true,
+            workflowId: workflowId,
+            history: history,
+            count: history.length,
+            limit: limit
+        });
+        
+    } catch (error) {
+        console.error('❌ Failed to get execution history:', error.message);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to get execution history',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     activateWorkflow,
     deactivateWorkflow,
     getWorkflowStatus,
     restoreActiveWorkflowsOnStartup,
     logWorkflowEvent,
-    logWorkflowTriggered
+    logWorkflowTriggered,
+    getFailedExecutions,
+    replayFailedExecution,
+    getExecutionHistory
 };
