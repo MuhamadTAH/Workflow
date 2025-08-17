@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Login from './pages/Login';
@@ -339,15 +339,15 @@ function App() {
         <Route path="/workflow" element={<WorkflowBuilder />} />
         <Route path="/workflow-builder" element={<WorkflowBuilder />} />
         {/* <Route path="/workflownode" element={<WorkflowNode />} /> */}
-        <Route path="/shop" element={<ShopDashboard />} />
-        <Route path="/shop/add-product" element={<AddProduct />} />
-        <Route path="/shop/manage-products" element={<ManageProducts />} />
+        <Route path="/shop" element={<Suspense fallback={<div>Loading...</div>}><ShopDashboard /></Suspense>} />
+        <Route path="/shop/add-product" element={<Suspense fallback={<div>Loading...</div>}><AddProduct /></Suspense>} />
+        <Route path="/shop/manage-products" element={<Suspense fallback={<div>Loading...</div>}><ManageProducts /></Suspense>} />
         <Route path="/shop/product/:productId" element={<ProductDetail />} />
-        <Route path="/shop/analytics" element={<ShopAnalytics />} />
-        <Route path="/shop/view-store" element={<ViewStore />} />
-        <Route path="/shop/categories" element={<Categories />} />
-        <Route path="/shop/privacy" element={<ShopPrivacy />} />
-        <Route path="/shop/terms" element={<ShopTerms />} />
+        <Route path="/shop/analytics" element={<Suspense fallback={<div>Loading...</div>}><ShopAnalytics /></Suspense>} />
+        <Route path="/shop/view-store" element={<Suspense fallback={<div>Loading...</div>}><ViewStore /></Suspense>} />
+        <Route path="/shop/categories" element={<Suspense fallback={<div>Loading...</div>}><Categories /></Suspense>} />
+        <Route path="/shop/privacy" element={<Suspense fallback={<div>Loading...</div>}><ShopPrivacy /></Suspense>} />
+        <Route path="/shop/terms" element={<Suspense fallback={<div>Loading...</div>}><ShopTerms /></Suspense>} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/shop/:shopName" element={<PublicShop />} />

@@ -1,4 +1,4 @@
-const { getMessages } = require('../services/chatSessions');
+// Old chatSessions service removed - using chatMessageStorage instead
 const { logWorkflowTriggered } = require('../controllers/workflowController');
 const scheduler = require('../services/scheduler');
 const TriggerDataProcessor = require('../services/triggerDataProcessor');
