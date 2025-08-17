@@ -5,8 +5,9 @@ BACKEND FILE: backend/nodes/triggers/chatTriggerNode.js
 Chat Trigger node implementation for processing chat messages
 */
 
-const chatMessageStorage = require('../../services/chatMessageStorage');
-const logger = require('../../services/logger');
+// Temporarily disable imports to test if they cause circular dependency
+// const chatMessageStorage = require('../../services/chatMessageStorage');
+// const logger = require('../../services/logger');
 
 const chatTriggerNode = {
   description: {
@@ -64,16 +65,24 @@ const chatTriggerNode = {
       
       console.log(`🗨️ Chat Trigger executing for session: ${sessionId}`);
       
-      // Ensure chat session exists with current config
-      await chatMessageStorage.createOrUpdateSession(
-        sessionId, 
-        chatTitle, 
-        welcomeMessage, 
-        context.workflowId
-      );
+      // Temporarily disabled for debugging
+      // await chatMessageStorage.createOrUpdateSession(
+      //   sessionId, 
+      //   chatTitle, 
+      //   welcomeMessage, 
+      //   context.workflowId
+      // );
       
-      // Get all unprocessed messages for this session
-      const unprocessedMessages = await chatMessageStorage.getUnprocessedMessages(sessionId);
+      // Mock unprocessed messages for testing
+      const unprocessedMessages = [
+        {
+          id: 1,
+          text: "Test message from chat widget",
+          sender: "user",
+          timestamp: new Date().toISOString(),
+          sessionId: sessionId
+        }
+      ];
       
       if (unprocessedMessages.length === 0) {
         console.log(`💬 No new chat messages for session: ${sessionId}`);
@@ -98,13 +107,17 @@ const chatTriggerNode = {
       
       console.log(`💬 Processing ${unprocessedMessages.length} chat message(s) for session: ${sessionId}`);
       
-      // Get session info and message count
-      const session = await chatMessageStorage.getSession(sessionId);
-      const messageCount = await chatMessageStorage.getMessageCount(sessionId);
+      // Temporarily disabled for debugging
+      // const session = await chatMessageStorage.getSession(sessionId);
+      // const messageCount = await chatMessageStorage.getMessageCount(sessionId);
       
-      // Mark messages as processed
+      // Mock session and message count
+      const session = { title: chatTitle, welcomeMessage: welcomeMessage };
+      const messageCount = { total: 1, unprocessed: 1 };
+      
+      // Mark messages as processed (disabled for debugging)
       const messageIds = unprocessedMessages.map(msg => msg.id);
-      await chatMessageStorage.markMessagesProcessed(messageIds);
+      // await chatMessageStorage.markMessagesProcessed(messageIds);
       
       // Prepare execution result data
       const executionResult = {
@@ -147,23 +160,23 @@ const chatTriggerNode = {
         }
       };
       
-      logger.info('Chat Trigger executed successfully', {
-        sessionId,
-        nodeId: context.nodeId,
-        messageCount: unprocessedMessages.length,
-        processedIds: messageIds
-      });
+      // logger.info('Chat Trigger executed successfully', {
+      //   sessionId,
+      //   nodeId: context.nodeId,
+      //   messageCount: unprocessedMessages.length,
+      //   processedIds: messageIds
+      // });
       
       return executionResult;
       
     } catch (error) {
       console.error('❌ Chat Trigger execution failed:', error);
-      logger.error('Chat Trigger execution error:', {
-        nodeId: context.nodeId,
-        sessionId: config.sessionId,
-        error: error.message,
-        stack: error.stack
-      });
+      // logger.error('Chat Trigger execution error:', {
+      //   nodeId: context.nodeId,
+      //   sessionId: config.sessionId,
+      //   error: error.message,
+      //   stack: error.stack
+      // });
       
       return {
         success: false,
@@ -185,37 +198,36 @@ const chatTriggerNode = {
     }
   },
 
-  // Helper method to check if there are pending messages
-  async hasPendingMessages(sessionId) {
-    try {
-      const messages = await chatMessageStorage.getUnprocessedMessages(sessionId);
-      return messages.length > 0;
-    } catch (error) {
-      console.error('❌ Failed to check pending messages:', error);
-      return false;
-    }
-  },
+  // Helper methods temporarily disabled for debugging
+  // async hasPendingMessages(sessionId) {
+  //   try {
+  //     const messages = await chatMessageStorage.getUnprocessedMessages(sessionId);
+  //     return messages.length > 0;
+  //   } catch (error) {
+  //     console.error('❌ Failed to check pending messages:', error);
+  //     return false;
+  //   }
+  // },
 
-  // Helper method to get session status
-  async getSessionStatus(sessionId) {
-    try {
-      const session = await chatMessageStorage.getSession(sessionId);
-      const messageCount = await chatMessageStorage.getMessageCount(sessionId);
+  // async getSessionStatus(sessionId) {
+  //   try {
+  //     const session = await chatMessageStorage.getSession(sessionId);
+  //     const messageCount = await chatMessageStorage.getMessageCount(sessionId);
       
-      return {
-        exists: !!session,
-        session: session,
-        messageCount: messageCount
-      };
-    } catch (error) {
-      console.error('❌ Failed to get session status:', error);
-      return {
-        exists: false,
-        session: null,
-        messageCount: { total: 0, unprocessed: 0 }
-      };
-    }
-  }
+  //     return {
+  //       exists: !!session,
+  //       session: session,
+  //       messageCount: messageCount
+  //     };
+  //   } catch (error) {
+  //     console.error('❌ Failed to get session status:', error);
+  //     return {
+  //       exists: false,
+  //       session: null,
+  //       messageCount: { total: 0, unprocessed: 0 }
+  //     };
+  //   }
+  // }
 };
 
 module.exports = chatTriggerNode;
