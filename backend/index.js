@@ -203,19 +203,37 @@ app.get('/api/hello', (req, res) => {
 // Debug route to check chatTriggerNode loading
 app.get('/api/debug/chat-trigger', (req, res) => {
   try {
+    // Test dependencies first
+    console.log('🔍 Testing chatMessageStorage...');
+    const chatMessageStorage = require('./services/chatMessageStorage');
+    console.log('✅ chatMessageStorage loaded:', !!chatMessageStorage);
+    
+    console.log('🔍 Testing logger...');
+    const logger = require('./services/logger');
+    console.log('✅ logger loaded:', !!logger);
+    
+    console.log('🔍 Testing chatTriggerNode...');
     const chatTriggerNode = require('./nodes/triggers/chatTriggerNode');
+    console.log('✅ chatTriggerNode loaded:', !!chatTriggerNode);
+    
     res.json({
       status: 'loaded',
       nodeExists: !!chatTriggerNode,
       hasExecute: typeof chatTriggerNode?.execute === 'function',
       executeType: typeof chatTriggerNode?.execute,
       keys: Object.keys(chatTriggerNode || {}),
+      dependencies: {
+        chatMessageStorage: !!chatMessageStorage,
+        logger: !!logger
+      },
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    console.error('❌ Debug route error:', error);
     res.json({
       status: 'error',
       error: error.message,
+      stack: error.stack,
       timestamp: new Date().toISOString()
     });
   }
