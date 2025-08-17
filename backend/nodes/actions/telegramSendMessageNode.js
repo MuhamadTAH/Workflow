@@ -225,8 +225,8 @@ class TelegramSendMessageNode {
                 console.log('🔧 Using bot token from trigger node');
                 config.botToken = triggerBotToken;
             } else {
-                console.log('🔧 No bot token provided, using system default');
-                config.botToken = '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ';
+                console.log('❌ No bot token provided - bot token is required');
+                errors.push('Bot token is required. Please configure bot token in the Telegram trigger node or this node.');
             }
         }
         

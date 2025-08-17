@@ -1123,10 +1123,19 @@ router.post('/test-telegram-post/:workflowId', async (req, res) => {
 router.post('/update-telegram-webhook/:workflowId', async (req, res) => {
   try {
     const { workflowId } = req.params;
-    const botToken = '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ';
+    const { botToken } = req.body;
+    
+    if (!botToken) {
+      return res.status(400).json({
+        success: false,
+        error: 'Bot token is required in request body'
+      });
+    }
+    
     const webhookUrl = `https://workflow-lg9z.onrender.com/api/webhooks/telegram/${workflowId}`;
     
     console.log(`🔄 Updating Telegram webhook for workflow: ${workflowId}`);
+    console.log(`🔧 Using bot token: ${botToken.substring(0, 10)}...`);
     console.log(`📡 New webhook URL: ${webhookUrl}`);
     
     const axios = require('axios');
@@ -1143,6 +1152,7 @@ router.post('/update-telegram-webhook/:workflowId', async (req, res) => {
         success: true,
         message: 'Telegram webhook updated successfully',
         workflowId: workflowId,
+        botToken: botToken.substring(0, 10) + '...',
         webhookUrl: webhookUrl,
         telegramResponse: response.data
       });
@@ -1157,6 +1167,52 @@ router.post('/update-telegram-webhook/:workflowId', async (req, res) => {
     
   } catch (error) {
     console.error('❌ Error updating Telegram webhook:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
+});
+
+// Delete Telegram webhook for a specific bot token
+router.post('/delete-telegram-webhook', async (req, res) => {
+  try {
+    const { botToken } = req.body;
+    
+    if (!botToken) {
+      return res.status(400).json({
+        success: false,
+        error: 'Bot token is required in request body'
+      });
+    }
+    
+    console.log(`🗑️ Deleting Telegram webhook for bot: ${botToken.substring(0, 10)}...`);
+    
+    const axios = require('axios');
+    const telegramApiUrl = `https://api.telegram.org/bot${botToken}/deleteWebhook`;
+    
+    const response = await axios.post(telegramApiUrl);
+    
+    if (response.data.ok) {
+      console.log('✅ Telegram webhook deleted successfully');
+      res.json({
+        success: true,
+        message: 'Telegram webhook deleted successfully',
+        botToken: botToken.substring(0, 10) + '...',
+        telegramResponse: response.data
+      });
+    } else {
+      console.error('❌ Telegram webhook deletion failed:', response.data);
+      res.status(400).json({
+        success: false,
+        error: 'Failed to delete Telegram webhook',
+        telegramError: response.data
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ Error deleting Telegram webhook:', error.message);
     res.status(500).json({
       success: false,
       error: 'Internal server error',

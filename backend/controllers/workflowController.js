@@ -138,22 +138,25 @@ const activateWorkflow = async (req, res) => {
                 
                 // Extract bot token from the telegramTrigger node configuration
                 const configuredBotToken = telegramTrigger.data.botToken || telegramTrigger.data.telegramBotToken;
-                const systemBotToken = '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ';
-                const botToken = configuredBotToken || systemBotToken;
                 
-                console.log(`🔧 Using bot token: ${configuredBotToken ? 'from node config' : 'system default'} (${botToken.substring(0, 10)}...)`);
-                
-                const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram/${workflowId}`;
-                
-                // Update Telegram webhook in the background (don't wait for response)
-                axios.post(`https://api.telegram.org/bot${botToken}/setWebhook`, {
-                    url: webhookUrl,
-                    allowed_updates: ['message', 'callback_query']
-                }).then(() => {
-                    console.log(`✅ Telegram webhook auto-updated to: ${webhookUrl}`);
-                }).catch((error) => {
-                    console.error(`❌ Failed to auto-update Telegram webhook:`, error.message);
-                });
+                // Only set webhook if bot token is explicitly configured
+                if (configuredBotToken) {
+                    console.log(`🔧 Using configured bot token: ${configuredBotToken.substring(0, 10)}...`);
+                    
+                    const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram/${workflowId}`;
+                    
+                    // Update Telegram webhook in the background (don't wait for response)
+                    axios.post(`https://api.telegram.org/bot${configuredBotToken}/setWebhook`, {
+                        url: webhookUrl,
+                        allowed_updates: ['message', 'callback_query']
+                    }).then(() => {
+                        console.log(`✅ Telegram webhook auto-updated to: ${webhookUrl}`);
+                    }).catch((error) => {
+                        console.error(`❌ Failed to auto-update Telegram webhook:`, error.message);
+                    });
+                } else {
+                    console.log(`ℹ️ No bot token configured for Telegram trigger - skipping auto-webhook setup`);
+                }
                 
             } catch (error) {
                 console.error(`❌ Error during Telegram webhook auto-update:`, error.message);

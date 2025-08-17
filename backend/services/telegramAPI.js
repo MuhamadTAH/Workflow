@@ -1,8 +1,7 @@
 const axios = require('axios');
 const logger = require('./logger');
 
-// Bot configuration
-const botToken = '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ';
+// Bot configuration - No default token, must be provided dynamically
 // REMOVED: Hardcoded webhook URL that was overriding workflow-specific webhooks
 // const webhookUrl = 'https://workflow-lg9z.onrender.com/api/webhooks/telegram';
 
