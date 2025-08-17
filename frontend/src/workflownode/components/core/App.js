@@ -398,8 +398,10 @@ const App = () => {
         if (result.triggerUrls && result.triggerUrls.length > 0) {
           message += 'Trigger URLs:\n';
           result.triggerUrls.forEach(trigger => {
-            } else if (trigger.type === 'telegramTrigger') {
+            if (trigger.type === 'telegramTrigger') {
               message += `• Telegram Webhook: ${trigger.webhookUrl}\n`;
+            } else if (trigger.type === 'chatTrigger') {
+              message += `• Chat Trigger: ${trigger.webhookUrl}\n`;
             }
           });
         }
