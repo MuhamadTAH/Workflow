@@ -1,24 +1,24 @@
 /* ================================
-   PROFESSIONAL SHOP DASHBOARD STYLES
+   LUXURY DARK SHOP DASHBOARD STYLES  
    ================================ */
 
-/* Professional Shop Dashboard Layout */
+/* Professional Shop Dashboard Layout - Luxury Dark Theme */
 .professional-shop-dashboard {
   display: flex;
   flex-direction: column;
   gap: 2rem;
   animation: fadeInUp 0.6s ease-out;
+  color: #E0E0E0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Shop Hero Section */
+/* Shop Hero Section - Luxury Dark */
 .shop-hero-card {
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  background: #323232;
   border-radius: 20px;
   padding: 3rem 2rem;
-  box-shadow: 
-    0 20px 40px rgba(255, 215, 0, 0.3),
-    0 0 30px rgba(255, 165, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -43,9 +43,8 @@
 
 .shop-hero-card:hover {
   transform: translateY(-5px);
-  box-shadow: 
-    0 30px 60px rgba(255, 215, 0, 0.4),
-    0 0 40px rgba(255, 165, 0, 0.3);
+  box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.5);
+  border-color: rgba(74, 144, 226, 0.3);
 }
 
 .shop-hero-content {
@@ -60,15 +59,15 @@
 .shop-hero-title {
   font-size: 3rem;
   font-weight: 800;
-  color: #1a202c;
+  color: #E0E0E0;
   margin: 0 0 0.5rem 0;
   line-height: 1.1;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .shop-hero-subtitle {
   font-size: 1.2rem;
-  color: #2d3748;
+  color: #a0a0a0;
   margin: 0 0 1.5rem 0;
   font-weight: 500;
 }
@@ -82,38 +81,40 @@
 }
 
 .url-label {
-  color: #2d3748;
+  color: #a0a0a0;
   font-weight: 600;
 }
 
 .url-text {
-  color: #1a202c;
+  color: #E0E0E0;
   font-weight: 700;
   font-family: 'Courier New', monospace;
-  background: rgba(255, 255, 255, 0.3);
+  background: #262626;
   padding: 0.25rem 0.75rem;
   border-radius: 6px;
   word-break: break-all;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .premium-copy-btn {
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
+  background: #262626;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.5rem;
   border-radius: 8px;
   cursor: pointer;
-  color: #2d3748;
+  color: #4a90e2;
   transition: all 0.3s ease;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .premium-copy-btn:hover {
-  background: white;
+  background: #424242;
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .shop-description {
-  color: #2d3748;
+  color: #a0a0a0;
   font-size: 1.1rem;
   line-height: 1.6;
   margin: 0;
@@ -134,15 +135,15 @@
 }
 
 .metric-card {
-  background: rgba(255, 255, 255, 0.95);
+  background: #323232;
   backdrop-filter: blur(10px);
   border-radius: 16px;
   padding: 2rem;
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -175,7 +176,8 @@
 
 .metric-card:hover {
   transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  border-color: rgba(74, 144, 226, 0.3);
   animation: metricPop 0.4s ease-out;
 }
 
@@ -214,13 +216,13 @@
 .metric-number {
   font-size: 2.5rem;
   font-weight: 800;
-  color: #1a202c;
+  color: #E0E0E0;
   margin: 0 0 0.25rem 0;
   line-height: 1;
 }
 
 .metric-label {
-  color: #4a5568;
+  color: #a0a0a0;
   font-size: 1rem;
   font-weight: 600;
   margin: 0 0 0.5rem 0;
@@ -247,18 +249,19 @@
 }
 
 .dashboard-panel {
-  background: rgba(255, 255, 255, 0.95);
+  background: #323232;
   backdrop-filter: blur(10px);
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
 }
 
 .dashboard-panel:hover {
   transform: translateY(-3px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+  border-color: rgba(74, 144, 226, 0.3);
 }
 
 .panel-header {
@@ -267,12 +270,12 @@
   justify-content: space-between;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 2px solid rgba(255, 215, 0, 0.2);
+  border-bottom: 2px solid rgba(74, 144, 226, 0.2);
 }
 
 .panel-header h3 {
   margin: 0;
-  color: #1a202c;
+  color: #E0E0E0;
   font-size: 1.25rem;
   font-weight: 700;
   display: flex;
@@ -281,7 +284,7 @@
 }
 
 .panel-header i {
-  color: #FFD700;
+  color: #4a90e2;
   font-size: 1.1rem;
 }
 

@@ -11,7 +11,7 @@ const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
 const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
-const MultiLanguageChatResponseNode = require('../nodes/MultiLanguageChatResponseNode');
+// Removed: MultiLanguageChatResponseNode (old system deleted)
 
 class WorkflowExecutor {
     constructor() {
@@ -446,9 +446,8 @@ class WorkflowExecutor {
             
             
             case 'multiLanguageChatResponse':
-                const multiLangResponseInstance = new MultiLanguageChatResponseNode();
-                console.log('🌍 Multi-Language Chat Response resolved config:', JSON.stringify(resolvedConfig, null, 2));
-                return await multiLangResponseInstance.execute(resolvedConfig, inputData);
+                // Removed: MultiLanguageChatResponseNode (old system deleted)
+                throw new Error('multiLanguageChatResponse node type has been removed');
             
             default:
                 throw new Error(`Unsupported node type: ${nodeConfig.type}`);
@@ -1074,7 +1073,7 @@ class WorkflowExecutor {
         // External action nodes that should be simulated
         const externalActionNodes = [
             'telegramSendMessage',
-            'multiLanguageChatResponse',
+            // Removed: 'multiLanguageChatResponse' (old system deleted)
             'googleDocs',
             'dataStorage' // Can still simulate data storage
         ];
@@ -1121,16 +1120,11 @@ class WorkflowExecutor {
                 };
                 
             case 'multiLanguageChatResponse':
+                // Removed: MultiLanguageChatResponseNode (old system deleted)
                 return {
-                    success: true,
-                    message: 'DRY RUN: Multi-language chat response would be sent',
-                    outputData: {
-                        sessionId: node.data.sessionId || 'dry_run_session',
-                        message: node.data.message || 'DRY RUN: Multi-language response',
-                        language: node.data.language || 'en',
-                        sentAt: new Date().toISOString(),
-                        dryRun: true
-                    }
+                    success: false,
+                    message: 'DRY RUN: multiLanguageChatResponse node type has been removed',
+                    outputData: null
                 };
                 
             case 'googleDocs':

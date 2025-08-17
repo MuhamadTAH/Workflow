@@ -9,14 +9,14 @@
   color: #E0E0E0;
 }
 
-/* Sidebar Styles */
+/* Sidebar Styles - Luxury Dark */
 .shop-sidebar {
   width: 280px;
-  background: rgba(255, 255, 255, 0.95);
+  background: #323232;
   backdrop-filter: blur(10px);
   border-radius: 0 20px 20px 0;
   padding: 2rem 0;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   overflow-y: auto;
   position: fixed;
   height: 100vh;
@@ -24,6 +24,7 @@
   top: 0;
   z-index: 100;
   transition: transform 0.3s ease, opacity 0.3s ease;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .shop-sidebar.sidebar-visible {
@@ -36,15 +37,15 @@
   opacity: 0;
 }
 
-/* Sidebar Toggle Button */
+/* Sidebar Toggle Button - Luxury Dark */
 .sidebar-toggle {
   position: fixed;
   top: 2rem;
   left: 2rem;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.95);
+  background: #262626;
   backdrop-filter: blur(10px);
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   width: 48px;
   height: 48px;
@@ -52,15 +53,16 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease, left 0.3s ease;
-  color: #667eea;
+  color: #4a90e2;
   font-size: 1.2rem;
 }
 
 .sidebar-toggle:hover {
-  background: rgba(102, 126, 234, 0.1);
+  background: #424242;
   transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 .sidebar-toggle.sidebar-open {
@@ -86,19 +88,19 @@
 .sidebar-header {
   text-align: center;
   padding: 0 2rem 2rem 2rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 2rem;
 }
 
 .sidebar-logo {
   font-size: 2.5rem;
-  color: #667eea;
+  color: #4a90e2;
   margin-bottom: 0.5rem;
 }
 
 .sidebar-header h3 {
   margin: 0;
-  color: #333;
+  color: #E0E0E0;
   font-weight: 600;
 }
 
@@ -112,7 +114,7 @@
 
 .nav-section h4 {
   margin: 0 0 1rem 1rem;
-  color: #666;
+  color: #a0a0a0;
   font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -125,7 +127,7 @@
   gap: 0.75rem;
   padding: 0.75rem 1rem;
   margin-bottom: 0.25rem;
-  color: #555;
+  color: #a0a0a0;
   text-decoration: none;
   border-radius: 10px;
   transition: all 0.2s;
@@ -138,15 +140,16 @@
 }
 
 .nav-item:hover {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+  background: #262626;
+  color: #4a90e2;
   transform: translateX(4px);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .nav-item.active {
-  background: #667eea;
+  background: #4a90e2;
   color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
 }
 
 .nav-item svg {
@@ -177,7 +180,7 @@
 .shop-dashboard-header {
   text-align: center;
   margin-bottom: 3rem;
-  color: white;
+  color: #E0E0E0;
 }
 
 .shop-dashboard-title {
@@ -188,11 +191,13 @@
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  color: #E0E0E0;
 }
 
 .shop-icon {
   font-size: 2rem;
+  color: #4a90e2;
 }
 
 .shop-dashboard-subtitle {
@@ -201,6 +206,7 @@
   max-width: 600px;
   margin: 0 auto;
   line-height: 1.6;
+  color: #a0a0a0;
 }
 
 /* Responsive Design */
