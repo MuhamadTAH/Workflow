@@ -47,11 +47,17 @@ app.use((req, res, next) => {
 // More permissive CORS configuration for debugging
 app.use(cors({
   origin: function(origin, callback) {
+    console.log('🔍 CORS Check - Origin:', origin);
+    
     // Allow requests with no origin (like mobile apps, Postman, etc.)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('✅ CORS: No origin header, allowing');
+      return callback(null, true);
+    }
     
     // Allow all localhost origins for development
     if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+      console.log('✅ CORS: Localhost origin, allowing');
       return callback(null, true);
     }
     
@@ -63,11 +69,18 @@ app.use(cors({
       // Production frontend and backend (for self-referencing)
       'https://workflow-1-frkg.onrender.com',
       'https://frontend-dpcg.onrender.com',
-      'https://workflow-unlq.onrender.com'
+      'https://workflow-unlq.onrender.com',
+      'https://workflow-lg9z.onrender.com'  // Add the current backend URL
     ];
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    if (allowedOrigins.includes(origin)) {
       console.log('✅ CORS allowed origin:', origin);
+      return callback(null, true);
+    }
+    
+    // Temporary: Allow all .onrender.com origins for debugging
+    if (origin.includes('.onrender.com')) {
+      console.log('⚠️ CORS: Allowing .onrender.com origin for debugging:', origin);
       return callback(null, true);
     }
     
