@@ -200,6 +200,27 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: '✅ Hello from the backend!' });
 });
 
+// Debug route to check chatTriggerNode loading
+app.get('/api/debug/chat-trigger', (req, res) => {
+  try {
+    const chatTriggerNode = require('./nodes/triggers/chatTriggerNode');
+    res.json({
+      status: 'loaded',
+      nodeExists: !!chatTriggerNode,
+      hasExecute: typeof chatTriggerNode?.execute === 'function',
+      executeType: typeof chatTriggerNode?.execute,
+      keys: Object.keys(chatTriggerNode || {}),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.json({
+      status: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Debug endpoint to test activation flow
 app.post('/api/debug/test-activation', (req, res) => {
   console.log('🧪 DEBUG ACTIVATION TEST:', {
