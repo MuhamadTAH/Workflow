@@ -343,7 +343,7 @@ Professional styles for the Workflows Overview page
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 1.5rem;
-  padding: 2rem;
+  padding: 2rem 2rem 4rem 2rem; /* Extra bottom padding for dropdowns */
 }
 
 .workflow-card {
@@ -353,7 +353,7 @@ Professional styles for the Workflows Overview page
   padding: 1.5rem;
   transition: all 0.3s ease;
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* Changed from hidden to visible to show dropdown */
 }
 
 .workflow-card::before {
@@ -534,6 +534,30 @@ Professional styles for the Workflows Overview page
   z-index: 1000;
   overflow: hidden;
   animation: dropdownSlide 0.2s ease-out;
+}
+
+/* Ensure dropdown appears fully within the card and doesn't get cut off */
+.workflow-card {
+  overflow: visible !important;
+  position: relative;
+}
+
+.workflow-actions {
+  position: relative;
+  z-index: 10;
+}
+
+/* Position dropdown to always stay within bounds */
+.dropdown-menu {
+  right: 0;
+  left: auto;
+  transform: translateX(0); /* Align with button */
+  margin-top: 4px; /* Small gap below button */
+}
+
+/* Additional z-index to ensure dropdown appears above other cards */
+.dropdown-container {
+  z-index: 100;
 }
 
 @keyframes dropdownSlide {
