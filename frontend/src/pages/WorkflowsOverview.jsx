@@ -192,22 +192,66 @@ const WorkflowsOverview = () => {
           const workflow = savedWorkflows.find(w => w.id === workflowId);
           
           if (workflow) {
+            console.log('🔄 Dashboard activation: Re-registering workflow with execution engine');
+            console.log('Workflow data:', { 
+              id: workflow.id, 
+              name: workflow.name, 
+              nodes: workflow.nodes?.length || 0,
+              edges: workflow.edges?.length || 0 
+            });
+
             const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'https://workflow-unlq.onrender.com'}/api/workflows/${workflowId}/activate`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
-              body: JSON.stringify(workflow)
+              body: JSON.stringify({
+                ...workflow,
+                // Ensure we have the complete workflow structure
+                nodes: workflow.nodes || [],
+                edges: workflow.edges || [],
+                // Force re-registration
+                forceReactivation: true,
+                activatedFrom: 'dashboard'
+              })
             });
 
             if (!response.ok) {
-              console.warn('Failed to activate workflow on server, but keeping local status');
+              const errorData = await response.text();
+              console.error('❌ Failed to activate workflow on server:', errorData);
+              throw new Error(`Activation failed: ${response.status} - ${errorData}`);
             } else {
-              console.log('Workflow activated successfully on server');
+              const responseData = await response.json();
+              console.log('✅ Workflow activated successfully on server:', responseData);
+              
+              // If response includes trigger URLs, log them
+              if (responseData.triggerUrls) {
+                console.log('📡 Webhook URLs registered:', responseData.triggerUrls);
+              }
             }
+          } else {
+            throw new Error('Workflow not found in localStorage');
           }
         } catch (error) {
-          console.warn('Failed to activate workflow on server:', error.message);
+          console.error('❌ Failed to activate workflow on server:', error.message);
+          
+          // Show error to user and revert status change
+          alert(`Failed to activate workflow: ${error.message}\n\nThe workflow status will be reverted.`);
+          
+          // Revert the status change
+          const revertedWorkflows = workflows.map(workflow => 
+            workflow.id === workflowId 
+              ? { ...workflow, status: pendingStatusChange.currentStatus }
+              : workflow
+          );
+          setWorkflows(revertedWorkflows);
+          
+          // Revert localStorage
+          const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
+          workflowStatuses[workflowId] = pendingStatusChange.currentStatus;
+          localStorage.setItem('workflowStatuses', JSON.stringify(workflowStatuses));
+          
+          return; // Exit early, don't proceed with success actions
         }
       }
 

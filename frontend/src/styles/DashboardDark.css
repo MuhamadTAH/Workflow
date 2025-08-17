@@ -1,30 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* Dark Dashboard Theme */
+/* Dark Dashboard Theme - Luxury Login Page Colors */
 .professional-dashboard {
   min-height: 100vh;
-  background-color: #212121;
+  background-color: #1a1a1a;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: #E0E0E0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Remove gradient variants - use consistent dark theme */
+/* Remove gradient variants - use consistent luxury dark theme */
 .professional-dashboard.variant-1,
 .professional-dashboard.variant-2,
 .professional-dashboard.variant-3 {
-  background-color: #212121;
+  background-color: #1a1a1a;
 }
 
-/* Navigation Bar */
+/* Navigation Bar - Luxury Style */
 .dashboard-nav {
-  background: rgba(35, 35, 35, 0.95);
+  background: #323232;
   backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: sticky;
   top: 0;
   z-index: 100;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .nav-container {
@@ -171,7 +172,7 @@
 }
 
 .stat-card {
-  background: rgba(35, 35, 35, 0.8);
+  background: #323232;
   border-radius: 16px;
   padding: 1.5rem;
   display: flex;
@@ -181,6 +182,7 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .stat-card::before {
@@ -196,7 +198,7 @@
 
 .stat-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4);
   border-color: rgba(74, 144, 226, 0.3);
 }
 
@@ -298,16 +300,17 @@
 }
 
 .dashboard-card {
-  background: rgba(35, 35, 35, 0.8);
+  background: #323232;
   border-radius: 16px;
   padding: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .dashboard-card:hover {
   border-color: rgba(74, 144, 226, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .card-header {
@@ -358,19 +361,21 @@
   align-items: center;
   gap: 0.75rem;
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: #262626;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   text-decoration: none;
   color: #E0E0E0;
   transition: all 0.2s ease;
   cursor: pointer;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
 }
 
 .action-item:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: #424242;
   border-color: rgba(74, 144, 226, 0.3);
   transform: translateY(-2px);
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.25);
 }
 
 .action-item i {
@@ -408,13 +413,14 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: #262626;
   border-radius: 10px;
   transition: background 0.2s ease;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
 }
 
 .activity-item:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: #424242;
 }
 
 .activity-icon {
