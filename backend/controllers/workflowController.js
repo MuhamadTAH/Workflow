@@ -105,6 +105,30 @@ const activateWorkflow = async (req, res) => {
             return res.status(500).json({ message: `Failed to register workflow: ${error.message}` });
         }
 
+        // AUTO-UPDATE TELEGRAM WEBHOOK: If this workflow has a Telegram trigger, update the webhook automatically
+        const telegramTrigger = triggerNodes.find(node => node.data.type === 'telegramTrigger');
+        if (telegramTrigger) {
+            console.log(`🔄 Auto-updating Telegram webhook for workflow: ${workflowId}`);
+            try {
+                const axios = require('axios');
+                const botToken = '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ';
+                const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram/${workflowId}`;
+                
+                // Update Telegram webhook in the background (don't wait for response)
+                axios.post(`https://api.telegram.org/bot${botToken}/setWebhook`, {
+                    url: webhookUrl,
+                    allowed_updates: ['message', 'callback_query']
+                }).then(() => {
+                    console.log(`✅ Telegram webhook auto-updated to: ${webhookUrl}`);
+                }).catch((error) => {
+                    console.error(`❌ Failed to auto-update Telegram webhook:`, error.message);
+                });
+                
+            } catch (error) {
+                console.error(`❌ Error during Telegram webhook auto-update:`, error.message);
+            }
+        }
+
         // Store active workflow
         activeWorkflows.set(workflowId, {
             workflowId,
