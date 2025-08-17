@@ -17,7 +17,8 @@ const switchNode = require('../nodes/logic/switchNode');
 const waitNode = require('../nodes/logic/waitNode');
 const mergeNode = require('../nodes/logic/mergeNode');
 const filterNode = require('../nodes/logic/filterNode');
-const chatTriggerNode = require('../nodes/triggers/chatTriggerNode');
+// Temporarily use test version that works
+const chatTriggerNode = require('../nodes/triggers/chatTriggerNodeTest');
 
 // Debug logging for chatTriggerNode
 console.log('🔍 chatTriggerNode loaded:', {
