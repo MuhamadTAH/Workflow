@@ -3745,7 +3745,7 @@ select {
 /* Professional Dashboard Layout */
 .professional-dashboard {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-color: #1a1a1a !important;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -4561,15 +4561,15 @@ select {
 
 /* Dynamic Background Gradient Variations */
 .professional-dashboard.variant-1 {
-  background: var(--gradient-variant-1);
+  background-color: #1a1a1a !important;
 }
 
 .professional-dashboard.variant-2 {
-  background: var(--gradient-variant-2);
+  background-color: #1a1a1a !important;
 }
 
 .professional-dashboard.variant-3 {
-  background: var(--gradient-variant-3);
+  background-color: #1a1a1a !important;
 }
 
 /* Addictive Keyframe Animations */

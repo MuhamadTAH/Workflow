@@ -5,9 +5,8 @@ BACKEND FILE: backend/nodes/triggers/chatTriggerNode.js
 Chat Trigger node implementation for processing chat messages
 */
 
-// Temporarily disable imports to test if they cause circular dependency
-// const chatMessageStorage = require('../../services/chatMessageStorage');
-// const logger = require('../../services/logger');
+const chatMessageStorage = require('../../services/chatMessageStorage');
+const logger = require('../../services/logger');
 
 const chatTriggerNode = {
   description: {
@@ -65,24 +64,16 @@ const chatTriggerNode = {
       
       console.log(`🗨️ Chat Trigger executing for session: ${sessionId}`);
       
-      // Temporarily disabled for debugging
-      // await chatMessageStorage.createOrUpdateSession(
-      //   sessionId, 
-      //   chatTitle, 
-      //   welcomeMessage, 
-      //   context.workflowId
-      // );
+      // Ensure session exists with proper configuration
+      await chatMessageStorage.createOrUpdateSession(
+        sessionId, 
+        chatTitle, 
+        welcomeMessage, 
+        context.workflowId
+      );
       
-      // Mock unprocessed messages for testing
-      const unprocessedMessages = [
-        {
-          id: 1,
-          text: "Test message from chat widget",
-          sender: "user",
-          timestamp: new Date().toISOString(),
-          sessionId: sessionId
-        }
-      ];
+      // Get real unprocessed messages from database
+      const unprocessedMessages = await chatMessageStorage.getUnprocessedMessages(sessionId);
       
       if (unprocessedMessages.length === 0) {
         console.log(`💬 No new chat messages for session: ${sessionId}`);
@@ -107,17 +98,13 @@ const chatTriggerNode = {
       
       console.log(`💬 Processing ${unprocessedMessages.length} chat message(s) for session: ${sessionId}`);
       
-      // Temporarily disabled for debugging
-      // const session = await chatMessageStorage.getSession(sessionId);
-      // const messageCount = await chatMessageStorage.getMessageCount(sessionId);
+      // Get real session and message count data
+      const session = await chatMessageStorage.getSession(sessionId);
+      const messageCount = await chatMessageStorage.getMessageCount(sessionId);
       
-      // Mock session and message count
-      const session = { title: chatTitle, welcomeMessage: welcomeMessage };
-      const messageCount = { total: 1, unprocessed: 1 };
-      
-      // Mark messages as processed (disabled for debugging)
+      // Mark messages as processed now that we've retrieved them
       const messageIds = unprocessedMessages.map(msg => msg.id);
-      // await chatMessageStorage.markMessagesProcessed(messageIds);
+      await chatMessageStorage.markMessagesProcessed(messageIds);
       
       // Prepare execution result data
       const executionResult = {
@@ -160,23 +147,23 @@ const chatTriggerNode = {
         }
       };
       
-      // logger.info('Chat Trigger executed successfully', {
-      //   sessionId,
-      //   nodeId: context.nodeId,
-      //   messageCount: unprocessedMessages.length,
-      //   processedIds: messageIds
-      // });
+      logger.info('Chat Trigger executed successfully', {
+        sessionId,
+        nodeId: context.nodeId,
+        messageCount: unprocessedMessages.length,
+        processedIds: messageIds
+      });
       
       return executionResult;
       
     } catch (error) {
       console.error('❌ Chat Trigger execution failed:', error);
-      // logger.error('Chat Trigger execution error:', {
-      //   nodeId: context.nodeId,
-      //   sessionId: config.sessionId,
-      //   error: error.message,
-      //   stack: error.stack
-      // });
+      logger.error('Chat Trigger execution error:', {
+        nodeId: context.nodeId,
+        sessionId: config.sessionId,
+        error: error.message,
+        stack: error.stack
+      });
       
       return {
         success: false,
