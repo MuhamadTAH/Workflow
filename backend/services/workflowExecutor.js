@@ -39,9 +39,10 @@ class WorkflowExecutor {
         const triggerNode = workflowConfig.nodes.find(node => 
             node.data.type === 'trigger' || 
             node.data.type === 'telegramTrigger' ||
+            node.data.type === 'chatTrigger'
         );
         if (!triggerNode) {
-            throw new Error('Workflow must contain a trigger node (trigger or telegramTrigger)');
+            throw new Error('Workflow must contain a trigger node (trigger, telegramTrigger, or chatTrigger)');
         }
 
         console.log(`Found trigger node: ${triggerNode.data.label || triggerNode.data.type} (${triggerNode.id})`);
@@ -213,6 +214,7 @@ class WorkflowExecutor {
                         } else if (node.data.type === 'dataStorage') {
                             stepData['storage'] = result;
                             stepData['data'] = result;
+                        }
                         
                         console.log(`✅ Added node step: ${stepKey} with type alias: ${node.data.type}`);
                         
@@ -762,7 +764,8 @@ class WorkflowExecutor {
                 if (fromFailedStep && i < startStep && (
                     node.data.type === 'trigger' || 
                     node.data.type === 'telegramTrigger' || 
-                        )) {
+                    node.data.type === 'chatTrigger'
+                )) {
                     console.log(`🔄 REPLAY: Skipping trigger node ${node.data.type} (using restored data)`);
                     continue;
                 }
