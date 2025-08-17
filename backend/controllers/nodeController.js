@@ -19,6 +19,14 @@ const mergeNode = require('../nodes/logic/mergeNode');
 const filterNode = require('../nodes/logic/filterNode');
 const chatTriggerNode = require('../nodes/triggers/chatTriggerNode');
 
+// Debug logging for chatTriggerNode
+console.log('🔍 chatTriggerNode loaded:', {
+    exists: !!chatTriggerNode,
+    hasExecute: typeof chatTriggerNode.execute === 'function',
+    keys: Object.keys(chatTriggerNode || {}),
+    executeType: typeof chatTriggerNode?.execute
+});
+
 
 const { createBackendExecutionContext } = require('../utils/executionContext');
 
