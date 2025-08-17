@@ -8,6 +8,8 @@ const WorkflowsOverview = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [editingName, setEditingName] = useState(null);
+  const [editNameValue, setEditNameValue] = useState('');
 
   // Load workflow data from localStorage
   useEffect(() => {
@@ -97,6 +99,56 @@ const WorkflowsOverview = () => {
     
     setOpenDropdown(null);
     console.log(`Duplicated workflow: ${workflow.name}`);
+  };
+
+  // Name editing handlers
+  const startEditingName = (workflowId, currentName, event) => {
+    event.stopPropagation();
+    setEditingName(workflowId);
+    setEditNameValue(currentName);
+  };
+
+  const saveWorkflowName = (workflowId, event) => {
+    event.stopPropagation();
+    if (editNameValue.trim() === '') {
+      cancelEditingName();
+      return;
+    }
+
+    // Update workflows state
+    const updatedWorkflows = workflows.map(workflow => 
+      workflow.id === workflowId 
+        ? { ...workflow, name: editNameValue.trim(), updatedAt: new Date().toISOString() }
+        : workflow
+    );
+    setWorkflows(updatedWorkflows);
+
+    // Update localStorage
+    const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
+    const updatedSavedWorkflows = savedWorkflows.map(workflow =>
+      workflow.id === workflowId 
+        ? { ...workflow, name: editNameValue.trim(), updatedAt: new Date().toISOString() }
+        : workflow
+    );
+    localStorage.setItem('savedWorkflows', JSON.stringify(updatedSavedWorkflows));
+
+    setEditingName(null);
+    setEditNameValue('');
+    console.log(`Updated workflow name: ${editNameValue.trim()}`);
+  };
+
+  const cancelEditingName = (event) => {
+    if (event) event.stopPropagation();
+    setEditingName(null);
+    setEditNameValue('');
+  };
+
+  const handleNameKeyPress = (workflowId, event) => {
+    if (event.key === 'Enter') {
+      saveWorkflowName(workflowId, event);
+    } else if (event.key === 'Escape') {
+      cancelEditingName(event);
+    }
   };
 
   // Close dropdown when clicking outside
@@ -238,7 +290,47 @@ const WorkflowsOverview = () => {
                 <div key={workflow.id} className="workflow-card" onClick={() => handleEditWorkflow(workflow.id)} style={{cursor: 'pointer'}}>
                   <div className="card-header">
                     <div className="workflow-info">
-                      <h3 className="workflow-name">{workflow.name}</h3>
+                      {editingName === workflow.id ? (
+                        <div className="name-edit-container">
+                          <input
+                            type="text"
+                            className="name-edit-input"
+                            value={editNameValue}
+                            onChange={(e) => setEditNameValue(e.target.value)}
+                            onKeyDown={(e) => handleNameKeyPress(workflow.id, e)}
+                            onBlur={(e) => saveWorkflowName(workflow.id, e)}
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <div className="name-edit-actions">
+                            <button 
+                              className="name-edit-btn save-btn"
+                              onClick={(e) => saveWorkflowName(workflow.id, e)}
+                              title="Save"
+                            >
+                              <i className="fa-solid fa-check"></i>
+                            </button>
+                            <button 
+                              className="name-edit-btn cancel-btn"
+                              onClick={(e) => cancelEditingName(e)}
+                              title="Cancel"
+                            >
+                              <i className="fa-solid fa-times"></i>
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="workflow-name-display">
+                          <h3 className="workflow-name">{workflow.name}</h3>
+                          <button 
+                            className="edit-name-btn"
+                            onClick={(e) => startEditingName(workflow.id, workflow.name, e)}
+                            title="Edit workflow name"
+                          >
+                            <i className="fa-solid fa-pen"></i>
+                          </button>
+                        </div>
+                      )}
                       <p className="workflow-description">{workflow.description}</p>
                     </div>
                     <div className="workflow-actions">

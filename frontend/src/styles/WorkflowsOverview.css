@@ -606,3 +606,104 @@ Professional styles for the Workflows Overview page
   width: 16px;
   text-align: center;
 }
+
+/* Name Editing Styles */
+.workflow-name-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.workflow-name {
+  flex: 1;
+  margin: 0;
+}
+
+.edit-name-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.workflow-name-display:hover .edit-name-btn {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.edit-name-btn:hover {
+  background: #f1f5f9;
+  color: #334155;
+}
+
+.name-edit-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  margin-bottom: 4px;
+}
+
+.name-edit-input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 2px solid #667eea;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  background: white;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.name-edit-input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.name-edit-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.name-edit-btn {
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+.name-edit-btn.save-btn {
+  color: #059669;
+}
+
+.name-edit-btn.save-btn:hover {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.name-edit-btn.cancel-btn {
+  color: #dc2626;
+}
+
+.name-edit-btn.cancel-btn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.name-edit-btn i {
+  font-size: 12px;
+}
