@@ -3,21 +3,14 @@ const logger = require('./logger');
 
 // Bot configuration
 const botToken = '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ';
-const webhookUrl = 'https://workflow-lg9z.onrender.com/api/webhooks/telegram';
+// DISABLED: Old hardcoded webhook that was conflicting with new workflow system
+// const webhookUrl = 'https://workflow-lg9z.onrender.com/api/webhooks/telegram';
 
-// Function to set Telegram webhook
+// DISABLED: Old webhook function to prevent conflicts with main backend
 async function setTelegramWebhook() {
-  try {
-    const url = `https://api.telegram.org/bot${botToken}/setWebhook`;
-    console.log('🛰️  Setting Telegram webhook...');
-    console.log('📡 Webhook URL:', webhookUrl);
-    
-    const res = await axios.post(url, { 
-      url: webhookUrl,
-      allowed_updates: ['message', 'callback_query']
-    });
-    
-    console.log('✅ Webhook set successfully:', res.data);
+  console.log('🚫 OLD BACKEND: Webhook setting disabled to prevent conflicts with main project');
+  console.log('📝 This is the old WorkflowBuilder-Platform backend - webhook management moved to main backend');
+  return { ok: false, description: 'Webhook management disabled in old backend' };
     
     if (res.data.ok) {
       console.log('🎉 Telegram bot is now ready to receive messages!');
@@ -59,18 +52,12 @@ async function deleteWebhook() {
   }
 }
 
-// If this file is run directly, set the webhook
+// DISABLED: Direct webhook registration to prevent conflicts
 if (require.main === module) {
-  console.log('🚀 Registering Telegram webhook...');
-  setTelegramWebhook()
-    .then(() => {
-      console.log('✅ Webhook registration complete!');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('❌ Webhook registration failed:', error.message);
-      process.exit(1);
-    });
+  console.log('🚫 OLD BACKEND: Direct webhook registration disabled');
+  console.log('📝 Webhook management now handled by main backend project');
+  console.log('💡 Use the main project workflow activation system instead');
+  process.exit(0);
 }
 
 class TelegramAPI {

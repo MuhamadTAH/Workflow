@@ -3,34 +3,19 @@ const logger = require('./logger');
 
 // Bot configuration
 const botToken = '8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ';
-const webhookUrl = 'https://workflow-lg9z.onrender.com/api/webhooks/telegram';
+// REMOVED: Hardcoded webhook URL that was overriding workflow-specific webhooks
+// const webhookUrl = 'https://workflow-lg9z.onrender.com/api/webhooks/telegram';
 
-// Function to set Telegram webhook
-async function setTelegramWebhook() {
-  try {
-    const url = `https://api.telegram.org/bot${botToken}/setWebhook`;
-    console.log('🛰️  Setting Telegram webhook...');
-    console.log('📡 Webhook URL:', webhookUrl);
-    
-    const res = await axios.post(url, { 
-      url: webhookUrl,
-      allowed_updates: ['message', 'callback_query']
-    });
-    
-    console.log('✅ Webhook set successfully:', res.data);
-    
-    if (res.data.ok) {
-      console.log('🎉 Telegram bot is now ready to receive messages!');
-      console.log('📨 Send a message to your bot to test the webhook');
-    } else {
-      console.log('❌ Failed to set webhook:', res.data.description);
-    }
-    
-    return res.data;
-  } catch (error) {
-    console.error('❌ Error setting webhook:', error.response?.data || error.message);
-    throw error;
+// DEPRECATED: Legacy function that was setting hardcoded webhook URL
+// This function is now disabled to prevent interference with workflow-specific webhooks
+async function setTelegramWebhook(customWebhookUrl = null) {
+  console.log('⚠️  setTelegramWebhook called but is now disabled to prevent webhook conflicts');
+  console.log('📝 Webhook management is now handled by workflow activation system');
+  if (customWebhookUrl) {
+    console.log('📡 Custom webhook URL provided:', customWebhookUrl);
+    console.log('💡 Use the workflow activation system or manual webhook update endpoints instead');
   }
+  return { ok: false, description: 'Function disabled - use workflow activation system' };
 }
 
 // Function to get webhook info
@@ -59,18 +44,12 @@ async function deleteWebhook() {
   }
 }
 
-// If this file is run directly, set the webhook
+// DISABLED: Direct webhook registration to prevent conflicts with workflow system
 if (require.main === module) {
-  console.log('🚀 Registering Telegram webhook...');
-  setTelegramWebhook()
-    .then(() => {
-      console.log('✅ Webhook registration complete!');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('❌ Webhook registration failed:', error.message);
-      process.exit(1);
-    });
+  console.log('⚠️  Direct Telegram webhook registration is now disabled');
+  console.log('📝 Webhooks are automatically managed by the workflow activation system');
+  console.log('💡 Activate a workflow with a Telegram trigger to set up webhooks');
+  process.exit(0);
 }
 
 class TelegramAPI {

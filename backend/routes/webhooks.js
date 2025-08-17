@@ -74,51 +74,70 @@ router.get('/telegram', (req, res) => {
   res.send('✅ Telegram webhook is live.');
 });
 
-// POST: Telegram webhook endpoint
+// POST: General Telegram webhook endpoint (Legacy - redirects to active workflows)
 router.post('/telegram', asyncHandler(async (req, res) => {
   const update = req.body;
-  const logPath = path.join(__dirname, '../logs/telegram-2025-07-27.log');
   
+  console.log('📥 LEGACY TELEGRAM ENDPOINT: Message received at general /telegram endpoint');
+  console.log('📦 Update data:', JSON.stringify(update, null, 2));
+  
+  // Check if there are any active workflows with Telegram triggers
+  if (workflowExecutor && workflowExecutor.activeWorkflows.size > 0) {
+    const activeWorkflows = Array.from(workflowExecutor.activeWorkflows.keys());
+    
+    // Find the first active workflow with a Telegram trigger
+    let targetWorkflow = null;
+    for (const workflowId of activeWorkflows) {
+      const workflow = workflowExecutor.activeWorkflows.get(workflowId);
+      if (workflow && workflow.nodes) {
+        const hasTelegramTrigger = workflow.nodes.some(node => 
+          node.data.type === 'telegramTrigger'
+        );
+        if (hasTelegramTrigger) {
+          targetWorkflow = workflowId;
+          break;
+        }
+      }
+    }
+    
+    if (targetWorkflow) {
+      console.log(`🔄 LEGACY REDIRECT: Forwarding message to active workflow: ${targetWorkflow}`);
+      
+      // Forward the request to the workflow-specific endpoint
+      req.url = `/telegram/${targetWorkflow}`;
+      req.params = { workflowId: targetWorkflow };
+      
+      // Call the workflow-specific handler
+      return router.handle(req, res, () => {
+        console.log('📨 LEGACY REDIRECT: Message forwarded successfully');
+        res.status(200).json({ ok: true, message: 'Message forwarded to active workflow', workflowId: targetWorkflow });
+      });
+    } else {
+      console.log('⚠️  LEGACY ENDPOINT: No active workflows with Telegram triggers found');
+      console.log(`📋 Available workflows: [${activeWorkflows.join(', ')}]`);
+    }
+  } else {
+    console.log('⚠️  LEGACY ENDPOINT: No active workflows found');
+  }
+  
+  // Legacy logging for backwards compatibility
+  const logPath = path.join(__dirname, '../logs/telegram-2025-07-27.log');
   try {
-    // Ensure logs directory exists
     const logsDir = path.dirname(logPath);
     if (!fs.existsSync(logsDir)) {
       fs.mkdirSync(logsDir, { recursive: true });
     }
-
-    // Save payload to file (for now this is your node "input")
     fs.writeFileSync(logPath, JSON.stringify(update, null, 2));
-    
-    // Log to console
-    console.log('📥 Telegram message received:', update);
-    logger.logTelegramEvent('webhook', 'message_received', {
-      updateId: update.update_id,
-      messageId: update.message?.message_id,
-      chatId: update.message?.chat?.id,
-      text: update.message?.text
-    });
-
-    // Store the message for potential workflow processing
-    if (update.message) {
-      const messageData = {
-        updateId: update.update_id,
-        messageId: update.message.message_id,
-        chatId: update.message.chat.id,
-        text: update.message.text,
-        from: update.message.from,
-        date: update.message.date,
-        timestamp: new Date().toISOString()
-      };
-
-      // This will be your node input data
-      console.log('📦 Message data for node input:', messageData);
-    }
-
-    res.status(200).json({ ok: true, message: 'Message received successfully' });
-  } catch (error) {
-    logger.logError(error, { context: 'telegram_webhook' });
-    res.status(500).json({ ok: false, error: 'Failed to process message' });
+  } catch (logError) {
+    console.error('❌ Legacy logging failed:', logError.message);
   }
+
+  // Respond with guidance for new workflow system
+  res.status(200).json({ 
+    ok: true, 
+    message: 'Message received at legacy endpoint',
+    guidance: 'For workflow execution, activate a workflow with Telegram trigger to get workflow-specific webhook URL'
+  });
 }));
 
 // Workflow-specific Telegram trigger endpoint
