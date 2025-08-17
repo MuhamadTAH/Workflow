@@ -7,6 +7,7 @@ const WorkflowsOverview = () => {
   const [workflows, setWorkflows] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   // Load workflow data from localStorage
   useEffect(() => {
@@ -45,6 +46,65 @@ const WorkflowsOverview = () => {
   const handleEditWorkflow = (workflowId) => {
     navigate(`/workflow?load=${workflowId}`);
   };
+
+  // Dropdown handlers
+  const toggleDropdown = (workflowId, event) => {
+    event.stopPropagation();
+    setOpenDropdown(openDropdown === workflowId ? null : workflowId);
+  };
+
+  const handleDeleteWorkflow = (workflowId, event) => {
+    event.stopPropagation();
+    const updatedWorkflows = workflows.filter(w => w.id !== workflowId);
+    setWorkflows(updatedWorkflows);
+    
+    // Update localStorage
+    const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
+    const filteredWorkflows = savedWorkflows.filter(w => w.id !== workflowId);
+    localStorage.setItem('savedWorkflows', JSON.stringify(filteredWorkflows));
+    
+    setOpenDropdown(null);
+    console.log(`Deleted workflow: ${workflowId}`);
+  };
+
+  const handleCopyJSON = (workflow, event) => {
+    event.stopPropagation();
+    const workflowJSON = JSON.stringify(workflow, null, 2);
+    navigator.clipboard.writeText(workflowJSON).then(() => {
+      console.log('Workflow JSON copied to clipboard');
+      // You could add a toast notification here
+    });
+    setOpenDropdown(null);
+  };
+
+  const handleDuplicateWorkflow = (workflow, event) => {
+    event.stopPropagation();
+    const newWorkflow = {
+      ...workflow,
+      id: 'workflow-' + Date.now(),
+      name: `${workflow.name} (Copy)`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    const updatedWorkflows = [...workflows, newWorkflow];
+    setWorkflows(updatedWorkflows);
+    
+    // Update localStorage
+    const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
+    savedWorkflows.push(newWorkflow);
+    localStorage.setItem('savedWorkflows', JSON.stringify(savedWorkflows));
+    
+    setOpenDropdown(null);
+    console.log(`Duplicated workflow: ${workflow.name}`);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setOpenDropdown(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   const filteredWorkflows = workflows.filter(workflow =>
     workflow.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -182,12 +242,43 @@ const WorkflowsOverview = () => {
                       <p className="workflow-description">{workflow.description}</p>
                     </div>
                     <div className="workflow-actions">
-                      <button className="action-btn" title="Edit workflow">
-                        <i className="fa-solid fa-edit" onClick={() => handleEditWorkflow(workflow.id)}></i>
+                      <button className="action-btn" title="Edit workflow" onClick={(e) => { e.stopPropagation(); handleEditWorkflow(workflow.id); }}>
+                        <i className="fa-solid fa-edit"></i>
                       </button>
-                      <button className="action-btn" title="More options">
-                        <i className="fa-solid fa-ellipsis-v"></i>
-                      </button>
+                      <div className="dropdown-container">
+                        <button 
+                          className="action-btn" 
+                          title="More options"
+                          onClick={(e) => toggleDropdown(workflow.id, e)}
+                        >
+                          <i className="fa-solid fa-ellipsis-v"></i>
+                        </button>
+                        {openDropdown === workflow.id && (
+                          <div className="dropdown-menu">
+                            <button 
+                              className="dropdown-item delete-item"
+                              onClick={(e) => handleDeleteWorkflow(workflow.id, e)}
+                            >
+                              <i className="fa-solid fa-trash"></i>
+                              Delete Workflow
+                            </button>
+                            <button 
+                              className="dropdown-item"
+                              onClick={(e) => handleCopyJSON(workflow, e)}
+                            >
+                              <i className="fa-solid fa-copy"></i>
+                              Copy JSON
+                            </button>
+                            <button 
+                              className="dropdown-item"
+                              onClick={(e) => handleDuplicateWorkflow(workflow, e)}
+                            >
+                              <i className="fa-solid fa-clone"></i>
+                              Duplicate
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
