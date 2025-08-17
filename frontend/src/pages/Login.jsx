@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authAPI, tokenManager } from '../api';
+import { API_BASE_URL } from '../config/api';
 import PhoneMockup from '../components/PhoneMockup';
 import '../styles/AuthStyles.css';
 
@@ -56,7 +57,12 @@ function Login() {
     addMessage(maskedPassword, 'me');
 
     try {
+      console.log('🔑 Attempting login with:', { email: formData.email, password: '***' });
+      console.log('🌐 API Base URL:', API_BASE_URL);
+      
       const response = await authAPI.login(formData);
+      console.log('✅ Login response:', response);
+      
       const { token } = response.data;
       
       tokenManager.setToken(token);
@@ -66,7 +72,12 @@ function Login() {
         navigate('/');
       }, 1500);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Login failed';
+      console.error('❌ Login error:', err);
+      console.error('❌ Error response:', err.response);
+      console.error('❌ Error status:', err.response?.status);
+      console.error('❌ Error data:', err.response?.data);
+      
+      const errorMessage = err.response?.data?.message || err.message || 'Login failed';
       setError(errorMessage);
       addMessage("Hmm, that combo didn't work. 🤔 Double-check your email and password and let's give it another shot!", 'them');
     } finally {
