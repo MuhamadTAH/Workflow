@@ -964,8 +964,51 @@ class WorkflowExecutor {
                 
                 // Look for step data that matches the node name
                 for (const [stepKey, stepValue] of Object.entries(context)) {
-                    if (stepKey.includes(nodeName.replace(/ /g, '_')) || stepKey.includes('Chat_Trigger')) {
+                    if (stepKey.includes(nodeName.replace(/ /g, '_')) || stepKey.includes('Chat_Trigger') || stepKey.includes('Telegram_Trigger')) {
                         console.log(`📍 Found matching step: ${stepKey}`, JSON.stringify(stepValue, null, 2));
+                        
+                        // Special handling for Telegram Trigger nodes
+                        if (nodeName === 'Telegram Trigger' || stepKey.includes('Telegram_Trigger')) {
+                            console.log(`🔍 Telegram Trigger special handling - nodeName: "${nodeName}", stepKey: "${stepKey}", path: "${path}"`);
+                            
+                            // For Telegram Trigger, map common template paths to actual data structure
+                            if (path === 'json.0.message.text' && stepValue.message?.text) {
+                                console.log(`✅ Template resolved (Telegram text): ${match} → ${stepValue.message.text}`);
+                                return stepValue.message.text;
+                            }
+                            if (path === 'json.0.message.text' && stepValue.telegram?.text) {
+                                console.log(`✅ Template resolved (Telegram text alt): ${match} → ${stepValue.telegram.text}`);
+                                return stepValue.telegram.text;
+                            }
+                            if (path === 'json.0.message.from.id' && stepValue.telegram?.chatId) {
+                                console.log(`✅ Template resolved (Telegram chatId): ${match} → ${stepValue.telegram.chatId}`);
+                                return stepValue.telegram.chatId;
+                            }
+                            if (path === 'json.0.message.from.id' && stepValue.telegram?.from?.id) {
+                                console.log(`✅ Template resolved (Telegram from.id): ${match} → ${stepValue.telegram.from.id}`);
+                                return stepValue.telegram.from.id;
+                            }
+                            if (path === 'json.0.message.chat.id' && stepValue.telegram?.chatId) {
+                                console.log(`✅ Template resolved (Telegram chat.id): ${match} → ${stepValue.telegram.chatId}`);
+                                return stepValue.telegram.chatId;
+                            }
+                            
+                            // Try accessing raw telegram data
+                            if (stepValue.raw?.message) {
+                                if (path === 'json.0.message.text' && stepValue.raw.message.text) {
+                                    console.log(`✅ Template resolved (Raw text): ${match} → ${stepValue.raw.message.text}`);
+                                    return stepValue.raw.message.text;
+                                }
+                                if (path === 'json.0.message.from.id' && stepValue.raw.message.from?.id) {
+                                    console.log(`✅ Template resolved (Raw from.id): ${match} → ${stepValue.raw.message.from.id}`);
+                                    return stepValue.raw.message.from.id;
+                                }
+                                if (path === 'json.0.message.chat.id' && stepValue.raw.message.chat?.id) {
+                                    console.log(`✅ Template resolved (Raw chat.id): ${match} → ${stepValue.raw.message.chat.id}`);
+                                    return stepValue.raw.message.chat.id;
+                                }
+                            }
+                        }
                         
                         // Special handling for Chat Trigger nodes - they have flat data structure
                         if (nodeName === 'Chat Trigger' || stepKey.includes('Chat_Trigger')) {
@@ -991,6 +1034,21 @@ class WorkflowExecutor {
                             if (stepValue[simplePath]) {
                                 console.log(`✅ Template resolved (Chat Trigger direct): ${match} → ${stepValue[simplePath]}`);
                                 return stepValue[simplePath];
+                            }
+                        }
+                        
+                        // Special handling for AI Agent nodes
+                        if (nodeName === 'AI Agent' || stepKey.includes('AI_Agent')) {
+                            console.log(`🔍 AI Agent special handling - nodeName: "${nodeName}", stepKey: "${stepKey}", path: "${path}"`);
+                            
+                            // For AI Agent, map common template paths to actual data structure
+                            if (path === 'json.result.response' && stepValue.response) {
+                                console.log(`✅ Template resolved (AI Agent response): ${match} → ${stepValue.response}`);
+                                return stepValue.response;
+                            }
+                            if (path === 'json.response' && stepValue.response) {
+                                console.log(`✅ Template resolved (AI Agent response alt): ${match} → ${stepValue.response}`);
+                                return stepValue.response;
                             }
                         }
                         
