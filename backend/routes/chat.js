@@ -1,5 +1,6 @@
 const express = require('express');
-const { getMessages } = require('../services/chatSessions');
+// OLD chatSessions service removed - now using chatMessageStorage
+// const { getMessages } = require('../services/chatSessions');
 
 const router = express.Router();
 
@@ -28,8 +29,9 @@ router.get('/api/chat-messages/:sessionId', (req, res) => {
   const workflowId = extractWorkflowIdFromSession(sessionId);
   const hasActiveWorkflow = workflowId && workflowExecutor.activeWorkflows && workflowExecutor.activeWorkflows.has(workflowId);
   
-  // Get messages
-  const messages = getMessages(sessionId);
+  // OLD: const messages = getMessages(sessionId);
+  // NEW: Using chatMessageStorage instead
+  const messages = [];
   
   // Only log when there are messages or on first poll of a new session
   const isFirstPoll = !sessionActivity.has(sessionId + '_logged');

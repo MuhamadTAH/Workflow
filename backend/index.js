@@ -216,10 +216,6 @@ app.get('/api/debug/chat-trigger', (req, res) => {
     const chatTriggerNode = require('./nodes/triggers/chatTriggerNode');
     console.log('✅ chatTriggerNode loaded:', !!chatTriggerNode);
     
-    console.log('🧪 Testing minimal chatTriggerNodeTest...');
-    const chatTriggerNodeTest = require('./nodes/triggers/chatTriggerNodeTest');
-    console.log('✅ chatTriggerNodeTest loaded:', !!chatTriggerNodeTest);
-    
     res.json({
       status: 'loaded',
       original: {
@@ -227,12 +223,6 @@ app.get('/api/debug/chat-trigger', (req, res) => {
         hasExecute: typeof chatTriggerNode?.execute === 'function',
         executeType: typeof chatTriggerNode?.execute,
         keys: Object.keys(chatTriggerNode || {})
-      },
-      test: {
-        nodeExists: !!chatTriggerNodeTest,
-        hasExecute: typeof chatTriggerNodeTest?.execute === 'function',
-        executeType: typeof chatTriggerNodeTest?.execute,
-        keys: Object.keys(chatTriggerNodeTest || {})
       },
       dependencies: {
         chatMessageStorage: !!chatMessageStorage,
