@@ -10,6 +10,8 @@ const WorkflowsOverview = () => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [editingName, setEditingName] = useState(null);
   const [editNameValue, setEditNameValue] = useState('');
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState(null);
 
   // Load workflow data from localStorage
   useEffect(() => {
@@ -149,6 +151,99 @@ const WorkflowsOverview = () => {
     } else if (event.key === 'Escape') {
       cancelEditingName(event);
     }
+  };
+
+  // Status toggle handlers
+  const handleStatusClick = (workflow, event) => {
+    event.stopPropagation();
+    const newStatus = workflow.status === 'active' ? 'inactive' : 'active';
+    setPendingStatusChange({
+      workflowId: workflow.id,
+      workflowName: workflow.name,
+      currentStatus: workflow.status,
+      newStatus: newStatus
+    });
+    setShowStatusModal(true);
+  };
+
+  const confirmStatusChange = async () => {
+    if (!pendingStatusChange) return;
+
+    const { workflowId, newStatus } = pendingStatusChange;
+
+    try {
+      // Update workflows state
+      const updatedWorkflows = workflows.map(workflow => 
+        workflow.id === workflowId 
+          ? { ...workflow, status: newStatus, updatedAt: new Date().toISOString() }
+          : workflow
+      );
+      setWorkflows(updatedWorkflows);
+
+      // Update localStorage - workflow status
+      const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
+      workflowStatuses[workflowId] = newStatus;
+      localStorage.setItem('workflowStatuses', JSON.stringify(workflowStatuses));
+
+      // If activating, make API call to activate workflow
+      if (newStatus === 'active') {
+        try {
+          const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
+          const workflow = savedWorkflows.find(w => w.id === workflowId);
+          
+          if (workflow) {
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'https://workflow-unlq.onrender.com'}/api/workflows/${workflowId}/activate`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(workflow)
+            });
+
+            if (!response.ok) {
+              console.warn('Failed to activate workflow on server, but keeping local status');
+            } else {
+              console.log('Workflow activated successfully on server');
+            }
+          }
+        } catch (error) {
+          console.warn('Failed to activate workflow on server:', error.message);
+        }
+      }
+
+      // If deactivating, make API call to deactivate workflow
+      if (newStatus === 'inactive') {
+        try {
+          const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'https://workflow-unlq.onrender.com'}/api/workflows/${workflowId}/deactivate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+
+          if (!response.ok) {
+            console.warn('Failed to deactivate workflow on server, but keeping local status');
+          } else {
+            console.log('Workflow deactivated successfully on server');
+          }
+        } catch (error) {
+          console.warn('Failed to deactivate workflow on server:', error.message);
+        }
+      }
+
+      console.log(`Workflow ${workflowId} status changed to: ${newStatus}`);
+    } catch (error) {
+      console.error('Failed to change workflow status:', error);
+    }
+
+    // Close modal and reset pending change
+    setShowStatusModal(false);
+    setPendingStatusChange(null);
+  };
+
+  const cancelStatusChange = () => {
+    setShowStatusModal(false);
+    setPendingStatusChange(null);
   };
 
   // Close dropdown when clicking outside
@@ -384,9 +479,14 @@ const WorkflowsOverview = () => {
 
                   <div className="card-footer">
                     <div className="workflow-status">
-                      <span className={`status-badge ${getStatusColor(workflow.status)}`}>
+                      <button 
+                        className={`status-badge clickable ${getStatusColor(workflow.status)}`}
+                        onClick={(e) => handleStatusClick(workflow, e)}
+                        title={`Click to ${workflow.status === 'active' ? 'deactivate' : 'activate'} workflow`}
+                      >
                         {workflow.status}
-                      </span>
+                        <i className={`fa-solid ${workflow.status === 'active' ? 'fa-toggle-on' : 'fa-toggle-off'}`}></i>
+                      </button>
                     </div>
                     <div className="last-modified">
                       <i className="fa-solid fa-clock"></i>
@@ -399,6 +499,55 @@ const WorkflowsOverview = () => {
           )}
         </div>
       </div>
+
+      {/* Status Change Confirmation Modal */}
+      {showStatusModal && pendingStatusChange && (
+        <div className="modal-overlay" onClick={cancelStatusChange}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>
+                <i className={`fa-solid ${pendingStatusChange.newStatus === 'active' ? 'fa-play-circle' : 'fa-pause-circle'}`}></i>
+                {pendingStatusChange.newStatus === 'active' ? 'Activate' : 'Deactivate'} Workflow
+              </h3>
+            </div>
+            <div className="modal-body">
+              <p>
+                Are you sure you want to <strong>{pendingStatusChange.newStatus === 'active' ? 'activate' : 'deactivate'}</strong> the workflow:
+              </p>
+              <div className="workflow-name-highlight">
+                "{pendingStatusChange.workflowName}"
+              </div>
+              {pendingStatusChange.newStatus === 'active' ? (
+                <div className="status-info activate-info">
+                  <i className="fa-solid fa-info-circle"></i>
+                  <span>This workflow will start processing triggers and executing automatically.</span>
+                </div>
+              ) : (
+                <div className="status-info deactivate-info">
+                  <i className="fa-solid fa-exclamation-triangle"></i>
+                  <span>This workflow will stop processing triggers and won't execute automatically.</span>
+                </div>
+              )}
+            </div>
+            <div className="modal-actions">
+              <button 
+                className="modal-btn cancel-btn"
+                onClick={cancelStatusChange}
+              >
+                <i className="fa-solid fa-times"></i>
+                Cancel
+              </button>
+              <button 
+                className={`modal-btn confirm-btn ${pendingStatusChange.newStatus === 'active' ? 'activate' : 'deactivate'}`}
+                onClick={confirmStatusChange}
+              >
+                <i className={`fa-solid ${pendingStatusChange.newStatus === 'active' ? 'fa-play' : 'fa-pause'}`}></i>
+                {pendingStatusChange.newStatus === 'active' ? 'Activate' : 'Deactivate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
