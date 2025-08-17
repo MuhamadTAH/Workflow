@@ -297,13 +297,13 @@ router.use((req, res, next) => {
 });
 
 // POST /api/workflows/:id/activate - Activate workflow for automatic execution
-router.post('/:id/activate', activateWorkflow);
+router.post('/:id/activate', verifyToken, activateWorkflow);
 
 // POST /api/workflows/:id/deactivate - Deactivate workflow  
-router.post('/:id/deactivate', deactivateWorkflow);
+router.post('/:id/deactivate', verifyToken, deactivateWorkflow);
 
 // GET /api/workflows/:id/status - Get workflow execution status
-router.get('/:id/status', getWorkflowStatus);
+router.get('/:id/status', verifyToken, getWorkflowStatus);
 
 // GET /api/workflows/:id/failed-executions - Get failed executions for replay
 router.get('/:id/failed-executions', getFailedExecutions);

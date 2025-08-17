@@ -263,6 +263,8 @@ const App = () => {
   }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId, navigate, createStateSnapshot]);
 
   const handleActivate = useCallback(async () => {
+    console.log('🚀 FRONTEND ACTIVATION STARTING...');
+    
     if (nodes.length === 0) {
       alert('Please add some nodes to the workflow before activating.');
       return;
@@ -288,6 +290,15 @@ const App = () => {
     setIsExecuting(true);
     setExecutionProgress('Activating workflow...');
 
+    console.log('📝 FRONTEND ACTIVATION DEBUG:', {
+      workflowId: workflowId,
+      nodeCount: nodes.length,
+      edgeCount: edges.length,
+      triggerNodes: triggerNodes.map(n => n.data.type),
+      apiBase: API_BASE,
+      hasToken: !!localStorage.getItem('token')
+    });
+
     try {
       // Call the activation endpoint instead of executing immediately
       const workflowData = {
@@ -295,7 +306,10 @@ const App = () => {
         edges: edges
       };
 
-      const response = await fetch(`${API_BASE}/api/workflows/${workflowId}/activate`, {
+      const requestUrl = `${API_BASE}/api/workflows/${workflowId}/activate`;
+      console.log('🌐 FRONTEND MAKING REQUEST TO:', requestUrl);
+
+      const response = await fetch(requestUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -306,7 +320,10 @@ const App = () => {
         })
       });
 
+      console.log('📡 FRONTEND RESPONSE STATUS:', response.status, response.statusText);
+
       const result = await response.json();
+      console.log('📦 FRONTEND RESPONSE DATA:', result);
 
       if (response.ok && result.success) {
         setIsActivated(true);
@@ -332,7 +349,7 @@ const App = () => {
       }
 
     } catch (error) {
-      console.error('❌ Workflow activation failed:', error);
+      console.error('❌ FRONTEND ACTIVATION ERROR:', error);
       setExecutionProgress(`❌ Activation failed: ${error.message}`);
       alert(`❌ Workflow activation failed:\n${error.message}`);
       setIsExecuting(false);
