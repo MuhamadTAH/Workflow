@@ -31,15 +31,31 @@ app.use((req, res, next) => {
   // Skip logging for repetitive chat polling requests
   const isChatPolling = req.url.startsWith('/api/chat-messages/');
   const isHealthCheck = req.url === '/health' || req.url === '/';
+  const isWorkflowActivation = req.url.includes('/activate');
   
   if (!isChatPolling && !isHealthCheck) {
-    console.log('🌐 INCOMING REQUEST:', {
+    const logLevel = isWorkflowActivation ? '🚨 WORKFLOW ACTIVATION' : '🌐 INCOMING REQUEST';
+    console.log(logLevel + ':', {
       method: req.method,
       url: req.url,
       origin: req.headers.origin,
       userAgent: req.headers['user-agent']?.substring(0, 50),
+      contentType: req.headers['content-type'],
+      contentLength: req.headers['content-length'],
+      authorization: req.headers.authorization ? 'present' : 'missing',
       timestamp: new Date().toISOString()
     });
+    
+    // Enhanced logging for POST requests with body data
+    if (req.method === 'POST' && isWorkflowActivation) {
+      console.log('📦 ACTIVATION REQUEST BODY PREVIEW:', {
+        hasBody: !!req.body,
+        bodyKeys: req.body ? Object.keys(req.body) : [],
+        workflowPresent: !!(req.body?.workflow),
+        nodeCount: req.body?.workflow?.nodes?.length || 0,
+        edgeCount: req.body?.workflow?.edges?.length || 0
+      });
+    }
   }
   next();
 });
@@ -189,6 +205,28 @@ app.get('/', (req, res) => {
 // Test route
 app.get('/api/hello', (req, res) => {
   res.json({ message: '✅ Hello from the backend!' });
+});
+
+// Debug endpoint to test activation flow
+app.post('/api/debug/test-activation', (req, res) => {
+  console.log('🧪 DEBUG ACTIVATION TEST:', {
+    method: req.method,
+    url: req.url,
+    headers: Object.keys(req.headers),
+    body: req.body,
+    timestamp: new Date().toISOString()
+  });
+  
+  res.json({
+    success: true,
+    message: 'Debug activation test successful',
+    receivedData: {
+      hasBody: !!req.body,
+      bodyKeys: req.body ? Object.keys(req.body) : [],
+      bodySize: req.body ? JSON.stringify(req.body).length : 0
+    },
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Test route for IF node routing fix

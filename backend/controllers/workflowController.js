@@ -180,21 +180,39 @@ const activateWorkflow = async (req, res) => {
         // Store in database for persistence
         await workflowState.storeActiveWorkflow(workflowId, workflow, triggerUrls);
 
-        res.json({
+        const responseData = {
             success: true,
             message: `✅ Workflow Activated`,
             workflowId: workflowId,
             activatedAt: new Date().toISOString(),
-            status: 'active'
+            status: 'active',
+            triggerUrls: triggerUrls
+        };
+
+        console.log('✅ ACTIVATION SUCCESS - Sending response:', {
+            success: responseData.success,
+            workflowId: responseData.workflowId,
+            triggerUrlCount: responseData.triggerUrls?.length || 0,
+            responseSize: JSON.stringify(responseData).length,
+            timestamp: new Date().toISOString()
         });
 
+        res.json(responseData);
+
     } catch (error) {
-        console.error('Workflow activation failed:', error.message);
-        res.status(500).json({
+        console.error('❌ ACTIVATION FAILED:', error.message);
+        console.error('📋 Stack trace:', error.stack);
+        
+        const errorResponse = {
             success: false,
             message: `Failed to activate workflow: ${error.message}`,
-            error: error.message
-        });
+            error: error.message,
+            timestamp: new Date().toISOString()
+        };
+
+        console.log('💀 ACTIVATION ERROR - Sending error response:', errorResponse);
+        
+        res.status(500).json(errorResponse);
     }
 };
 

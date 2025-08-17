@@ -272,6 +272,30 @@ router.delete('/:id', verifyToken, (req, res) => {
 
 // NEW ROUTES FROM WORKFLOWNODE - Advanced workflow execution
 
+// Debug middleware for workflow routes
+router.use((req, res, next) => {
+  console.log('🔧 WORKFLOW ROUTE DEBUG:', {
+    method: req.method,
+    originalUrl: req.originalUrl,
+    params: req.params,
+    query: req.query,
+    bodySize: req.body ? JSON.stringify(req.body).length : 0,
+    timestamp: new Date().toISOString()
+  });
+  
+  // Special logging for activation requests
+  if (req.url.includes('/activate')) {
+    console.log('🎯 WORKFLOW ACTIVATION ROUTE HIT:', {
+      workflowId: req.params.id,
+      method: req.method,
+      hasWorkflowData: !!(req.body?.workflow),
+      triggerNodeTypes: req.body?.workflow?.nodes?.map(n => n.data?.type).filter(t => t?.includes('Trigger')) || []
+    });
+  }
+  
+  next();
+});
+
 // POST /api/workflows/:id/activate - Activate workflow for automatic execution
 router.post('/:id/activate', activateWorkflow);
 
