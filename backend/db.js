@@ -118,6 +118,46 @@ db.serialize(() => {
       });
     }
   });
+
+  // Create chat_sessions table for Chat Trigger nodes
+  db.run(`
+    CREATE TABLE IF NOT EXISTS chat_sessions (
+      session_id TEXT PRIMARY KEY,
+      workflow_id TEXT,
+      title TEXT DEFAULT 'Chat Support',
+      welcome_message TEXT DEFAULT '👋 Welcome! Send a message to start the conversation.',
+      is_active BOOLEAN DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_activity DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating chat_sessions table:', err);
+    } else {
+      console.log('✅ Chat sessions table ready');
+    }
+  });
+
+  // Create chat_messages table for Chat Trigger nodes
+  db.run(`
+    CREATE TABLE IF NOT EXISTS chat_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id TEXT NOT NULL,
+      message_text TEXT NOT NULL,
+      sender_type TEXT NOT NULL,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      is_processed BOOLEAN DEFAULT 0,
+      user_data TEXT,
+      response_data TEXT,
+      FOREIGN KEY (session_id) REFERENCES chat_sessions(session_id)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating chat_messages table:', err);
+    } else {
+      console.log('✅ Chat messages table ready');
+    }
+  });
 });
 
 module.exports = db;

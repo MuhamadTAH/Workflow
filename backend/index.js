@@ -17,6 +17,7 @@ const debugRoutes = require('./routes/debug');
 const jobsRoutes = require('./routes/jobs');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
+const chatMessagesRoutes = require('./routes/chatMessages');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const logger = require('./services/logger');
 require('./db'); // Initialize database
@@ -174,6 +175,7 @@ app.use(chatRoutes);
 app.use(languageRoutes);
 app.use(debugRoutes);
 app.use('/api/jobs', jobsRoutes);
+app.use('/api/chat-messages', chatMessagesRoutes);
 // Additional middleware to debug CORS and route issues
 app.use('/api/nodes', (req, res, next) => {
   console.log('🔍 NODES API REQUEST DEBUG:', {

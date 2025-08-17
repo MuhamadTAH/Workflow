@@ -17,6 +17,7 @@ const switchNode = require('../nodes/logic/switchNode');
 const waitNode = require('../nodes/logic/waitNode');
 const mergeNode = require('../nodes/logic/mergeNode');
 const filterNode = require('../nodes/logic/filterNode');
+const chatTriggerNode = require('../nodes/triggers/chatTriggerNode');
 
 
 const { createBackendExecutionContext } = require('../utils/executionContext');
@@ -205,10 +206,14 @@ const runNode = async (req, res) => {
                         itemResult = await filterNode.execute(processedConfig, currentItem, executionContext);
                         break;
                     
+                    case 'chatTrigger':
+                        itemResult = await chatTriggerNode.execute(currentItem, processedConfig, executionContext);
+                        break;
+                    
                     default:
                         return res.status(400).json({ 
                             message: `Unsupported node type: ${node.type}`,
-                            supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'if', 'switch', 'wait', 'merge', 'filter']
+                            supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'chatTrigger', 'if', 'switch', 'wait', 'merge', 'filter']
                         });
                 }
                 

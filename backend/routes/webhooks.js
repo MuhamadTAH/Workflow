@@ -3,6 +3,7 @@ const { logWorkflowTriggered } = require('../controllers/workflowController');
 const scheduler = require('../services/scheduler');
 const TriggerDataProcessor = require('../services/triggerDataProcessor');
 const jobQueue = require('../services/jobQueue');
+const chatMessageStorage = require('../services/chatMessageStorage');
 
 const express = require('express');
 const router = express.Router();
@@ -984,5 +985,85 @@ router.get('/health', (req, res) => {
     workflowExecutorAvailable: !!workflowExecutor
   });
 });
+
+// Chat Trigger webhook endpoint
+router.post('/chat-trigger', asyncHandler(async (req, res) => {
+  try {
+    const { message, nodeId, timestamp, userMetadata } = req.body;
+    
+    // Validate required fields
+    if (!message || !nodeId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Message and nodeId are required'
+      });
+    }
+    
+    // Validate message length
+    if (message.length > 1000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Message too long (max 1000 characters)'
+      });
+    }
+    
+    console.log(`💬 Chat message received for node ${nodeId}:`, {
+      messageLength: message.length,
+      timestamp: timestamp || 'auto-generated'
+    });
+    
+    // Create session if it doesn't exist
+    const existingSession = await chatMessageStorage.getSession(nodeId);
+    if (!existingSession) {
+      await chatMessageStorage.createOrUpdateSession(nodeId, 'Chat Support');
+    }
+    
+    // Store the message
+    const userData = {
+      userAgent: req.headers['user-agent'],
+      ip: req.ip,
+      timestamp: timestamp || new Date().toISOString(),
+      ...userMetadata
+    };
+    
+    const storedMessage = await chatMessageStorage.storeMessage(
+      nodeId,
+      message,
+      'user',
+      userData
+    );
+    
+    // Get message count for this session
+    const messageCount = await chatMessageStorage.getMessageCount(nodeId);
+    
+    // Return success response
+    res.status(200).json({
+      success: true,
+      message: 'Chat message stored successfully',
+      data: {
+        messageId: storedMessage.id,
+        sessionId: nodeId,
+        timestamp: storedMessage.timestamp,
+        messageCount: messageCount
+      }
+    });
+    
+    logger.info('Chat message processed successfully', {
+      nodeId,
+      messageId: storedMessage.id,
+      messageLength: message.length
+    });
+    
+  } catch (error) {
+    console.error('❌ Chat trigger webhook failed:', error);
+    logger.error('Chat trigger webhook error:', error);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process chat message',
+      error: error.message
+    });
+  }
+}));
 
 module.exports = router;
