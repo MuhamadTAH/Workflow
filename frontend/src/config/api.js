@@ -9,7 +9,7 @@ const getApiBaseUrl = () => {
   
   // 2. Production detection (when served from production domain)
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return 'https://workflow-unlq.onrender.com';
+    return 'https://workflow-lg9z.onrender.com';
   }
   
   // 3. Development fallback
