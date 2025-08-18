@@ -15,7 +15,8 @@ const LiveChat = () => {
   const [messageText, setMessageText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [botToken, setBotToken] = useState('8148982414:AAEPKCLwwxiMp0KH3wKqrqdTnPI3W3E_0VQ'); // Default bot token
+  const [botToken, setBotToken] = useState('');
+  const [telegramConnected, setTelegramConnected] = useState(false);
 
   // Mock data for now - will be replaced with API calls
   const mockConversations = [
@@ -91,6 +92,36 @@ const LiveChat = () => {
       timestamp: '09:58'
     }
   ];
+
+  // Load user's connected Telegram bot
+  const loadTelegramConnection = async () => {
+    try {
+      const token = tokenManager.getToken();
+      const response = await fetch(`${API_BASE}/api/connections`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load connections');
+      }
+
+      const data = await response.json();
+      if (data.connections && data.connections.telegram) {
+        setBotToken(data.connections.telegram.access_token || '');
+        setTelegramConnected(true);
+        console.log('✅ Telegram bot connected and token loaded');
+      } else {
+        setTelegramConnected(false);
+        console.log('❌ No Telegram bot connected');
+      }
+    } catch (error) {
+      console.error('Error loading Telegram connection:', error);
+      setTelegramConnected(false);
+    }
+  };
 
   // Load conversations from API
   const loadConversations = async () => {
@@ -196,8 +227,14 @@ const LiveChat = () => {
       return;
     }
 
-    loadConversations();
-    setLoading(false);
+    // Load Telegram connection first, then conversations
+    const initializeData = async () => {
+      await loadTelegramConnection();
+      await loadConversations();
+      setLoading(false);
+    };
+
+    initializeData();
   }, [navigate]);
 
   // Handle conversation selection
@@ -302,6 +339,33 @@ const LiveChat = () => {
     return (
       <div className="live-chat-container">
         <div className="loading-spinner">Loading conversations...</div>
+      </div>
+    );
+  }
+
+  // Show message if Telegram bot is not connected
+  if (!telegramConnected) {
+    return (
+      <div className="live-chat-container">
+        <div className="no-telegram-connection">
+          <div className="no-connection-message">
+            <i className="fab fa-telegram-plane" style={{ fontSize: '48px', color: '#0088CC', marginBottom: '16px' }}></i>
+            <h2>No Telegram Bot Connected</h2>
+            <p>To use Live Chat, you need to connect your Telegram bot first.</p>
+            <a href="/connections" className="connect-telegram-btn">
+              <i className="fas fa-plug"></i>
+              Connect Your Telegram Bot
+            </a>
+            <div className="help-text">
+              <small>
+                <strong>How to get started:</strong><br/>
+                1. Go to Connections page<br/>
+                2. Connect your Telegram bot with bot token<br/>
+                3. Return here to manage conversations
+              </small>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

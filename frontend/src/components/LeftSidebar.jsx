@@ -12,7 +12,7 @@ function LeftSidebar() {
     {
       name: 'Workflows',
       path: '/workflows',
-      icon: 'fas fa-project-diagram'
+      icon: 'fas fa-th-large'
     },
     {
       name: 'Builder',
@@ -22,7 +22,7 @@ function LeftSidebar() {
     {
       name: 'Connections',
       path: '/connections',
-      icon: 'fas fa-plug'
+      icon: 'fas fa-user-friends'
     },
     {
       name: 'Live Chat',
@@ -44,10 +44,9 @@ function LeftSidebar() {
   };
 
   return (
-    <div className="left-sidebar">
-      <div className="sidebar-header">
-        <i className="fas fa-bolt"></i>
-        <span>Menu</span>
+    <aside className="live-chat-sidebar">
+      <div className="sidebar-logo">
+        <div className="logo-icon">W</div>
       </div>
       <nav className="sidebar-nav">
         {navItems.map((item) => (
@@ -55,13 +54,20 @@ function LeftSidebar() {
             key={item.path}
             to={item.path}
             className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
+            title={item.name}
           >
             <i className={item.icon}></i>
-            <span>{item.name}</span>
           </Link>
         ))}
       </nav>
-    </div>
+      <div className="sidebar-bottom">
+        <div className="user-avatar">M</div>
+        <Link to="#" className="nav-item">
+          <i className="fas fa-question-circle"></i>
+        </Link>
+        <div className="status-indicator"></div>
+      </div>
+    </aside>
   );
 }
 

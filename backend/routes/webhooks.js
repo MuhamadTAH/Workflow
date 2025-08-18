@@ -59,6 +59,112 @@ router.get('/telegram', (req, res) => {
   res.send('✅ Telegram webhook is live.');
 });
 
+// POST: Live Chat specific Telegram webhook endpoint
+router.post('/telegram-livechat/:userId', asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const update = req.body;
+  
+  console.log(`📞 LIVE CHAT: Message received for user: ${userId}`);
+  console.log('📦 Update data:', JSON.stringify(update, null, 2));
+  
+  // Validate Telegram update format
+  if (!update || !update.message) {
+    console.log('❌ Invalid Telegram update format');
+    return res.status(400).json({ ok: false, error: 'Invalid update format' });
+  }
+
+  try {
+    const db = require('../db');
+    const { message } = update;
+    const { chat, from, text } = message;
+
+    // Create or update conversation
+    const conversationSql = `
+      INSERT INTO telegram_conversations 
+      (user_id, telegram_chat_id, telegram_username, telegram_first_name, telegram_last_name, 
+       last_message_text, last_message_timestamp, status)
+      VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 'automated')
+      ON CONFLICT(user_id, telegram_chat_id) DO UPDATE SET
+        telegram_username = excluded.telegram_username,
+        telegram_first_name = excluded.telegram_first_name,
+        telegram_last_name = excluded.telegram_last_name,
+        last_message_text = excluded.last_message_text,
+        last_message_timestamp = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP
+    `;
+
+    await new Promise((resolve, reject) => {
+      db.run(conversationSql, [
+        userId,
+        chat.id.toString(),
+        from.username,
+        from.first_name,
+        from.last_name,
+        text
+      ], function(err) {
+        if (err) reject(err);
+        else resolve(this.lastID);
+      });
+    });
+
+    // Get conversation ID
+    const getConvSql = `
+      SELECT id FROM telegram_conversations 
+      WHERE user_id = ? AND telegram_chat_id = ?
+    `;
+
+    const conversationId = await new Promise((resolve, reject) => {
+      db.get(getConvSql, [userId, chat.id.toString()], (err, row) => {
+        if (err) reject(err);
+        else resolve(row?.id);
+      });
+    });
+
+    if (conversationId) {
+      // Save the message
+      const messageSql = `
+        INSERT INTO telegram_messages 
+        (conversation_id, sender_type, sender_name, message_text, telegram_message_id, metadata)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `;
+
+      const senderName = from.first_name ? 
+        `${from.first_name} ${from.last_name || ''}`.trim() : 
+        (from.username || `User ${from.id}`);
+
+      const metadata = JSON.stringify({
+        telegram_update: update,
+        source: 'live_chat_webhook',
+        processed_at: new Date().toISOString()
+      });
+
+      await new Promise((resolve, reject) => {
+        db.run(messageSql, [
+          conversationId,
+          'user',
+          senderName,
+          text,
+          message.message_id,
+          metadata
+        ], function(err) {
+          if (err) reject(err);
+          else resolve(this.lastID);
+        });
+      });
+
+      console.log('✅ LIVE CHAT: Message stored successfully');
+    }
+
+    // Always respond success to Telegram
+    res.status(200).json({ ok: true, message: 'Live chat message processed successfully' });
+    
+  } catch (error) {
+    console.error('❌ LIVE CHAT: Webhook processing failed:', error.message);
+    logger.logError(error, { context: 'telegram_livechat_webhook', userId });
+    res.status(500).json({ ok: false, error: 'Failed to process telegram update' });
+  }
+}));
+
 // POST: General Telegram webhook endpoint (Legacy - redirects to active workflows)
 router.post('/telegram', asyncHandler(async (req, res) => {
   const update = req.body;
@@ -154,6 +260,104 @@ router.post('/telegram/:workflowId', async (req, res) => {
       return res.status(400).json({ ok: false, errors: validation.errors });
     }
     
+    // Find user ID associated with this workflow to store in live chat
+    let userId = null;
+    if (workflowExecutor && workflowExecutor.activeWorkflows.has(workflowId)) {
+      const workflowData = workflowExecutor.activeWorkflows.get(workflowId);
+      userId = workflowData?.metadata?.userId || null;
+    }
+
+    // Store message in live chat database if we can identify the user
+    if (userId) {
+      try {
+        console.log('[telegram-webhook] 💬 Storing message in live chat database');
+        
+        const db = require('../db');
+        const { message } = update;
+        const { chat, from, text } = message;
+
+        // Create or update conversation
+        const conversationSql = `
+          INSERT INTO telegram_conversations 
+          (user_id, telegram_chat_id, telegram_username, telegram_first_name, telegram_last_name, 
+           last_message_text, last_message_timestamp, status)
+          VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 'automated')
+          ON CONFLICT(user_id, telegram_chat_id) DO UPDATE SET
+            telegram_username = excluded.telegram_username,
+            telegram_first_name = excluded.telegram_first_name,
+            telegram_last_name = excluded.telegram_last_name,
+            last_message_text = excluded.last_message_text,
+            last_message_timestamp = CURRENT_TIMESTAMP,
+            updated_at = CURRENT_TIMESTAMP
+        `;
+
+        await new Promise((resolve, reject) => {
+          db.run(conversationSql, [
+            userId,
+            chat.id.toString(),
+            from.username,
+            from.first_name,
+            from.last_name,
+            text
+          ], function(err) {
+            if (err) reject(err);
+            else resolve(this.lastID);
+          });
+        });
+
+        // Get conversation ID
+        const getConvSql = `
+          SELECT id FROM telegram_conversations 
+          WHERE user_id = ? AND telegram_chat_id = ?
+        `;
+
+        const conversationId = await new Promise((resolve, reject) => {
+          db.get(getConvSql, [userId, chat.id.toString()], (err, row) => {
+            if (err) reject(err);
+            else resolve(row?.id);
+          });
+        });
+
+        if (conversationId) {
+          // Save the message
+          const messageSql = `
+            INSERT INTO telegram_messages 
+            (conversation_id, sender_type, sender_name, message_text, telegram_message_id, metadata)
+            VALUES (?, ?, ?, ?, ?, ?)
+          `;
+
+          const senderName = from.first_name ? 
+            `${from.first_name} ${from.last_name || ''}`.trim() : 
+            (from.username || `User ${from.id}`);
+
+          const metadata = JSON.stringify({
+            telegram_update: update,
+            workflow_id: workflowId,
+            processed_at: new Date().toISOString()
+          });
+
+          await new Promise((resolve, reject) => {
+            db.run(messageSql, [
+              conversationId,
+              'user',
+              senderName,
+              text,
+              message.message_id,
+              metadata
+            ], function(err) {
+              if (err) reject(err);
+              else resolve(this.lastID);
+            });
+          });
+
+          console.log('[telegram-webhook] ✅ Message stored in live chat database');
+        }
+      } catch (storageError) {
+        console.error('[telegram-webhook] ⚠️ Failed to store in live chat database:', storageError.message);
+        // Continue processing even if storage fails
+      }
+    }
+
     // Check if workflow is active and queue for execution
     if (workflowExecutor && workflowExecutor.activeWorkflows.has(workflowId)) {
       try {

@@ -131,6 +131,17 @@ router.post('/:platform', verifyToken, async (req, res) => {
             return res.status(500).json({ message: 'Error creating connection' });
           }
 
+          // Set webhook for live chat integration
+          const webhookUrl = `${process.env.API_BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram-livechat/${userId}`;
+          
+          try {
+            const webhookResult = await telegramAPI.setWebhook(webhookUrl);
+            console.log('✅ Telegram webhook set for live chat:', webhookUrl);
+          } catch (webhookError) {
+            console.warn('⚠️ Failed to set webhook for live chat:', webhookError.message);
+            // Continue even if webhook setup fails
+          }
+
           res.json({
             message: 'Telegram bot connected successfully',
             connection: {
@@ -139,7 +150,8 @@ router.post('/:platform', verifyToken, async (req, res) => {
               userId: connection.platform_user_id,
               profileUrl: connection.platform_profile_url,
               botName: botInfo.first_name,
-              connectedAt: new Date().toISOString()
+              connectedAt: new Date().toISOString(),
+              webhookUrl: webhookUrl
             }
           });
         }
