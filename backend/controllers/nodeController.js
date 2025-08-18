@@ -170,37 +170,105 @@ const runNode = async (req, res) => {
                         break;
                     
                     case 'telegramTrigger':
-                        // For test execution, fetch real messages from bot
+                        // For test execution, try to get cached messages from Live Chat first
                         if (processedConfig.botToken) {
                             try {
-                                const axios = require('axios');
-                                const response = await axios.post(`https://api.telegram.org/bot${processedConfig.botToken}/getUpdates`, {
-                                    limit: 5,
-                                    offset: -1
+                                const db = require('../db');
+                                
+                                // First, try to get recent messages from Live Chat database
+                                const recentMessages = await new Promise((resolve, reject) => {
+                                    db.all(`
+                                        SELECT * FROM telegram_messages 
+                                        WHERE type = 'user' 
+                                        ORDER BY timestamp DESC 
+                                        LIMIT 1
+                                    `, (err, rows) => {
+                                        if (err) reject(err);
+                                        else resolve(rows);
+                                    });
                                 });
                                 
-                                if (response.data.ok && response.data.result && response.data.result.length > 0) {
-                                    // Use the most recent message
-                                    const latestUpdate = response.data.result[response.data.result.length - 1];
+                                if (recentMessages && recentMessages.length > 0) {
+                                    // Use cached message from Live Chat
+                                    const message = recentMessages[0];
+                                    const telegramUpdate = {
+                                        update_id: Date.now(),
+                                        message: {
+                                            message_id: message.message_id || Date.now(),
+                                            from: {
+                                                id: parseInt(message.sender_id || '123456789'),
+                                                first_name: message.sender || 'Test User',
+                                                username: message.sender || 'test_user'
+                                            },
+                                            chat: {
+                                                id: parseInt(message.chat_id || '123456789'),
+                                                type: 'private'
+                                            },
+                                            text: message.text,
+                                            date: Math.floor(new Date(message.timestamp).getTime() / 1000)
+                                        }
+                                    };
+                                    
                                     itemResult = {
                                         success: true,
-                                        message: `✅ Fetched real message from Telegram bot`,
-                                        data: latestUpdate,
+                                        message: `✅ Using recent message from Live Chat`,
+                                        data: telegramUpdate,
                                         timestamp: new Date().toISOString()
                                     };
                                 } else {
-                                    itemResult = {
-                                        success: false,
-                                        message: '⚠️ No messages found. Send a message to your bot first.',
-                                        data: {},
-                                        timestamp: new Date().toISOString()
-                                    };
+                                    // No cached messages, try getUpdates (might fail if webhook is active)
+                                    try {
+                                        const axios = require('axios');
+                                        const response = await axios.post(`https://api.telegram.org/bot${processedConfig.botToken}/getUpdates`, {
+                                            limit: 1,
+                                            offset: -1
+                                        });
+                                        
+                                        if (response.data.ok && response.data.result && response.data.result.length > 0) {
+                                            const latestUpdate = response.data.result[response.data.result.length - 1];
+                                            itemResult = {
+                                                success: true,
+                                                message: `✅ Fetched real message from Telegram API`,
+                                                data: latestUpdate,
+                                                timestamp: new Date().toISOString()
+                                            };
+                                        } else {
+                                            throw new Error('No messages available via API');
+                                        }
+                                    } catch (apiError) {
+                                        // API failed (likely webhook conflict), provide sample data
+                                        console.log('⚠️ getUpdates failed (webhook conflict), using sample data');
+                                        const sampleUpdate = {
+                                            update_id: Date.now(),
+                                            message: {
+                                                message_id: Date.now(),
+                                                from: {
+                                                    id: 123456789,
+                                                    first_name: 'Sample User',
+                                                    username: 'sample_user'
+                                                },
+                                                chat: {
+                                                    id: 123456789,
+                                                    type: 'private'
+                                                },
+                                                text: 'Hello! This is a sample message for testing your workflow.',
+                                                date: Math.floor(Date.now() / 1000)
+                                            }
+                                        };
+                                        
+                                        itemResult = {
+                                            success: true,
+                                            message: `🧪 Using sample data (webhook active - send a real message to get actual data)`,
+                                            data: sampleUpdate,
+                                            timestamp: new Date().toISOString()
+                                        };
+                                    }
                                 }
                             } catch (error) {
-                                console.error('❌ Error fetching Telegram messages:', error.message);
+                                console.error('❌ Error in Telegram trigger execution:', error.message);
                                 itemResult = {
                                     success: false,
-                                    message: `❌ Failed to fetch messages: ${error.message}`,
+                                    message: `❌ Failed to get message data: ${error.message}`,
                                     data: {},
                                     timestamp: new Date().toISOString()
                                 };
