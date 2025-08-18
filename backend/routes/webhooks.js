@@ -665,14 +665,53 @@ router.delete('/workflows/:id', (req, res) => {
   }
 });
 
-// Simple test route to verify webhook routing works
-router.get('/test-chat', (req, res) => {
-  console.log('🧪 Test chat route hit');
-  res.json({ 
-    success: true, 
-    message: 'Chat webhook routing is working',
-    timestamp: new Date().toISOString()
-  });
+// POST /api/webhooks/chat-trigger - General chat webhook (not chat trigger nodes)
+router.post('/chat-trigger', async (req, res) => {
+  try {
+    const { sessionId, message, userData } = req.body;
+    
+    if (!sessionId || !message) {
+      return res.status(400).json({
+        success: false,
+        error: 'sessionId and message are required'
+      });
+    }
+    
+    console.log('💬 Chat webhook received:', { sessionId, messageLength: message.length });
+    
+    // Save message to database
+    const db = require('../db');
+    db.run(
+      'INSERT INTO chat_messages (session_id, message_text, sender_type, user_data, is_processed) VALUES (?, ?, ?, ?, ?)',
+      [sessionId, message, 'user', JSON.stringify(userData || {}), 0],
+      function(err) {
+        if (err) {
+          console.error('Error saving chat webhook message:', err);
+          return res.status(500).json({
+            success: false,
+            error: 'Failed to save message'
+          });
+        }
+        
+        console.log('✅ Chat webhook message saved:', { sessionId, messageId: this.lastID });
+        
+        res.json({
+          success: true,
+          messageId: this.lastID,
+          sessionId: sessionId,
+          message: 'Chat webhook processed successfully'
+        });
+      }
+    );
+    
+  } catch (error) {
+    console.error('❌ Chat webhook error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      message: error.message
+    });
+  }
 });
 
 // REMOVED: Old problematic webhook route that was causing 500 errors

@@ -8,6 +8,20 @@
   color: #E0E0E0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  display: flex;
+  position: relative;
+}
+
+/* Layout adjustments for sidebar */
+.professional-dashboard .dashboard-content {
+  flex: 1;
+  transition: margin-left 0.3s ease;
+}
+
+@media (min-width: 769px) {
+  .professional-dashboard .dashboard-content {
+    margin-left: 280px;
+  }
 }
 
 /* Remove gradient variants - use consistent luxury dark theme */
@@ -35,6 +49,38 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+/* Mobile Menu Toggle */
+.mobile-menu-toggle {
+  background: none;
+  border: none;
+  color: #E0E0E0;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  display: none;
+}
+
+.mobile-menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: block;
+  }
+  
+  .professional-dashboard .dashboard-content {
+    margin-left: 0;
+  }
+  
+  .nav-container {
+    padding: 1rem;
+  }
 }
 
 .nav-brand h2 {

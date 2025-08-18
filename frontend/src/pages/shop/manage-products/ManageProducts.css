@@ -1,11 +1,36 @@
-/* Manage Products Page Styles */
+/* Manage Products Page Styles - Luxury Dark Theme */
+.manage-products-page {
+  color: #E0E0E0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Products Header */
+.products-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #323232;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+.products-header h3 {
+  color: #E0E0E0;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
 
 /* Products Table */
 .products-table {
-  background: rgba(255, 255, 255, 0.95);
+  background: #323232;
   backdrop-filter: blur(10px);
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   overflow: hidden;
 }
 
@@ -18,23 +43,23 @@
 .products-table td {
   padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .products-table th {
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(74, 144, 226, 0.2);
   font-weight: 600;
-  color: #333;
+  color: #E0E0E0;
 }
 
 .product-info strong {
   display: block;
-  color: #333;
+  color: #E0E0E0;
   margin-bottom: 0.25rem;
 }
 
 .product-description {
-  color: #666;
+  color: #a0a0a0;
   font-size: 0.875rem;
   max-width: 300px;
   overflow: hidden;
@@ -44,7 +69,7 @@
 
 .product-price {
   font-weight: 600;
-  color: #667eea;
+  color: #4a90e2;
   font-size: 1.1rem;
 }
 

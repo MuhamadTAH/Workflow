@@ -314,7 +314,7 @@ router.post('/:id/replay/:executionId', replayFailedExecution);
 // GET /api/workflows/:id/history - Get execution history
 router.get('/:id/history', getExecutionHistory);
 
-// POST /api/workflows/register - Register workflow for chat execution
+// POST /api/workflows/register - Register workflow for execution
 router.post('/register', (req, res) => {
   try {
     const { workflowId, workflow } = req.body;

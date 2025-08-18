@@ -119,7 +119,7 @@ db.serialize(() => {
     }
   });
 
-  // Create chat_sessions table
+  // Create chat_sessions table for general chat functionality (not chat triggers)
   db.run(`
     CREATE TABLE IF NOT EXISTS chat_sessions (
       session_id TEXT PRIMARY KEY,
@@ -138,7 +138,7 @@ db.serialize(() => {
     }
   });
 
-  // Create chat_messages table
+  // Create chat_messages table for general chat functionality (not chat triggers)
   db.run(`
     CREATE TABLE IF NOT EXISTS chat_messages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -158,6 +158,7 @@ db.serialize(() => {
       console.log('✅ Chat messages table ready');
     }
   });
+
 });
 
 module.exports = db;
