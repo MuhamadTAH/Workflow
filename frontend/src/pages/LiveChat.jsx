@@ -18,6 +18,7 @@ const LiveChat = () => {
   const [botToken, setBotToken] = useState('');
   const [telegramConnected, setTelegramConnected] = useState(false);
   const [handoverLoading, setHandoverLoading] = useState(false);
+  const [botWorkflows, setBotWorkflows] = useState({});
 
   // Mock data for now - will be replaced with API calls
   const mockConversations = [
@@ -245,6 +246,20 @@ const LiveChat = () => {
     initializeData();
   }, [navigate]);
 
+  // Check workflows when bot token changes
+  useEffect(() => {
+    if (botToken) {
+      checkBotWorkflows();
+    }
+  }, [botToken]);
+
+  // Check workflows when selected conversation changes
+  useEffect(() => {
+    if (selectedConversation && botToken) {
+      checkBotWorkflows();
+    }
+  }, [selectedConversation]);
+
   // Handle conversation selection
   const handleConversationSelect = (conversation) => {
     setSelectedConversation(conversation);
@@ -390,6 +405,60 @@ const LiveChat = () => {
     } finally {
       setHandoverLoading(false);
     }
+  };
+
+  // Check for bot-specific workflows
+  const checkBotWorkflows = async () => {
+    if (!botToken) return;
+    
+    try {
+      const token = tokenManager.getToken();
+      const response = await fetch(`${API_BASE}/api/workflows`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Find workflows that use this bot token
+        const botSpecificWorkflows = data.workflows?.filter(workflow => {
+          return workflow.nodes?.some(node => 
+            (node.type === 'telegramTrigger' || node.type === 'telegramSend') &&
+            node.data?.config?.botToken === botToken
+          );
+        }) || [];
+
+        setBotWorkflows({
+          hasWorkflow: botSpecificWorkflows.length > 0,
+          workflows: botSpecificWorkflows,
+          activeWorkflows: botSpecificWorkflows.filter(w => w.status === 'active')
+        });
+      }
+    } catch (error) {
+      console.error('Failed to check bot workflows:', error);
+      setBotWorkflows({ hasWorkflow: false, workflows: [], activeWorkflows: [] });
+    }
+  };
+
+  // Create automation for this bot
+  const createAutomation = () => {
+    if (!selectedConversation || !botToken) return;
+    
+    const workflowContext = {
+      botToken: botToken,
+      botUsername: selectedConversation.username,
+      conversationId: selectedConversation.id,
+      userId: selectedConversation.userId,
+      mode: 'bot-specific',
+      source: 'live-chat'
+    };
+    
+    // Navigate to workflow builder with bot context
+    navigate('/workflow-builder', { state: workflowContext });
   };
 
   const handleKeyPress = (e) => {
@@ -679,6 +748,66 @@ const LiveChat = () => {
                   : 'This conversation is handled by AI automation. Click to take manual control.'
                 }
               </p>
+            </div>
+          </div>
+
+          {/* Bot Automation Section */}
+          <div className="automation-status-section">
+            <h4 className="automation-section-title">
+              <i className="fas fa-robot"></i> Bot Automation
+            </h4>
+            <div className="automation-content">
+              {telegramConnected ? (
+                <>
+                  <div className="workflow-status-display">
+                    {botWorkflows.hasWorkflow ? (
+                      <div className="workflow-active">
+                        <span className="automation-badge active">
+                          <i className="fas fa-check-circle"></i> 
+                          {botWorkflows.activeWorkflows?.length || 0} Active Workflow{botWorkflows.activeWorkflows?.length !== 1 ? 's' : ''}
+                        </span>
+                        <p className="automation-description">
+                          This bot has automated responses configured.
+                        </p>
+                        <div className="automation-actions">
+                          <button 
+                            className="automation-btn edit-workflow"
+                            onClick={createAutomation}
+                          >
+                            <i className="fas fa-edit"></i> Edit Automation
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="workflow-inactive">
+                        <span className="automation-badge inactive">
+                          <i className="fas fa-exclamation-triangle"></i> No Automation
+                        </span>
+                        <p className="automation-description">
+                          Messages are stored but not automated. Create workflows to enable AI responses.
+                        </p>
+                        <div className="automation-actions">
+                          <button 
+                            className="automation-btn create-automation"
+                            onClick={createAutomation}
+                          >
+                            <i className="fas fa-magic"></i> Create Automation
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="no-bot-connected">
+                  <span className="automation-badge disabled">
+                    <i className="fas fa-unlink"></i> No Bot Connected
+                  </span>
+                  <p className="automation-description">
+                    Connect a Telegram bot to enable automation.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

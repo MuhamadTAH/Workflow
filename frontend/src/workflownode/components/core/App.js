@@ -34,7 +34,7 @@ const nodeTypes = { custom: CustomLogicNode };
 // API base URL
 const API_BASE = API_BASE_URL;
 
-const App = () => {
+const App = ({ botContext }) => {
   const navigate = useNavigate();
   const reactFlowWrapper = useRef(null);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -193,6 +193,41 @@ const App = () => {
     };
   }, [currentWorkflowId, isActivated]);
 
+  // Handle bot context from Live Chat
+  useEffect(() => {
+    if (botContext && botContext.mode === 'bot-specific') {
+      console.log('🔧 Setting up bot-specific workflow:', botContext);
+      
+      // Set workflow name based on bot
+      const botWorkflowName = `${botContext.botUsername || 'Bot'} Automation`;
+      setWorkflowName(botWorkflowName);
+      
+      // Create initial Telegram trigger node with bot token pre-configured
+      if (nodes.length === 0) {
+        const triggerNode = {
+          id: 'telegram-trigger-1',
+          type: 'customLogicNode',
+          position: { x: 250, y: 100 },
+          data: {
+            type: 'telegramTrigger',
+            label: 'Telegram Message',
+            config: {
+              botToken: botContext.botToken,
+              botUsername: botContext.botUsername,
+              preConfigured: true
+            },
+            status: 'configured'
+          }
+        };
+        
+        console.log('🔧 Adding pre-configured Telegram trigger node');
+        setNodes([triggerNode]);
+        
+        // Mark as having unsaved changes since we added a node
+        setHasUnsavedChanges(true);
+      }
+    }
+  }, [botContext]); // Only run when botContext changes
 
   // Handles creating a new edge when connecting two nodes.
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
