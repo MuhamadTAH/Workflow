@@ -323,6 +323,9 @@ class TelegramSendMessageNode {
                 success: true
             });
 
+            // Also save the workflow response to Live Chat database
+            await this.saveTelegramResponseToLiveChat(config, data.result);
+
             return data.result;
 
         } catch (error) {
@@ -330,6 +333,71 @@ class TelegramSendMessageNode {
                 throw new Error('Network error: Unable to connect to Telegram API');
             }
             throw error;
+        }
+    }
+
+    /**
+     * Save Telegram response to Live Chat database
+     */
+    async saveTelegramResponseToLiveChat(config, telegramResult) {
+        try {
+            console.log('💬 Saving workflow response to Live Chat database');
+            
+            const db = require('../../db');
+            const chatId = telegramResult.chat.id.toString();
+            
+            // Find the user ID and conversation ID based on chat ID
+            const conversationSql = `
+                SELECT id, user_id FROM telegram_conversations 
+                WHERE telegram_chat_id = ? 
+                ORDER BY updated_at DESC 
+                LIMIT 1
+            `;
+            
+            const conversation = await new Promise((resolve, reject) => {
+                db.get(conversationSql, [chatId], (err, row) => {
+                    if (err) reject(err);
+                    else resolve(row);
+                });
+            });
+            
+            if (conversation) {
+                // Save the workflow response message
+                const messageSql = `
+                    INSERT INTO telegram_messages 
+                    (conversation_id, sender_type, sender_name, message_text, telegram_message_id, metadata)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                `;
+                
+                const metadata = JSON.stringify({
+                    telegram_response: telegramResult,
+                    source: 'workflow_automation',
+                    sent_at: new Date().toISOString(),
+                    message_type: 'bot_response'
+                });
+                
+                await new Promise((resolve, reject) => {
+                    db.run(messageSql, [
+                        conversation.id,
+                        'bot',
+                        'Workflow Bot',
+                        telegramResult.text,
+                        telegramResult.message_id,
+                        metadata
+                    ], function(err) {
+                        if (err) reject(err);
+                        else resolve(this.lastID);
+                    });
+                });
+                
+                console.log('✅ Workflow response saved to Live Chat database');
+            } else {
+                console.log('⚠️ No conversation found for chat ID:', chatId);
+            }
+            
+        } catch (error) {
+            console.error('❌ Failed to save workflow response to Live Chat:', error.message);
+            // Don't throw error to prevent workflow failure
         }
     }
 
