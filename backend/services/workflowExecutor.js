@@ -155,7 +155,11 @@ class WorkflowExecutor {
                         console.log(`✅ Added trigger step: ${stepKey} with aliases: trigger, triggerData, ${node.data.type}`);
                     } else {
                         // Create step-based input data that matches frontend expectations
-                        const stepBasedInputData = { ...stepData }; // Include all previous step data
+                        const stepBasedInputData = { 
+                            ...stepData, // Include all previous step data
+                            // Always include the original trigger data for template access
+                            ...originalTriggerData 
+                        };
                         
                         console.log('Step-based input data for node:', JSON.stringify(stepBasedInputData, null, 2));
                         

@@ -324,7 +324,7 @@ class TelegramSendMessageNode {
             });
 
             // Also save the workflow response to Live Chat database
-            await this.saveTelegramResponseToLiveChat(config, data.result);
+            await this.saveTelegramResponseToLiveChat(config, data.result, inputData);
 
             return data.result;
 
@@ -339,12 +339,38 @@ class TelegramSendMessageNode {
     /**
      * Save Telegram response to Live Chat database
      */
-    async saveTelegramResponseToLiveChat(config, telegramResult) {
+    async saveTelegramResponseToLiveChat(config, telegramResult, inputData = null) {
         try {
             console.log('💬 Saving workflow response to Live Chat database');
+            console.log('💬 Config chatId:', config.chatId);
+            console.log('💬 Telegram result chat:', telegramResult.chat);
+            console.log('💬 Input data:', JSON.stringify(inputData, null, 2));
             
             const db = require('../../db');
-            const chatId = telegramResult.chat.id.toString();
+            
+            // Try multiple ways to get the chat ID
+            let chatId = null;
+            
+            // 1. From the telegram result (when message is sent successfully)
+            if (telegramResult && telegramResult.chat && telegramResult.chat.id) {
+                chatId = telegramResult.chat.id.toString();
+                console.log('💬 Found chatId from telegram result:', chatId);
+            }
+            // 2. From the config (what was sent to)
+            else if (config.chatId) {
+                chatId = config.chatId.toString();
+                console.log('💬 Found chatId from config:', chatId);
+            }
+            // 3. From input data (original message)
+            else if (inputData && inputData.message && inputData.message.chat && inputData.message.chat.id) {
+                chatId = inputData.message.chat.id.toString();
+                console.log('💬 Found chatId from input data:', chatId);
+            }
+            
+            if (!chatId) {
+                console.log('⚠️ No chat ID found - cannot save to Live Chat database');
+                return;
+            }
             
             // Find the user ID and conversation ID based on chat ID
             const conversationSql = `
