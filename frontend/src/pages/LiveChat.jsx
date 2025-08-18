@@ -109,13 +109,20 @@ const LiveChat = () => {
       }
 
       const data = await response.json();
+      console.log('🔍 CONNECTIONS API RESPONSE:', data);
+      
       if (data.connections && data.connections.telegram) {
-        setBotToken(data.connections.telegram.access_token || '');
+        const token = data.connections.telegram.access_token || '';
+        setBotToken(token);
         setTelegramConnected(true);
-        console.log('✅ Telegram bot connected and token loaded');
+        console.log('✅ Telegram bot connected and token loaded:', {
+          hasToken: !!token,
+          tokenLength: token.length,
+          tokenPreview: token ? `${token.substring(0, 10)}...` : 'EMPTY'
+        });
       } else {
         setTelegramConnected(false);
-        console.log('❌ No Telegram bot connected');
+        console.log('❌ No Telegram bot connected - connections data:', data.connections);
       }
     } catch (error) {
       console.error('Error loading Telegram connection:', error);

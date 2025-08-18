@@ -31,7 +31,8 @@ router.get('/', verifyToken, (req, res) => {
         platform_profile_url,
         connected_at, 
         updated_at,
-        is_active 
+        is_active,
+        access_token 
       FROM social_connections 
       WHERE user_id = ? AND is_active = 1`,
       [req.user.userId],
@@ -51,7 +52,8 @@ router.get('/', verifyToken, (req, res) => {
             profileUrl: conn.platform_profile_url,
             connectedAt: conn.connected_at,
             updatedAt: conn.updated_at,
-            isActive: conn.is_active
+            isActive: conn.is_active,
+            access_token: conn.access_token // Include access token for live chat
           };
         });
 
