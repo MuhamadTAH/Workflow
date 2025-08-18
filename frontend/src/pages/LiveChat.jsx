@@ -17,6 +17,7 @@ const LiveChat = () => {
   const [telegramConnected, setTelegramConnected] = useState(false);
   const [handoverLoading, setHandoverLoading] = useState(false);
   const [botWorkflows, setBotWorkflows] = useState({});
+  const [syncLoading, setSyncLoading] = useState(false);
 
   // Mock data for now - will be replaced with API calls
   const mockConversations = [
@@ -455,6 +456,53 @@ const LiveChat = () => {
     }
   };
 
+  // Sync bot messages using getUpdates API
+  const handleSyncMessages = async () => {
+    if (!telegramConnected) {
+      alert('Please connect Telegram bot first');
+      return;
+    }
+
+    setSyncLoading(true);
+    console.log('🔄 Manual message sync requested');
+
+    try {
+      const token = tokenManager.getToken();
+      const response = await fetch(`${API_BASE}/api/live-chat/sync-messages`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        console.log('✅ Message sync completed:', data.data);
+        
+        // Refresh conversations and messages after sync
+        await loadConversations();
+        if (selectedConversation) {
+          await loadMessages(selectedConversation.id);
+        }
+        
+        // Show success message with details
+        const { processed, skipped, totalUpdates } = data.data;
+        alert(`Messages synced successfully!\n\nProcessed: ${processed} messages\nSkipped: ${skipped} messages\nTotal updates: ${totalUpdates}`);
+        
+      } else {
+        console.error('Message sync failed:', data.error);
+        alert('Failed to sync messages: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error during message sync:', error);
+      alert('Error during message sync: ' + error.message);
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
   // Check for bot-specific workflows
   const checkBotWorkflows = async () => {
     if (!botToken) return;
@@ -806,11 +854,34 @@ const LiveChat = () => {
                   </>
                 )}
               </button>
+              
+              {/* Sync Messages Button */}
+              <button 
+                className="sync-button"
+                onClick={handleSyncMessages}
+                disabled={syncLoading || !telegramConnected}
+                title="Sync bot messages from Telegram"
+              >
+                {syncLoading ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin"></i> Syncing...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-sync-alt"></i> Sync Bot Messages
+                  </>
+                )}
+              </button>
+              
               <p className="control-description">
                 {selectedConversation?.status === 'human' 
                   ? 'You are currently handling this conversation manually. Click to return to AI automation.'
                   : 'This conversation is handled by AI automation. Click to take manual control.'
                 }
+              </p>
+              
+              <p className="sync-description">
+                Click "Sync Bot Messages" to fetch any missing bot responses from Telegram and display them in Live Chat.
               </p>
             </div>
           </div>

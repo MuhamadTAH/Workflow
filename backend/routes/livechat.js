@@ -629,4 +629,103 @@ router.post('/process-webhook', asyncHandler(async (req, res) => {
   });
 }));
 
+// Sync bot messages using getUpdates API
+router.post('/sync-messages', authenticateUser, asyncHandler(async (req, res) => {
+  console.log('🔄 Live chat: Manual message sync requested for user', req.user.userId);
+  
+  const TelegramMessageSync = require('../services/telegramMessageSync');
+  const messageSync = new TelegramMessageSync();
+
+  try {
+    // Get user's bot token from social_connections
+    const botTokenSql = `
+      SELECT access_token as bot_token 
+      FROM social_connections 
+      WHERE user_id = ? AND platform = 'telegram' AND is_active = 1 AND access_token IS NOT NULL
+      LIMIT 1
+    `;
+
+    db.get(botTokenSql, [req.user.userId], async (err, row) => {
+      if (err) {
+        logger.logError(err, { context: 'sync_messages_get_token', userId: req.user.userId });
+        return res.status(500).json({
+          success: false,
+          error: 'Database error while getting bot token'
+        });
+      }
+
+      if (!row || !row.bot_token) {
+        return res.status(400).json({
+          success: false,
+          error: 'No active Telegram bot token found for this user'
+        });
+      }
+
+      try {
+        const result = await messageSync.syncMessages(row.bot_token);
+        
+        console.log('✅ Live chat: Message sync completed', {
+          userId: req.user.userId,
+          processed: result.processed,
+          skipped: result.skipped
+        });
+
+        res.json({
+          success: true,
+          message: 'Message sync completed',
+          data: result
+        });
+
+      } catch (error) {
+        logger.logError(error, { context: 'sync_messages_execute', userId: req.user.userId });
+        res.status(500).json({
+          success: false,
+          error: 'Failed to sync messages: ' + error.message
+        });
+      }
+    });
+
+  } catch (error) {
+    logger.logError(error, { context: 'sync_messages', userId: req.user.userId });
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+}));
+
+// Sync messages for all active bots (admin endpoint)
+router.post('/sync-all-messages', authenticateUser, asyncHandler(async (req, res) => {
+  console.log('🔄 Live chat: Sync all bot messages requested by user', req.user.userId);
+  
+  const TelegramMessageSync = require('../services/telegramMessageSync');
+  const messageSync = new TelegramMessageSync();
+
+  try {
+    const results = await messageSync.syncAllBotMessages();
+    
+    console.log('✅ Live chat: All bot messages sync completed', {
+      requestedBy: req.user.userId,
+      totalBots: results.length,
+      successful: results.filter(r => r.success).length
+    });
+
+    res.json({
+      success: true,
+      message: 'All bot messages sync completed',
+      data: {
+        totalBots: results.length,
+        results: results
+      }
+    });
+
+  } catch (error) {
+    logger.logError(error, { context: 'sync_all_messages', userId: req.user.userId });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to sync all messages: ' + error.message
+    });
+  }
+}));
+
 module.exports = router;

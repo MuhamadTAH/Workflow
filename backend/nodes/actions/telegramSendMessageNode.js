@@ -348,97 +348,194 @@ class TelegramSendMessageNode {
     }
 
     /**
-     * Save Telegram response to Live Chat database
+     * Save Telegram response to Live Chat database - OPTION 3: API Response Interception
      */
     async saveTelegramResponseToLiveChat(config, telegramResult, inputData = null) {
         try {
-            console.log('🚨 LIVE CHAT SAVE: Starting saveTelegramResponseToLiveChat function');
-            console.log('🚨 LIVE CHAT SAVE: Config chatId:', config.chatId);
-            console.log('🚨 LIVE CHAT SAVE: Telegram result chat:', telegramResult.chat);
-            console.log('🚨 LIVE CHAT SAVE: Input data:', JSON.stringify(inputData, null, 2));
+            console.log('🚨 OPTION 3: API Response Interception - Starting bot message capture');
+            console.log('🚨 Config chatId:', config.chatId);
+            console.log('🚨 Telegram result:', telegramResult);
             
             const db = require('../../db');
             
-            // Try multiple ways to get the chat ID
+            // Extract chat ID from successful Telegram API response
             let chatId = null;
+            let chatInfo = null;
             
-            // 1. From the telegram result (when message is sent successfully)
+            // Priority 1: From successful Telegram API response (most reliable)
             if (telegramResult && telegramResult.chat && telegramResult.chat.id) {
                 chatId = telegramResult.chat.id.toString();
-                console.log('💬 Found chatId from telegram result:', chatId);
+                chatInfo = telegramResult.chat;
+                console.log('🚨 OPTION 3: Found chatId from Telegram API response:', chatId);
             }
-            // 2. From the config (what was sent to)
+            // Priority 2: From config (manual execution)
             else if (config.chatId) {
                 chatId = config.chatId.toString();
-                console.log('💬 Found chatId from config:', chatId);
-            }
-            // 3. From input data (original message)
-            else if (inputData && inputData.message && inputData.message.chat && inputData.message.chat.id) {
-                chatId = inputData.message.chat.id.toString();
-                console.log('💬 Found chatId from input data:', chatId);
+                console.log('🚨 OPTION 3: Using chatId from config (manual execution):', chatId);
             }
             
             if (!chatId) {
-                console.log('⚠️ No chat ID found - cannot save to Live Chat database');
-                console.log('   This is normal for manual execution (Execute button) or when testing workflows');
-                console.log('   Live Chat integration only works when real Telegram messages trigger the workflow');
+                console.log('🚨 OPTION 3: ⚠️ No chat ID found - skipping Live Chat integration');
                 return;
             }
             
-            // Find the user ID and conversation ID based on chat ID
-            const conversationSql = `
+            // OPTION 3 ENHANCEMENT: Create conversation if it doesn't exist
+            let conversation = await this.findOrCreateConversation(db, chatId, chatInfo, telegramResult);
+            
+            if (conversation) {
+                // Save the bot message to Live Chat
+                await this.saveBotMessageToConversation(db, conversation, telegramResult, config);
+                console.log('🚨 OPTION 3: ✅ Bot message successfully saved to Live Chat');
+            } else {
+                console.log('🚨 OPTION 3: ❌ Failed to create/find conversation for chat ID:', chatId);
+            }
+            
+        } catch (error) {
+            console.error('🚨 OPTION 3: ❌ API Response Interception failed:', error.message);
+            console.error('🚨 OPTION 3: ❌ Full error stack:', error);
+            // Don't throw error to prevent workflow failure
+        }
+    }
+
+    /**
+     * Find existing conversation or create new one for bot message
+     */
+    async findOrCreateConversation(db, chatId, chatInfo = null, telegramResult = null) {
+        try {
+            // First, try to find existing conversation
+            const findSql = `
                 SELECT id, user_id FROM telegram_conversations 
                 WHERE telegram_chat_id = ? 
                 ORDER BY updated_at DESC 
                 LIMIT 1
             `;
             
-            const conversation = await new Promise((resolve, reject) => {
-                db.get(conversationSql, [chatId], (err, row) => {
+            let conversation = await new Promise((resolve, reject) => {
+                db.get(findSql, [chatId], (err, row) => {
                     if (err) reject(err);
                     else resolve(row);
                 });
             });
             
             if (conversation) {
-                // Save the workflow response message
-                const messageSql = `
-                    INSERT INTO telegram_messages 
-                    (conversation_id, sender_type, sender_name, message_text, telegram_message_id, metadata)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                `;
-                
-                const metadata = JSON.stringify({
-                    telegram_response: telegramResult,
-                    source: 'workflow_automation',
-                    sent_at: new Date().toISOString(),
-                    message_type: 'bot_response'
-                });
-                
-                await new Promise((resolve, reject) => {
-                    db.run(messageSql, [
-                        conversation.id,
-                        'bot',
-                        'Workflow Bot',
-                        telegramResult.text,
-                        telegramResult.message_id,
-                        metadata
-                    ], function(err) {
-                        if (err) reject(err);
-                        else resolve(this.lastID);
-                    });
-                });
-                
-                console.log('🚨 LIVE CHAT SAVE: ✅ Workflow response saved to Live Chat database');
-            } else {
-                console.log('🚨 LIVE CHAT SAVE: ⚠️ No conversation found for chat ID:', chatId);
+                console.log('🚨 OPTION 3: Found existing conversation:', conversation.id);
+                return conversation;
             }
             
-            console.log('🚨 LIVE CHAT SAVE: Function completed successfully');
+            // If no conversation exists, create one based on the bot interaction
+            console.log('🚨 OPTION 3: No existing conversation found, creating new one for chat ID:', chatId);
+            
+            // Determine user info from chat data
+            let firstName = 'Unknown';
+            let lastName = '';
+            let username = '';
+            
+            if (chatInfo) {
+                firstName = chatInfo.first_name || 'Unknown';
+                lastName = chatInfo.last_name || '';
+                username = chatInfo.username || '';
+            } else if (telegramResult && telegramResult.chat) {
+                firstName = telegramResult.chat.first_name || 'Unknown';
+                lastName = telegramResult.chat.last_name || '';
+                username = telegramResult.chat.username || '';
+            }
+            
+            // For bot-initiated conversations, we need to determine the user_id
+            // Strategy: Use a default user (user_id = 2) or derive from bot token
+            let userId = 2; // Default to user ID 2 (from previous data)
+            
+            // TODO: In the future, we could derive user_id from bot token by looking up which user owns this bot
+            // For now, we'll use the default user that owns the connected bot
+            
+            const createSql = `
+                INSERT INTO telegram_conversations 
+                (user_id, telegram_chat_id, telegram_username, telegram_first_name, telegram_last_name, 
+                 last_message_text, last_message_timestamp, status, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 'automated', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            `;
+            
+            const conversationId = await new Promise((resolve, reject) => {
+                db.run(createSql, [
+                    userId,
+                    chatId,
+                    username,
+                    firstName,
+                    lastName,
+                    telegramResult.text || ''
+                ], function(err) {
+                    if (err) reject(err);
+                    else resolve(this.lastID);
+                });
+            });
+            
+            console.log('🚨 OPTION 3: ✅ Created new conversation:', conversationId);
+            return { id: conversationId, user_id: userId };
+            
         } catch (error) {
-            console.error('🚨 LIVE CHAT SAVE: ❌ Failed to save workflow response to Live Chat:', error.message);
-            console.error('🚨 LIVE CHAT SAVE: ❌ Full error stack:', error);
-            // Don't throw error to prevent workflow failure
+            console.error('🚨 OPTION 3: ❌ Error in findOrCreateConversation:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Save bot message to conversation
+     */
+    async saveBotMessageToConversation(db, conversation, telegramResult, config) {
+        try {
+            const messageSql = `
+                INSERT INTO telegram_messages 
+                (conversation_id, sender_type, sender_name, message_text, telegram_message_id, metadata)
+                VALUES (?, ?, ?, ?, ?, ?)
+            `;
+            
+            const metadata = JSON.stringify({
+                telegram_response: telegramResult,
+                source: 'api_response_interception',
+                execution_type: 'manual_execution', // Could be 'workflow_automation' or 'manual_execution'
+                sent_at: new Date().toISOString(),
+                message_type: 'bot_response',
+                bot_info: {
+                    id: telegramResult.from?.id,
+                    username: telegramResult.from?.username,
+                    first_name: telegramResult.from?.first_name
+                }
+            });
+            
+            const messageId = await new Promise((resolve, reject) => {
+                db.run(messageSql, [
+                    conversation.id,
+                    'bot',
+                    telegramResult.from?.first_name || 'Workflow Bot',
+                    telegramResult.text,
+                    telegramResult.message_id,
+                    metadata
+                ], function(err) {
+                    if (err) reject(err);
+                    else resolve(this.lastID);
+                });
+            });
+            
+            // Update conversation's last message
+            const updateSql = `
+                UPDATE telegram_conversations 
+                SET last_message_text = ?, 
+                    last_message_timestamp = CURRENT_TIMESTAMP,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            `;
+            
+            await new Promise((resolve, reject) => {
+                db.run(updateSql, [telegramResult.text, conversation.id], (err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+            });
+            
+            console.log('🚨 OPTION 3: ✅ Bot message saved with ID:', messageId);
+            
+        } catch (error) {
+            console.error('🚨 OPTION 3: ❌ Error saving bot message:', error);
+            throw error;
         }
     }
 

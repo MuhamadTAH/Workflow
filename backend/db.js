@@ -209,6 +209,22 @@ db.serialize(() => {
     }
   });
 
+  // Create telegram_bot_updates table to track last processed update_id for each bot
+  db.run(`
+    CREATE TABLE IF NOT EXISTS telegram_bot_updates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      bot_token TEXT NOT NULL UNIQUE,
+      last_update_id INTEGER DEFAULT 0,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating telegram_bot_updates table:', err);
+    } else {
+      console.log('✅ Telegram bot updates table ready');
+    }
+  });
+
 });
 
 module.exports = db;
