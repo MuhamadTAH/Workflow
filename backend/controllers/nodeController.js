@@ -170,13 +170,50 @@ const runNode = async (req, res) => {
                         break;
                     
                     case 'telegramTrigger':
-                        // Trigger nodes don't execute - they start workflows
-                        itemResult = {
-                            success: true,
-                            message: 'Telegram trigger node activated',
-                            data: currentItem || processedConfig.outputData || null,
-                            timestamp: new Date().toISOString()
-                        };
+                        // For test execution, fetch real messages from bot
+                        if (processedConfig.botToken) {
+                            try {
+                                const axios = require('axios');
+                                const response = await axios.post(`https://api.telegram.org/bot${processedConfig.botToken}/getUpdates`, {
+                                    limit: 5,
+                                    offset: -1
+                                });
+                                
+                                if (response.data.ok && response.data.result && response.data.result.length > 0) {
+                                    // Use the most recent message
+                                    const latestUpdate = response.data.result[response.data.result.length - 1];
+                                    itemResult = {
+                                        success: true,
+                                        message: `✅ Fetched real message from Telegram bot`,
+                                        data: latestUpdate,
+                                        timestamp: new Date().toISOString()
+                                    };
+                                } else {
+                                    itemResult = {
+                                        success: false,
+                                        message: '⚠️ No messages found. Send a message to your bot first.',
+                                        data: {},
+                                        timestamp: new Date().toISOString()
+                                    };
+                                }
+                            } catch (error) {
+                                console.error('❌ Error fetching Telegram messages:', error.message);
+                                itemResult = {
+                                    success: false,
+                                    message: `❌ Failed to fetch messages: ${error.message}`,
+                                    data: {},
+                                    timestamp: new Date().toISOString()
+                                };
+                            }
+                        } else {
+                            // No bot token configured
+                            itemResult = {
+                                success: false,
+                                message: '❌ Bot token not configured. Configure the bot token first.',
+                                data: {},
+                                timestamp: new Date().toISOString()
+                            };
+                        }
                         break;
 
                     
