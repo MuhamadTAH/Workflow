@@ -140,13 +140,20 @@ const App = ({ botContext }) => {
     }
   }, [setNodes, setEdges, currentWorkflowId, lastSavedState, workflowName]);
 
-  // Add beforeunload listener for unsaved changes warning
+  // Add beforeunload listener for unsaved changes and unactivated bot workflows
   useEffect(() => {
     const handleBeforeUnload = (event) => {
       if (hasUnsavedChanges) {
         event.preventDefault();
         event.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
         return 'You have unsaved changes. Are you sure you want to leave?';
+      }
+      
+      // Warn if this is a bot workflow that hasn't been activated
+      if (botContext && botContext.mode === 'bot-specific' && !isActivated && nodes.length > 0) {
+        event.preventDefault();
+        event.returnValue = 'This workflow is not activated yet. If you leave without activating, it won\'t connect with your bot. Are you sure?';
+        return 'This workflow is not activated yet. If you leave without activating, it won\'t connect with your bot. Are you sure?';
       }
     };
 
@@ -155,7 +162,7 @@ const App = ({ botContext }) => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [hasUnsavedChanges]);
+  }, [hasUnsavedChanges, botContext, isActivated, nodes.length]);
 
   // 🔄 SYNC WITH DASHBOARD: Listen for status changes from dashboard
   useEffect(() => {
@@ -198,9 +205,15 @@ const App = ({ botContext }) => {
     if (botContext && botContext.mode === 'bot-specific') {
       console.log('🔧 Setting up bot-specific workflow:', botContext);
       
-      // Set workflow name based on bot
-      const botWorkflowName = `${botContext.botUsername || 'Bot'} Automation`;
+      // Set workflow name based on bot with timestamp to ensure uniqueness
+      const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false }).replace(/:/g, '-');
+      const botWorkflowName = `${botContext.botUsername || 'Bot'} Automation ${timestamp}`;
       setWorkflowName(botWorkflowName);
+      
+      // Clear any existing workflow status to ensure fresh start
+      const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
+      // Don't inherit any previous workflow statuses
+      setCurrentWorkflowId(null);
       
       // Create initial Telegram trigger node with bot token pre-configured
       if (nodes.length === 0) {
@@ -228,6 +241,9 @@ const App = ({ botContext }) => {
         
         // Mark as having unsaved changes since we added a node
         setHasUnsavedChanges(true);
+        
+        // Ensure workflow starts as inactive (not auto-activated)
+        setIsActivated(false);
       }
     }
   }, [botContext]); // Only run when botContext changes
