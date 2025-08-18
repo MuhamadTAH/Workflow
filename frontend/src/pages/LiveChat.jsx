@@ -446,7 +446,21 @@ const LiveChat = () => {
 
   // Create automation for this bot
   const createAutomation = () => {
-    if (!selectedConversation || !botToken) return;
+    console.log('🔧 CREATE AUTOMATION CLICKED:', {
+      selectedConversation: selectedConversation,
+      botToken: botToken ? `${botToken.substring(0, 10)}...` : 'MISSING',
+      hasSelectedConversation: !!selectedConversation,
+      hasBotToken: !!botToken
+    });
+    
+    if (!selectedConversation || !botToken) {
+      console.warn('❌ Cannot create automation:', {
+        missingConversation: !selectedConversation,
+        missingBotToken: !botToken
+      });
+      alert('Unable to create automation. Please select a conversation and ensure Telegram bot is connected.');
+      return;
+    }
     
     const workflowContext = {
       botToken: botToken,
@@ -456,6 +470,8 @@ const LiveChat = () => {
       mode: 'bot-specific',
       source: 'live-chat'
     };
+    
+    console.log('🚀 Navigating to workflow builder with context:', workflowContext);
     
     // Navigate to workflow builder with bot context
     navigate('/workflow-builder', { state: workflowContext });
@@ -789,7 +805,10 @@ const LiveChat = () => {
                         <div className="automation-actions">
                           <button 
                             className="automation-btn create-automation"
-                            onClick={createAutomation}
+                            onClick={() => {
+                              console.log('🔧 BUTTON CLICKED!');
+                              createAutomation();
+                            }}
                           >
                             <i className="fas fa-magic"></i> Create Automation
                           </button>
