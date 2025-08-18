@@ -824,12 +824,18 @@
 }
 
 .loading-spinner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  background-color: var(--bg-primary);
   color: var(--text-primary);
   font-size: 1.125rem;
+  z-index: 9999;
 }
 
 /* No Telegram Connection Styles */

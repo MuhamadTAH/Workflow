@@ -16,12 +16,12 @@ This project uses a **full production deployment architecture**:
 
 ### Development Workflow:
 ```bash
-# 1. Make Changes (edit frontend/backend code locally)
+# 1. Make Changes (edit frontend/backend code locally {remember i donot use locall server for sing the change you need to push the code for mains branch in github}) 
 
 # 2. Commit & Push (triggers auto-deployment of both services)
 git add .
 git commit -m "feature: description"
-git push origin main
+git push origin mains
 
 # 3. Render Auto-Deploys:
 #    - Backend: https://workflow-lg9z.onrender.com (1-2 minutes)
@@ -237,7 +237,7 @@ ngrok http 3001         # Expose to internet
 ```bash
 git add .
 git commit -m "feature: description"
-git push origin main
+git push origin mains
 # Render auto-deploys backend in 1-2 minutes
 ```
 

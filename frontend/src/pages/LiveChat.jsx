@@ -3,9 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { authAPI, tokenManager } from '../api';
 import './LiveChat.css';
 
-const API_BASE = process.env.NODE_ENV === 'production' 
-  ? 'https://workflow-lg9z.onrender.com'
-  : 'http://localhost:3001';
+const API_BASE = 'https://workflow-lg9z.onrender.com'; // Always use production for Live Chat data
 
 const LiveChat = () => {
   const navigate = useNavigate();
@@ -197,6 +195,7 @@ const LiveChat = () => {
       }
 
       const data = await response.json();
+      console.log('🔍 MESSAGES API RESPONSE:', data);
       if (data.success) {
         const formattedMessages = data.messages.map(msg => ({
           id: msg.id,
@@ -206,6 +205,8 @@ const LiveChat = () => {
           timestamp: formatTimestamp(msg.timestamp)
         }));
         
+        console.log('📝 FORMATTED MESSAGES:', formattedMessages);
+        console.log('📝 SETTING MESSAGES STATE - Before:', messages.length, 'After:', formattedMessages.length);
         setMessages(formattedMessages);
       } else {
         console.error('Failed to load messages:', data.error);
@@ -266,12 +267,20 @@ const LiveChat = () => {
 
   // Separate useEffect for polling selected conversation messages
   useEffect(() => {
-    if (!selectedConversation) return;
+    if (!selectedConversation) {
+      console.log('🔄 No selected conversation, skipping message polling');
+      return;
+    }
+
+    console.log('🔄 Setting up message polling for conversation:', selectedConversation.id);
+    
+    // Load messages immediately when conversation is selected
+    loadMessages(selectedConversation.id);
 
     // Set up polling for selected conversation messages
     const messagesPollInterval = setInterval(async () => {
       try {
-        console.log('🔄 Polling for new messages in conversation:', selectedConversation.id);
+        console.log('🔄 POLLING: Loading messages for conversation:', selectedConversation.id, 'at', new Date().toISOString());
         await loadMessages(selectedConversation.id);
       } catch (error) {
         console.error('Error polling for messages:', error);
@@ -280,6 +289,7 @@ const LiveChat = () => {
 
     // Cleanup interval when conversation changes or component unmounts
     return () => {
+      console.log('🔄 Cleaning up message polling for conversation:', selectedConversation.id);
       clearInterval(messagesPollInterval);
     };
   }, [selectedConversation]);
@@ -649,6 +659,7 @@ const LiveChat = () => {
         <div className="messages-area">
           <div className="message-date">Today, 09:56</div>
           
+          {console.log('🎨 RENDERING MESSAGES:', messages.length, 'messages:', messages)}
           {messages.map((message) => {
             if (message.type === 'system') {
               return (
