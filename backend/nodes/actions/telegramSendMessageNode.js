@@ -325,15 +325,15 @@ class TelegramSendMessageNode {
 
             console.log('🔄 CHECKPOINT 1: After Telegram API success');
 
-            // Also save the workflow response to Live Chat database
-            console.log('🔄 About to call saveTelegramResponseToLiveChat...');
-            console.log('🔄 Params: config.chatId =', config.chatId, ', data.result.chat.id =', data.result?.chat?.id, ', inputData exists =', !!inputData);
+            // CRITICAL: Also save the workflow response to Live Chat database
+            console.log('🚨 LIVE CHAT INTEGRATION: About to call saveTelegramResponseToLiveChat...');
+            console.log('🚨 Params: config.chatId =', config.chatId, ', data.result.chat.id =', data.result?.chat?.id, ', inputData exists =', !!inputData);
             try {
                 await this.saveTelegramResponseToLiveChat(config, data.result, inputData);
-                console.log('✅ saveTelegramResponseToLiveChat completed successfully');
+                console.log('✅ LIVE CHAT INTEGRATION: saveTelegramResponseToLiveChat completed successfully');
             } catch (liveChatError) {
-                console.error('❌ Error in saveTelegramResponseToLiveChat:', liveChatError.message);
-                console.error('❌ Full error:', liveChatError);
+                console.error('❌ LIVE CHAT INTEGRATION ERROR:', liveChatError.message);
+                console.error('❌ Full error stack:', liveChatError);
             }
 
             console.log('🔄 CHECKPOINT 2: Before returning data.result');
@@ -352,10 +352,10 @@ class TelegramSendMessageNode {
      */
     async saveTelegramResponseToLiveChat(config, telegramResult, inputData = null) {
         try {
-            console.log('💬 Saving workflow response to Live Chat database');
-            console.log('💬 Config chatId:', config.chatId);
-            console.log('💬 Telegram result chat:', telegramResult.chat);
-            console.log('💬 Input data:', JSON.stringify(inputData, null, 2));
+            console.log('🚨 LIVE CHAT SAVE: Starting saveTelegramResponseToLiveChat function');
+            console.log('🚨 LIVE CHAT SAVE: Config chatId:', config.chatId);
+            console.log('🚨 LIVE CHAT SAVE: Telegram result chat:', telegramResult.chat);
+            console.log('🚨 LIVE CHAT SAVE: Input data:', JSON.stringify(inputData, null, 2));
             
             const db = require('../../db');
             
@@ -429,13 +429,15 @@ class TelegramSendMessageNode {
                     });
                 });
                 
-                console.log('✅ Workflow response saved to Live Chat database');
+                console.log('🚨 LIVE CHAT SAVE: ✅ Workflow response saved to Live Chat database');
             } else {
-                console.log('⚠️ No conversation found for chat ID:', chatId);
+                console.log('🚨 LIVE CHAT SAVE: ⚠️ No conversation found for chat ID:', chatId);
             }
             
+            console.log('🚨 LIVE CHAT SAVE: Function completed successfully');
         } catch (error) {
-            console.error('❌ Failed to save workflow response to Live Chat:', error.message);
+            console.error('🚨 LIVE CHAT SAVE: ❌ Failed to save workflow response to Live Chat:', error.message);
+            console.error('🚨 LIVE CHAT SAVE: ❌ Full error stack:', error);
             // Don't throw error to prevent workflow failure
         }
     }
