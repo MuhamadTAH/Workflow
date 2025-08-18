@@ -714,15 +714,56 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
     return result;
   };
 
-  const handleGetData = () => {
+  const handleGetData = async () => {
     
     // Special handling for telegram trigger nodes that should fetch from their own output
     if (node.data.type === 'telegramTrigger') {
         if (outputData && outputData.length > 0) {
             setInputData(outputData);
             return;
-        } else {
+        } else if (formData.botToken && !node.data.config?.preConfigured) {
+            // For manually configured tokens, suggest using Fetch Messages button
             setInputData({ message: "No telegram data available. Click 'Fetch Messages' button first to get real telegram data." });
+            return;
+        } else if (formData.botToken && node.data.config?.preConfigured) {
+            // For pre-configured tokens, automatically fetch real messages
+            try {
+                setInputData({ message: "Fetching real messages from your bot..." });
+                
+                const API_BASE = API_BASE_URL;
+                const response = await fetch(`${API_BASE}/api/nodes/telegram-get-updates`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        token: formData.botToken,
+                        limit: 5,
+                        offset: -1
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success && result.updates && result.updates.length > 0) {
+                    const latestUpdate = result.updates[result.updates.length - 1];
+                    updateOutputData([latestUpdate]);
+                    setInputData([latestUpdate]);
+                    return;
+                } else {
+                    setInputData({ 
+                        message: "No recent messages found. Send a message to your bot first, then try again.",
+                        error: result.error || "No messages available"
+                    });
+                    return;
+                }
+            } catch (error) {
+                setInputData({ 
+                    message: "Failed to fetch messages from bot.",
+                    error: error.message 
+                });
+                return;
+            }
+        } else {
+            setInputData({ message: "Bot token not configured. Configure the bot token first." });
             return;
         }
     }
