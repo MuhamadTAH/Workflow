@@ -324,7 +324,15 @@ class TelegramSendMessageNode {
             });
 
             // Also save the workflow response to Live Chat database
-            await this.saveTelegramResponseToLiveChat(config, data.result, inputData);
+            console.log('🔄 About to call saveTelegramResponseToLiveChat...');
+            console.log('🔄 Params: config.chatId =', config.chatId, ', data.result.chat.id =', data.result?.chat?.id, ', inputData exists =', !!inputData);
+            try {
+                await this.saveTelegramResponseToLiveChat(config, data.result, inputData);
+                console.log('✅ saveTelegramResponseToLiveChat completed successfully');
+            } catch (liveChatError) {
+                console.error('❌ Error in saveTelegramResponseToLiveChat:', liveChatError.message);
+                console.error('❌ Full error:', liveChatError);
+            }
 
             return data.result;
 
