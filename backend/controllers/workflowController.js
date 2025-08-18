@@ -119,29 +119,41 @@ const activateWorkflow = async (req, res) => {
         const telegramTrigger = triggerNodes.find(node => node.data.type === 'telegramTrigger');
         if (telegramTrigger && !dryRun) {
             console.log(`🔄 Auto-updating Telegram webhook for workflow: ${workflowId}`);
+            console.log(`📋 Telegram trigger node data:`, JSON.stringify(telegramTrigger.data, null, 2));
             try {
                 const axios = require('axios');
                 
                 // Extract bot token from the telegramTrigger node configuration
-                const configuredBotToken = telegramTrigger.data.botToken || telegramTrigger.data.telegramBotToken;
+                const configuredBotToken = telegramTrigger.data.botToken || 
+                                          telegramTrigger.data.telegramBotToken ||
+                                          telegramTrigger.data.config?.botToken;
+                
+                console.log(`🔍 Bot token search results:`);
+                console.log(`   - telegramTrigger.data.botToken:`, telegramTrigger.data.botToken ? 'found' : 'not found');
+                console.log(`   - telegramTrigger.data.telegramBotToken:`, telegramTrigger.data.telegramBotToken ? 'found' : 'not found'); 
+                console.log(`   - telegramTrigger.data.config?.botToken:`, telegramTrigger.data.config?.botToken ? 'found' : 'not found');
+                console.log(`   - Final configuredBotToken:`, configuredBotToken ? `${configuredBotToken.substring(0, 10)}...` : 'NOT FOUND');
                 
                 // Only set webhook if bot token is explicitly configured
                 if (configuredBotToken) {
                     console.log(`🔧 Using configured bot token: ${configuredBotToken.substring(0, 10)}...`);
                     
                     const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram/${workflowId}`;
+                    console.log(`🌐 Setting webhook URL to: ${webhookUrl}`);
                     
                     // Update Telegram webhook in the background (don't wait for response)
                     axios.post(`https://api.telegram.org/bot${configuredBotToken}/setWebhook`, {
                         url: webhookUrl,
                         allowed_updates: ['message', 'callback_query']
                     }).then(() => {
-                        console.log(`✅ Telegram webhook auto-updated to: ${webhookUrl}`);
+                        console.log(`✅ Telegram webhook auto-updated successfully to: ${webhookUrl}`);
                     }).catch((error) => {
                         console.error(`❌ Failed to auto-update Telegram webhook:`, error.message);
+                        console.error(`❌ Webhook update error details:`, error.response?.data);
                     });
                 } else {
-                    console.log(`ℹ️ No bot token configured for Telegram trigger - skipping auto-webhook setup`);
+                    console.log(`❌ No bot token found in Telegram trigger configuration - skipping auto-webhook setup`);
+                    console.log(`💡 Make sure the bot token is configured in the Telegram trigger node`);
                 }
                 
             } catch (error) {
