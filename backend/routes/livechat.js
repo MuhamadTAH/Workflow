@@ -150,7 +150,16 @@ router.post('/conversations/:conversationId/send', authenticateUser, asyncHandle
   const { conversationId } = req.params;
   const { message, botToken } = req.body;
 
+  console.log('🔍 LIVE CHAT SEND DEBUG:', {
+    conversationId,
+    bodyKeys: Object.keys(req.body),
+    message: message,
+    botToken: botToken ? `${botToken.substring(0, 10)}...` : 'MISSING',
+    bodyString: JSON.stringify(req.body)
+  });
+
   if (!message || !message.trim()) {
+    console.log('❌ Message validation failed: empty message');
     return res.status(400).json({
       success: false,
       error: 'Message text is required'
@@ -158,6 +167,7 @@ router.post('/conversations/:conversationId/send', authenticateUser, asyncHandle
   }
 
   if (!botToken) {
+    console.log('❌ Bot token validation failed: missing bot token');
     return res.status(400).json({
       success: false,
       error: 'Bot token is required'
