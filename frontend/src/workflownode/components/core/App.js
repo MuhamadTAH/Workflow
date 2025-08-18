@@ -205,18 +205,21 @@ const App = ({ botContext }) => {
       // Create initial Telegram trigger node with bot token pre-configured
       if (nodes.length === 0) {
         const triggerNode = {
-          id: 'telegram-trigger-1',
-          type: 'customLogicNode',
+          id: getId(),
+          type: 'custom', // Same as dropped from sidebar
           position: { x: 250, y: 100 },
           data: {
+            label: 'Telegram Trigger',
+            icon: 'fa-telegram',
+            color: 'text-blue-500',
+            description: 'Start workflow from Telegram messages',
             type: 'telegramTrigger',
-            label: 'Telegram Message',
+            // Pre-configure bot token
             config: {
               botToken: botContext.botToken,
               botUsername: botContext.botUsername,
               preConfigured: true
-            },
-            status: 'configured'
+            }
           }
         };
         
