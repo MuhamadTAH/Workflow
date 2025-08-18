@@ -17,7 +17,7 @@ const authenticateUser = (req, res, next) => {
   
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-    req.userId = decoded.id;
+    req.user = decoded; // Make consistent with connections middleware
     next();
   } catch (error) {
     return res.status(401).json({ success: false, error: 'Invalid token' });
@@ -26,7 +26,7 @@ const authenticateUser = (req, res, next) => {
 
 // Get all conversations for the authenticated user
 router.get('/conversations', authenticateUser, asyncHandler(async (req, res) => {
-  console.log('📞 Live chat: Getting conversations for user', req.userId);
+  console.log('📞 Live chat: Getting conversations for user', req.user.userId);
 
   const sql = `
     SELECT 
@@ -43,9 +43,9 @@ router.get('/conversations', authenticateUser, asyncHandler(async (req, res) => 
     ORDER BY COALESCE(tc.last_message_timestamp, tc.created_at) DESC
   `;
 
-  db.all(sql, [req.userId], (err, conversations) => {
+  db.all(sql, [req.user.userId], (err, conversations) => {
     if (err) {
-      logger.logError(err, { context: 'get_conversations', userId: req.userId });
+      logger.logError(err, { context: 'get_conversations', userId: req.user.userId });
       return res.status(500).json({
         success: false,
         error: 'Failed to retrieve conversations'
@@ -85,9 +85,9 @@ router.get('/conversations/:conversationId/messages', authenticateUser, asyncHan
     WHERE id = ? AND user_id = ?
   `;
 
-  db.get(verifySql, [conversationId, req.userId], (err, conversation) => {
+  db.get(verifySql, [conversationId, req.user.userId], (err, conversation) => {
     if (err) {
-      logger.logError(err, { context: 'verify_conversation', conversationId, userId: req.userId });
+      logger.logError(err, { context: 'verify_conversation', conversationId, userId: req.user.userId });
       return res.status(500).json({
         success: false,
         error: 'Database error'
@@ -162,7 +162,7 @@ router.post('/conversations/:conversationId/send', authenticateUser, asyncHandle
     WHERE id = ? AND user_id = ?
   `;
 
-  db.get(conversationSql, [conversationId, req.userId], async (err, conversation) => {
+  db.get(conversationSql, [conversationId, req.user.userId], async (err, conversation) => {
     if (err) {
       logger.logError(err, { context: 'get_conversation_for_send', conversationId });
       return res.status(500).json({
@@ -203,7 +203,7 @@ router.post('/conversations/:conversationId/send', authenticateUser, asyncHandle
       `;
 
       const metadata = JSON.stringify({
-        agent_id: req.userId,
+        agent_id: req.user.userId,
         telegram_response: result.data
       });
 
@@ -279,9 +279,9 @@ router.patch('/conversations/:conversationId/status', authenticateUser, asyncHan
     WHERE id = ? AND user_id = ?
   `;
 
-  const agentId = status === 'human' ? req.userId : null;
+  const agentId = status === 'human' ? req.user.userId : null;
 
-  db.run(sql, [status, agentId, conversationId, req.userId], function(err) {
+  db.run(sql, [status, agentId, conversationId, req.user.userId], function(err) {
     if (err) {
       logger.logError(err, { context: 'update_conversation_status', conversationId, status });
       return res.status(500).json({
@@ -311,7 +311,7 @@ router.patch('/conversations/:conversationId/status', authenticateUser, asyncHan
       : 'Conversation was closed.';
 
     const metadata = JSON.stringify({
-      agent_id: req.userId,
+      agent_id: req.user.userId,
       previous_status: 'automated', // TODO: Get actual previous status
       new_status: status
     });
