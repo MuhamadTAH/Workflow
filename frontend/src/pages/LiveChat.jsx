@@ -244,17 +244,17 @@ const LiveChat = () => {
     };
 
     initializeData();
+  }, [navigate]);
 
-    // Set up polling for new messages every 5 seconds
+  // Separate useEffect for polling - no dependencies to avoid restarts
+  useEffect(() => {
+    // Set up polling for new conversations every 5 seconds
     const pollInterval = setInterval(async () => {
       try {
+        console.log('🔄 Polling for new conversations...');
         await loadConversations();
-        // If a conversation is selected, also refresh its messages
-        if (selectedConversation) {
-          await loadMessages(selectedConversation.id);
-        }
       } catch (error) {
-        console.error('Error polling for updates:', error);
+        console.error('Error polling for conversations:', error);
       }
     }, 5000); // Poll every 5 seconds
 
@@ -262,7 +262,27 @@ const LiveChat = () => {
     return () => {
       clearInterval(pollInterval);
     };
-  }, [navigate, selectedConversation]);
+  }, []); // Empty dependency array - runs once and polls continuously
+
+  // Separate useEffect for polling selected conversation messages
+  useEffect(() => {
+    if (!selectedConversation) return;
+
+    // Set up polling for selected conversation messages
+    const messagesPollInterval = setInterval(async () => {
+      try {
+        console.log('🔄 Polling for new messages in conversation:', selectedConversation.id);
+        await loadMessages(selectedConversation.id);
+      } catch (error) {
+        console.error('Error polling for messages:', error);
+      }
+    }, 3000); // Poll every 3 seconds for messages
+
+    // Cleanup interval when conversation changes or component unmounts
+    return () => {
+      clearInterval(messagesPollInterval);
+    };
+  }, [selectedConversation]);
 
   // Check workflows when bot token changes
   useEffect(() => {
