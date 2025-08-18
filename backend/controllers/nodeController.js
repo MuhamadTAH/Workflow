@@ -211,29 +211,49 @@ const runNode = async (req, res) => {
                                     });
                                     
                                     if (recentMessages && recentMessages.length > 0) {
-                                        // Use cached message from Live Chat
+                                        // Use cached message from Live Chat with REAL Telegram IDs
                                         const message = recentMessages[0];
+                                        
+                                        // Extract real Telegram data from metadata if available
+                                        let realTelegramData = null;
+                                        if (message.metadata) {
+                                            try {
+                                                const metadata = JSON.parse(message.metadata);
+                                                realTelegramData = metadata.telegram_update;
+                                            } catch (e) {
+                                                console.log('⚠️ Could not parse metadata for real Telegram IDs');
+                                            }
+                                        }
+                                        
+                                        // Build response with real IDs if available, fallback to placeholders
                                         const telegramUpdate = {
-                                            update_id: Date.now(),
+                                            update_id: realTelegramData?.update_id || Date.now(),
                                             message: {
-                                                message_id: message.telegram_message_id || Date.now(),
+                                                message_id: realTelegramData?.message?.message_id || message.telegram_message_id || Date.now(),
                                                 from: {
-                                                    id: 123456789,
-                                                    first_name: message.sender_name || 'Live Chat User',
-                                                    username: message.sender_name?.toLowerCase().replace(/\s+/g, '_') || 'live_chat_user'
+                                                    id: realTelegramData?.message?.from?.id || 123456789,
+                                                    first_name: realTelegramData?.message?.from?.first_name || message.sender_name || 'Live Chat User',
+                                                    last_name: realTelegramData?.message?.from?.last_name || '',
+                                                    username: realTelegramData?.message?.from?.username || message.sender_name?.toLowerCase().replace(/\s+/g, '_') || 'live_chat_user'
                                                 },
                                                 chat: {
-                                                    id: message.conversation_id || 123456789,
-                                                    type: 'private'
+                                                    id: realTelegramData?.message?.chat?.id || message.conversation_id || 123456789,
+                                                    type: realTelegramData?.message?.chat?.type || 'private'
                                                 },
-                                                text: message.message_text,
-                                                date: Math.floor(new Date(message.timestamp).getTime() / 1000)
+                                                text: realTelegramData?.message?.text || message.message_text,
+                                                date: realTelegramData?.message?.date || Math.floor(new Date(message.timestamp).getTime() / 1000)
                                             }
                                         };
                                         
+                                        // Update message to show if real IDs are used
+                                        const hasRealIds = realTelegramData?.message?.from?.id && realTelegramData?.message?.chat?.id;
+                                        const statusMessage = hasRealIds ? 
+                                            `✅ Using cached message with REAL Telegram IDs (API unavailable)` :
+                                            `✅ Using cached message from Live Chat (API unavailable)`;
+                                        
                                         itemResult = {
                                             success: true,
-                                            message: `✅ Using cached message from Live Chat (API unavailable)`,
+                                            message: statusMessage,
                                             data: telegramUpdate,
                                             timestamp: new Date().toISOString()
                                         };
