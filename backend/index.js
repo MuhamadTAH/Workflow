@@ -182,6 +182,15 @@ app.use('/api/nodes', (req, res, next) => {
   next();
 });
 
+// Force clear chatTriggerNode cache before loading routes
+try {
+  const chatTriggerPath = require.resolve('./nodes/triggers/chatTriggerNode');
+  delete require.cache[chatTriggerPath];
+  console.log('🔄 Cleared chatTriggerNode cache at startup');
+} catch (e) {
+  console.log('⚠️ Could not clear chatTriggerNode cache:', e.message);
+}
+
 // NEW ROUTES FROM WORKFLOWNODE
 app.use('/api/nodes', nodesRoutes);
 
