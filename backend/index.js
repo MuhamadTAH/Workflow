@@ -196,6 +196,31 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: '✅ Hello from the backend!' });
 });
 
+// Authentication health check
+app.get('/api/auth/health', (req, res) => {
+  const db = require('./db');
+  
+  // Check if user exists
+  db.get('SELECT id, email, name FROM users WHERE email = ?', ['mhamadtah548@gmail.com'], (err, user) => {
+    if (err) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Database error',
+        error: err.message
+      });
+    }
+    
+    res.json({
+      status: 'ok',
+      message: 'Authentication system healthy',
+      userExists: !!user,
+      user: user ? { id: user.id, email: user.email, name: user.name } : null,
+      jwtSecret: process.env.JWT_SECRET ? 'configured' : 'missing',
+      timestamp: new Date().toISOString()
+    });
+  });
+});
+
 
 // Debug endpoint to test activation flow
 app.post('/api/debug/test-activation', (req, res) => {
@@ -301,5 +326,16 @@ app.listen(PORT, async () => {
     await restoreActiveWorkflowsOnStartup();
   } catch (error) {
     console.error('❌ Failed to restore workflows on startup:', error);
+  }
+  
+  // Keep-alive mechanism for Render (prevent cold starts)
+  if (process.env.NODE_ENV === 'production') {
+    setInterval(() => {
+      const axios = require('axios');
+      axios.get('https://workflow-lg9z.onrender.com/api/hello')
+        .then(() => console.log('🔄 Keep-alive ping sent'))
+        .catch(() => console.log('⚠️ Keep-alive ping failed'));
+    }, 14 * 60 * 1000); // Ping every 14 minutes
+    console.log('🔄 Keep-alive mechanism activated for production');
   }
 });
