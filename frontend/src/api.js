@@ -61,6 +61,9 @@ export const connectionsAPI = {
   // Connect to a platform
   connect: (platform) => api.post(`/api/connections/${platform}`),
   
+  // Connect to Telegram with bot token
+  connectTelegram: (botToken) => api.post('/api/connections/telegram', { botToken }),
+  
   // Disconnect from a platform
   disconnect: (platform) => api.delete(`/api/connections/${platform}`)
 };

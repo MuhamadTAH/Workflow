@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
-import Overview from './pages/Overview';
 import WorkflowsOverview from './pages/WorkflowsOverview';
 import Connections from './pages/Connections';
 import WorkflowBuilder from './pages/WorkflowBuilder';
@@ -342,7 +341,6 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/overview" element={<Overview />} />
         <Route path="/workflows" element={<WorkflowsOverview />} />
         <Route path="/connections" element={<Connections />} />
         <Route path="/live-chat" element={<LiveChat />} />

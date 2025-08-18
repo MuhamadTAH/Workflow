@@ -67,8 +67,8 @@ router.get('/', verifyToken, (req, res) => {
   }
 });
 
-// POST /api/connections/:platform - Initiate connection (mock OAuth for now)
-router.post('/:platform', verifyToken, (req, res) => {
+// POST /api/connections/:platform - Initiate connection
+router.post('/:platform', verifyToken, async (req, res) => {
   try {
     const { platform } = req.params;
     const userId = req.user.userId;
@@ -79,7 +79,75 @@ router.post('/:platform', verifyToken, (req, res) => {
       return res.status(400).json({ message: 'Invalid platform' });
     }
 
-    // For now, create a mock connection (later we'll implement real OAuth)
+    // Handle Telegram connection with real bot token validation
+    if (platform === 'telegram') {
+      const { botToken } = req.body;
+      
+      if (!botToken) {
+        return res.status(400).json({ message: 'Bot token is required for Telegram connection' });
+      }
+
+      // Validate bot token using TelegramAPI
+      const { TelegramAPI } = require('../services/telegramAPI');
+      const telegramAPI = new TelegramAPI(botToken);
+      const validation = await telegramAPI.validateToken();
+
+      if (!validation.success) {
+        return res.status(400).json({ 
+          message: 'Invalid Telegram bot token',
+          error: validation.error.message 
+        });
+      }
+
+      const botInfo = validation.data;
+      const connection = {
+        platform_user_id: botInfo.id.toString(),
+        platform_username: botInfo.username,
+        platform_profile_url: `https://t.me/${botInfo.username}`,
+        access_token: botToken,
+        refresh_token: null,
+        token_expires_at: null // Bot tokens don't expire
+      };
+
+      // Insert or update connection
+      db.run(
+        `INSERT OR REPLACE INTO social_connections 
+          (user_id, platform, access_token, refresh_token, token_expires_at, 
+           platform_user_id, platform_username, platform_profile_url, updated_at) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+        [
+          userId,
+          platform,
+          connection.access_token,
+          connection.refresh_token,
+          connection.token_expires_at,
+          connection.platform_user_id,
+          connection.platform_username,
+          connection.platform_profile_url
+        ],
+        function(err) {
+          if (err) {
+            console.error('Database error:', err);
+            return res.status(500).json({ message: 'Error creating connection' });
+          }
+
+          res.json({
+            message: 'Telegram bot connected successfully',
+            connection: {
+              platform: platform,
+              username: connection.platform_username,
+              userId: connection.platform_user_id,
+              profileUrl: connection.platform_profile_url,
+              botName: botInfo.first_name,
+              connectedAt: new Date().toISOString()
+            }
+          });
+        }
+      );
+      return;
+    }
+
+    // For other platforms, create mock connections (implement OAuth later)
     const mockConnection = {
       platform_user_id: `mock_${platform}_${Date.now()}`,
       platform_username: `user_${platform}`,

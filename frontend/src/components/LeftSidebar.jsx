@@ -30,11 +30,6 @@ function LeftSidebar() {
       icon: 'fas fa-comments'
     },
     {
-      name: 'Overview',
-      path: '/overview',
-      icon: 'fas fa-eye'
-    },
-    {
       name: 'Shop',
       path: '/shop',
       icon: 'fas fa-store'
