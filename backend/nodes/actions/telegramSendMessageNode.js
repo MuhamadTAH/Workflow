@@ -323,6 +323,8 @@ class TelegramSendMessageNode {
                 success: true
             });
 
+            console.log('🔄 CHECKPOINT 1: After Telegram API success');
+
             // Also save the workflow response to Live Chat database
             console.log('🔄 About to call saveTelegramResponseToLiveChat...');
             console.log('🔄 Params: config.chatId =', config.chatId, ', data.result.chat.id =', data.result?.chat?.id, ', inputData exists =', !!inputData);
@@ -334,6 +336,7 @@ class TelegramSendMessageNode {
                 console.error('❌ Full error:', liveChatError);
             }
 
+            console.log('🔄 CHECKPOINT 2: Before returning data.result');
             return data.result;
 
         } catch (error) {
