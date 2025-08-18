@@ -268,7 +268,7 @@ class TelegramAPI {
     try {
       const response = await axios.get(`${this.baseURL}/getUpdates`, {
         params: options,
-        timeout: 5000
+        timeout: 30000  // Increase timeout for getUpdates
       });
 
       if (response.data && response.data.ok) {

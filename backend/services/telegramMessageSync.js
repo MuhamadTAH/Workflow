@@ -265,7 +265,7 @@ class TelegramMessageSync {
       const result = await telegramAPI.getUpdates({
         offset: lastUpdateId + 1,
         limit: 100,
-        timeout: 10
+        timeout: 0  // Use polling without timeout
       });
 
       if (!result.success) {

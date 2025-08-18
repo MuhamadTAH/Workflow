@@ -5,16 +5,16 @@
 
 /* Brand Theme Variables */
 :root {
-  --brand-purple: #667eea; /* primary brand */
-  --brand-purple-dark: #5a67d8;
-  --brand-purple-deep: #764ba2; /* gradient pair */
+  --brand-gold: #d4af37; /* primary brand */
+  --brand-gold-dark: #b8860b;
+  --brand-gold-deep: #8b6914; /* gradient pair */
   --accent-orange: #f59e0b; /* action buttons */
   --accent-orange-dark: #d97706;
   --secondary-teal: #14b8a6; /* secondary metrics */
   --bg-dashboard: #f8fafc; /* light gray background */
 
   /* Chart helpers */
-  --chart-primary: var(--brand-purple);
+  --chart-primary: var(--brand-gold);
   --chart-secondary-teal: var(--secondary-teal);
   --chart-secondary-orange: var(--accent-orange);
 }
@@ -55,7 +55,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid #f3f4f6;
-  border-top: 4px solid #3b82f6;
+  border-top: 4px solid #d4af37;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -1707,7 +1707,7 @@ select {
 }
 
 .dashboard-header {
-  background: linear-gradient(135deg, var(--brand-purple) 0%, var(--brand-purple-deep) 100%);
+  background: linear-gradient(135deg, var(--brand-gold) 0%, var(--brand-gold-deep) 100%);
   color: white;
   padding: 2rem;
   border-radius: 20px;
@@ -3700,7 +3700,7 @@ select {
   width: 40px;
   height: 40px;
   border: 3px solid #e5e7eb;
-  border-top: 3px solid #3b82f6;
+  border-top: 3px solid #d4af37;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -4420,8 +4420,8 @@ select {
   /* Bright, energetic hover colors */
   --bright-orange: #ff7a00;
   --bright-orange-glow: rgba(255, 122, 0, 0.6);
-  --electric-purple: #7c3aed;
-  --electric-purple-glow: rgba(124, 58, 237, 0.6);
+  --luxury-gold: #d4af37;
+  --luxury-gold-glow: rgba(212, 175, 55, 0.6);
   --premium-gold: #FFD700;
   --premium-gold-dark: #FFA500;
   --premium-gold-glow: rgba(255, 215, 0, 0.6);
@@ -4442,14 +4442,14 @@ select {
   box-shadow: 
     0 20px 40px rgba(102, 126, 234, 0.7),
     0 0 30px rgba(124, 58, 237, 0.5);
-  background: linear-gradient(135deg, var(--electric-purple), #a855f7);
+  background: linear-gradient(135deg, var(--luxury-gold), #d4af37);
   animation: energyPulse 0.6s ease-out;
 }
 
 .hero-actions .btn-secondary:hover {
   transform: translateY(-2px) scale(1.02);
   background: rgba(124, 58, 237, 0.15);
-  border-color: var(--electric-purple);
+  border-color: var(--luxury-gold);
   box-shadow: 
     0 15px 30px rgba(124, 58, 237, 0.3),
     0 0 20px rgba(124, 58, 237, 0.2);
@@ -4468,7 +4468,7 @@ select {
 .stat-card.primary:hover {
   box-shadow: 
     0 25px 50px rgba(0, 0, 0, 0.2),
-    0 0 40px var(--electric-purple-glow);
+    0 0 40px var(--luxury-gold-glow);
 }
 
 .stat-card.success:hover {
@@ -4492,7 +4492,7 @@ select {
 /* Enhanced Action Items with Dopamine Triggers */
 .action-item:hover {
   background: rgba(124, 58, 237, 0.15);
-  border-color: var(--electric-purple);
+  border-color: var(--luxury-gold);
   transform: translateY(-4px) scale(1.05);
   box-shadow: 
     0 15px 35px rgba(124, 58, 237, 0.4),
@@ -4733,8 +4733,8 @@ select {
 /* Enhanced Loading with Energy */
 .dashboard-loading .loading-spinner {
   box-shadow: 
-    0 0 20px rgba(102, 126, 234, 0.5),
-    0 0 40px rgba(124, 58, 237, 0.3);
+    0 0 20px rgba(212, 175, 55, 0.5),
+    0 0 40px rgba(184, 134, 11, 0.3);
   animation: spin 1s linear infinite, energyGlow 2s ease-in-out infinite;
 }
 
