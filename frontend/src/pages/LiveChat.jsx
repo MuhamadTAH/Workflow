@@ -244,7 +244,25 @@ const LiveChat = () => {
     };
 
     initializeData();
-  }, [navigate]);
+
+    // Set up polling for new messages every 5 seconds
+    const pollInterval = setInterval(async () => {
+      try {
+        await loadConversations();
+        // If a conversation is selected, also refresh its messages
+        if (selectedConversation) {
+          await loadMessages(selectedConversation.id);
+        }
+      } catch (error) {
+        console.error('Error polling for updates:', error);
+      }
+    }, 5000); // Poll every 5 seconds
+
+    // Cleanup interval on component unmount
+    return () => {
+      clearInterval(pollInterval);
+    };
+  }, [navigate, selectedConversation]);
 
   // Check workflows when bot token changes
   useEffect(() => {
