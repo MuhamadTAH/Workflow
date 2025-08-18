@@ -412,7 +412,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
       batchSize: node.data.batchSize || 1,
       fields: node.data.fields || [{ key: '', value: '' }],
       // Telegram trigger specific fields
-      botToken: node.data.botToken || '',
+      botToken: node.data.botToken || node.data.config?.botToken || '',
       // Telegram send message fields
       chatId: node.data.chatId || '{{message.chat.id}}',
       messageType: node.data.messageType || 'text',
@@ -481,7 +481,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
       batchSize: node.data.batchSize || 1,
       fields: node.data.fields || [{ key: '', value: '' }],
       // Telegram trigger specific fields
-      botToken: node.data.botToken || '',
+      botToken: node.data.botToken || node.data.config?.botToken || '',
       // Telegram send message fields
       chatId: node.data.chatId || '{{message.chat.id}}',
       messageType: node.data.messageType || 'text',
@@ -611,6 +611,16 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
 
   const handleClose = () => {
     const allUpdatedData = { ...formData, inputData, outputData };
+    
+    // For pre-configured Telegram trigger nodes, also save botToken to config
+    if (node.data.type === 'telegramTrigger' && node.data.config?.preConfigured) {
+      allUpdatedData.config = {
+        ...node.data.config,
+        botToken: formData.botToken,
+        botUsername: node.data.config.botUsername
+      };
+    }
+    
     onClose(allUpdatedData);
   };
   
