@@ -1,7 +1,11 @@
-/* Categories Page Styles */
+/* Categories Page Styles - Luxury Dark Theme */
 .categories-page {
   max-width: 1200px;
   margin: 0 auto;
+  min-height: 100vh;
+  background: #1a1a1a;
+  color: #E0E0E0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .categories-header {
@@ -9,11 +13,16 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #323232;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
 .categories-header h3 {
   margin: 0;
-  color: #111827;
+  color: #E0E0E0;
   font-size: 1.5rem;
   font-weight: 700;
 }
@@ -35,18 +44,18 @@
 
 /* Category Card */
 .category-card {
-  background: white;
+  background: #323232;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
   overflow: hidden;
   transition: all 0.3s ease;
-  border: 2px solid transparent;
+  border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .category-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  border-color: #667eea;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  border-color: rgba(74, 144, 226, 0.3);
 }
 
 .category-content {
@@ -78,22 +87,23 @@
 .category-name {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: #E0E0E0;
   margin: 0;
 }
 
 .category-count {
-  background: #e0e7ff;
-  color: #3730a3;
+  background: rgba(74, 144, 226, 0.2);
+  color: #4a90e2;
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
   font-size: 0.875rem;
   font-weight: 500;
   white-space: nowrap;
+  border: 1px solid rgba(74, 144, 226, 0.3);
 }
 
 .category-description {
-  color: #6b7280;
+  color: #a0a0a0;
   font-size: 0.875rem;
   line-height: 1.4;
   margin: 0 0 1.5rem 0;
@@ -104,31 +114,32 @@
   gap: 0.5rem;
   justify-content: flex-end;
   padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* No Categories State */
 .no-categories-message {
   text-align: center;
   padding: 3rem;
-  background: white;
+  background: #323232;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .no-categories-icon {
   font-size: 3rem;
-  color: #d1d5db;
+  color: #4a90e2;
   margin-bottom: 1rem;
 }
 
 .no-categories-message h3 {
-  color: #374151;
+  color: #E0E0E0;
   margin-bottom: 0.5rem;
 }
 
 .no-categories-message p {
-  color: #6b7280;
+  color: #a0a0a0;
   margin-bottom: 1.5rem;
 }
 
@@ -137,29 +148,32 @@
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.875rem;
-  background: #f3f4f6;
-  color: #6b7280;
+  background: #262626;
+  color: #a0a0a0;
 }
 
 .btn-icon:hover {
-  background: #e5e7eb;
-  color: #374151;
+  background: #424242;
+  color: #E0E0E0;
+  transform: scale(1.05);
 }
 
 .btn-icon.danger {
-  background: #fee2e2;
-  color: #dc2626;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .btn-icon.danger:hover {
-  background: #fecaca;
+  background: rgba(239, 68, 68, 0.3);
+  transform: scale(1.05);
 }
 
 /* Form Styles */
@@ -172,19 +186,20 @@
 .color-input {
   width: 50px;
   height: 40px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   cursor: pointer;
+  background: #262626;
 }
 
 .color-preview {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 2px solid #e5e7eb;
+  border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .color-input-section small {
-  color: #6b7280;
+  color: #a0a0a0;
   font-size: 0.875rem;
 }

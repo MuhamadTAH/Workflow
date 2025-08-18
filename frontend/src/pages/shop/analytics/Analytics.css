@@ -1,7 +1,11 @@
-/* Analytics Page Styles */
+/* Analytics Page Styles - Luxury Dark Theme */
 .analytics-page {
   max-width: 1200px;
   margin: 0 auto;
+  min-height: 100vh;
+  background: #1a1a1a;
+  color: #E0E0E0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* Analytics Controls */
@@ -12,10 +16,11 @@
 .time-range-selector {
   display: flex;
   gap: 0.5rem;
-  background: white;
+  background: #323232;
   padding: 0.5rem;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   width: fit-content;
 }
 
@@ -27,16 +32,16 @@
   cursor: pointer;
   transition: all 0.2s;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #a0a0a0;
 }
 
 .time-btn:hover {
-  background: #f3f4f6;
-  color: #374151;
+  background: #424242;
+  color: #E0E0E0;
 }
 
 .time-btn.active {
-  background: #667eea;
+  background: #4a90e2;
   color: white;
 }
 
@@ -49,10 +54,11 @@
 }
 
 .metric-card {
-  background: white;
+  background: #323232;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -61,7 +67,8 @@
 
 .metric-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  border-color: rgba(74, 144, 226, 0.3);
 }
 
 .metric-icon {
@@ -76,7 +83,7 @@
 }
 
 .metric-icon.views {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
 }
 
 .metric-icon.orders {
@@ -96,7 +103,7 @@
 }
 
 .metric-content h3 {
-  color: #6b7280;
+  color: #a0a0a0;
   font-size: 0.875rem;
   font-weight: 500;
   margin: 0 0 0.5rem 0;
@@ -105,7 +112,7 @@
 }
 
 .metric-value {
-  color: #111827;
+  color: #E0E0E0;
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
@@ -117,11 +124,11 @@
 }
 
 .metric-change.positive {
-  color: #059669;
+  color: #10b981;
 }
 
 .metric-change.negative {
-  color: #dc2626;
+  color: #ef4444;
 }
 
 /* Analytics Details */
@@ -139,15 +146,16 @@
 
 .recent-orders,
 .top-products {
-  background: white;
+  background: #323232;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .recent-orders h3,
 .top-products h3 {
-  color: #111827;
+  color: #E0E0E0;
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0 0 1rem 0;
@@ -166,23 +174,24 @@
   gap: 1rem;
   align-items: center;
   padding: 0.75rem;
-  background: #f9fafb;
+  background: #262626;
   border-radius: 8px;
   font-size: 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .order-customer {
   font-weight: 500;
-  color: #111827;
+  color: #E0E0E0;
 }
 
 .order-amount {
   font-weight: 600;
-  color: #059669;
+  color: #10b981;
 }
 
 .order-date {
-  color: #6b7280;
+  color: #a0a0a0;
 }
 
 .order-status {
@@ -195,13 +204,15 @@
 }
 
 .order-status.completed {
-  background: #d1fae5;
-  color: #065f46;
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .order-status.pending {
-  background: #fef3c7;
-  color: #92400e;
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
 }
 
 /* Products List */
@@ -217,45 +228,47 @@
   gap: 1rem;
   align-items: center;
   padding: 0.75rem;
-  background: #f9fafb;
+  background: #262626;
   border-radius: 8px;
   font-size: 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .product-name {
   font-weight: 500;
-  color: #111827;
+  color: #E0E0E0;
 }
 
 .product-sales {
-  color: #6b7280;
+  color: #a0a0a0;
 }
 
 .product-revenue {
   font-weight: 600;
-  color: #059669;
+  color: #10b981;
 }
 
 /* No Shop State */
 .no-shop-message {
   text-align: center;
   padding: 3rem;
-  background: white;
+  background: #323232;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .no-shop-icon {
   font-size: 3rem;
-  color: #d1d5db;
+  color: #4a90e2;
   margin-bottom: 1rem;
 }
 
 .no-shop-message h2 {
-  color: #374151;
+  color: #E0E0E0;
   margin-bottom: 0.5rem;
 }
 
 .no-shop-message p {
-  color: #6b7280;
+  color: #a0a0a0;
 }
