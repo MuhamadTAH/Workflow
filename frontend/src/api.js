@@ -64,6 +64,9 @@ export const connectionsAPI = {
   // Connect to Telegram with bot token
   connectTelegram: (botToken) => api.post('/api/connections/telegram', { botToken }),
   
+  // Connect to Instagram via OAuth
+  connectInstagram: (code, state) => api.post('/api/connections/instagram', { code, state }),
+  
   // Disconnect from a platform
   disconnect: (platform) => api.delete(`/api/connections/${platform}`)
 };

@@ -6,6 +6,7 @@ import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import WorkflowsOverview from './pages/WorkflowsOverview';
 import Connections from './pages/Connections';
+import InstagramCallback from './pages/InstagramCallback';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import LiveChat from './pages/LiveChat';
 import LanguageSwitcher from './components/LanguageSwitcher';
@@ -343,6 +344,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/workflows" element={<WorkflowsOverview />} />
         <Route path="/connections" element={<Connections />} />
+        <Route path="/connections/callback/instagram" element={<InstagramCallback />} />
         <Route path="/live-chat" element={<LiveChat />} />
         <Route path="/workflow" element={<WorkflowBuilder />} />
         <Route path="/workflow-builder" element={<WorkflowBuilder />} />

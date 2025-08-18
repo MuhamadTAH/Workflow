@@ -547,6 +547,17 @@ function Connections() {
         onConnect={handleTelegramConnect}
         isConnecting={connectingPlatforms.has('telegram')}
       />
+
+      <InstagramOAuthModal
+        isOpen={showInstagramModal}
+        onClose={() => {
+          setShowInstagramModal(false);
+          setInstagramAuthUrl('');
+        }}
+        onConnect={handleInstagramConnect}
+        isConnecting={connectingPlatforms.has('instagram')}
+        authUrl={instagramAuthUrl}
+      />
     </div>
   );
 }
