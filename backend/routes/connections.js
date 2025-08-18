@@ -381,6 +381,76 @@ router.delete('/:platform', verifyToken, (req, res) => {
   }
 });
 
+// GET /api/connections/health - Check connection health and webhooks
+router.get('/health', verifyToken, async (req, res) => {
+  try {
+    db.all(
+      `SELECT platform, access_token, platform_username, is_active, updated_at
+       FROM social_connections 
+       WHERE user_id = ?`,
+      [req.user.userId],
+      async (err, connections) => {
+        if (err) {
+          console.error('Database error:', err);
+          return res.status(500).json({ message: 'Database error' });
+        }
+
+        const healthStatus = {};
+        
+        for (const conn of connections) {
+          if (conn.platform === 'telegram' && conn.access_token) {
+            try {
+              const { TelegramAPI } = require('../services/telegramAPI');
+              const telegramAPI = new TelegramAPI(conn.access_token);
+              const validation = await telegramAPI.validateToken();
+              
+              const webhookUrl = `${process.env.API_BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram-livechat/${req.user.userId}`;
+              const webhookInfo = await telegramAPI.getWebhookInfo();
+              
+              healthStatus[conn.platform] = {
+                platform: conn.platform,
+                username: conn.platform_username,
+                isActive: conn.is_active === 1,
+                tokenValid: validation.success,
+                webhookSet: webhookInfo.success && webhookInfo.data.url === webhookUrl,
+                webhookUrl: webhookInfo.success ? webhookInfo.data.url : null,
+                expectedWebhookUrl: webhookUrl,
+                lastUpdated: conn.updated_at
+              };
+            } catch (error) {
+              healthStatus[conn.platform] = {
+                platform: conn.platform,
+                username: conn.platform_username,
+                isActive: conn.is_active === 1,
+                tokenValid: false,
+                error: error.message,
+                lastUpdated: conn.updated_at
+              };
+            }
+          } else {
+            healthStatus[conn.platform] = {
+              platform: conn.platform,
+              username: conn.platform_username,
+              isActive: conn.is_active === 1,
+              lastUpdated: conn.updated_at
+            };
+          }
+        }
+
+        res.json({
+          success: true,
+          health: healthStatus,
+          userId: req.user.userId,
+          checkedAt: new Date().toISOString()
+        });
+      }
+    );
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // GET /api/connections/status - Check all connection statuses
 router.get('/status', verifyToken, (req, res) => {
   try {

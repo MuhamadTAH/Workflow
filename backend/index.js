@@ -304,6 +304,60 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
+// Function to restore Telegram connections on server startup
+async function restoreTelegramConnections() {
+  console.log('🔄 Restoring Telegram bot connections...');
+  
+  const db = require('./db');
+  const { TelegramAPI } = require('./services/telegramAPI');
+  
+  return new Promise((resolve) => {
+    db.all(
+      `SELECT user_id, access_token, platform_username 
+       FROM social_connections 
+       WHERE platform = 'telegram' AND is_active = 1 AND access_token IS NOT NULL`,
+      [],
+      async (err, connections) => {
+        if (err) {
+          console.error('❌ Error fetching Telegram connections:', err);
+          return resolve();
+        }
+        
+        console.log(`📱 Found ${connections.length} active Telegram connections to restore`);
+        
+        for (const connection of connections) {
+          try {
+            const telegramAPI = new TelegramAPI(connection.access_token);
+            
+            // Validate the bot token is still valid
+            const validation = await telegramAPI.validateToken();
+            if (!validation.success) {
+              console.warn(`⚠️ Invalid token for user ${connection.user_id}, bot: ${connection.platform_username}`);
+              continue;
+            }
+            
+            // Re-establish webhook for live chat
+            const webhookUrl = `${process.env.API_BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram-livechat/${connection.user_id}`;
+            const webhookResult = await telegramAPI.setWebhook(webhookUrl);
+            
+            if (webhookResult.success) {
+              console.log(`✅ Restored webhook for user ${connection.user_id}, bot: ${connection.platform_username}`);
+            } else {
+              console.warn(`⚠️ Failed to restore webhook for user ${connection.user_id}: ${webhookResult.error.message}`);
+            }
+            
+          } catch (error) {
+            console.warn(`⚠️ Failed to restore connection for user ${connection.user_id}: ${error.message}`);
+          }
+        }
+        
+        console.log('✅ Telegram connection restoration completed');
+        resolve();
+      }
+    );
+  });
+}
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, async () => {
   console.log(`🚀 Backend server with IF node routing fix started on port ${PORT}`);
@@ -330,6 +384,13 @@ app.listen(PORT, async () => {
     await restoreActiveWorkflowsOnStartup();
   } catch (error) {
     console.error('❌ Failed to restore workflows on startup:', error);
+  }
+  
+  // Restore Telegram bot connections and webhooks
+  try {
+    await restoreTelegramConnections();
+  } catch (error) {
+    console.error('❌ Failed to restore Telegram connections on startup:', error);
   }
   
   // Keep-alive mechanism for Render (prevent cold starts)
