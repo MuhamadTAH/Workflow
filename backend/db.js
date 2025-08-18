@@ -119,7 +119,7 @@ db.serialize(() => {
     }
   });
 
-  // Create chat_sessions table for Chat Trigger nodes
+  // Create chat_sessions table
   db.run(`
     CREATE TABLE IF NOT EXISTS chat_sessions (
       session_id TEXT PRIMARY KEY,
@@ -138,7 +138,7 @@ db.serialize(() => {
     }
   });
 
-  // Create chat_messages table for Chat Trigger nodes
+  // Create chat_messages table
   db.run(`
     CREATE TABLE IF NOT EXISTS chat_messages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -56,10 +56,10 @@ function extractWorkflowIdFromSession(sessionId) {
   if (workflowExecutor && workflowExecutor.activeWorkflows) {
     for (const [workflowId, workflow] of workflowExecutor.activeWorkflows) {
       // Check if this workflow has telegram triggers
-      const hasChatTrigger = workflow.nodes && workflow.nodes.some(node => 
+      const hasTrigger = workflow.nodes && workflow.nodes.some(node => 
         node.data && node.data.type === 'telegramTrigger'
       );
-      if (hasChatTrigger) {
+      if (hasTrigger) {
         return workflowId; // Return first workflow with telegram trigger
       }
     }

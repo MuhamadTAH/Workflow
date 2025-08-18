@@ -117,7 +117,7 @@ class WorkflowExecutor {
       metadata: {
         page: window.location.href,
         workflowId: "test-workflow",
-        nodeId: "test-chat-trigger"
+        nodeId: "test-node"
       },
       message: {
         from: {

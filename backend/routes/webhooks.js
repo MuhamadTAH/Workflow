@@ -687,7 +687,7 @@ router.get('/_dev/check-runWorkflow', (req, res) => {
   res.json({ 
     hasRunWorkflow: typeof global.runWorkflow === 'function',
     workflowExecutorAvailable: !!workflowExecutor,
-    chatTriggerNodeAvailable: false
+    systemReady: true
   });
 });
 
@@ -986,6 +986,5 @@ router.get('/health', (req, res) => {
   });
 });
 
-// Chat Trigger webhook permanently removed
 
 module.exports = router;

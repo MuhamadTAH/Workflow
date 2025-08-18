@@ -17,7 +17,6 @@ const switchNode = require('../nodes/logic/switchNode');
 const waitNode = require('../nodes/logic/waitNode');
 const mergeNode = require('../nodes/logic/mergeNode');
 const filterNode = require('../nodes/logic/filterNode');
-// chatTriggerNode permanently removed
 
 
 const { createBackendExecutionContext } = require('../utils/executionContext');
@@ -206,14 +205,6 @@ const runNode = async (req, res) => {
                         itemResult = await filterNode.execute(processedConfig, currentItem, executionContext);
                         break;
                     
-                    case 'chatTrigger':
-                        // Chat Trigger node has been permanently removed
-                        itemResult = {
-                            success: false,
-                            error: 'Chat Trigger node has been permanently removed from the system',
-                            data: null
-                        };
-                        break;
                     
                     default:
                         return res.status(400).json({ 

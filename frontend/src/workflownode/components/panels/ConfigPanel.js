@@ -1147,63 +1147,6 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                             </div>
                         )}
 
-                        {node.data.type === 'chatTrigger' && (
-                            <div className="form-group mt-6">
-                                <label>Chat Trigger Configuration</label>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="chatTitle">Chat Title</label>
-                                    <input 
-                                        type="text" 
-                                        name="chatTitle" 
-                                        id="chatTitle" 
-                                        value={formData.chatTitle || 'Chat Support'} 
-                                        onChange={handleInputChange} 
-                                        placeholder="Chat Support"
-                                    />
-                                    <p className="text-sm text-gray-500 mt-1">Title displayed in the chat widget header</p>
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="welcomeMessage">Welcome Message</label>
-                                    <textarea 
-                                        name="welcomeMessage" 
-                                        id="welcomeMessage" 
-                                        rows="3"
-                                        value={formData.welcomeMessage || '👋 Welcome! Send a message to start the conversation.'} 
-                                        onChange={handleInputChange} 
-                                        placeholder="👋 Welcome! Send a message to start the conversation."
-                                    />
-                                    <p className="text-sm text-gray-500 mt-1">Initial message shown to users</p>
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="sessionId">Chat Session ID</label>
-                                    <input 
-                                        type="text" 
-                                        name="sessionId" 
-                                        id="sessionId" 
-                                        value={formData.sessionId || node.id} 
-                                        onChange={handleInputChange} 
-                                        disabled
-                                    />
-                                    <p className="text-sm text-gray-500 mt-1">Unique identifier for this chat session (auto-generated)</p>
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label>
-                                        <input 
-                                            type="checkbox" 
-                                            name="enableWidget" 
-                                            checked={formData.enableWidget !== false} 
-                                            onChange={handleInputChange} 
-                                        />
-                                        <span className="ml-2">Enable Chat Widget</span>
-                                    </label>
-                                    <p className="text-sm text-gray-500 mt-1">Show the floating chat interface when this node is active</p>
-                                </div>
-                            </div>
-                        )}
 
                         {node.data.type === 'telegramSendMessage' && (
                             <div className="form-group mt-6">

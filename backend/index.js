@@ -151,7 +151,6 @@ app.use('/uploads', express.static('uploads'));
 // Serve static public files (including hosted chat page)
 app.use('/public', express.static('public'));
 
-// Old hosted chat system removed - now using embedded Chat Trigger
 
 // Routes
 app.use('/api', authRoutes);
@@ -182,7 +181,6 @@ app.use('/api/nodes', (req, res, next) => {
   next();
 });
 
-// chatTriggerNode permanently removed - cache clearing no longer needed
 
 // NEW ROUTES FROM WORKFLOWNODE
 app.use('/api/nodes', nodesRoutes);
@@ -202,32 +200,6 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: '✅ Hello from the backend!' });
 });
 
-// Debug route to check chatTriggerNode loading
-app.get('/api/debug/chat-trigger', (req, res) => {
-  try {
-    console.log('🔍 Testing logger...');
-    const logger = require('./services/logger');
-    console.log('✅ logger loaded:', !!logger);
-    
-    // chatTriggerNode permanently removed - debug check no longer needed
-    
-    res.json({
-      status: 'chatTriggerNode permanently removed',
-      dependencies: {
-        logger: !!logger
-      },
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error('❌ Debug route error:', error);
-    res.json({
-      status: 'error',
-      error: error.message,
-      stack: error.stack,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
 
 // Debug endpoint to test activation flow
 app.post('/api/debug/test-activation', (req, res) => {

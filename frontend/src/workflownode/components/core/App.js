@@ -400,8 +400,6 @@ const App = () => {
           result.triggerUrls.forEach(trigger => {
             if (trigger.type === 'telegramTrigger') {
               message += `• Telegram Webhook: ${trigger.webhookUrl}\n`;
-            } else if (trigger.type === 'chatTrigger') {
-              message += `• Chat Trigger: ${trigger.webhookUrl}\n`;
             }
           });
         }
@@ -553,14 +551,6 @@ const App = () => {
         />
       )}
       
-      {/* Chat Widget - Show when there's a chatTrigger node */}
-      {nodes.some(node => node.data.type === 'chatTrigger') && (
-        <ChatWidget
-          nodeId={nodes.find(node => node.data.type === 'chatTrigger')?.id}
-          isVisible={true}
-          chatTitle={nodes.find(node => node.data.type === 'chatTrigger')?.data?.config?.chatTitle || 'Chat Support'}
-        />
-      )}
     </div>
   );
 };

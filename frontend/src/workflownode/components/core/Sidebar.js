@@ -78,7 +78,6 @@ const Sidebar = () => {
             type: 'telegramTrigger' 
         }} 
       />
-      {/* Chat Trigger permanently removed */}
       
       </div>
 
