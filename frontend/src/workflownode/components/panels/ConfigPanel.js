@@ -1051,7 +1051,14 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
 
                         {node.data.type === 'telegramTrigger' && (
                             <div className="form-group mt-6">
-                                <label htmlFor="botToken">Telegram Bot Token</label>
+                                <label htmlFor="botToken">
+                                    Telegram Bot Token
+                                    {node.data.config?.preConfigured && (
+                                        <span className="text-sm text-green-600 ml-2">
+                                            <i className="fas fa-shield-alt"></i> Protected (Connected Bot)
+                                        </span>
+                                    )}
+                                </label>
                                 <div className="flex" style={{ gap: '0.5rem', alignItems: 'center' }}>
                                     <input
                                         type="password"
@@ -1061,6 +1068,9 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                         onChange={handleInputChange}
                                         placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
                                         style={{ flex: 1 }}
+                                        readOnly={node.data.config?.preConfigured}
+                                        disabled={node.data.config?.preConfigured}
+                                        title={node.data.config?.preConfigured ? "This token is protected because it's from a connected bot. Disconnect the bot to edit manually." : ""}
                                     />
                                     <button
                                         type="button"
@@ -1085,8 +1095,10 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                                 setTokenCheck({ status: 'invalid', message: e.message || 'Validation failed' });
                                             }
                                         }}
+                                        disabled={node.data.config?.preConfigured}
+                                        title={node.data.config?.preConfigured ? "Token is already validated from connected bot" : ""}
                                     >
-                                        {tokenCheck.status === 'checking' ? 'Checking…' : 'Check Token'}
+                                        {node.data.config?.preConfigured ? '✅ Verified' : (tokenCheck.status === 'checking' ? 'Checking…' : 'Check Token')}
                                     </button>
                                 </div>
                                 {tokenCheck.status === 'valid' && (
@@ -1147,12 +1159,17 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                             }
                                         }}
                                         style={{ backgroundColor: '#0088cc', color: 'white' }}
-                                        disabled={!formData.botToken}
+                                        disabled={!formData.botToken || node.data.config?.preConfigured}
                                     >
                                         <i className="fa-solid fa-download mr-2"></i>
                                         {tokenCheck.status === 'checking' && tokenCheck.message.includes('Fetching') ? 'Fetching...' : 'Get Real Messages'}
                                     </button>
-                                    <p className="text-sm text-gray-500 mt-2">Fetch real messages sent to your Telegram bot for testing downstream nodes.</p>
+                                    <p className="text-sm text-gray-500 mt-2">
+                                        {node.data.config?.preConfigured ? 
+                                            "Message fetching is available for manually configured tokens only." : 
+                                            "Fetch real messages sent to your Telegram bot for testing downstream nodes."
+                                        }
+                                    </p>
                                 </div>
                             </div>
                         )}
@@ -1163,17 +1180,42 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                 <label>Telegram Send Message Configuration</label>
                                 
                                 <div className="form-group">
-                                    <label htmlFor="botToken">Bot Token</label>
-                                    <ExpressionInput 
-                                        name="botToken" 
-                                        value={formData.botToken || ''} 
-                                        onChange={handleInputChange} 
-                                        inputData={inputData} 
-                                        placeholder="{{$env.TELEGRAM_BOT_TOKEN}} or 123456:ABC-DEF..."
-                                        currentNode={node} 
-                                        allNodes={nodes}
-                                    />
-                                    <p className="text-sm text-gray-500 mt-1">Bot token from BotFather or environment variable</p>
+                                    <label htmlFor="botToken">
+                                        Bot Token
+                                        {node.data.config?.preConfigured && (
+                                            <span className="text-sm text-green-600 ml-2">
+                                                <i className="fas fa-shield-alt"></i> Protected (Connected Bot)
+                                            </span>
+                                        )}
+                                    </label>
+                                    {node.data.config?.preConfigured ? (
+                                        <input
+                                            type="password"
+                                            name="botToken"
+                                            id="botToken"
+                                            value={formData.botToken}
+                                            readOnly
+                                            disabled
+                                            style={{ flex: 1 }}
+                                            title="This token is protected because it's from a connected bot. Disconnect the bot to edit manually."
+                                        />
+                                    ) : (
+                                        <ExpressionInput 
+                                            name="botToken" 
+                                            value={formData.botToken || ''} 
+                                            onChange={handleInputChange} 
+                                            inputData={inputData} 
+                                            placeholder="{{$env.TELEGRAM_BOT_TOKEN}} or 123456:ABC-DEF..."
+                                            currentNode={node} 
+                                            allNodes={nodes}
+                                        />
+                                    )}
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        {node.data.config?.preConfigured ? 
+                                            "Bot token is automatically configured from your connected Telegram bot" : 
+                                            "Bot token from BotFather or environment variable"
+                                        }
+                                    </p>
                                 </div>
                                 
                                 <div className="form-group">

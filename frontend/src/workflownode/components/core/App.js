@@ -266,9 +266,22 @@ const App = ({ botContext }) => {
         data: nodeData,
       };
 
+      // Auto-configure Telegram nodes with bot token if available from bot context
+      if (botContext && botContext.botToken && (nodeData.type === 'telegramTrigger' || nodeData.type === 'telegramSendMessage')) {
+        newNode.data = {
+          ...nodeData,
+          botToken: botContext.botToken,
+          config: {
+            botToken: botContext.botToken,
+            botUsername: botContext.botUsername,
+            preConfigured: true
+          }
+        };
+      }
+
       setNodes((nds) => nds.concat(newNode));
     },
-    [reactFlowInstance, setNodes, currentWorkflowId, generateWorkflowId]
+    [reactFlowInstance, setNodes, currentWorkflowId, generateWorkflowId, botContext]
   );
 
   // Sets the currently selected node when double-clicked.
