@@ -361,7 +361,8 @@
   resize: none;
   font-family: inherit;
   transition: all 0.2s ease;
-  min-height: 44px;
+  min-height: 48px;
+  line-height: 1.4;
 }
 
 .message-textarea:focus {
@@ -375,7 +376,7 @@
 .input-actions {
   position: absolute;
   right: 0.5rem;
-  top: 50%;
+  top: 45%;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
