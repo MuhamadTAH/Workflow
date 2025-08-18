@@ -176,18 +176,68 @@
 }
 
 /* Media Upload Styles - Luxury Dark */
-.media-upload-section {
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 2rem;
-  text-align: center;
-  background: #262626;
-  transition: all 0.2s ease;
+.media-upload {
+  margin-bottom: 1.5rem;
 }
 
-.media-upload-section:hover {
-  border-color: #4a90e2;
-  background: #424242;
+.upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.upload-btn:hover {
+  background: #3a7bc8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.upload-hint {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #a0a0a0;
+}
+
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.media-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.media-item:hover .media-overlay {
+  opacity: 1;
+}
+
+.media-name {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #a0a0a0;
+  text-align: center;
+  word-break: break-all;
 }
 
 .media-preview {
@@ -201,8 +251,9 @@
   position: relative;
   border-radius: 8px;
   overflow: hidden;
-  background: #f3f4f6;
+  background: #262626;
   aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .media-item img {
@@ -226,18 +277,24 @@
   justify-content: center;
   cursor: pointer;
   font-size: 0.75rem;
+  transition: all 0.2s ease;
 }
 
-/* Tags Input */
+.media-remove:hover {
+  background: rgba(220, 38, 38, 1);
+  transform: scale(1.1);
+}
+
+/* Tags Input - Luxury Dark */
 .tags-input {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   min-height: 45px;
   padding: 0.5rem;
-  border: 2px solid #e5e7eb;
+  border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  background: white;
+  background: #262626;
 }
 
 .tags-input .form-input {
@@ -246,18 +303,21 @@
   margin: 0;
   flex: 1;
   min-width: 120px;
+  background: transparent;
+  box-shadow: none;
 }
 
 .tags-input .form-input:focus {
   border: none;
   outline: none;
+  box-shadow: none;
 }
 
 .tag {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  background: #667eea;
+  background: #4a90e2;
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 16px;
@@ -278,13 +338,15 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  transition: all 0.2s ease;
 }
 
 .tag-remove:hover {
   background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
 }
 
-/* Specifications */
+/* Specifications - Luxury Dark */
 .spec-list {
   display: flex;
   flex-direction: column;
@@ -295,21 +357,25 @@
   display: flex;
   gap: 0.75rem;
   align-items: center;
+  padding: 0.75rem;
+  background: #262626;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .spec-key {
   font-weight: 600;
-  color: #374151;
+  color: #E0E0E0;
   min-width: 120px;
 }
 
 .spec-value {
-  color: #6b7280;
+  color: #a0a0a0;
   flex: 1;
 }
 
 .spec-remove {
-  background: #fee2e2;
+  background: rgba(220, 38, 38, 0.2);
   color: #dc2626;
   border: none;
   border-radius: 50%;
@@ -319,10 +385,137 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .spec-remove:hover {
-  background: #fecaca;
+  background: rgba(220, 38, 38, 0.4);
+  transform: scale(1.1);
+}
+
+/* Variants Styles - Luxury Dark */
+.variant-input {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: end;
+}
+
+.variants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.variant-item {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem;
+  background: #262626;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.variant-name {
+  font-weight: 600;
+  color: #E0E0E0;
+  min-width: 100px;
+}
+
+.variant-value {
+  color: #a0a0a0;
+  flex: 1;
+}
+
+.variant-price {
+  color: #4a90e2;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.variant-remove {
+  background: rgba(220, 38, 38, 0.2);
+  color: #dc2626;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.variant-remove:hover {
+  background: rgba(220, 38, 38, 0.4);
+  transform: scale(1.1);
+}
+
+/* Specification Input */
+.spec-input {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: end;
+}
+
+.specs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Dimensions Input */
+.dimensions-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dimension-input {
+  flex: 1;
+  min-width: 60px;
+}
+
+.dimensions-input span {
+  color: #a0a0a0;
+  font-weight: 600;
+}
+
+/* Tags Display */
+.tags-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Checkbox Styles */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #E0E0E0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  accent-color: #4a90e2;
+  width: 18px;
+  height: 18px;
+}
+
+/* Media Preview for Videos */
+.media-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
 }
 
 /* Responsive Design */

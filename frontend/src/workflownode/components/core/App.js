@@ -23,7 +23,6 @@ import Sidebar from './Sidebar';
 import Toolbar from './Toolbar';
 import { CustomLogicNode } from '../nodes';
 import { ConfigPanel } from '../panels';
-import ChatWidget from '../ChatWidget';
 import { getId } from '../../utils';
 import WorkflowExecutor from '../../utils/workflowExecutor';
 import { API_BASE_URL } from '../../../config/api.js';

@@ -1,9 +1,7 @@
-// Old chatSessions service removed - using chatMessageStorage instead
 const { logWorkflowTriggered } = require('../controllers/workflowController');
 const scheduler = require('../services/scheduler');
 const TriggerDataProcessor = require('../services/triggerDataProcessor');
 const jobQueue = require('../services/jobQueue');
-const chatMessageStorage = require('../services/chatMessageStorage');
 
 const express = require('express');
 const router = express.Router();

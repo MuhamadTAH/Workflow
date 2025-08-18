@@ -293,7 +293,7 @@ git add package.json && git commit -m "Add dependency" && git push
 
 ### Files Completely Removed:
 1. **Frontend Components**:
-   - `frontend/src/components/ChatWidget.jsx` - Deleted entire widget component
+   - Frontend widget components removed
    - Removed DraggableNode components from `frontend/src/workflownode/components/core/Sidebar.js`
    - Removed configuration sections from `frontend/src/workflownode/components/panels/ConfigPanel.js`
 

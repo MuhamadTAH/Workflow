@@ -11,13 +11,11 @@ const productsRoutes = require('./routes/products');
 const publicRoutes = require('./routes/public');
 const uploadsRoutes = require('./routes/uploads');
 const aiRoutes = require('./routes/ai');
-const chatRoutes = require('./routes/chat');
 const languageRoutes = require('./routes/language');
 const debugRoutes = require('./routes/debug');
 const jobsRoutes = require('./routes/jobs');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
-// chatMessages routes removed
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const logger = require('./services/logger');
 require('./db'); // Initialize database
@@ -29,12 +27,12 @@ app.use(requestLogger); // Log all requests
 
 // Enhanced logging middleware for debugging (filtered)
 app.use((req, res, next) => {
-  // Skip logging for repetitive chat polling requests
-  const isChatPolling = req.url.startsWith('/api/chat-messages/');
+  // Skip logging for repetitive polling requests
+  const isPollingRequest = req.url.includes('/api/') && req.url.includes('/poll');
   const isHealthCheck = req.url === '/health' || req.url === '/';
   const isWorkflowActivation = req.url.includes('/activate');
   
-  if (!isChatPolling && !isHealthCheck) {
+  if (!isPollingRequest && !isHealthCheck) {
     const logLevel = isWorkflowActivation ? '🚨 WORKFLOW ACTIVATION' : '🌐 INCOMING REQUEST';
     console.log(logLevel + ':', {
       method: req.method,
@@ -163,11 +161,9 @@ app.use('/api/products', productsRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/uploads', uploadsRoutes);
 app.use('/api/ai', aiRoutes);
-app.use(chatRoutes);
 app.use(languageRoutes);
 app.use(debugRoutes);
 app.use('/api/jobs', jobsRoutes);
-// chatMessages routes removed
 // Additional middleware to debug CORS and route issues
 app.use('/api/nodes', (req, res, next) => {
   console.log('🔍 NODES API REQUEST DEBUG:', {
