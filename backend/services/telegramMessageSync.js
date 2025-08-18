@@ -234,8 +234,29 @@ class TelegramMessageSync {
    * Sync messages for a specific bot token
    */
   async syncMessages(botToken) {
+    const telegramAPI = new TelegramAPI(botToken);
+    let webhookUrl = null;
+    
     try {
-      const telegramAPI = new TelegramAPI(botToken);
+      // Get current webhook info
+      const webhookInfo = await telegramAPI.getWebhookInfo();
+      
+      if (webhookInfo.success && webhookInfo.data && webhookInfo.data.url) {
+        webhookUrl = webhookInfo.data.url;
+        logger.info('Current webhook detected', { url: webhookUrl });
+        
+        // Temporarily delete webhook to use getUpdates
+        const deleteResult = await telegramAPI.deleteWebhook();
+        if (!deleteResult.success) {
+          logger.warn('Failed to delete webhook for sync', { error: deleteResult.error });
+          return { success: false, error: 'Could not disable webhook for sync: ' + deleteResult.error.message };
+        }
+        
+        logger.info('Webhook temporarily disabled for message sync');
+        
+        // Wait a moment for webhook deletion to take effect
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
       
       // Get last processed update_id
       const lastUpdateId = await this.getLastUpdateId(botToken);
@@ -252,12 +273,25 @@ class TelegramMessageSync {
           error: result.error,
           botToken: 'present'
         });
+        
+        // Restore webhook if it was active
+        if (webhookUrl) {
+          await telegramAPI.setWebhook(webhookUrl);
+          logger.info('Webhook restored after failed sync');
+        }
+        
         return { success: false, error: result.error };
       }
 
       const updates = result.data || [];
       
       if (updates.length === 0) {
+        // Restore webhook if it was active
+        if (webhookUrl) {
+          await telegramAPI.setWebhook(webhookUrl);
+          logger.info('Webhook restored after sync (no updates)');
+        }
+        
         return { 
           success: true, 
           processed: 0, 
@@ -275,12 +309,26 @@ class TelegramMessageSync {
         await this.updateLastUpdateId(botToken, maxUpdateId);
       }
 
+      // Restore webhook if it was active
+      if (webhookUrl) {
+        const restoreResult = await telegramAPI.setWebhook(webhookUrl);
+        if (restoreResult.success) {
+          logger.info('Webhook successfully restored after sync', { url: webhookUrl });
+        } else {
+          logger.warn('Failed to restore webhook after sync', { 
+            url: webhookUrl, 
+            error: restoreResult.error 
+          });
+        }
+      }
+
       logger.info('Message sync completed', {
         botToken: 'present',
         totalUpdates: updates.length,
         processed,
         skipped,
-        lastUpdateId: lastUpdateId + updates.length
+        lastUpdateId: lastUpdateId + updates.length,
+        webhookRestored: !!webhookUrl
       });
 
       return {
@@ -288,10 +336,24 @@ class TelegramMessageSync {
         processed,
         skipped,
         totalUpdates: updates.length,
-        message: `Processed ${processed} messages, skipped ${skipped}`
+        message: `Processed ${processed} messages, skipped ${skipped}`,
+        webhookRestored: !!webhookUrl
       };
 
     } catch (error) {
+      // Try to restore webhook even if sync failed
+      if (webhookUrl) {
+        try {
+          await telegramAPI.setWebhook(webhookUrl);
+          logger.info('Webhook restored after sync error', { url: webhookUrl });
+        } catch (restoreError) {
+          logger.warn('Failed to restore webhook after sync error', { 
+            url: webhookUrl, 
+            error: restoreError.message 
+          });
+        }
+      }
+      
       logger.logError(error, { 
         context: 'syncMessages', 
         botToken: 'present' 
