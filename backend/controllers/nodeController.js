@@ -17,7 +17,9 @@ const switchNode = require('../nodes/logic/switchNode');
 const waitNode = require('../nodes/logic/waitNode');
 const mergeNode = require('../nodes/logic/mergeNode');
 const filterNode = require('../nodes/logic/filterNode');
-// Now using the full functionality version
+// Force clear require cache and reload chatTriggerNode
+const chatTriggerPath = require.resolve('../nodes/triggers/chatTriggerNode');
+delete require.cache[chatTriggerPath];
 const chatTriggerNode = require('../nodes/triggers/chatTriggerNode');
 
 // Debug logging for chatTriggerNode
