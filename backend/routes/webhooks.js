@@ -94,7 +94,9 @@ router.post('/telegram-livechat/:userId', asyncHandler(async (req, res) => {
         updated_at = CURRENT_TIMESTAMP
     `;
 
-    await new Promise((resolve, reject) => {
+    console.log('💾 Attempting to create/update conversation for user:', userId, 'chat:', chat.id.toString());
+    
+    const conversationResult = await new Promise((resolve, reject) => {
       db.run(conversationSql, [
         userId,
         chat.id.toString(),
@@ -103,8 +105,13 @@ router.post('/telegram-livechat/:userId', asyncHandler(async (req, res) => {
         from.last_name,
         text
       ], function(err) {
-        if (err) reject(err);
-        else resolve(this.lastID);
+        if (err) {
+          console.error('❌ Error creating conversation:', err);
+          reject(err);
+        } else {
+          console.log('✅ Conversation created/updated successfully. LastID:', this.lastID, 'Changes:', this.changes);
+          resolve(this.lastID);
+        }
       });
     });
 
@@ -114,10 +121,17 @@ router.post('/telegram-livechat/:userId', asyncHandler(async (req, res) => {
       WHERE user_id = ? AND telegram_chat_id = ?
     `;
 
+    console.log('🔍 Looking up conversation ID for user:', userId, 'chat:', chat.id.toString());
+    
     const conversationId = await new Promise((resolve, reject) => {
       db.get(getConvSql, [userId, chat.id.toString()], (err, row) => {
-        if (err) reject(err);
-        else resolve(row?.id);
+        if (err) {
+          console.error('❌ Error getting conversation ID:', err);
+          reject(err);
+        } else {
+          console.log('📋 Conversation lookup result:', row);
+          resolve(row?.id);
+        }
       });
     });
 
@@ -139,6 +153,8 @@ router.post('/telegram-livechat/:userId', asyncHandler(async (req, res) => {
         processed_at: new Date().toISOString()
       });
 
+      console.log('💬 Saving message to conversation:', conversationId);
+      
       await new Promise((resolve, reject) => {
         db.run(messageSql, [
           conversationId,
@@ -148,12 +164,19 @@ router.post('/telegram-livechat/:userId', asyncHandler(async (req, res) => {
           message.message_id,
           metadata
         ], function(err) {
-          if (err) reject(err);
-          else resolve(this.lastID);
+          if (err) {
+            console.error('❌ Error saving message:', err);
+            reject(err);
+          } else {
+            console.log('✅ Message saved successfully. LastID:', this.lastID);
+            resolve(this.lastID);
+          }
         });
       });
 
       console.log('✅ LIVE CHAT: Message stored successfully');
+    } else {
+      console.error('❌ No conversation ID found - cannot save message');
     }
 
     // Always respond success to Telegram
