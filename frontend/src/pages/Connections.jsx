@@ -23,6 +23,118 @@ const platforms = [
   { id: 'linkedin', name: 'LinkedIn', icon: FaLinkedin, color: '#0A66C2', description: 'Professional networking' }
 ];
 
+// Instagram OAuth Modal Component
+function InstagramOAuthModal({ isOpen, onClose, onConnect, isConnecting, authUrl }) {
+  const [error, setError] = useState('');
+
+  const handleConnect = async () => {
+    try {
+      setError('');
+      
+      if (!authUrl) {
+        // Request auth URL from backend
+        await onConnect();
+        return;
+      }
+      
+      // Open Instagram OAuth in new window
+      const popup = window.open(authUrl, 'instagram-oauth', 'width=600,height=600,scrollbars=yes,resizable=yes');
+      
+      // Listen for the OAuth callback
+      const checkClosed = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(checkClosed);
+          // Check if connection was successful by reloading connections
+          window.location.reload();
+        }
+      }, 1000);
+
+      // Listen for postMessage from OAuth callback
+      const messageListener = (event) => {
+        if (event.origin !== window.location.origin) return;
+        
+        if (event.data.type === 'INSTAGRAM_OAUTH_SUCCESS') {
+          clearInterval(checkClosed);
+          popup.close();
+          window.removeEventListener('message', messageListener);
+          onClose();
+          // Refresh connections to show the new connection
+          window.location.reload();
+        } else if (event.data.type === 'INSTAGRAM_OAUTH_ERROR') {
+          clearInterval(checkClosed);
+          popup.close();
+          window.removeEventListener('message', messageListener);
+          setError(event.data.error || 'Instagram connection failed');
+        }
+      };
+
+      window.addEventListener('message', messageListener);
+      
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to start Instagram connection');
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" style={modalOverlayStyle}>
+      <div className="modal-content" style={modalContentStyle}>
+        <div className="modal-header" style={modalHeaderStyle}>
+          <h3 style={{ margin: 0, color: '#E4405F' }}>📷 Connect Instagram Business Account</h3>
+          <button onClick={onClose} style={closeButtonStyle}>✕</button>
+        </div>
+        
+        <div style={formStyle}>
+          <div style={inputGroupStyle}>
+            <p style={{ margin: '0 0 15px 0', color: '#666', lineHeight: '1.5' }}>
+              Connect your Instagram Business account to enable content publishing and management through workflows.
+            </p>
+            
+            <div style={{ 
+              backgroundColor: '#f8f9fa', 
+              border: '1px solid #dee2e6', 
+              borderRadius: '8px', 
+              padding: '15px', 
+              marginBottom: '20px' 
+            }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#495057', fontSize: '14px' }}>Requirements:</h4>
+              <ul style={{ margin: 0, paddingLeft: '20px', color: '#666', fontSize: '13px' }}>
+                <li>Instagram Business or Creator account</li>
+                <li>Account must be connected to a Facebook Page</li>
+                <li>Facebook Page admin permissions required</li>
+              </ul>
+            </div>
+          </div>
+          
+          {error && (
+            <div style={errorStyle}>{error}</div>
+          )}
+          
+          <div style={buttonGroupStyle}>
+            <button
+              type="button"
+              onClick={onClose}
+              style={cancelButtonStyle}
+              disabled={isConnecting}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConnect}
+              style={{...submitButtonStyle, backgroundColor: '#E4405F'}}
+              disabled={isConnecting}
+            >
+              {isConnecting ? 'Connecting...' : 'Connect Instagram'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Telegram Token Modal Component
 function TelegramTokenModal({ isOpen, onClose, onConnect, isConnecting }) {
   const [botToken, setBotToken] = useState('');
@@ -274,6 +386,8 @@ function Connections() {
   const [connectingPlatforms, setConnectingPlatforms] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [showTelegramModal, setShowTelegramModal] = useState(false);
+  const [showInstagramModal, setShowInstagramModal] = useState(false);
+  const [instagramAuthUrl, setInstagramAuthUrl] = useState('');
 
   // Check if user is authenticated
   if (!tokenManager.isLoggedIn()) {
@@ -299,6 +413,12 @@ function Connections() {
     // Show modal for Telegram
     if (platformId === 'telegram') {
       setShowTelegramModal(true);
+      return;
+    }
+
+    // Show modal for Instagram
+    if (platformId === 'instagram') {
+      setShowInstagramModal(true);
       return;
     }
 
@@ -339,6 +459,32 @@ function Connections() {
       setConnectingPlatforms(prev => {
         const newSet = new Set(prev);
         newSet.delete('telegram');
+        return newSet;
+      });
+    }
+  };
+
+  const handleInstagramConnect = async () => {
+    setConnectingPlatforms(prev => new Set([...prev, 'instagram']));
+    
+    try {
+      const response = await connectionsAPI.connectInstagram();
+      if (response.data.authUrl) {
+        setInstagramAuthUrl(response.data.authUrl);
+      } else if (response.data.connection) {
+        setConnections(prev => ({
+          ...prev,
+          instagram: response.data.connection
+        }));
+        setShowInstagramModal(false);
+      }
+    } catch (error) {
+      console.error('Error starting Instagram connection:', error);
+      throw error; // Re-throw to let modal handle the error
+    } finally {
+      setConnectingPlatforms(prev => {
+        const newSet = new Set(prev);
+        newSet.delete('instagram');
         return newSet;
       });
     }

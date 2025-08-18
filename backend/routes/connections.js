@@ -79,6 +79,145 @@ router.post('/:platform', verifyToken, async (req, res) => {
       return res.status(400).json({ message: 'Invalid platform' });
     }
 
+    // Handle Instagram connection with OAuth flow
+    if (platform === 'instagram') {
+      const { code, state } = req.body;
+      
+      if (!code) {
+        // Generate OAuth URL for initial connection
+        const { InstagramAPI } = require('../services/instagramAPI');
+        const appId = process.env.FACEBOOK_APP_ID;
+        const redirectUri = `${process.env.FRONTEND_URL || 'https://frontend-dpcg.onrender.com'}/connections/callback/instagram`;
+        const stateParam = `${userId}_${Date.now()}`;
+        
+        if (!appId) {
+          return res.status(500).json({ 
+            message: 'Instagram connection not configured. Missing Facebook App ID.' 
+          });
+        }
+
+        const authUrl = InstagramAPI.generateAuthUrl(appId, redirectUri, stateParam);
+        
+        return res.json({
+          message: 'Instagram OAuth authorization required',
+          authUrl: authUrl,
+          redirectUri: redirectUri,
+          state: stateParam
+        });
+      }
+
+      // Handle OAuth callback with authorization code
+      try {
+        const { InstagramAPI } = require('../services/instagramAPI');
+        const instagramAPI = new InstagramAPI();
+        
+        const appId = process.env.FACEBOOK_APP_ID;
+        const appSecret = process.env.FACEBOOK_APP_SECRET;
+        const redirectUri = `${process.env.FRONTEND_URL || 'https://frontend-dpcg.onrender.com'}/connections/callback/instagram`;
+
+        if (!appId || !appSecret) {
+          return res.status(500).json({ 
+            message: 'Instagram connection not configured. Missing app credentials.' 
+          });
+        }
+
+        // Exchange code for access token
+        const tokenResult = await instagramAPI.exchangeCodeForToken(code, appId, appSecret, redirectUri);
+        
+        if (!tokenResult.success) {
+          return res.status(400).json({ 
+            message: 'Failed to exchange authorization code',
+            error: tokenResult.error.message 
+          });
+        }
+
+        const accessToken = tokenResult.data.access_token;
+
+        // Get long-lived token
+        const longLivedResult = await instagramAPI.getLongLivedToken(accessToken, appSecret);
+        const finalToken = longLivedResult.success ? longLivedResult.data.access_token : accessToken;
+
+        // Get Instagram accounts
+        const accountsResult = await instagramAPI.getInstagramAccounts(finalToken);
+        
+        if (!accountsResult.success || accountsResult.data.length === 0) {
+          return res.status(400).json({ 
+            message: 'No Instagram business accounts found. Please connect an Instagram Business account to your Facebook page.',
+            error: accountsResult.error?.message 
+          });
+        }
+
+        // Use the first Instagram account found
+        const instagramAccount = accountsResult.data[0];
+        
+        // Get account details
+        const accountInfo = await instagramAPI.getAccountInfo(instagramAccount.instagram_account_id, finalToken);
+        
+        if (!accountInfo.success) {
+          return res.status(400).json({ 
+            message: 'Failed to retrieve Instagram account information',
+            error: accountInfo.error.message 
+          });
+        }
+
+        const accountData = accountInfo.data;
+        const connection = {
+          platform_user_id: accountData.id,
+          platform_username: accountData.username,
+          platform_profile_url: `https://instagram.com/${accountData.username}`,
+          access_token: finalToken,
+          refresh_token: null,
+          token_expires_at: longLivedResult.data?.expires_in ? 
+            new Date(Date.now() + (longLivedResult.data.expires_in * 1000)).toISOString() : null
+        };
+
+        // Insert or update connection
+        db.run(
+          `INSERT OR REPLACE INTO social_connections 
+            (user_id, platform, access_token, refresh_token, token_expires_at, 
+             platform_user_id, platform_username, platform_profile_url, updated_at) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+          [
+            userId,
+            platform,
+            connection.access_token,
+            connection.refresh_token,
+            connection.token_expires_at,
+            connection.platform_user_id,
+            connection.platform_username,
+            connection.platform_profile_url
+          ],
+          function(err) {
+            if (err) {
+              console.error('Database error:', err);
+              return res.status(500).json({ message: 'Error creating connection' });
+            }
+
+            res.json({
+              message: 'Instagram account connected successfully',
+              connection: {
+                platform: platform,
+                username: connection.platform_username,
+                userId: connection.platform_user_id,
+                profileUrl: connection.platform_profile_url,
+                displayName: accountData.name,
+                followersCount: accountData.followers_count,
+                connectedAt: new Date().toISOString()
+              }
+            });
+          }
+        );
+        return;
+
+      } catch (error) {
+        console.error('Instagram OAuth error:', error);
+        return res.status(500).json({ 
+          message: 'Instagram connection failed',
+          error: error.message 
+        });
+      }
+    }
+
     // Handle Telegram connection with real bot token validation
     if (platform === 'telegram') {
       const { botToken } = req.body;
