@@ -444,31 +444,30 @@ const LiveChat = () => {
     }
   };
 
-  // Create automation for this bot
+  // Create automation for this bot (applies to ALL conversations for this bot)
   const createAutomation = () => {
     console.log('🔧 CREATE AUTOMATION CLICKED:', {
-      selectedConversation: selectedConversation,
       botToken: botToken ? `${botToken.substring(0, 10)}...` : 'MISSING',
-      hasSelectedConversation: !!selectedConversation,
-      hasBotToken: !!botToken
+      hasBotToken: !!botToken,
+      telegramConnected: telegramConnected
     });
     
-    if (!selectedConversation || !botToken) {
+    if (!botToken || !telegramConnected) {
       console.warn('❌ Cannot create automation:', {
-        missingConversation: !selectedConversation,
-        missingBotToken: !botToken
+        missingBotToken: !botToken,
+        telegramNotConnected: !telegramConnected
       });
-      alert('Unable to create automation. Please select a conversation and ensure Telegram bot is connected.');
+      alert('Unable to create automation. Please ensure Telegram bot is connected in the Connections page.');
       return;
     }
     
+    // Get bot info from connections data (we know telegram is connected)
     const workflowContext = {
       botToken: botToken,
-      botUsername: selectedConversation.username,
-      conversationId: selectedConversation.id,
-      userId: selectedConversation.userId,
+      botUsername: 'Telegram Bot', // Will be updated with actual username
       mode: 'bot-specific',
-      source: 'live-chat'
+      source: 'live-chat',
+      appliesToAllConversations: true
     };
     
     console.log('🚀 Navigating to workflow builder with context:', workflowContext);
@@ -770,7 +769,7 @@ const LiveChat = () => {
           {/* Bot Automation Section */}
           <div className="automation-status-section">
             <h4 className="automation-section-title">
-              <i className="fas fa-robot"></i> Bot Automation
+              <i className="fas fa-robot"></i> Bot-Wide Automation
             </h4>
             <div className="automation-content">
               {telegramConnected ? (
@@ -783,7 +782,7 @@ const LiveChat = () => {
                           {botWorkflows.activeWorkflows?.length || 0} Active Workflow{botWorkflows.activeWorkflows?.length !== 1 ? 's' : ''}
                         </span>
                         <p className="automation-description">
-                          This bot has automated responses configured.
+                          This bot automatically responds to ALL conversations.
                         </p>
                         <div className="automation-actions">
                           <button 
@@ -800,7 +799,7 @@ const LiveChat = () => {
                           <i className="fas fa-exclamation-triangle"></i> No Automation
                         </span>
                         <p className="automation-description">
-                          Messages are stored but not automated. Create workflows to enable AI responses.
+                          Messages are stored but not automated. Create workflows to enable AI responses for ALL conversations with this bot.
                         </p>
                         <div className="automation-actions">
                           <button 
