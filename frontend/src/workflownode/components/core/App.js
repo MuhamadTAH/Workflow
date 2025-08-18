@@ -50,6 +50,7 @@ const App = () => {
   const [isActivated, setIsActivated] = useState(false);
   const [executionProgress, setExecutionProgress] = useState('');
   const [workflowExecutor, setWorkflowExecutor] = useState(null);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
 
   // Generate a unique, readable workflow ID (moved to top to fix hoisting issue)
   const generateWorkflowId = useCallback(() => {
@@ -492,8 +493,12 @@ const App = () => {
     // Redo logic here
   }, []);
 
+  const toggleSidebar = useCallback(() => {
+    setSidebarVisible(prev => !prev);
+  }, []);
+
   return (
-    <div className="professional-workflow-builder">
+    <div className={`professional-workflow-builder ${!sidebarVisible ? 'sidebar-hidden' : ''}`}>
       <Toolbar
         onSave={handleSave}
         onActivate={handleActivate}
@@ -511,6 +516,8 @@ const App = () => {
         executionProgress={executionProgress}
         lastSaved={lastSaved}
         hasUnsavedChanges={hasUnsavedChanges}
+        onToggleSidebar={toggleSidebar}
+        sidebarVisible={sidebarVisible}
       />
       <div className="workflow-content">
         <div className="workflow-canvas" ref={reactFlowWrapper}>
@@ -537,7 +544,7 @@ const App = () => {
             />
           </ReactFlow>
         </div>
-        <Sidebar />
+        {sidebarVisible && <Sidebar />}
       </div>
       {selectedNode && (
         <ConfigPanel 

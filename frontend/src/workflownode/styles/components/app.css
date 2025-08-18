@@ -159,3 +159,52 @@ Professional main app styling for WorkflowNode system
         z-index: 100;
     }
 }
+
+/* Sidebar Toggle Animation */
+.workflow-sidebar {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.professional-workflow-builder.sidebar-hidden .workflow-sidebar {
+    transform: translateX(-100%);
+    opacity: 0;
+}
+
+.professional-workflow-builder.sidebar-hidden .workflow-canvas {
+    margin-left: 0;
+}
+
+.professional-workflow-builder .workflow-canvas {
+    transition: margin-left 0.3s ease;
+    margin-left: 0;
+}
+
+/* Sidebar toggle button styling */
+.toolbar-btn.icon-only {
+    position: relative;
+}
+
+.toolbar-btn.icon-only:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+}
+
+.toolbar-btn.icon-only i {
+    transition: transform 0.2s ease;
+}
+
+/* Mobile responsiveness for sidebar toggle */
+@media (max-width: 768px) {
+    .workflow-sidebar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1000;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .professional-workflow-builder.sidebar-hidden .workflow-sidebar {
+        transform: translateX(-100%);
+    }
+}

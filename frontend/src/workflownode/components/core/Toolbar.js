@@ -22,7 +22,9 @@ const Toolbar = ({
     isActivated,
     executionProgress,
     lastSaved,
-    hasUnsavedChanges
+    hasUnsavedChanges,
+    onToggleSidebar,
+    sidebarVisible
 }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -129,6 +131,14 @@ const Toolbar = ({
 
             {/* Right Section - Settings and User */}
             <div className="toolbar-right">
+                <button 
+                    className="toolbar-btn icon-only"
+                    onClick={onToggleSidebar}
+                    title={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
+                >
+                    <i className={`fa-solid ${sidebarVisible ? 'fa-chevron-left' : 'fa-chevron-right'}`}></i>
+                </button>
+                
                 <button className="toolbar-btn icon-only" title="Zoom to fit">
                     <i className="fa-solid fa-expand-arrows-alt"></i>
                 </button>

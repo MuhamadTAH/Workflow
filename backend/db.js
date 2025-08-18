@@ -159,6 +159,56 @@ db.serialize(() => {
     }
   });
 
+  // Create telegram_conversations table for live chat functionality
+  db.run(`
+    CREATE TABLE IF NOT EXISTS telegram_conversations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      telegram_chat_id TEXT NOT NULL,
+      telegram_username TEXT,
+      telegram_first_name TEXT,
+      telegram_last_name TEXT,
+      phone_number TEXT,
+      status TEXT DEFAULT 'automated',
+      assigned_agent_id INTEGER,
+      last_message_text TEXT,
+      last_message_timestamp DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      UNIQUE(user_id, telegram_chat_id)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating telegram_conversations table:', err);
+    } else {
+      console.log('✅ Telegram conversations table ready');
+    }
+  });
+
+  // Create telegram_messages table for live chat functionality
+  db.run(`
+    CREATE TABLE IF NOT EXISTS telegram_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      conversation_id INTEGER NOT NULL,
+      message_id TEXT,
+      sender_type TEXT NOT NULL,
+      sender_name TEXT,
+      message_text TEXT NOT NULL,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      telegram_message_id INTEGER,
+      is_processed BOOLEAN DEFAULT 1,
+      metadata TEXT,
+      FOREIGN KEY (conversation_id) REFERENCES telegram_conversations(id)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating telegram_messages table:', err);
+    } else {
+      console.log('✅ Telegram messages table ready');
+    }
+  });
+
 });
 
 module.exports = db;

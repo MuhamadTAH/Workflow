@@ -8,8 +8,9 @@ import Overview from './pages/Overview';
 import WorkflowsOverview from './pages/WorkflowsOverview';
 import Connections from './pages/Connections';
 import WorkflowBuilder from './pages/WorkflowBuilder';
+import LiveChat from './pages/LiveChat';
 import LanguageSwitcher from './components/LanguageSwitcher';
-import Sidebar from './components/Sidebar';
+import LeftSidebar from './components/LeftSidebar';
 // Initialize i18n
 import './i18n/i18n';
 import './i18n/rtl.css';
@@ -33,7 +34,7 @@ import { authAPI, tokenManager } from './api';
 import './styles.css';
 import './styles/AuthStyles.css';
 import './styles/DashboardDark.css';
-import './components/Sidebar.css';
+import './components/LeftSidebar.css';
 
 function Home() {
   const { t } = useTranslation();
@@ -42,7 +43,6 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [testLoading, setTestLoading] = useState(false);
   const [gradientVariant, setGradientVariant] = useState(1);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats] = useState({
     totalWorkflows: 12,
     activeConnections: 5,
@@ -115,17 +115,11 @@ function Home() {
   }
 
   return (
-    <div className={`professional-dashboard variant-${gradientVariant} ${sidebarOpen ? 'sidebar-open' : ''}`}>
-      <Sidebar isOpen={sidebarOpen} onToggle={() => setSidebarOpen(!sidebarOpen)} />
-      {/* Top Navigation Bar */}
+    <>
+      <LeftSidebar />
+      <div className={`professional-dashboard variant-${gradientVariant}`}>
+        {/* Top Navigation Bar */}
       <nav className="dashboard-nav">
-        <button 
-          className="mobile-menu-toggle"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          aria-label="Toggle menu"
-        >
-          <i className="fas fa-bars"></i>
-        </button>
         <div className="nav-container">
           <div className="nav-brand">
             <h2>⚡ WorkflowPro</h2>
@@ -226,6 +220,10 @@ function Home() {
               <Link to="/connections" className="action-item">
                 <i className="fas fa-plug"></i>
                 <span>Connect Apps</span>
+              </Link>
+              <Link to="/live-chat" className="action-item premium">
+                <i className="fas fa-comments"></i>
+                <span>Live Chat</span>
               </Link>
               <Link to="/shop" className="action-item premium shop-action">
                 <i className="fas fa-store"></i>
@@ -331,8 +329,8 @@ function Home() {
           </div>
         </footer>
       </div>
-
     </div>
+    </>
   );
 }
 
@@ -347,6 +345,7 @@ function App() {
         <Route path="/overview" element={<Overview />} />
         <Route path="/workflows" element={<WorkflowsOverview />} />
         <Route path="/connections" element={<Connections />} />
+        <Route path="/live-chat" element={<LiveChat />} />
         <Route path="/workflow" element={<WorkflowBuilder />} />
         <Route path="/workflow-builder" element={<WorkflowBuilder />} />
         {/* <Route path="/workflownode" element={<WorkflowNode />} /> */}

@@ -13,6 +13,8 @@ Professional sidebar styles for the workflow builder
     overflow-y: auto;
     flex-shrink: 0;
     position: relative;
+    transform: translateX(0);
+    transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 /* Sidebar Header */

@@ -15,6 +15,7 @@ const languageRoutes = require('./routes/language');
 const debugRoutes = require('./routes/debug');
 const jobsRoutes = require('./routes/jobs');
 const chatRoutes = require('./routes/chat');
+const liveChatRoutes = require('./routes/livechat');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
@@ -163,6 +164,7 @@ app.use('/api/public', publicRoutes);
 app.use('/api/uploads', uploadsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/chat-messages', chatRoutes);
+app.use('/api/live-chat', liveChatRoutes);
 app.use(languageRoutes);
 app.use(debugRoutes);
 app.use('/api/jobs', jobsRoutes);
