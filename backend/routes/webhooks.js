@@ -66,6 +66,7 @@ router.post('/telegram-livechat/:userId', asyncHandler(async (req, res) => {
   
   console.log(`📞 LIVE CHAT: Message received for user: ${userId}`);
   console.log('📦 Update data:', JSON.stringify(update, null, 2));
+  console.log('🔍 Webhook called at:', new Date().toISOString());
   
   // Validate Telegram update format
   if (!update || !update.message) {

@@ -43,12 +43,6 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [testLoading, setTestLoading] = useState(false);
   const [gradientVariant, setGradientVariant] = useState(1);
-  const [stats] = useState({
-    totalWorkflows: 12,
-    activeConnections: 5,
-    monthlyExecutions: 1247,
-    successRate: 98.5
-  });
 
   // Rotate gradient variants for freshness
   useEffect(() => {
@@ -158,83 +152,9 @@ function Home() {
           </div>
         </header>
 
-        {/* Stats Grid */}
-        <div className="stats-grid">
-          <div className="stat-card primary breathing">
-            <div className="stat-icon">
-              <i className="fas fa-project-diagram"></i>
-            </div>
-            <div className="stat-content">
-              <h3 className="stat-number">{stats.totalWorkflows}</h3>
-              <p className="stat-label">Total Workflows</p>
-              <span className="stat-change positive">+3 this month</span>
-            </div>
-          </div>
-
-          <div className="stat-card success">
-            <div className="stat-icon">
-              <i className="fas fa-link"></i>
-            </div>
-            <div className="stat-content">
-              <h3 className="stat-number">{stats.activeConnections}</h3>
-              <p className="stat-label">Active Connections</p>
-              <span className="stat-change positive">+2 recent</span>
-            </div>
-          </div>
-
-          <div className="stat-card info">
-            <div className="stat-icon">
-              <i className="fas fa-play"></i>
-            </div>
-            <div className="stat-content">
-              <h3 className="stat-number">{stats.monthlyExecutions.toLocaleString()}</h3>
-              <p className="stat-label">Monthly Executions</p>
-              <span className="stat-change positive">+12% vs last month</span>
-            </div>
-          </div>
-
-          <div className="stat-card warning">
-            <div className="stat-icon">
-              <i className="fas fa-chart-line"></i>
-            </div>
-            <div className="stat-content">
-              <h3 className="stat-number">{stats.successRate}%</h3>
-              <p className="stat-label">Success Rate</p>
-              <span className="stat-change positive">Excellent</span>
-            </div>
-          </div>
-        </div>
 
         {/* Main Content Grid */}
         <div className="content-grid">
-          {/* Quick Actions */}
-          <div className="dashboard-card quick-actions">
-            <div className="card-header">
-              <h3><i className="fas fa-bolt"></i> Quick Actions</h3>
-            </div>
-            <div className="actions-grid">
-              <Link to="/workflow" className="action-item">
-                <i className="fas fa-magic"></i>
-                <span>Build Workflow</span>
-              </Link>
-              <Link to="/connections" className="action-item">
-                <i className="fas fa-plug"></i>
-                <span>Connect Apps</span>
-              </Link>
-              <Link to="/live-chat" className="action-item premium">
-                <i className="fas fa-comments"></i>
-                <span>Live Chat</span>
-              </Link>
-              <Link to="/shop" className="action-item premium shop-action">
-                <i className="fas fa-store"></i>
-                <span>My Shop</span>
-              </Link>
-              <button onClick={callBackend} className="action-item" disabled={testLoading}>
-                <i className={testLoading ? "fas fa-spinner fa-spin" : "fas fa-server"}></i>
-                <span>{testLoading ? 'Testing...' : 'Test Backend'}</span>
-              </button>
-            </div>
-          </div>
 
           {/* Recent Activity */}
           <div className="dashboard-card recent-activity">

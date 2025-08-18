@@ -45,6 +45,7 @@ router.get('/conversations', authenticateUser, asyncHandler(async (req, res) => 
 
   db.all(sql, [req.user.userId], (err, conversations) => {
     if (err) {
+      console.error('❌ Database error in get conversations:', err);
       logger.logError(err, { context: 'get_conversations', userId: req.user.userId });
       return res.status(500).json({
         success: false,
@@ -52,7 +53,16 @@ router.get('/conversations', authenticateUser, asyncHandler(async (req, res) => 
       });
     }
 
-    console.log(`📞 Live chat: Found ${conversations.length} conversations`);
+    console.log(`📞 Live chat: Found ${conversations.length} conversations for user ${req.user.userId}`);
+    
+    // Debug: Let's also check if there are ANY conversations in the table
+    db.all('SELECT COUNT(*) as total FROM telegram_conversations', [], (countErr, countResult) => {
+      if (countErr) {
+        console.error('❌ Error counting total conversations:', countErr);
+      } else {
+        console.log(`📊 Total conversations in database: ${countResult[0]?.total || 0}`);
+      }
+    });
 
     res.json({
       success: true,
@@ -335,6 +345,47 @@ router.patch('/conversations/:conversationId/status', authenticateUser, asyncHan
       status: status
     });
   });
+}));
+
+// DEBUG: Test endpoint to check database connection and tables
+router.get('/debug/tables', authenticateUser, asyncHandler(async (req, res) => {
+  console.log('🔧 DEBUG: Checking database tables...');
+  
+  try {
+    // Check if tables exist
+    db.all("SELECT name FROM sqlite_master WHERE type='table'", [], (err, tables) => {
+      if (err) {
+        console.error('❌ Error checking tables:', err);
+        return res.status(500).json({ success: false, error: err.message });
+      }
+      
+      console.log('📋 Available tables:', tables.map(t => t.name));
+      
+      // Check telegram_conversations table structure
+      db.all("PRAGMA table_info(telegram_conversations)", [], (pragmaErr, columns) => {
+        if (pragmaErr) {
+          console.error('❌ Error checking telegram_conversations structure:', pragmaErr);
+          return res.json({
+            success: true,
+            tables: tables.map(t => t.name),
+            error: 'Could not check telegram_conversations structure'
+          });
+        }
+        
+        console.log('📊 telegram_conversations columns:', columns);
+        
+        res.json({
+          success: true,
+          tables: tables.map(t => t.name),
+          telegram_conversations_columns: columns,
+          user_id: req.user.userId
+        });
+      });
+    });
+  } catch (error) {
+    console.error('❌ DEBUG error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
 }));
 
 // Create or update conversation from Telegram webhook data
