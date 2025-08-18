@@ -38,11 +38,10 @@ class WorkflowExecutor {
         // Find trigger node (various types)
         const triggerNode = workflowConfig.nodes.find(node => 
             node.data.type === 'trigger' || 
-            node.data.type === 'telegramTrigger' ||
-            node.data.type === 'chatTrigger'
+            node.data.type === 'telegramTrigger'
         );
         if (!triggerNode) {
-            throw new Error('Workflow must contain a trigger node (trigger, telegramTrigger, or chatTrigger)');
+            throw new Error('Workflow must contain a trigger node (trigger or telegramTrigger)');
         }
 
         console.log(`Found trigger node: ${triggerNode.data.label || triggerNode.data.type} (${triggerNode.id})`);
@@ -762,8 +761,7 @@ class WorkflowExecutor {
                 // Skip trigger nodes if replaying from failed step (already have their data)
                 if (fromFailedStep && i < startStep && (
                     node.data.type === 'trigger' || 
-                    node.data.type === 'telegramTrigger' || 
-                    node.data.type === 'chatTrigger'
+                    node.data.type === 'telegramTrigger'
                 )) {
                     console.log(`🔄 REPLAY: Skipping trigger node ${node.data.type} (using restored data)`);
                     continue;

@@ -17,18 +17,7 @@ const switchNode = require('../nodes/logic/switchNode');
 const waitNode = require('../nodes/logic/waitNode');
 const mergeNode = require('../nodes/logic/mergeNode');
 const filterNode = require('../nodes/logic/filterNode');
-// Force clear require cache and reload chatTriggerNode
-const chatTriggerPath = require.resolve('../nodes/triggers/chatTriggerNode');
-delete require.cache[chatTriggerPath];
-const chatTriggerNode = require('../nodes/triggers/chatTriggerNode');
-
-// Debug logging for chatTriggerNode
-console.log('🔍 chatTriggerNode loaded:', {
-    exists: !!chatTriggerNode,
-    hasExecute: typeof chatTriggerNode.execute === 'function',
-    keys: Object.keys(chatTriggerNode || {}),
-    executeType: typeof chatTriggerNode?.execute
-});
+// chatTriggerNode permanently removed
 
 
 const { createBackendExecutionContext } = require('../utils/executionContext');
@@ -218,39 +207,18 @@ const runNode = async (req, res) => {
                         break;
                     
                     case 'chatTrigger':
-                        // Chat trigger nodes execute to fetch messages
-                        console.log('🔍 About to execute chatTriggerNode:', {
-                            nodeExists: !!chatTriggerNode,
-                            hasExecute: typeof chatTriggerNode?.execute === 'function',
-                            executeType: typeof chatTriggerNode?.execute
-                        });
-                        
-                        if (!chatTriggerNode || typeof chatTriggerNode.execute !== 'function') {
-                            console.error('❌ chatTriggerNode or execute function missing!');
-                            itemResult = {
-                                success: false,
-                                error: 'Chat Trigger node not properly loaded',
-                                data: null
-                            };
-                            break;
-                        }
-                        
-                        try {
-                            itemResult = await chatTriggerNode.execute(currentItem, processedConfig, executionContext);
-                        } catch (error) {
-                            console.error('❌ Chat Trigger execution error:', error);
-                            itemResult = {
-                                success: false,
-                                error: `Chat Trigger failed: ${error.message}`,
-                                data: null
-                            };
-                        }
+                        // Chat Trigger node has been permanently removed
+                        itemResult = {
+                            success: false,
+                            error: 'Chat Trigger node has been permanently removed from the system',
+                            data: null
+                        };
                         break;
                     
                     default:
                         return res.status(400).json({ 
                             message: `Unsupported node type: ${node.type}`,
-                            supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'chatTrigger', 'if', 'switch', 'wait', 'merge', 'filter']
+                            supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'if', 'switch', 'wait', 'merge', 'filter']
                         });
                 }
                 

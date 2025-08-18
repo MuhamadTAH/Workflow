@@ -17,7 +17,7 @@ const debugRoutes = require('./routes/debug');
 const jobsRoutes = require('./routes/jobs');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
-const chatMessagesRoutes = require('./routes/chatMessages');
+// chatMessages routes removed
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const logger = require('./services/logger');
 require('./db'); // Initialize database
@@ -168,7 +168,7 @@ app.use(chatRoutes);
 app.use(languageRoutes);
 app.use(debugRoutes);
 app.use('/api/jobs', jobsRoutes);
-app.use('/api/chat-messages', chatMessagesRoutes);
+// chatMessages routes removed
 // Additional middleware to debug CORS and route issues
 app.use('/api/nodes', (req, res, next) => {
   console.log('🔍 NODES API REQUEST DEBUG:', {
@@ -182,14 +182,7 @@ app.use('/api/nodes', (req, res, next) => {
   next();
 });
 
-// Force clear chatTriggerNode cache before loading routes
-try {
-  const chatTriggerPath = require.resolve('./nodes/triggers/chatTriggerNode');
-  delete require.cache[chatTriggerPath];
-  console.log('🔄 Cleared chatTriggerNode cache at startup');
-} catch (e) {
-  console.log('⚠️ Could not clear chatTriggerNode cache:', e.message);
-}
+// chatTriggerNode permanently removed - cache clearing no longer needed
 
 // NEW ROUTES FROM WORKFLOWNODE
 app.use('/api/nodes', nodesRoutes);
@@ -212,29 +205,15 @@ app.get('/api/hello', (req, res) => {
 // Debug route to check chatTriggerNode loading
 app.get('/api/debug/chat-trigger', (req, res) => {
   try {
-    // Test dependencies first
-    console.log('🔍 Testing chatMessageStorage...');
-    const chatMessageStorage = require('./services/chatMessageStorage');
-    console.log('✅ chatMessageStorage loaded:', !!chatMessageStorage);
-    
     console.log('🔍 Testing logger...');
     const logger = require('./services/logger');
     console.log('✅ logger loaded:', !!logger);
     
-    console.log('🔍 Testing chatTriggerNode...');
-    const chatTriggerNode = require('./nodes/triggers/chatTriggerNode');
-    console.log('✅ chatTriggerNode loaded:', !!chatTriggerNode);
+    // chatTriggerNode permanently removed - debug check no longer needed
     
     res.json({
-      status: 'loaded',
-      original: {
-        nodeExists: !!chatTriggerNode,
-        hasExecute: typeof chatTriggerNode?.execute === 'function',
-        executeType: typeof chatTriggerNode?.execute,
-        keys: Object.keys(chatTriggerNode || {})
-      },
+      status: 'chatTriggerNode permanently removed',
       dependencies: {
-        chatMessageStorage: !!chatMessageStorage,
         logger: !!logger
       },
       timestamp: new Date().toISOString()
