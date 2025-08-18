@@ -369,6 +369,8 @@ class TelegramSendMessageNode {
             
             if (!chatId) {
                 console.log('⚠️ No chat ID found - cannot save to Live Chat database');
+                console.log('   This is normal for manual execution (Execute button) or when testing workflows');
+                console.log('   Live Chat integration only works when real Telegram messages trigger the workflow');
                 return;
             }
             

@@ -390,6 +390,12 @@ router.post('/telegram/:workflowId', async (req, res) => {
     // Check if workflow is active and queue for execution (only if automation is allowed)
     if (workflowExecutor && workflowExecutor.activeWorkflows.has(workflowId) && shouldProcessAutomation) {
       try {
+        console.log('[telegram-webhook] 🚀 WORKFLOW EXECUTION TRIGGERED');
+        console.log('[telegram-webhook] 📋 Workflow ID:', workflowId);
+        console.log('[telegram-webhook] 👤 User ID:', userId);
+        console.log('[telegram-webhook] 💬 Message:', update.message.text);
+        console.log('[telegram-webhook] 💭 Chat ID:', update.message.chat.id);
+        
         // Log the workflow trigger event
         const summary = TriggerDataProcessor.getSummary(standardizedData);
         logWorkflowTriggered(workflowId, 'telegramTrigger', summary);
@@ -397,6 +403,7 @@ router.post('/telegram/:workflowId', async (req, res) => {
         // Prepare trigger data for workflow execution
         const triggerData = TriggerDataProcessor.toExecutionFormat(standardizedData);
         
+        console.log('[telegram-webhook] 📦 Trigger data prepared:', JSON.stringify(triggerData, null, 2));
         console.log('[telegram-webhook] 📥 Queuing workflow for execution:', workflowId);
         
         // Add job to queue instead of direct execution
