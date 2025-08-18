@@ -179,7 +179,7 @@ const runNode = async (req, res) => {
                                 const recentMessages = await new Promise((resolve, reject) => {
                                     db.all(`
                                         SELECT * FROM telegram_messages 
-                                        WHERE type = 'user' 
+                                        WHERE sender_type = 'user' 
                                         ORDER BY timestamp DESC 
                                         LIMIT 1
                                     `, (err, rows) => {
@@ -194,17 +194,17 @@ const runNode = async (req, res) => {
                                     const telegramUpdate = {
                                         update_id: Date.now(),
                                         message: {
-                                            message_id: message.message_id || Date.now(),
+                                            message_id: message.telegram_message_id || Date.now(),
                                             from: {
-                                                id: parseInt(message.sender_id || '123456789'),
-                                                first_name: message.sender || 'Test User',
-                                                username: message.sender || 'test_user'
+                                                id: 123456789,
+                                                first_name: message.sender_name || 'Live Chat User',
+                                                username: message.sender_name?.toLowerCase().replace(/\s+/g, '_') || 'live_chat_user'
                                             },
                                             chat: {
-                                                id: parseInt(message.chat_id || '123456789'),
+                                                id: message.conversation_id || 123456789,
                                                 type: 'private'
                                             },
-                                            text: message.text,
+                                            text: message.message_text,
                                             date: Math.floor(new Date(message.timestamp).getTime() / 1000)
                                         }
                                     };
