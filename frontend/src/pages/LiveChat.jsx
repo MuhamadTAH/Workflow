@@ -246,19 +246,30 @@ const LiveChat = () => {
   const handleSendMessage = async () => {
     if (!messageText.trim() || sending || !selectedConversation) return;
 
+    console.log('🔍 FRONTEND SEND DEBUG:', {
+      messageText: messageText,
+      botToken: botToken ? `${botToken.substring(0, 10)}...` : 'MISSING',
+      selectedConversationId: selectedConversation.id,
+      botTokenLength: botToken ? botToken.length : 0
+    });
+
     setSending(true);
     try {
       const token = tokenManager.getToken();
+      const requestBody = {
+        message: messageText,
+        botToken: botToken
+      };
+      
+      console.log('📤 Sending request body:', JSON.stringify(requestBody));
+      
       const response = await fetch(`${API_BASE}/api/live-chat/conversations/${selectedConversation.id}/send`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          message: messageText,
-          botToken: botToken
-        })
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
