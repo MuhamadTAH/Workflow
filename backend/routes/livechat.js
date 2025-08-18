@@ -276,6 +276,115 @@ router.post('/conversations/:conversationId/send', authenticateUser, asyncHandle
   });
 }));
 
+// Handover endpoint - Toggle between automated and human control
+router.post('/conversations/:conversationId/handover', authenticateUser, asyncHandler(async (req, res) => {
+  const { conversationId } = req.params;
+  
+  console.log('🔄 HANDOVER: Request for conversation', conversationId);
+
+  // Get current conversation status
+  const currentSql = `
+    SELECT id, status, assigned_agent_id, telegram_first_name, telegram_last_name, telegram_username 
+    FROM telegram_conversations 
+    WHERE id = ? AND user_id = ?
+  `;
+
+  db.get(currentSql, [conversationId, req.user.userId], (err, conversation) => {
+    if (err) {
+      logger.logError(err, { context: 'handover_get_status', conversationId });
+      return res.status(500).json({
+        success: false,
+        error: 'Database error'
+      });
+    }
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        error: 'Conversation not found'
+      });
+    }
+
+    // Toggle status: automated <-> human
+    const newStatus = conversation.status === 'automated' ? 'human' : 'automated';
+    const newAgentId = newStatus === 'human' ? req.user.userId : null;
+
+    console.log(`🔄 HANDOVER: ${conversation.status} → ${newStatus} for conversation ${conversationId}`);
+
+    // Update conversation status
+    const updateSql = `
+      UPDATE telegram_conversations 
+      SET status = ?, 
+          assigned_agent_id = ?,
+          updated_at = CURRENT_TIMESTAMP 
+      WHERE id = ? AND user_id = ?
+    `;
+
+    db.run(updateSql, [newStatus, newAgentId, conversationId, req.user.userId], function(err) {
+      if (err) {
+        logger.logError(err, { context: 'handover_update_status', conversationId, newStatus });
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to update conversation status'
+        });
+      }
+
+      if (this.changes === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'Conversation not found'
+        });
+      }
+
+      // Add system message about handover
+      const systemMessageSql = `
+        INSERT INTO telegram_messages 
+        (conversation_id, sender_type, sender_name, message_text, metadata)
+        VALUES (?, ?, ?, ?, ?)
+      `;
+
+      const customerName = `${conversation.telegram_first_name || ''} ${conversation.telegram_last_name || ''}`.trim() 
+        || conversation.telegram_username 
+        || `User ${conversationId}`;
+
+      const systemMessage = newStatus === 'human' 
+        ? `👨‍💼 Agent took over conversation with ${customerName}. Automation paused for this chat.`
+        : `🤖 Conversation with ${customerName} returned to automation. AI will now respond automatically.`;
+
+      const metadata = JSON.stringify({
+        agent_id: req.user.userId,
+        handover_action: newStatus,
+        previous_status: conversation.status,
+        timestamp: new Date().toISOString()
+      });
+
+      db.run(systemMessageSql, [
+        conversationId,
+        'system',
+        'System',
+        systemMessage,
+        metadata
+      ], (systemErr) => {
+        if (systemErr) {
+          logger.logError(systemErr, { context: 'handover_system_message', conversationId });
+          // Continue even if system message fails
+        }
+      });
+
+      console.log(`✅ HANDOVER: Successfully updated conversation ${conversationId} to ${newStatus}`);
+      
+      res.json({
+        success: true,
+        message: `Conversation ${newStatus === 'human' ? 'taken over by agent' : 'returned to automation'}`,
+        conversationId: conversationId,
+        previousStatus: conversation.status,
+        newStatus: newStatus,
+        agentId: newAgentId
+      });
+    });
+  });
+}));
+
 // Update conversation status (for human handover)
 router.patch('/conversations/:conversationId/status', authenticateUser, asyncHandler(async (req, res) => {
   const { conversationId } = req.params;

@@ -161,6 +161,19 @@
   border-right-color: var(--accent-primary);
 }
 
+/* Status-based conversation indicators */
+.conversation-item.status-automated {
+  border-left: 3px solid #10B981;
+}
+
+.conversation-item.status-human {
+  border-left: 3px solid #F59E0B;
+}
+
+.conversation-item.status-closed {
+  border-left: 3px solid #6B7280;
+}
+
 .conversation-avatar {
   width: 48px;
   height: 48px;
@@ -520,6 +533,118 @@
 
 .detail-value.accent {
   color: var(--accent-primary);
+}
+
+/* Conversation Control Section */
+.conversation-control-section {
+  background: linear-gradient(135deg, #1a2332 0%, #243447 100%);
+  border: 1px solid #374151;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.control-section-title {
+  color: #D4AF37;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.status-label {
+  color: #94A3B8;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-badge.automated {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10B981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-badge.human {
+  background: rgba(245, 158, 11, 0.2);
+  color: #F59E0B;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.handover-button {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+}
+
+.handover-button.take-over {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: #FFF;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+.handover-button.take-over:hover:not(:disabled) {
+  background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.handover-button.return-automation {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: #FFF;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.handover-button.return-automation:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.handover-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.control-description {
+  font-size: 11px;
+  color: #94A3B8;
+  line-height: 1.4;
+  margin: 0;
+  text-align: center;
 }
 
 .history-button {

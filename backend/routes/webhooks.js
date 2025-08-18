@@ -359,8 +359,36 @@ router.post('/telegram/:workflowId', async (req, res) => {
       }
     }
 
-    // Check if workflow is active and queue for execution
-    if (workflowExecutor && workflowExecutor.activeWorkflows.has(workflowId)) {
+    // Check if this specific conversation allows automation
+    let shouldProcessAutomation = true;
+    if (userId) {
+      try {
+        const db = require('../db');
+        const conversationStatus = await new Promise((resolve, reject) => {
+          db.get(
+            'SELECT status FROM telegram_conversations WHERE user_id = ? AND telegram_chat_id = ?',
+            [userId, update.message.chat.id.toString()],
+            (err, row) => {
+              if (err) reject(err);
+              else resolve(row?.status || 'automated'); // Default to automated if no record
+            }
+          );
+        });
+        
+        shouldProcessAutomation = conversationStatus === 'automated';
+        console.log(`[telegram-webhook] 🔍 Conversation status check: ${conversationStatus} (userId: ${userId}, chatId: ${update.message.chat.id})`);
+        
+        if (!shouldProcessAutomation) {
+          console.log(`[telegram-webhook] 🛑 Skipping automation - conversation is under human control`);
+        }
+      } catch (statusError) {
+        console.warn('[telegram-webhook] ⚠️ Failed to check conversation status, defaulting to automation:', statusError.message);
+        shouldProcessAutomation = true; // Default to automation if check fails
+      }
+    }
+
+    // Check if workflow is active and queue for execution (only if automation is allowed)
+    if (workflowExecutor && workflowExecutor.activeWorkflows.has(workflowId) && shouldProcessAutomation) {
       try {
         // Log the workflow trigger event
         const summary = TriggerDataProcessor.getSummary(standardizedData);
@@ -405,9 +433,13 @@ router.post('/telegram/:workflowId', async (req, res) => {
         // Continue processing even if execution fails
       }
     } else {
-      console.warn('[telegram-webhook] ⚠️ Workflow not found or not active:', workflowId);
-      if (workflowExecutor) {
-        console.log(`[telegram-webhook] 📋 Available workflows: [${Array.from(workflowExecutor.activeWorkflows.keys()).join(', ')}]`);
+      if (!shouldProcessAutomation) {
+        console.log('[telegram-webhook] ✅ Message stored for human agent - automation skipped for this conversation');
+      } else {
+        console.warn('[telegram-webhook] ⚠️ Workflow not found or not active:', workflowId);
+        if (workflowExecutor) {
+          console.log(`[telegram-webhook] 📋 Available workflows: [${Array.from(workflowExecutor.activeWorkflows.keys()).join(', ')}]`);
+        }
       }
     }
     

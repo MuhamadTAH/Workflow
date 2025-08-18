@@ -17,6 +17,7 @@ const LiveChat = () => {
   const [sending, setSending] = useState(false);
   const [botToken, setBotToken] = useState('');
   const [telegramConnected, setTelegramConnected] = useState(false);
+  const [handoverLoading, setHandoverLoading] = useState(false);
 
   // Mock data for now - will be replaced with API calls
   const mockConversations = [
@@ -337,6 +338,60 @@ const LiveChat = () => {
     }
   };
 
+  // Handle conversation handover (toggle between automated and human control)
+  const handleHandover = async () => {
+    if (!selectedConversation || handoverLoading) return;
+
+    setHandoverLoading(true);
+    try {
+      const token = tokenManager.getToken();
+      const response = await fetch(`${API_BASE}/api/live-chat/conversations/${selectedConversation.id}/handover`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update conversation control');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        console.log(`✅ HANDOVER: ${data.previousStatus} → ${data.newStatus} for conversation ${selectedConversation.id}`);
+        
+        // Update the conversation status in state
+        setConversations(conversations.map(conv => 
+          conv.id === selectedConversation.id 
+            ? { ...conv, status: data.newStatus }
+            : conv
+        ));
+        
+        // Update selected conversation
+        setSelectedConversation({
+          ...selectedConversation,
+          status: data.newStatus
+        });
+
+        // Reload messages to show system message
+        loadMessages(selectedConversation.id);
+        
+        // Show success feedback
+        const action = data.newStatus === 'human' ? 'taken over' : 'returned to automation';
+        console.log(`🎉 Conversation successfully ${action}`);
+        
+      } else {
+        throw new Error(data.error || 'Failed to update conversation control');
+      }
+    } catch (error) {
+      console.error('Failed to update conversation control:', error);
+      alert('Failed to update conversation control: ' + error.message);
+    } finally {
+      setHandoverLoading(false);
+    }
+  };
+
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -436,7 +491,7 @@ const LiveChat = () => {
           {conversations.map((conversation) => (
             <div
               key={conversation.id}
-              className={`conversation-item ${selectedConversation?.id === conversation.id ? 'selected' : ''}`}
+              className={`conversation-item status-${conversation.status || 'automated'} ${selectedConversation?.id === conversation.id ? 'selected' : ''}`}
               onClick={() => handleConversationSelect(conversation)}
             >
               <div className={`conversation-avatar ${getStatusColor(conversation.status)}`}>
@@ -576,6 +631,54 @@ const LiveChat = () => {
             <div className="detail-row">
               <span className="detail-label">Username:</span>
               <span className="detail-value accent">{selectedConversation?.username}</span>
+            </div>
+          </div>
+
+          {/* Conversation Control Section */}
+          <div className="conversation-control-section">
+            <h4 className="control-section-title">
+              <i className="fas fa-cog"></i> Conversation Control
+            </h4>
+            <div className="control-content">
+              <div className="status-display">
+                <span className="status-label">Current Status:</span>
+                <span className={`status-badge ${selectedConversation?.status || 'automated'}`}>
+                  {selectedConversation?.status === 'human' ? (
+                    <>
+                      <i className="fas fa-user"></i> Human Agent
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-robot"></i> AI Automated
+                    </>
+                  )}
+                </span>
+              </div>
+              <button 
+                className={`handover-button ${selectedConversation?.status === 'human' ? 'return-automation' : 'take-over'}`}
+                onClick={handleHandover}
+                disabled={handoverLoading || !selectedConversation}
+              >
+                {handoverLoading ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin"></i> Processing...
+                  </>
+                ) : selectedConversation?.status === 'human' ? (
+                  <>
+                    <i className="fas fa-robot"></i> Return to Automation
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-user"></i> Take Over Chat
+                  </>
+                )}
+              </button>
+              <p className="control-description">
+                {selectedConversation?.status === 'human' 
+                  ? 'You are currently handling this conversation manually. Click to return to AI automation.'
+                  : 'This conversation is handled by AI automation. Click to take manual control.'
+                }
+              </p>
             </div>
           </div>
 
