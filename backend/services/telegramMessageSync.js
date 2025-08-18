@@ -243,7 +243,7 @@ class TelegramMessageSync {
       
       if (webhookInfo.success && webhookInfo.data && webhookInfo.data.url) {
         webhookUrl = webhookInfo.data.url;
-        logger.info('Current webhook detected', { url: webhookUrl });
+        logger.info('Current webhook detected - will temporarily disable for sync', { url: webhookUrl });
         
         // Temporarily delete webhook to use getUpdates
         const deleteResult = await telegramAPI.deleteWebhook();
