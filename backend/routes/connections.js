@@ -264,7 +264,7 @@ router.post('/:platform', verifyToken, async (req, res) => {
           connection.platform_username,
           connection.platform_profile_url
         ],
-        function(err) {
+        async function(err) {
           if (err) {
             console.error('Database error:', err);
             return res.status(500).json({ message: 'Error creating connection' });
