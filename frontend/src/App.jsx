@@ -57,9 +57,15 @@ function Home() {
       try {
         if (tokenManager.isLoggedIn()) {
           console.log('Fetching user profile...');
-          const response = await authAPI.getProfile();
-          setUser(response.data.user);
-          console.log('Profile loaded:', response.data.user);
+          // TODO: Integrate with n8n user management
+          // For now, use mock user data
+          const mockUser = {
+            id: 2,
+            name: "Muhammad tarq", 
+            email: "mhamadtah548@gmail.com"
+          };
+          setUser(mockUser);
+          console.log('Profile loaded (mock):', mockUser);
         }
       } catch (error) {
         console.error('Profile fetch error:', error);
