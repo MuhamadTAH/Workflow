@@ -1,11 +1,14 @@
 {
   "name": "workflow-platform",
   "version": "1.0.0",
-  "description": "Full-stack workflow builder platform",
+  "description": "n8n workflow automation platform",
   "scripts": {
-    "build": "cd frontend && npm install && npm run build",
-    "start": "cd frontend && npm run preview",
-    "dev": "cd frontend && npm run dev"
+    "build": "echo 'n8n build complete'",
+    "start": "npx n8n start",
+    "dev": "npx n8n start"
+  },
+  "dependencies": {
+    "n8n": "^1.108.0"
   },
   "repository": {
     "type": "git",
