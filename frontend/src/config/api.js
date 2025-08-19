@@ -18,30 +18,37 @@ const getApiBaseUrl = () => {
 
 export const API_BASE_URL = getApiBaseUrl();
 
-// Export commonly used API endpoints
+// Export commonly used API endpoints (n8n format)
 export const API_ENDPOINTS = {
-  // Authentication
+  // n8n Authentication (if needed, or use basic auth)
   LOGIN: `${API_BASE_URL}/api/login`,
   SIGNUP: `${API_BASE_URL}/api/signup`,
   PROFILE: `${API_BASE_URL}/api/profile`,
   
-  // Nodes
+  // n8n Workflows API
+  WORKFLOWS: `${API_BASE_URL}/api/v1/workflows`,
+  SAVE_WORKFLOW: `${API_BASE_URL}/api/v1/workflows`,
+  LOAD_WORKFLOW: `${API_BASE_URL}/api/v1/workflows`,
+  DELETE_WORKFLOW: `${API_BASE_URL}/api/v1/workflows`,
+  
+  // n8n Executions API
+  EXECUTIONS: `${API_BASE_URL}/api/v1/executions`,
+  RUN_WORKFLOW: `${API_BASE_URL}/api/v1/workflows/run`,
+  
+  // n8n Credentials API
+  CREDENTIALS: `${API_BASE_URL}/api/v1/credentials`,
+  
+  // Custom endpoints (bridge to n8n)
   RUN_NODE: `${API_BASE_URL}/api/nodes/run-node`,
   VALIDATE_TELEGRAM: `${API_BASE_URL}/api/nodes/validate-telegram-token`,
   GET_TELEGRAM_UPDATES: `${API_BASE_URL}/api/nodes/telegram-get-updates`,
-  VERIFY_CLAUDE: `${API_BASE_URL}/api/verify-claude`,
   
-  // Workflows
-  SAVE_WORKFLOW: `${API_BASE_URL}/api/workflows/save`,
-  LOAD_WORKFLOW: `${API_BASE_URL}/api/workflows/load`,
-  DELETE_WORKFLOW: `${API_BASE_URL}/api/workflows/delete`,
-  
-  // Uploads
+  // Uploads (will need custom handling)
   UPLOAD_PRODUCT_IMAGE: `${API_BASE_URL}/api/uploads/product-image`,
   UPLOAD_PRODUCT_VIDEO: `${API_BASE_URL}/api/uploads/product-video`,
   
   // Health
-  HEALTH_CHECK: `${API_BASE_URL}/api/health`,
+  HEALTH_CHECK: `${API_BASE_URL}/api/v1/healthz`,
   
 };
 
