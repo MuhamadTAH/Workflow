@@ -136,19 +136,11 @@ function Home() {
         <header className="dashboard-hero">
           <div className="hero-content">
             <h1 className="hero-title">
-              {t('common.welcome', { name: user.name || user.email.split('@')[0] })}
+              AI Marketing Dashboard
             </h1>
             <p className="hero-subtitle">
-              {t('common.dashboardSubtitle')}
+              Manage your automated marketing workflows and e-commerce operations
             </p>
-          </div>
-          <div className="hero-actions">
-            <Link to="/workflow" className="btn btn-primary">
-              <i className="fas fa-plus"></i> {t('workflow.create')}
-            </Link>
-            <Link to="/workflows" className="btn btn-secondary">
-              <i className="fas fa-list"></i> {t('common.viewAll')}
-            </Link>
           </div>
         </header>
 
