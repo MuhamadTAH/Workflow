@@ -60,17 +60,19 @@ function Login() {
       console.log('🔑 Attempting login with:', { email: formData.email, password: '***' });
       console.log('🌐 API Base URL:', API_BASE_URL);
       
-      const response = await authAPI.login(formData);
-      console.log('✅ Login response:', response);
-      
-      const { token } = response.data;
-      
-      tokenManager.setToken(token);
-      addMessage("Awesome, you're in! Welcome back! 🚀", 'them');
-      
-      setTimeout(() => {
-        navigate('/');
-      }, 1500);
+      // TODO: Integrate with n8n authentication
+      // For now, bypass authentication to test n8n workflows
+      if (formData.email === 'mhamadtah548@gmail.com' && formData.password === '1qazxsw2') {
+        const mockToken = 'n8n-test-token-' + Date.now();
+        tokenManager.setToken(mockToken);
+        addMessage("Awesome, you're in! Welcome back! 🚀", 'them');
+        
+        setTimeout(() => {
+          navigate('/');
+        }, 1500);
+      } else {
+        throw new Error('Invalid credentials');
+      }
     } catch (err) {
       console.error('❌ Login error:', err);
       console.error('❌ Error response:', err.response);
