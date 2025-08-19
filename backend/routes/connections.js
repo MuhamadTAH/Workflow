@@ -492,21 +492,71 @@ router.post('/telegram-client/send-code', verifyToken, async (req, res) => {
       });
     }
 
-    // For now, return success to allow frontend testing
-    // TODO: Implement actual Telegram Client API
-    console.log('📱 Client API: Verification code request for:', phoneNumber);
+    // Get existing bot token for this user (to link with client API)
+    const botTokenSql = `
+      SELECT access_token FROM social_connections 
+      WHERE user_id = ? AND platform = 'telegram' AND is_active = 1
+      LIMIT 1
+    `;
     
-    res.json({
-      success: true,
-      message: 'Verification code sent successfully',
-      phoneNumber: phoneNumber
+    const botConnection = await new Promise((resolve, reject) => {
+      db.get(botTokenSql, [req.user.userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
     });
+
+    if (!botConnection) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Please connect your Telegram bot first before setting up Client API' 
+      });
+    }
+
+    // Use real Telegram Client API to send verification code
+    const telegramClientService = require('../services/telegramClientAPI');
+    const result = await telegramClientService.sendVerificationCode(phoneNumber);
+    
+    if (result.success) {
+      // Store phone code hash temporarily for verification
+      const tempStoreSql = `
+        INSERT OR REPLACE INTO telegram_temp_sessions 
+        (user_id, phone_number, phone_code_hash, bot_token, created_at)
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `;
+      
+      db.run(tempStoreSql, [
+        req.user.userId, 
+        phoneNumber, 
+        result.phoneCodeHash,
+        botConnection.access_token
+      ], (err) => {
+        if (err) {
+          console.error('Failed to store temp session:', err);
+          return res.status(500).json({ 
+            success: false, 
+            error: 'Failed to store verification session' 
+          });
+        }
+        
+        res.json({
+          success: true,
+          message: 'Verification code sent to your phone',
+          phoneNumber: phoneNumber
+        });
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error
+      });
+    }
     
   } catch (error) {
     console.error('Error sending verification code:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to send verification code' 
+      error: 'Failed to send verification code: ' + error.message 
     });
   }
 });
@@ -523,57 +573,89 @@ router.post('/telegram-client/verify-code', verifyToken, async (req, res) => {
       });
     }
 
-    // For now, accept any 5-digit code for testing
-    if (verificationCode.length !== 5 || !/^\d+$/.test(verificationCode)) {
+    // Get the stored phone code hash
+    const tempSessionSql = `
+      SELECT phone_code_hash, bot_token FROM telegram_temp_sessions 
+      WHERE user_id = ? AND phone_number = ?
+      ORDER BY created_at DESC LIMIT 1
+    `;
+    
+    const tempSession = await new Promise((resolve, reject) => {
+      db.get(tempSessionSql, [req.user.userId, phoneNumber], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!tempSession) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Invalid verification code format' 
+        error: 'No verification session found. Please request a new code.' 
       });
     }
 
-    // TODO: Implement actual Telegram Client API verification
-    console.log('🔐 Client API: Verification attempt for:', phoneNumber, 'with code:', verificationCode);
+    // Use real Telegram Client API to verify code
+    const telegramClientService = require('../services/telegramClientAPI');
+    const result = await telegramClientService.verifyCodeAndConnect(
+      phoneNumber, 
+      verificationCode, 
+      tempSession.phone_code_hash
+    );
     
-    // Store the client connection in database
-    const insertSql = `
-      INSERT OR REPLACE INTO social_connections 
-      (user_id, platform, access_token, platform_user_id, platform_username, 
-       platform_profile_url, connected_at, updated_at, is_active)
-      VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1)
-    `;
-    
-    db.run(insertSql, [
-      req.user.userId,
-      'telegram_client',
-      phoneNumber, // Store phone as access token for now
-      phoneNumber,
-      phoneNumber,
-      `tel:${phoneNumber}`,
-    ], function(error) {
-      if (error) {
-        console.error('Database error:', error);
-        return res.status(500).json({ 
-          success: false, 
-          error: 'Failed to save connection' 
-        });
-      }
+    if (result.success) {
+      // Store the client connection with session string and bot token
+      const insertSql = `
+        INSERT OR REPLACE INTO social_connections 
+        (user_id, platform, access_token, refresh_token, platform_user_id, platform_username, 
+         platform_profile_url, connected_at, updated_at, is_active)
+        VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1)
+      `;
       
-      res.json({
-        success: true,
-        message: 'Telegram Client API connected successfully',
-        connection: {
-          platform: 'telegram_client',
-          phoneNumber: phoneNumber,
-          connectedAt: new Date().toISOString()
+      db.run(insertSql, [
+        req.user.userId,
+        'telegram_client',
+        result.sessionString, // Store session string for Client API
+        tempSession.bot_token, // Store linked bot token in refresh_token field
+        result.userInfo.id,
+        result.userInfo.username || result.userInfo.firstName,
+        `tg://user?id=${result.userInfo.id}`,
+      ], function(error) {
+        if (error) {
+          console.error('Database error:', error);
+          return res.status(500).json({ 
+            success: false, 
+            error: 'Failed to save connection' 
+          });
         }
+        
+        // Clean up temp session
+        db.run(`DELETE FROM telegram_temp_sessions WHERE user_id = ? AND phone_number = ?`, 
+               [req.user.userId, phoneNumber]);
+        
+        res.json({
+          success: true,
+          message: 'Telegram Client API connected successfully',
+          connection: {
+            platform: 'telegram_client',
+            phoneNumber: phoneNumber,
+            userInfo: result.userInfo,
+            linkedBotToken: tempSession.bot_token.substring(0, 10) + '...',
+            connectedAt: new Date().toISOString()
+          }
+        });
       });
-    });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error
+      });
+    }
     
   } catch (error) {
     console.error('Error verifying code:', error);
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to verify code' 
+      error: 'Failed to verify code: ' + error.message 
     });
   }
 });

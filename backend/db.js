@@ -225,6 +225,25 @@ db.serialize(() => {
     }
   });
 
+  // Create telegram_temp_sessions table for Client API verification
+  db.run(`
+    CREATE TABLE IF NOT EXISTS telegram_temp_sessions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      phone_number TEXT NOT NULL,
+      phone_code_hash TEXT NOT NULL,
+      bot_token TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating telegram_temp_sessions table:', err);
+    } else {
+      console.log('✅ Telegram temp sessions table ready');
+    }
+  });
+
 });
 
 module.exports = db;
