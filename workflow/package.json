@@ -1,0 +1,23 @@
+{
+  "name": "workflow-n8n",
+  "version": "1.0.0",
+  "description": "N8N integration for Workflow platform",
+  "main": "index.js",
+  "scripts": {
+    "start": "n8n start",
+    "dev": "n8n start",
+    "build": "echo 'No build step required'",
+    "tunnel": "n8n start --tunnel"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "n8n": "^1.70.0",
+    "express": "^4.21.2",
+    "cors": "^2.8.5",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {},
+  "license": "ISC"
+}
