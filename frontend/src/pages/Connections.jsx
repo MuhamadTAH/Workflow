@@ -137,58 +137,238 @@ function InstagramOAuthModal({ isOpen, onClose, onConnect, isConnecting, authUrl
 
 // Telegram Token Modal Component
 function TelegramTokenModal({ isOpen, onClose, onConnect, isConnecting }) {
+  const [connectionType, setConnectionType] = useState('bot'); // 'bot' or 'client'
   const [botToken, setBotToken] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [step, setStep] = useState('connection_type'); // 'connection_type', 'phone', 'verification'
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     
-    if (!botToken.trim()) {
-      setError('Bot token is required');
-      return;
-    }
+    if (connectionType === 'bot') {
+      // Handle Bot API connection
+      if (!botToken.trim()) {
+        setError('Bot token is required');
+        return;
+      }
 
-    if (!botToken.match(/^\d+:[A-Za-z0-9_-]+$/)) {
-      setError('Invalid bot token format. Should be like: 123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ');
-      return;
-    }
+      if (!botToken.match(/^\d+:[A-Za-z0-9_-]+$/)) {
+        setError('Invalid bot token format. Should be like: 123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+        return;
+      }
 
-    try {
-      await onConnect(botToken.trim());
-      setBotToken('');
-      setError('');
-      onClose();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to connect bot');
+      try {
+        await onConnect(botToken.trim());
+        setBotToken('');
+        setError('');
+        onClose();
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to connect bot');
+      }
+    } else {
+      // Handle Client API connection
+      if (step === 'connection_type') {
+        setStep('phone');
+      } else if (step === 'phone') {
+        if (!phoneNumber.trim()) {
+          setError('Phone number is required');
+          return;
+        }
+        
+        try {
+          // Send phone number to backend
+          const API_BASE = process.env.NODE_ENV === 'production' 
+            ? 'https://workflow-lg9z.onrender.com'
+            : 'http://localhost:3001';
+          const response = await fetch(`${API_BASE}/api/connections/telegram-client/send-code`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${tokenManager.getToken()}`
+            },
+            body: JSON.stringify({ phoneNumber: phoneNumber.trim() })
+          });
+          
+          const data = await response.json();
+          if (data.success) {
+            setStep('verification');
+          } else {
+            setError(data.error || 'Failed to send verification code');
+          }
+        } catch (err) {
+          setError('Failed to send verification code');
+        }
+      } else if (step === 'verification') {
+        if (!verificationCode.trim()) {
+          setError('Verification code is required');
+          return;
+        }
+        
+        try {
+          // Verify code and complete connection
+          const API_BASE = process.env.NODE_ENV === 'production' 
+            ? 'https://workflow-lg9z.onrender.com'
+            : 'http://localhost:3001';
+          const response = await fetch(`${API_BASE}/api/connections/telegram-client/verify-code`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${tokenManager.getToken()}`
+            },
+            body: JSON.stringify({ 
+              phoneNumber: phoneNumber.trim(),
+              verificationCode: verificationCode.trim()
+            })
+          });
+          
+          const data = await response.json();
+          if (data.success) {
+            // Reset form and close modal
+            setStep('connection_type');
+            setPhoneNumber('');
+            setVerificationCode('');
+            setError('');
+            onClose();
+            // Refresh connections list
+            window.location.reload();
+          } else {
+            setError(data.error || 'Failed to verify code');
+          }
+        } catch (err) {
+          setError('Failed to verify code');
+        }
+      }
     }
   };
 
   if (!isOpen) return null;
 
+  const renderConnectionTypeSelection = () => (
+    <>
+      <div style={{ marginBottom: '20px' }}>
+        <label style={labelStyle}>Choose Connection Method:</label>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+          <button
+            type="button"
+            onClick={() => setConnectionType('bot')}
+            style={{
+              ...submitButtonStyle,
+              backgroundColor: connectionType === 'bot' ? '#0088CC' : '#gray',
+              flex: 1
+            }}
+          >
+            🤖 Bot API
+          </button>
+          <button
+            type="button"
+            onClick={() => setConnectionType('client')}
+            style={{
+              ...submitButtonStyle,
+              backgroundColor: connectionType === 'client' ? '#0088CC' : '#gray',
+              flex: 1
+            }}
+          >
+            📱 Client API
+          </button>
+        </div>
+        <small style={helpTextStyle}>
+          {connectionType === 'bot' 
+            ? 'Connect using bot token (for sending messages)'
+            : 'Connect using your Telegram account (for reading bot message history)'
+          }
+        </small>
+      </div>
+      
+      {connectionType === 'bot' && (
+        <div style={inputGroupStyle}>
+          <label style={labelStyle}>Bot Token:</label>
+          <input
+            type="text"
+            value={botToken}
+            onChange={(e) => setBotToken(e.target.value)}
+            placeholder="123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            style={inputStyle}
+            disabled={isConnecting}
+          />
+          <small style={helpTextStyle}>
+            Get your bot token from @BotFather on Telegram
+          </small>
+        </div>
+      )}
+    </>
+  );
+
+  const renderPhoneStep = () => (
+    <div style={inputGroupStyle}>
+      <label style={labelStyle}>Phone Number:</label>
+      <input
+        type="tel"
+        value={phoneNumber}
+        onChange={(e) => setPhoneNumber(e.target.value)}
+        placeholder="+1234567890"
+        style={inputStyle}
+        disabled={isConnecting}
+      />
+      <small style={helpTextStyle}>
+        Enter your phone number linked to your Telegram account (with country code)
+      </small>
+    </div>
+  );
+
+  const renderVerificationStep = () => (
+    <div style={inputGroupStyle}>
+      <label style={labelStyle}>Verification Code:</label>
+      <input
+        type="text"
+        value={verificationCode}
+        onChange={(e) => setVerificationCode(e.target.value)}
+        placeholder="12345"
+        style={inputStyle}
+        disabled={isConnecting}
+        maxLength={5}
+      />
+      <small style={helpTextStyle}>
+        Enter the 5-digit verification code sent to your phone: {phoneNumber}
+      </small>
+    </div>
+  );
+
+  const getTitle = () => {
+    if (connectionType === 'client' && step === 'phone') return '📱 Enter Phone Number';
+    if (connectionType === 'client' && step === 'verification') return '🔐 Enter Verification Code';
+    return '🔗 Connect Telegram';
+  };
+
+  const getButtonText = () => {
+    if (isConnecting) return 'Connecting...';
+    if (connectionType === 'bot') return 'Connect Bot';
+    if (step === 'phone') return 'Send Code';
+    if (step === 'verification') return 'Verify & Connect';
+    return 'Next';
+  };
+
+  const isFormValid = () => {
+    if (connectionType === 'bot') return botToken.trim();
+    if (step === 'phone') return phoneNumber.trim();
+    if (step === 'verification') return verificationCode.trim();
+    return true;
+  };
+
   return (
     <div className="modal-overlay" style={modalOverlayStyle}>
       <div className="modal-content" style={modalContentStyle}>
         <div className="modal-header" style={modalHeaderStyle}>
-          <h3 style={{ margin: 0, color: '#0088CC' }}>🤖 Connect Telegram Bot</h3>
+          <h3 style={{ margin: 0, color: '#0088CC' }}>{getTitle()}</h3>
           <button onClick={onClose} style={closeButtonStyle}>✕</button>
         </div>
         
         <form onSubmit={handleSubmit} style={formStyle}>
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>Bot Token:</label>
-            <input
-              type="text"
-              value={botToken}
-              onChange={(e) => setBotToken(e.target.value)}
-              placeholder="123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-              style={inputStyle}
-              disabled={isConnecting}
-            />
-            <small style={helpTextStyle}>
-              Get your bot token from @BotFather on Telegram
-            </small>
-          </div>
+          {step === 'connection_type' && renderConnectionTypeSelection()}
+          {connectionType === 'client' && step === 'phone' && renderPhoneStep()}
+          {connectionType === 'client' && step === 'verification' && renderVerificationStep()}
           
           {error && (
             <div style={errorStyle}>{error}</div>
@@ -206,9 +386,9 @@ function TelegramTokenModal({ isOpen, onClose, onConnect, isConnecting }) {
             <button
               type="submit"
               style={submitButtonStyle}
-              disabled={isConnecting || !botToken.trim()}
+              disabled={isConnecting || !isFormValid()}
             >
-              {isConnecting ? 'Connecting...' : 'Connect Bot'}
+              {getButtonText()}
             </button>
           </div>
         </form>

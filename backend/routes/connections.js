@@ -480,4 +480,102 @@ router.get('/status', verifyToken, (req, res) => {
   }
 });
 
+// POST /api/connections/telegram-client/send-code - Send verification code
+router.post('/telegram-client/send-code', verifyToken, async (req, res) => {
+  try {
+    const { phoneNumber } = req.body;
+    
+    if (!phoneNumber) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Phone number is required' 
+      });
+    }
+
+    // For now, return success to allow frontend testing
+    // TODO: Implement actual Telegram Client API
+    console.log('📱 Client API: Verification code request for:', phoneNumber);
+    
+    res.json({
+      success: true,
+      message: 'Verification code sent successfully',
+      phoneNumber: phoneNumber
+    });
+    
+  } catch (error) {
+    console.error('Error sending verification code:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to send verification code' 
+    });
+  }
+});
+
+// POST /api/connections/telegram-client/verify-code - Verify code and connect
+router.post('/telegram-client/verify-code', verifyToken, async (req, res) => {
+  try {
+    const { phoneNumber, verificationCode } = req.body;
+    
+    if (!phoneNumber || !verificationCode) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Phone number and verification code are required' 
+      });
+    }
+
+    // For now, accept any 5-digit code for testing
+    if (verificationCode.length !== 5 || !/^\d+$/.test(verificationCode)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid verification code format' 
+      });
+    }
+
+    // TODO: Implement actual Telegram Client API verification
+    console.log('🔐 Client API: Verification attempt for:', phoneNumber, 'with code:', verificationCode);
+    
+    // Store the client connection in database
+    const insertSql = `
+      INSERT OR REPLACE INTO social_connections 
+      (user_id, platform, access_token, platform_user_id, platform_username, 
+       platform_profile_url, connected_at, updated_at, is_active)
+      VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1)
+    `;
+    
+    db.run(insertSql, [
+      req.user.userId,
+      'telegram_client',
+      phoneNumber, // Store phone as access token for now
+      phoneNumber,
+      phoneNumber,
+      `tel:${phoneNumber}`,
+    ], function(error) {
+      if (error) {
+        console.error('Database error:', error);
+        return res.status(500).json({ 
+          success: false, 
+          error: 'Failed to save connection' 
+        });
+      }
+      
+      res.json({
+        success: true,
+        message: 'Telegram Client API connected successfully',
+        connection: {
+          platform: 'telegram_client',
+          phoneNumber: phoneNumber,
+          connectedAt: new Date().toISOString()
+        }
+      });
+    });
+    
+  } catch (error) {
+    console.error('Error verifying code:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to verify code' 
+    });
+  }
+});
+
 module.exports = router;
