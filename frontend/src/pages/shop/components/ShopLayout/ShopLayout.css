@@ -7,6 +7,7 @@
   display: flex;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   color: #E0E0E0;
+  margin-left: 80px; /* Account for main dashboard sidebar */
 }
 
 /* Sidebar Styles - Luxury Dark */
@@ -66,11 +67,11 @@
 }
 
 .sidebar-toggle.sidebar-open {
-  left: 24rem;
+  left: calc(24rem + 80px); /* Account for main sidebar width */
 }
 
 .sidebar-toggle.sidebar-closed {
-  left: 2rem;
+  left: calc(2rem + 80px); /* Account for main sidebar width */
 }
 
 /* Sidebar Overlay for Mobile */
@@ -211,6 +212,10 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  .shop-dashboard {
+    margin-left: 0; /* Remove main sidebar margin on mobile */
+  }
+  
   .shop-sidebar {
     width: 280px;
     border-radius: 0;
@@ -225,6 +230,10 @@
   }
   
   .sidebar-toggle.sidebar-open {
+    left: 2rem;
+  }
+  
+  .sidebar-toggle.sidebar-closed {
     left: 2rem;
   }
 }

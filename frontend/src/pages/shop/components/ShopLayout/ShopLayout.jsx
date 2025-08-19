@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaStore, FaPlus, FaEdit, FaEye, FaWhatsapp, FaTelegram, FaEnvelope, FaHome, FaBox, FaChartBar, FaCog, FaGlobe, FaTags, FaUsers, FaBars, FaTimes, FaShieldAlt, FaFileContract } from 'react-icons/fa';
 import PageTransition from '../../../../components/PageTransition';
+import LeftSidebar from '../../../../components/LeftSidebar';
 import './ShopLayout.css';
 
 function ShopLayout({ children, title, subtitle, loading = false }) {
@@ -31,15 +32,19 @@ function ShopLayout({ children, title, subtitle, loading = false }) {
   };
 
   return (
-    <div className="shop-dashboard">
-      {/* Sidebar Toggle Button */}
-      <button 
-        className={`sidebar-toggle ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
-        onClick={toggleSidebar}
-        title={sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
-      >
-        {sidebarOpen ? <FaTimes /> : <FaBars />}
-      </button>
+    <>
+      {/* Main Dashboard Sidebar */}
+      <LeftSidebar />
+      
+      <div className="shop-dashboard">
+        {/* Sidebar Toggle Button */}
+        <button 
+          className={`sidebar-toggle ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
+          onClick={toggleSidebar}
+          title={sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
+        >
+          {sidebarOpen ? <FaTimes /> : <FaBars />}
+        </button>
 
       {/* Sidebar Navigation */}
       <div className={`shop-sidebar ${sidebarOpen ? 'sidebar-visible' : 'sidebar-hidden'}`}>
@@ -161,6 +166,7 @@ function ShopLayout({ children, title, subtitle, loading = false }) {
         <div className="sidebar-overlay" onClick={toggleSidebar}></div>
       )}
     </div>
+    </>
   );
 }
 
