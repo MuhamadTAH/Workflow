@@ -164,7 +164,14 @@ function TelegramTokenModal({ isOpen, onClose, onConnect, isConnecting }) {
         await onConnect(botToken.trim());
         setBotToken('');
         setError('');
-        onClose();
+        
+        // After successful bot connection, automatically show Client API option
+        setConnectionType('client');
+        setStep('phone');
+        
+        // Show success message and transition
+        setError('✅ Bot connected! Now set up Client API to read bot message history.');
+        
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to connect bot');
       }
@@ -313,7 +320,8 @@ function TelegramTokenModal({ isOpen, onClose, onConnect, isConnecting }) {
         disabled={isConnecting}
       />
       <small style={helpTextStyle}>
-        Enter your phone number linked to your Telegram account (with country code)
+        Enter your phone number linked to your Telegram account (with country code).
+        This allows reading your bot's message history. A verification code will be sent via SMS.
       </small>
     </div>
   );
@@ -337,8 +345,9 @@ function TelegramTokenModal({ isOpen, onClose, onConnect, isConnecting }) {
   );
 
   const getTitle = () => {
-    if (connectionType === 'client' && step === 'phone') return '📱 Enter Phone Number';
+    if (connectionType === 'client' && step === 'phone') return '📱 Enter Phone Number for Client API';
     if (connectionType === 'client' && step === 'verification') return '🔐 Enter Verification Code';
+    if (connectionType === 'bot' && step === 'connection_type') return '🤖 Connect Telegram Bot';
     return '🔗 Connect Telegram';
   };
 
@@ -381,7 +390,7 @@ function TelegramTokenModal({ isOpen, onClose, onConnect, isConnecting }) {
               style={cancelButtonStyle}
               disabled={isConnecting}
             >
-              Cancel
+              {connectionType === 'client' && step === 'phone' ? 'Skip Client API' : 'Cancel'}
             </button>
             <button
               type="submit"

@@ -81,7 +81,8 @@ This file contains the complete visual styling for all workflow nodes.
 
   /* Enhanced icon colors with better contrast - Darker and more vibrant */
   .custom-node-ai .node-icon.text-blue-500 { color: #1d4ed8 !important; }      /* Darker blue */
-  .custom-node-ai .node-icon.text-purple-500 { color: #7c3aed !important; }    /* Darker purple */
+  .custom-node-ai .node-icon.text-gold-500 { color: #d4af37 !important; }    /* Luxury gold */
+  .text-gold-500 { color: #d4af37 !important; }    /* Global luxury gold class */
   .custom-node-ai .node-icon.text-green-500 { color: #16a34a !important; }     /* Darker green */
   .custom-node-ai .node-icon.text-pink-500 { color: #db2777 !important; }      /* Darker pink */
   .custom-node-ai .node-icon.text-indigo-500 { color: #4f46e5 !important; }    /* Darker indigo */

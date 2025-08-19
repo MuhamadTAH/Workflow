@@ -91,7 +91,7 @@ const Sidebar = () => {
         nodeInfo={{ 
             label: 'AI Agent', 
             icon: 'fa-robot', 
-            color: 'text-purple-500',
+            color: 'text-gold-500',
             description: 'AI processing with templates',
             type: 'aiAgent' 
         }} 
@@ -255,7 +255,7 @@ const Sidebar = () => {
         nodeInfo={{ 
             label: 'Loop Over Items', 
             icon: 'fa-sync-alt', 
-            color: 'text-purple-500',
+            color: 'text-gold-500',
             description: 'Iterate over each item',
             type: 'loop' 
         }} 
