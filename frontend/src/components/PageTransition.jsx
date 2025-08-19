@@ -17,7 +17,7 @@ function PageTransition({ children, loading = false }) {
       <div className="page-loading">
         <div className="loading-content">
           <div className="loading-spinner"></div>
-          <p style={{ marginTop: '1rem', color: '#6b7280' }}>Loading...</p>
+          <p style={{ marginTop: '1rem', color: '#E0E0E0' }}>Loading...</p>
         </div>
       </div>
     );
