@@ -94,11 +94,12 @@ input, textarea, select {
 
 /* Professional Auth System Styles */
 
-/* Connection Page Styles */
+/* Connection Page Styles - Black Luxury Theme */
 .connections-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #d4af37 0%, #8b6914 100%);
+  background-color: #1a1a1a;
   padding: 2rem 1rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .connections-container {
@@ -109,7 +110,7 @@ input, textarea, select {
 .connections-header {
   text-align: center;
   margin-bottom: 3rem;
-  color: white;
+  color: #E0E0E0;
 }
 
 .connections-title {
@@ -130,12 +131,13 @@ input, textarea, select {
 }
 
 .connections-stats {
-  background: rgba(255, 255, 255, 0.1);
+  background: #323232;
   padding: 0.75rem 1.5rem;
   border-radius: 25px;
   display: inline-block;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .stat {
@@ -151,19 +153,21 @@ input, textarea, select {
 }
 
 .connection-card {
-  background: white;
+  background: #2a2a2a;
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border: 3px solid transparent;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(212, 175, 55, 0.2);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  color: #E0E0E0;
 }
 
 .connection-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6);
+  border-color: rgba(212, 175, 55, 0.4);
 }
 
 .connection-card-header {
@@ -187,8 +191,8 @@ input, textarea, select {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc;
-  border: 2px solid #e2e8f0;
+  background: #1a1a1a;
+  border: 2px solid #323232;
   flex-shrink: 0;
 }
 

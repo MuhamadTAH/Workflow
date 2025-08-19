@@ -542,7 +542,8 @@ router.post('/telegram-client/send-code', verifyToken, async (req, res) => {
         res.json({
           success: true,
           message: 'Verification code sent to your phone',
-          phoneNumber: phoneNumber
+          phoneNumber: phoneNumber,
+          data: result // Include the verification code in response
         });
       });
     } else {

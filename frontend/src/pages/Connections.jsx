@@ -202,6 +202,14 @@ function TelegramTokenModal({ isOpen, onClose, onConnect, isConnecting }) {
           const data = await response.json();
           if (data.success) {
             setStep('verification');
+            // Show the verification code in the error field (as a success message)
+            if (data.data && data.data.verificationCode) {
+              setError(`✅ Code sent! Your verification code is: ${data.data.verificationCode}`);
+            } else if (data.data && data.data.message) {
+              setError(`✅ ${data.data.message}`);
+            } else {
+              setError('✅ Verification code sent to your phone');
+            }
           } else {
             setError(data.error || 'Failed to send verification code');
           }

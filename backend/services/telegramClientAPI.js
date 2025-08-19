@@ -48,7 +48,8 @@ class TelegramClientService {
       return {
         success: true,
         phoneCodeHash: phoneCodeHash,
-        message: `Verification code: ${verificationCode} (check console for now)`
+        verificationCode: verificationCode, // Include in response for testing
+        message: `Verification code: ${verificationCode}`
       };
 
     } catch (error) {
