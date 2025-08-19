@@ -246,26 +246,38 @@ class TelegramMessageSync {
         logger.info('Current webhook detected - will temporarily disable for sync', { url: webhookUrl });
         
         // Temporarily delete webhook to use getUpdates
+        logger.info('🗑️ Attempting to delete webhook...');
         const deleteResult = await telegramAPI.deleteWebhook();
+        logger.info('🗑️ Delete webhook result:', deleteResult);
+        
         if (!deleteResult.success) {
           logger.warn('Failed to delete webhook for sync', { error: deleteResult.error });
           return { success: false, error: 'Could not disable webhook for sync: ' + deleteResult.error.message };
         }
         
-        logger.info('Webhook temporarily disabled for message sync');
+        logger.info('✅ Webhook temporarily disabled for message sync');
         
         // Wait a moment for webhook deletion to take effect
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        logger.info('⏳ Waiting 3 seconds for webhook deletion to take effect...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
       }
       
       // Get last processed update_id
       const lastUpdateId = await this.getLastUpdateId(botToken);
+      logger.info('📊 Last processed update_id:', lastUpdateId);
       
       // Get updates from Telegram
+      logger.info('📡 Calling getUpdates with offset:', lastUpdateId + 1);
       const result = await telegramAPI.getUpdates({
         offset: lastUpdateId + 1,
         limit: 100,
         timeout: 0  // Use polling without timeout
+      });
+      
+      logger.info('📡 getUpdates result:', { 
+        success: result.success, 
+        dataLength: result.data ? result.data.length : 0,
+        error: result.error 
       });
 
       if (!result.success) {
