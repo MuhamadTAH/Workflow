@@ -1,7 +1,11 @@
-/* View Store Page Styles */
+/* View Store Page Styles - Luxury Dark Theme */
 .view-store-page {
   max-width: 1400px;
   margin: 0 auto;
+  min-height: 100vh;
+  background: #1a1a1a;
+  color: #E0E0E0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* Preview Controls */
@@ -11,9 +15,10 @@
   align-items: center;
   margin-bottom: 2rem;
   padding: 1rem;
-  background: white;
+  background: #323232;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .preview-modes {
@@ -23,8 +28,9 @@
 
 .preview-btn {
   padding: 0.5rem 1rem;
-  border: 2px solid #e5e7eb;
-  background: white;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: #262626;
+  color: #a0a0a0;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
@@ -32,12 +38,13 @@
 }
 
 .preview-btn:hover {
-  border-color: #667eea;
+  border-color: rgba(74, 144, 226, 0.3);
+  color: #E0E0E0;
 }
 
 .preview-btn.active {
-  border-color: #667eea;
-  background: #667eea;
+  border-color: #4a90e2;
+  background: #4a90e2;
   color: white;
 }
 
