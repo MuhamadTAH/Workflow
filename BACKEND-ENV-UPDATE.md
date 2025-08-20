@@ -29,6 +29,10 @@ N8N_USER_MANAGEMENT_DISABLED=true
 N8N_OWNER_NAME=Admin
 N8N_OWNER_EMAIL=admin@workflow.com
 N8N_OWNER_PASSWORD=workflow2025
+N8N_CUSTOM_BRANDING=true
+N8N_BRAND_NAME=AI Agent
+N8N_BRAND_LOGO_URL=https://frontend-prox.onrender.com/logo.png
+N8N_BRAND_FAVICON_URL=https://frontend-prox.onrender.com/logo.png
 ```
 
 ### **CRITICAL Changes for Public Access:**
@@ -39,6 +43,10 @@ N8N_OWNER_PASSWORD=workflow2025
 - 🔧 `N8N_OWNER_PASSWORD=workflow2025` (auto-create owner)
 - 🔧 `N8N_FRAME_ANCESTORS=*` (allow iframe embedding)
 - 🔧 `N8N_CORS_ORIGIN=*` (allow all origins)
+- 🎨 `N8N_CUSTOM_BRANDING=true` (enable custom branding)
+- 🎨 `N8N_BRAND_NAME=AI Agent` (replace n8n name)
+- 🎨 `N8N_BRAND_LOGO_URL=https://frontend-prox.onrender.com/logo.png` (custom logo)
+- 🎨 `N8N_BRAND_FAVICON_URL=https://frontend-prox.onrender.com/favicon.ico` (custom favicon)
 
 ## 📋 **Steps to Apply:**
 
