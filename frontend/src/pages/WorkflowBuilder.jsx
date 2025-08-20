@@ -1,52 +1,52 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useLocation } from 'react-router-dom';
 
 const WorkflowBuilder = () => {
   const location = useLocation();
   const botContext = location.state;
 
-  console.log('🔧 WorkflowBuilder: Using n8n proxy integration, bot context:', botContext);
+  console.log('🔧 WorkflowBuilder: Embedding n8n interface, bot context:', botContext);
 
-  useEffect(() => {
-    // Redirect to proxied n8n interface
-    window.location.href = '/workflow-editor';
-  }, []);
+  const n8nUrl = 'https://workflow-lg9z.onrender.com';
 
   return (
-    <div style={{ 
-      width: '100%', 
-      height: '100vh', 
-      margin: 0, 
-      padding: 0,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: '#f5f5f5'
-    }}>
-      <div style={{ textAlign: 'center' }}>
-        <div style={{
-          border: '4px solid #f3f3f3',
-          borderTop: '4px solid #007acc',
-          borderRadius: '50%',
-          width: '40px',
-          height: '40px',
-          animation: 'spin 1s linear infinite',
-          margin: '0 auto 1rem'
-        }} />
-        <h3>🚀 Loading Workflow Editor...</h3>
-        <p>Connecting to professional workflow interface</p>
-        <p><small>✅ 400+ nodes • ✅ AI capabilities • ✅ Professional automation</small></p>
+    <div style={{ width: '100%', height: '100vh', margin: 0, padding: 0 }}>
+      <div style={{
+        background: '#007acc',
+        color: 'white',
+        padding: '0.5rem 1rem',
+        fontSize: '14px',
+        textAlign: 'center'
+      }}>
+        🚀 Professional Workflow Editor • 400+ Automation Nodes • AI Capabilities
       </div>
       
-      <style>
-        {`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}
-      </style>
+      <iframe
+        src={n8nUrl}
+        title="n8n Workflow Editor"
+        width="100%"
+        height="calc(100vh - 40px)"
+        frameBorder="0"
+        style={{
+          border: 'none',
+          background: 'white'
+        }}
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+        onLoad={() => console.log('n8n workflow editor loaded')}
+      />
+      
+      <div style={{
+        position: 'fixed',
+        bottom: '10px',
+        right: '10px',
+        background: 'rgba(0,0,0,0.7)',
+        color: 'white',
+        padding: '0.5rem',
+        borderRadius: '4px',
+        fontSize: '12px'
+      }}>
+        {window.location.hostname} • Workflow Editor
+      </div>
     </div>
   );
 };
