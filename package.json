@@ -1,11 +1,11 @@
 {
   "name": "workflow-platform",
   "version": "1.0.0",
-  "description": "n8n workflow automation platform",
+  "description": "n8n workflow automation platform with iframe integration",
   "scripts": {
     "build": "echo 'n8n build complete'",
-    "start": "npx n8n start",
-    "dev": "npx n8n start"
+    "start": "N8N_EDITOR_BASE_URL=https://workflow-lg9z.onrender.com npx n8n start",
+    "dev": "N8N_EDITOR_BASE_URL=https://workflow-lg9z.onrender.com npx n8n start"
   },
   "dependencies": {
     "n8n": "^1.108.0"
