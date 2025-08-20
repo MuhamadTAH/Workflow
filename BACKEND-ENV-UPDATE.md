@@ -25,14 +25,20 @@ N8N_SECURE_COOKIE=false
 WEBHOOK_URL=https://workflow-lg9z.onrender.com
 N8N_DISABLE_UI=false
 N8N_EDITOR_BASE_URL=/
+N8N_USER_MANAGEMENT_DISABLED=true
+N8N_OWNER_NAME=Admin
+N8N_OWNER_EMAIL=admin@workflow.com
+N8N_OWNER_PASSWORD=workflow2025
 ```
 
-### **CRITICAL Changes for Iframe:**
-- 🔧 `N8N_BASIC_AUTH_ACTIVE=false` (disable auth for iframe)
-- 🔧 `N8N_FRAME_ANCESTORS=*` (allow all iframe embedding)
+### **CRITICAL Changes for Public Access:**
+- 🔧 `N8N_BASIC_AUTH_ACTIVE=false` (disable authentication)
+- 🔧 `N8N_USER_MANAGEMENT_DISABLED=true` (skip owner setup screen)
+- 🔧 `N8N_OWNER_NAME=Admin` (auto-create owner)
+- 🔧 `N8N_OWNER_EMAIL=admin@workflow.com` (auto-create owner)
+- 🔧 `N8N_OWNER_PASSWORD=workflow2025` (auto-create owner)
+- 🔧 `N8N_FRAME_ANCESTORS=*` (allow iframe embedding)
 - 🔧 `N8N_CORS_ORIGIN=*` (allow all origins)
-- 🔧 `N8N_DISABLE_UI=false` (ensure UI is enabled)
-- 🔧 `N8N_EDITOR_BASE_URL=/` (set correct base URL)
 
 ## 📋 **Steps to Apply:**
 
