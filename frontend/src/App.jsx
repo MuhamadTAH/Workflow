@@ -142,7 +142,7 @@ function Home() {
         <header className="dashboard-hero">
           <div className="hero-content">
             <h1 className="hero-title">
-              AI Marketing Dashboard
+              🚀 AI Marketing Dashboard - UPDATED!
             </h1>
             <p className="hero-subtitle">
               Manage your automated marketing workflows and e-commerce operations
