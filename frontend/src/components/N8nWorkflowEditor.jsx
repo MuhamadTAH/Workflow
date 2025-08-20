@@ -35,15 +35,32 @@ const N8nWorkflowEditor = () => {
   if (error) {
     return (
       <div className="n8n-error">
-        <h3>🚀 Opening n8n Workflow Editor...</h3>
-        <p>Redirecting to professional workflow interface with 400+ nodes</p>
-        <button 
-          onClick={() => window.location.href = n8nUrl}
-          style={{ marginTop: '1rem' }}
-        >
-          Continue to n8n Workflow Editor →
-        </button>
-        <p><small>Note: This will replace the current page</small></p>
+        <h3>🚀 Workflow Editor Loading...</h3>
+        <p>Professional workflow interface with 400+ nodes</p>
+        
+        <div style={{ marginTop: '2rem' }}>
+          <button 
+            onClick={() => window.open(n8nUrl, '_blank')}
+            style={{ 
+              marginTop: '1rem', 
+              background: '#007acc',
+              color: 'white',
+              border: 'none',
+              padding: '1rem 2rem',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+          >
+            🚀 Launch Workflow Editor (New Window)
+          </button>
+          
+          <div style={{ marginTop: '2rem', fontSize: '14px', color: '#666' }}>
+            <p>✅ Access to 400+ professional workflow nodes</p>
+            <p>✅ Advanced automation and AI capabilities</p>
+            <p>✅ Professional workflow execution engine</p>
+          </div>
+        </div>
       </div>
     );
   }

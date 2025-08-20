@@ -1,16 +1,16 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import N8nWorkflowEditor from '../components/N8nWorkflowEditor';
+import N8nProxy from './N8nProxy';
 
 const WorkflowBuilder = () => {
   const location = useLocation();
   const botContext = location.state;
 
-  console.log('🔧 WorkflowBuilder: Switching to n8n interface, bot context:', botContext);
+  console.log('🔧 WorkflowBuilder: Redirecting to n8n workflow editor, bot context:', botContext);
 
   return (
     <div style={{ width: '100%', height: '100vh', margin: 0, padding: 0 }}>
-      <N8nWorkflowEditor />
+      <N8nProxy />
     </div>
   );
 };
