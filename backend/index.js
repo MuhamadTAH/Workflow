@@ -161,6 +161,17 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: '✅ Hello from the backend!' });
 });
 
+// Test endpoint for development changes
+app.get('/api/test-change', (req, res) => {
+  res.json({ 
+    message: '🔥 LIVE RELOAD TEST: Changes work instantly!', 
+    timestamp: new Date().toISOString(),
+    change: 'Backend changes are now reflected instantly!',
+    status: 'Development environment is ready!',
+    hotReload: 'Working perfectly! 🎉'
+  });
+});
+
 // Authentication health check
 app.get('/api/auth/health', (req, res) => {
   const db = require('./db');

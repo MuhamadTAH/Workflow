@@ -27,7 +27,7 @@ services:
       - NODE_ENV=development
       - JWT_SECRET=your-local-secret
       - PORT=3001
-    command: npm start
+    command: npm run dev
 
   n8n:
     image: n8nio/n8n:latest
