@@ -9,7 +9,9 @@
     "build": "npm install --legacy-peer-deps && vite build",
     "build:clean": "rm -rf node_modules package-lock.json && npm install --legacy-peer-deps && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node proxy-server.js",
+    "start:proxy": "npm run build && npm run start"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -27,6 +29,7 @@
     "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.4.21",
     "axios": "^1.11.0",
+    "express": "^4.21.1",
     "i18next": "^25.3.4",
     "i18next-browser-languagedetector": "^8.2.0",
     "postcss": "^8.5.6",

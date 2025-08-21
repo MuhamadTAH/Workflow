@@ -16,8 +16,9 @@ function LeftSidebar() {
     },
     {
       name: 'Builder',
-      path: '/workflow',
-      icon: 'fas fa-magic'
+      path: 'https://workflow-lg9z.onrender.com',
+      icon: 'fas fa-magic',
+      external: true
     },
     {
       name: 'Connections',
@@ -50,14 +51,25 @@ function LeftSidebar() {
       </div>
       <nav className="sidebar-nav">
         {navItems.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
-            title={item.name}
-          >
-            <i className={item.icon}></i>
-          </Link>
+          item.external ? (
+            <a
+              key={item.path}
+              href={item.path}
+              className="nav-item"
+              title={item.name}
+            >
+              <i className={item.icon}></i>
+            </a>
+          ) : (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
+              title={item.name}
+            >
+              <i className={item.icon}></i>
+            </Link>
+          )
         ))}
       </nav>
       <div className="sidebar-bottom">

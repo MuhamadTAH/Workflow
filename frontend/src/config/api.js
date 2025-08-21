@@ -7,9 +7,9 @@ const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
-  // 2. Production detection (when served from production domain)
+  // 2. Production detection - use current domain for API calls
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return 'https://workflow-lg9z.onrender.com';
+    return window.location.origin; // This will use the current domain
   }
   
   // 3. Development fallback
