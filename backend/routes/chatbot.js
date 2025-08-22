@@ -134,7 +134,10 @@ router.post('/:nodeId/message', async (req, res) => {
     const { nodeId } = req.params;
     const { message, sessionId } = req.body;
     
+    logger.info(`🎯 Chatbot message received - NodeId: ${nodeId}, Message: ${message}, SessionId: ${sessionId}`);
+    
     if (!message || !sessionId) {
+        logger.error('❌ Missing required fields:', { message: !!message, sessionId: !!sessionId });
         return res.status(400).json({ error: 'Message and session ID are required' });
     }
     
@@ -144,10 +147,13 @@ router.post('/:nodeId/message', async (req, res) => {
         
         const insertMessage = () => {
             return new Promise((resolve, reject) => {
+                logger.info(`📝 Attempting to insert message into database...`);
                 db.run(insertQuery, [nodeId, sessionId, message, 'user'], function(err) {
                     if (err) {
+                        logger.error('❌ Database insertion failed:', err);
                         reject(err);
                     } else {
+                        logger.info(`✅ Database insertion successful, messageId: ${this.lastID}`);
                         resolve(this.lastID);
                     }
                 });
@@ -155,7 +161,7 @@ router.post('/:nodeId/message', async (req, res) => {
         };
 
         const messageId = await insertMessage();
-        logger.info(`✅ Stored chatbot message for node ${nodeId}: ${message}`);
+        logger.info(`✅ Stored chatbot message for node ${nodeId}: ${message} (ID: ${messageId})`);
         
         try {
             // Trigger workflow execution with the chatbot message data
@@ -188,28 +194,34 @@ router.post('/:nodeId/message', async (req, res) => {
             
             logger.info(`✅ Workflow execution completed for chatbot node ${nodeId}:`, executionResult);
             
-            res.json({
+            const responseData = {
                 success: true,
                 messageId: messageId,
                 message: `Message processed successfully`,
                 timestamp: new Date().toISOString(),
                 executionId: executionResult?.executionId
-            });
+            };
+            
+            logger.info(`📤 Sending response:`, responseData);
+            res.json(responseData);
             
         } catch (workflowError) {
             logger.error('❌ Error executing workflow for chatbot message:', workflowError);
             
-            // Still return success for message storage, but indicate workflow error
-            res.json({
+            const errorResponseData = {
                 success: true,
                 messageId: messageId,
                 message: "Message stored but workflow execution failed",
                 timestamp: new Date().toISOString(),
                 workflowError: workflowError.message
-            });
+            };
+            
+            logger.info(`📤 Sending error response:`, errorResponseData);
+            res.json(errorResponseData);
         }
     } catch (error) {
         logger.error('❌ Error processing chatbot message:', error);
+        logger.info(`📤 Sending 500 error response`);
         res.status(500).json({ error: 'Failed to process message' });
     }
 });
@@ -218,6 +230,8 @@ router.post('/:nodeId/message', async (req, res) => {
 router.get('/:nodeId/messages', async (req, res) => {
     const { nodeId } = req.params;
     const { sessionId, limit = 50 } = req.query;
+    
+    logger.info(`📥 Fetching messages for nodeId: ${nodeId}, sessionId: ${sessionId}, limit: ${limit}`);
     
     try {
         let query = `SELECT * FROM chatbot_messages WHERE node_id = ?`;
@@ -231,17 +245,24 @@ router.get('/:nodeId/messages', async (req, res) => {
         query += ` ORDER BY timestamp DESC LIMIT ?`;
         params.push(parseInt(limit));
         
+        logger.info(`📋 Executing query: ${query} with params:`, params);
+        
         db.all(query, params, (err, messages) => {
             if (err) {
                 logger.error('❌ Error fetching chatbot messages:', err);
                 return res.status(500).json({ error: 'Failed to fetch messages' });
             }
             
-            res.json({
+            logger.info(`✅ Found ${messages.length} messages for node ${nodeId}`);
+            
+            const responseData = {
                 success: true,
                 messages: messages.reverse(), // Return in chronological order
                 count: messages.length
-            });
+            };
+            
+            logger.info(`📤 Sending messages response:`, responseData);
+            res.json(responseData);
         });
     } catch (error) {
         logger.error('❌ Error fetching chatbot messages:', error);
