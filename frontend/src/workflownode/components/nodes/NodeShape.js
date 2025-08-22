@@ -123,6 +123,16 @@ const NodeShape = ({ data = {}, nodeHeight, totalInputHandles, totalOutputHandle
 
   // Generate input handles
   const renderInputHandles = () => {
+    // Debug logging for trigger nodes
+    if (data.type === 'chatTrigger') {
+      console.log('🔍 NodeShape Debug:', {
+        nodeType: data.type,
+        isTriggerNode: isTriggerNode,
+        totalInputHandles: totalInputHandles,
+        willRenderInputs: !isTriggerNode
+      });
+    }
+    
     // Trigger nodes have no input handles - they start workflows
     if (isTriggerNode) return null;
     

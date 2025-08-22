@@ -28,7 +28,7 @@ const CustomLogicNode = ({ data = {} }) => {
   const isTriggerNode = data.type === 'chatTrigger' || 
                         data.type === 'telegramTrigger' || 
                         data.type === 'trigger';
-
+  
   // Calculate total number of output handles for dynamic sizing
   const getTotalOutputHandles = () => {
     if (isIfNode || isLoopNode) return 2;
@@ -49,6 +49,16 @@ const CustomLogicNode = ({ data = {} }) => {
     if (isCompareNode) return 2;
     return 1;
   };
+
+  // Debug logging
+  if (data.type === 'chatTrigger') {
+    console.log('🔍 Chat Trigger Debug:', {
+      nodeType: data.type,
+      isTriggerNode: isTriggerNode,
+      totalInputHandles: getTotalInputHandles(),
+      data: data
+    });
+  }
 
   const totalOutputHandles = getTotalOutputHandles();
   const totalInputHandles = getTotalInputHandles();
