@@ -295,9 +295,14 @@ const App = ({ botContext }) => {
         };
       }
 
+      // Auto-register Chat Trigger nodes
+      if (nodeData.type === 'chatTrigger') {
+        registerChatTrigger(newNode);
+      }
+
       setNodes((nds) => nds.concat(newNode));
     },
-    [reactFlowInstance, setNodes, currentWorkflowId, generateWorkflowId, botContext]
+    [reactFlowInstance, setNodes, currentWorkflowId, generateWorkflowId, botContext, registerChatTrigger]
   );
 
   // Sets the currently selected node when double-clicked.
@@ -563,6 +568,60 @@ const App = ({ botContext }) => {
   const toggleSidebar = useCallback(() => {
     setSidebarVisible(prev => !prev);
   }, []);
+
+  // Register Chat Trigger node automatically
+  const registerChatTrigger = useCallback(async (node) => {
+    try {
+      const workflowId = currentWorkflowId || generateWorkflowId();
+      
+      const config = {
+        chatSessionName: node.data.chatSessionName || `Chat Session ${node.id.slice(-4)}`,
+        welcomeMessage: node.data.welcomeMessage || '👋 Welcome! How can I help you today?',
+        allowFileUploads: node.data.allowFileUploads || false,
+        allowedFileTypes: node.data.allowedFileTypes || '*'
+      };
+
+      const response = await fetch(`${API_BASE}/api/chat-trigger/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          nodeId: node.id,
+          workflowId: workflowId,
+          config: config
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('✅ Chat Trigger registered successfully:', result);
+        // Update node with chat URL and session info
+        setNodes((nds) =>
+          nds.map((n) => {
+            if (n.id === node.id) {
+              return {
+                ...n,
+                data: {
+                  ...n.data,
+                  chatUrl: result.chatUrl,
+                  sessionId: result.sessionId,
+                  status: '🟢 Chat Active'
+                }
+              };
+            }
+            return n;
+          })
+        );
+      } else {
+        console.error('❌ Failed to register Chat Trigger:', result.error);
+      }
+    } catch (error) {
+      console.error('❌ Error registering Chat Trigger:', error);
+    }
+  }, [currentWorkflowId, generateWorkflowId, setNodes]);
 
   return (
     <div className={`professional-workflow-builder ${!sidebarVisible ? 'sidebar-hidden' : ''}`}>

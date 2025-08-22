@@ -6,7 +6,7 @@ This is the complete and fully functional ConfigPanel component,
 including all node variations and the expression system with
 drag-and-drop functionality.
 */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createExecutionContext } from '../../utils/executionContext';
 import { API_BASE_URL } from '../../../config/api.js';
 
@@ -462,6 +462,46 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
       allowFileUploads: node.data.allowFileUploads || false,
       allowedFileTypes: node.data.allowedFileTypes || '*',
   });
+
+  // Chat Trigger specific state for real-time messages
+  const [chatMessages, setChatMessages] = useState([]);
+  const messagePollingRef = useRef(null);
+
+  // Poll for new chat messages for Chat Trigger nodes
+  useEffect(() => {
+    if (node.data.type === 'chatTrigger' && node.data.sessionId) {
+      const pollMessages = async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/chat-trigger/${node.id}/history?sessionId=${node.data.sessionId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.messages) {
+              setChatMessages(result.messages.slice(-5)); // Show last 5 messages
+            }
+          }
+        } catch (error) {
+          console.error('Error polling chat messages:', error);
+        }
+      };
+
+      // Initial load
+      pollMessages();
+      
+      // Poll every 2 seconds for new messages
+      messagePollingRef.current = setInterval(pollMessages, 2000);
+      
+      return () => {
+        if (messagePollingRef.current) {
+          clearInterval(messagePollingRef.current);
+        }
+      };
+    }
+  }, [node.data.type, node.data.sessionId, node.id]);
 
   useEffect(() => {
     setFormData({
@@ -1197,6 +1237,43 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                         <i className="fas fa-external-link-alt mr-2"></i>
                                         Open Chat Interface
                                     </button>
+                                </div>
+
+                                {/* Chat Status Display */}
+                                {node.data.status && (
+                                    <div className="form-group mt-4">
+                                        <label>Chat Status</label>
+                                        <div className="status-display">
+                                            <span className="status-indicator">
+                                                {node.data.status}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Recent Messages Display */}
+                                <div className="form-group mt-4">
+                                    <label>Recent Messages</label>
+                                    <div className="chat-messages-preview" id={`chat-preview-${node.id}`}>
+                                        {chatMessages.length > 0 ? (
+                                            chatMessages.map((msg, index) => (
+                                                <div key={index} className={`message-item ${msg.sender}`}>
+                                                    <span className="message-time">
+                                                        {msg.senderName} - {new Date(msg.timestamp).toLocaleTimeString()}
+                                                    </span>
+                                                    <span className="message-text">{msg.text}</span>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="message-item system">
+                                                <span className="message-time">System</span>
+                                                <span className="message-text">Chat interface ready. Share the URL to start receiving messages.</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <small className="text-gray-500">
+                                        Messages sent to your chat will appear here in real-time.
+                                    </small>
                                 </div>
                             </div>
                         )}
