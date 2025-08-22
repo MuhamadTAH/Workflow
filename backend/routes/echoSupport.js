@@ -7,7 +7,7 @@ const logger = require('../services/logger');
 // Load knowledge base from echo-assets folder
 const loadKnowledgeBase = () => {
   try {
-    const knowledgeBasePath = path.join(__dirname, '../echo-assets/echo-assets/knowledge-base');
+    const knowledgeBasePath = path.join(__dirname, '../knowledge-base');
     
     const knowledgeBase = {
       faq: [],
