@@ -20,6 +20,11 @@ const NodeShape = ({ data = {}, nodeHeight, totalInputHandles, totalOutputHandle
   const isSwitchNode = data.type === 'switch';
   const hasNoOutputs = data.type === 'stopAndError';
   const isMergeNode = data.type === 'merge';
+  
+  // Trigger nodes - these nodes start workflows and have no inputs
+  const isTriggerNode = data.type === 'chatTrigger' || 
+                        data.type === 'telegramTrigger' || 
+                        data.type === 'trigger';
 
   // Map icons to Unicode symbols as fallback
   const getIconSymbol = (icon) => {
@@ -118,6 +123,9 @@ const NodeShape = ({ data = {}, nodeHeight, totalInputHandles, totalOutputHandle
 
   // Generate input handles
   const renderInputHandles = () => {
+    // Trigger nodes have no input handles - they start workflows
+    if (isTriggerNode) return null;
+    
     const handles = [];
     for (let i = 0; i < totalInputHandles; i++) {
       handles.push(
@@ -207,7 +215,7 @@ const NodeShape = ({ data = {}, nodeHeight, totalInputHandles, totalOutputHandle
 
   return (
     <div 
-      className="custom-node-ai" 
+      className={`custom-node-ai ${isTriggerNode ? 'trigger-node' : ''}`}
       style={{ 
         height: `${nodeHeight}px`,
         minHeight: '80px'

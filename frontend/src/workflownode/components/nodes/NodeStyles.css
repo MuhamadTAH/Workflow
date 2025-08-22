@@ -46,6 +46,34 @@ This file contains the complete visual styling for all workflow nodes.
   }
   
   /* =====================================================================
+     TRIGGER NODE STYLING - Special styling for trigger nodes like n8n
+     ===================================================================== */
+  .custom-node-ai.trigger-node {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  /* Purple gradient background */
+    border-color: #667eea;                             /* Purple border */
+    color: white;                                       /* White text for contrast */
+  }
+  
+  .custom-node-ai.trigger-node .node-icon {
+    color: white !important;                            /* Force white icons */
+  }
+  
+  .custom-node-ai.trigger-node .node-label {
+    color: white;                                       /* White label text */
+    font-weight: 600;                                   /* Slightly bolder text */
+  }
+  
+  .custom-node-ai.trigger-node .node-description {
+    color: rgba(255, 255, 255, 0.9);                   /* Slightly transparent white */
+  }
+  
+  /* Selection state for trigger nodes */
+  .react-flow__node-custom.selected .custom-node-ai.trigger-node {
+    border: 2px solid #ffffff;                         /* White border when selected */
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);   /* White shadow ring */
+  }
+  
+  /* =====================================================================
      CONTENT LAYOUT - Header and Description sections as specified
      ===================================================================== */
   .custom-node-ai .node-content {

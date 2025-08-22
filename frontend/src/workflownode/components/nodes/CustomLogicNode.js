@@ -23,6 +23,11 @@ const CustomLogicNode = ({ data = {} }) => {
   const isSwitchNode = data.type === 'switch';
   const hasNoOutputs = data.type === 'stopAndError';
   const isMergeNode = data.type === 'merge';
+  
+  // Trigger nodes - these nodes start workflows and have no inputs
+  const isTriggerNode = data.type === 'chatTrigger' || 
+                        data.type === 'telegramTrigger' || 
+                        data.type === 'trigger';
 
   // Calculate total number of output handles for dynamic sizing
   const getTotalOutputHandles = () => {
@@ -39,6 +44,8 @@ const CustomLogicNode = ({ data = {} }) => {
 
   // Calculate total number of input handles for dynamic sizing
   const getTotalInputHandles = () => {
+    // Trigger nodes have no inputs - they start workflows
+    if (isTriggerNode) return 0;
     if (isCompareNode) return 2;
     return 1;
   };
