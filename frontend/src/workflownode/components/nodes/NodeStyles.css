@@ -73,6 +73,17 @@ This file contains the complete visual styling for all workflow nodes.
     box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);   /* White shadow ring */
   }
   
+  /* Force hide input handles on trigger nodes */
+  .react-flow__node-custom .custom-node-ai.trigger-node .react-flow__handle-left,
+  .react-flow__node-custom .custom-node-ai.trigger-node .react-flow__handle.react-flow__handle-type-target,
+  .react-flow__node-custom .custom-node-ai.trigger-node .handle-input,
+  .custom-node-ai.trigger-node .react-flow__handle-left,
+  .custom-node-ai.trigger-node .react-flow__handle.react-flow__handle-type-target,
+  .custom-node-ai.trigger-node .handle-input {
+    display: none !important;                          /* Force hide left/input handles */
+    visibility: hidden !important;                     /* Double insurance */
+  }
+  
   /* =====================================================================
      CONTENT LAYOUT - Header and Description sections as specified
      ===================================================================== */

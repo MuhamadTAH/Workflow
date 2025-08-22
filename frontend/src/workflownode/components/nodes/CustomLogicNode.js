@@ -50,15 +50,15 @@ const CustomLogicNode = ({ data = {} }) => {
     return 1;
   };
 
-  // Debug logging
-  if (data.type === 'chatTrigger') {
-    console.log('🔍 Chat Trigger Debug:', {
-      nodeType: data.type,
-      isTriggerNode: isTriggerNode,
-      totalInputHandles: getTotalInputHandles(),
-      data: data
-    });
-  }
+  // Debug: Uncomment to debug trigger node logic
+  // if (data.type === 'chatTrigger') {
+  //   console.log('🔍 Chat Trigger Debug:', {
+  //     nodeType: data.type,
+  //     isTriggerNode: isTriggerNode,
+  //     totalInputHandles: getTotalInputHandles(),
+  //     data: data
+  //   });
+  // }
 
   const totalOutputHandles = getTotalOutputHandles();
   const totalInputHandles = getTotalInputHandles();
