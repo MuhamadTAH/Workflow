@@ -18,6 +18,7 @@ const chatRoutes = require('./routes/chat');
 const liveChatRoutes = require('./routes/livechat');
 const chatTriggerRoutes = require('./routes/chatTrigger');
 const chatbotRoutes = require('./routes/chatbot');
+const echoSupportRoutes = require('./routes/echoSupport');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
@@ -130,6 +131,7 @@ app.use('/api/chat-messages', chatRoutes);
 app.use('/api/live-chat', liveChatRoutes);
 app.use('/api/chat-trigger', chatTriggerRoutes);
 app.use('/api/v1/chatbot', chatbotRoutes);
+app.use('/api/echo', echoSupportRoutes);
 
 // Chat trigger alias route for frontend compatibility
 app.get('/api/chat/:nodeId', (req, res) => {
