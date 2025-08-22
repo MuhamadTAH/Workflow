@@ -210,12 +210,18 @@ const App = ({ botContext }) => {
       node.data.type === 'chatbotTrigger' && node.data.enableChatbot
     );
     
-    setActiveChatbots(chatbotNodes.map(node => ({
-      id: node.id,
-      title: node.data.chatbotTitle || 'Customer Support',
-      subtitle: node.data.chatbotSubtitle || 'How can we help you?',
-      themeColor: node.data.chatbotTheme || '#667eea'
-    })));
+    // Only show the first enabled chatbot to avoid positioning conflicts
+    if (chatbotNodes.length > 0) {
+      const firstChatbot = chatbotNodes[0];
+      setActiveChatbots([{
+        id: firstChatbot.id,
+        title: firstChatbot.data.chatbotTitle || 'Customer Support',
+        subtitle: firstChatbot.data.chatbotSubtitle || 'How can we help you?',
+        themeColor: firstChatbot.data.chatbotTheme || '#667eea'
+      }]);
+    } else {
+      setActiveChatbots([]);
+    }
   }, [nodes]);
 
   // Handle bot context from Live Chat
@@ -703,17 +709,31 @@ const App = ({ botContext }) => {
 
       {/* 🤖 FLOATING CHATBOT WIDGETS */}
       {activeChatbots.map((chatbot, index) => (
-        <FloatingChatbot
-          key={chatbot.id}
-          isVisible={true}
-          nodeId={chatbot.id}
-          title={chatbot.title}
-          subtitle={chatbot.subtitle}
-          themeColor={chatbot.themeColor}
-          onClose={() => {
-            setActiveChatbots(prev => prev.filter(cb => cb.id !== chatbot.id));
+        <div
+          key={`chatbot-container-${chatbot.id}`}
+          style={{
+            position: 'fixed',
+            bottom: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 9999,
+            pointerEvents: 'none'
           }}
-        />
+        >
+          <div style={{ pointerEvents: 'auto' }}>
+            <FloatingChatbot
+              key={chatbot.id}
+              isVisible={true}
+              nodeId={chatbot.id}
+              title={chatbot.title}
+              subtitle={chatbot.subtitle}
+              themeColor={chatbot.themeColor}
+              onClose={() => {
+                setActiveChatbots(prev => prev.filter(cb => cb.id !== chatbot.id));
+              }}
+            />
+          </div>
+        </div>
       ))}
       
     </div>
