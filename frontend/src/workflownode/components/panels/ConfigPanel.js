@@ -465,7 +465,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
       chatbotTitle: node.data.chatbotTitle || 'Customer Support',
       chatbotSubtitle: node.data.chatbotSubtitle || 'How can we help you?',
       chatbotTheme: node.data.chatbotTheme || '#667eea',
-      enableChatbot: node.data.enableChatbot || false,
+      enableChatbot: node.data.enableChatbot !== undefined ? node.data.enableChatbot : true,
   });
 
   // Chat Trigger specific state for real-time messages
@@ -584,7 +584,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
       chatbotTitle: node.data.chatbotTitle || 'Customer Support',
       chatbotSubtitle: node.data.chatbotSubtitle || 'How can we help you?',
       chatbotTheme: node.data.chatbotTheme || '#667eea',
-      enableChatbot: node.data.enableChatbot || false,
+      enableChatbot: node.data.enableChatbot !== undefined ? node.data.enableChatbot : true,
     });
   }, [node.id]);
   

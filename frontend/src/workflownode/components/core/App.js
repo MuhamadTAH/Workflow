@@ -206,9 +206,22 @@ const App = ({ botContext }) => {
 
   // 🤖 FLOATING CHATBOT: Monitor for Chatbot Trigger nodes
   useEffect(() => {
-    const chatbotNodes = nodes.filter(node => 
-      node.data.type === 'chatbotTrigger' && node.data.enableChatbot
-    );
+    console.log('🔍 Checking nodes for chatbot triggers:', nodes.length);
+    
+    // First, let's see all node types
+    const nodeTypes = nodes.map(node => ({ id: node.id, type: node.data?.type }));
+    console.log('📋 All node types:', nodeTypes);
+    
+    const chatbotNodes = nodes.filter(node => {
+      const isChatbotTrigger = node.data?.type === 'chatbotTrigger';
+      const isEnabled = node.data?.enableChatbot !== undefined ? node.data.enableChatbot : true;
+      
+      console.log(`🔍 Node ${node.id}: type=${node.data?.type}, isChatbotTrigger=${isChatbotTrigger}, enableChatbot=${node.data?.enableChatbot}, isEnabled=${isEnabled}`);
+      
+      return isChatbotTrigger && isEnabled;
+    });
+    
+    console.log('✅ Found chatbot trigger nodes:', chatbotNodes.length);
     
     // Only show the first enabled chatbot to avoid positioning conflicts
     if (chatbotNodes.length > 0) {
@@ -219,8 +232,11 @@ const App = ({ botContext }) => {
         subtitle: firstChatbot.data.chatbotSubtitle || 'How can we help you?',
         themeColor: firstChatbot.data.chatbotTheme || '#667eea'
       }]);
+      
+      console.log('🤖 Chatbot widget activated for node:', firstChatbot.id);
     } else {
       setActiveChatbots([]);
+      console.log('🤖 No chatbot widgets active');
     }
   }, [nodes]);
 

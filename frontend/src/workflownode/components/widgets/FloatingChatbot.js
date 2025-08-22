@@ -98,8 +98,14 @@ const FloatingChatbot = ({
         }
     };
 
-    if (!isVisible) return null;
+    console.log('🤖 FloatingChatbot render:', { isVisible, nodeId, title });
 
+    if (!isVisible) {
+        console.log('🚫 FloatingChatbot not visible, returning null');
+        return null;
+    }
+
+    console.log('✅ FloatingChatbot rendering widget');
     return (
         <div className="floating-chatbot">
             {/* Chat Button */}
