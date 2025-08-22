@@ -10,133 +10,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createExecutionContext } from '../../utils/executionContext';
 import { API_BASE_URL } from '../../../config/api.js';
 
-// ChatbotMessages Component for real-time message display
-const ChatbotMessages = ({ nodeId }) => {
-    const [messages, setMessages] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const messagesEndRef = useRef(null);
-
-    // Auto scroll to bottom
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
-
-    // Fetch messages on mount and set up polling
-    useEffect(() => {
-        if (!nodeId) return;
-
-        const fetchMessages = async () => {
-            try {
-                setIsLoading(true);
-                const response = await fetch(`${API_BASE_URL}/api/chatbot/${nodeId}/messages?limit=10`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setMessages(data.messages || []);
-                }
-            } catch (error) {
-                console.error('Error fetching chatbot messages:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        // Initial fetch
-        fetchMessages();
-
-        // Set up polling every 2 seconds for real-time updates
-        const pollInterval = setInterval(fetchMessages, 2000);
-
-        return () => clearInterval(pollInterval);
-    }, [nodeId]);
-
-    if (isLoading && messages.length === 0) {
-        return <div className="text-gray-500 text-center py-4">Loading messages...</div>;
-    }
-
-    if (messages.length === 0) {
-        return (
-            <div className="text-gray-500 text-center py-4">
-                <i className="fas fa-comment-dots mb-2"></i>
-                <div>No messages yet. Send a message through the chatbot widget to see it here.</div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="chatbot-messages-container">
-            {messages.map((message) => (
-                <div key={message.id} className="message-item">
-                    <div className="message-header">
-                        <span className="message-sender">
-                            <i className="fas fa-user"></i> {message.sender}
-                        </span>
-                        <span className="message-time">
-                            {new Date(message.timestamp).toLocaleTimeString()}
-                        </span>
-                    </div>
-                    <div className="message-content">{message.message}</div>
-                </div>
-            ))}
-            <div ref={messagesEndRef} />
-            
-            <style jsx>{`
-                .chatbot-messages-container {
-                    max-height: 300px;
-                    overflow-y: auto;
-                    border: 1px solid #e5e7eb;
-                    border-radius: 8px;
-                    padding: 12px;
-                    background: #f9fafb;
-                }
-                
-                .message-item {
-                    margin-bottom: 12px;
-                    padding: 8px 12px;
-                    background: white;
-                    border-radius: 6px;
-                    border-left: 3px solid #667eea;
-                }
-                
-                .message-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 4px;
-                    font-size: 12px;
-                }
-                
-                .message-sender {
-                    color: #667eea;
-                    font-weight: 600;
-                }
-                
-                .message-time {
-                    color: #9ca3af;
-                }
-                
-                .message-content {
-                    color: #374151;
-                    font-size: 14px;
-                    word-wrap: break-word;
-                }
-                
-                .chatbot-messages-container::-webkit-scrollbar {
-                    width: 4px;
-                }
-                
-                .chatbot-messages-container::-webkit-scrollbar-track {
-                    background: #f1f1f1;
-                    border-radius: 2px;
-                }
-                
-                .chatbot-messages-container::-webkit-scrollbar-thumb {
-                    background: #c1c1c1;
-                    border-radius: 2px;
-                }
-            `}</style>
-        </div>
-    );
-};
 
 // Legacy resolveExpression function for backwards compatibility
 // TODO: Remove this once all components are migrated to ExecutionContext
@@ -729,6 +602,69 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
       onNodeUpdate(node.id, { outputData: newOutputData });
     }
   };
+
+  // Real-time polling for chatbot trigger messages
+  useEffect(() => {
+    if (node.data.type !== 'chatbotTrigger') return;
+
+    const pollForMessages = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/chatbot/${node.id}/messages?limit=1`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.messages && data.messages.length > 0) {
+            const latestMessage = data.messages[0];
+            
+            // Create output data structure similar to other trigger nodes
+            const outputData = {
+              success: true,
+              message: 'Chatbot message received',
+              data: {
+                message: {
+                  message_id: latestMessage.id,
+                  text: latestMessage.message,
+                  chat: {
+                    id: latestMessage.session_id,
+                    type: 'chatbot_widget'
+                  },
+                  from: {
+                    id: `chatbot_user_${latestMessage.id}`,
+                    first_name: 'Chatbot User',
+                    username: 'chatbot_user'
+                  },
+                  date: Math.floor(new Date(latestMessage.timestamp).getTime() / 1000)
+                },
+                chatbot_session: {
+                  id: latestMessage.session_id,
+                  node_id: latestMessage.node_id,
+                  sender: latestMessage.sender,
+                  timestamp: latestMessage.timestamp
+                }
+              },
+              timestamp: latestMessage.timestamp
+            };
+            
+            // Update output data if we have a new message
+            const currentLatestId = outputData?.data?.message?.message_id;
+            if (currentLatestId !== latestMessage.id) {
+              console.log('🤖 New chatbot message received, updating output:', latestMessage);
+              updateOutputData(outputData);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error polling chatbot messages:', error);
+      }
+    };
+
+    // Initial poll
+    pollForMessages();
+
+    // Set up polling every 2 seconds
+    const pollInterval = setInterval(pollForMessages, 2000);
+
+    return () => clearInterval(pollInterval);
+  }, [node.id, node.data.type]);
 
   const handleInputChange = (e, index) => {
     const { name, value, type, checked } = e.target;
@@ -1505,17 +1441,6 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                         <i className="fas fa-robot mr-2"></i>
                                         Preview Chatbot Widget
                                     </button>
-                                </div>
-
-                                {/* Real-time Message Display */}
-                                <div className="form-group mt-6">
-                                    <label>Recent Messages</label>
-                                    <div className="chat-messages-display">
-                                        <ChatbotMessages nodeId={node.id} />
-                                    </div>
-                                    <small className="text-gray-500">
-                                        Messages sent to your chatbot will appear here in real-time.
-                                    </small>
                                 </div>
                             </div>
                         )}
