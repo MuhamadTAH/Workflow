@@ -78,6 +78,15 @@ const Sidebar = () => {
             type: 'telegramTrigger' 
         }} 
       />
+      <DraggableNode 
+        nodeInfo={{ 
+            label: 'Chat Trigger', 
+            icon: 'fa-comments', 
+            color: 'text-purple-500',
+            description: 'Start workflow from web chat messages',
+            type: 'chatTrigger' 
+        }} 
+      />
       
       </div>
 

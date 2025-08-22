@@ -169,6 +169,35 @@ const runNode = async (req, res) => {
                         itemResult = await dataStorageInstance.process(currentItem, executionContext);
                         break;
                     
+                    case 'chatTrigger':
+                        // For chat trigger test execution, generate sample chat data
+                        itemResult = {
+                            success: true,
+                            message: 'Sample chat data generated',
+                            data: {
+                                message: {
+                                    message_id: Date.now(),
+                                    text: 'Hello from chat!',
+                                    chat: {
+                                        id: 'chat_session_123',
+                                        type: 'private'
+                                    },
+                                    from: {
+                                        id: 'chat_user_123',
+                                        first_name: 'Chat User',
+                                        username: 'chat_user'
+                                    },
+                                    date: Math.floor(Date.now() / 1000)
+                                },
+                                chat_session: {
+                                    id: 'chat_session_123',
+                                    session_name: processedConfig.chatSessionName || 'My Chat Bot'
+                                }
+                            },
+                            timestamp: new Date().toISOString()
+                        };
+                        break;
+
                     case 'telegramTrigger':
                         // For test execution, prioritize Telegram API for fresh data
                         if (processedConfig.botToken) {

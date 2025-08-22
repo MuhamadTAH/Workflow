@@ -38,10 +38,11 @@ class WorkflowExecutor {
         // Find trigger node (various types)
         const triggerNode = workflowConfig.nodes.find(node => 
             node.data.type === 'trigger' || 
-            node.data.type === 'telegramTrigger'
+            node.data.type === 'telegramTrigger' ||
+            node.data.type === 'chatTrigger'
         );
         if (!triggerNode) {
-            throw new Error('Workflow must contain a trigger node (trigger or telegramTrigger)');
+            throw new Error('Workflow must contain a trigger node (trigger, telegramTrigger, or chatTrigger)');
         }
 
         console.log(`Found trigger node: ${triggerNode.data.label || triggerNode.data.type} (${triggerNode.id})`);
@@ -303,7 +304,8 @@ class WorkflowExecutor {
         // Find trigger node (starting point)
         const triggerNode = nodes.find(node => 
             node.data.type === 'trigger' || 
-            node.data.type === 'telegramTrigger'
+            node.data.type === 'telegramTrigger' ||
+            node.data.type === 'chatTrigger'
         );
         if (!triggerNode) {
             throw new Error('No trigger node found in workflow');
@@ -1192,6 +1194,29 @@ class WorkflowExecutor {
         }
         
         return current;
+    }
+
+    // Execute workflow when triggered by a specific trigger node
+    async executeWorkflowFromTrigger(workflowId, triggerNodeId, triggerData) {
+        console.log(`\n=== EXECUTING WORKFLOW ${workflowId} FROM TRIGGER ${triggerNodeId} ===`);
+        console.log('Trigger data:', JSON.stringify(triggerData, null, 2));
+
+        const workflow = this.activeWorkflows.get(workflowId);
+        if (!workflow || !workflow.isActive) {
+            throw new Error(`Workflow ${workflowId} is not active`);
+        }
+
+        // Verify that the trigger node exists in the workflow
+        const triggerNode = workflow.nodes.find(node => node.id === triggerNodeId);
+        if (!triggerNode) {
+            throw new Error(`Trigger node ${triggerNodeId} not found in workflow ${workflowId}`);
+        }
+
+        // Use the standard workflow execution method
+        const executionResult = await this.executeWorkflow(workflowId, triggerData);
+
+        console.log(`✅ WORKFLOW ${workflowId} EXECUTION COMPLETED FROM TRIGGER ${triggerNodeId}`);
+        return executionResult;
     }
 }
 

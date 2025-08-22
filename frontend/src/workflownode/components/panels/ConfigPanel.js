@@ -456,6 +456,11 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
       model: node.data.model || 'claude-3-5-sonnet-20241022',
       systemPrompt: node.data.systemPrompt || '',
       userMessage: node.data.userMessage || '',
+      // Chat Trigger specific fields
+      chatSessionName: node.data.chatSessionName || 'My Chat Bot',
+      welcomeMessage: node.data.welcomeMessage || '👋 Welcome! How can I help you today?',
+      allowFileUploads: node.data.allowFileUploads || false,
+      allowedFileTypes: node.data.allowedFileTypes || '*',
   });
 
   useEffect(() => {
@@ -525,6 +530,11 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
       model: node.data.model || 'claude-3-5-sonnet-20241022',
       systemPrompt: node.data.systemPrompt || '',
       userMessage: node.data.userMessage || '',
+      // Chat Trigger specific fields
+      chatSessionName: node.data.chatSessionName || 'My Chat Bot',
+      welcomeMessage: node.data.welcomeMessage || '👋 Welcome! How can I help you today?',
+      allowFileUploads: node.data.allowFileUploads || false,
+      allowedFileTypes: node.data.allowedFileTypes || '*',
     });
   }, [node.id]);
   
@@ -1087,6 +1097,107 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                 ))}
                                 <button onClick={handleAddSwitchRule} className="add-field-btn"><i className="fa-solid fa-plus mr-2"></i> Add Routing Rule</button>
                                 <div className="form-group mt-6"><label>Options</label><div className="toggle-option"><label htmlFor="fallbackOutput" className="toggle-label">Fallback Output</label><div className="toggle-switch"><input type="checkbox" id="fallbackOutput" checked={formData.switchOptions.includes('fallbackOutput')} onChange={() => handleOptionToggle('fallbackOutput')} /><span className="slider"></span></div></div><div className="toggle-option mt-2"><label htmlFor="ignoreCaseSwitch" className="toggle-label">Ignore Case</label><div className="toggle-switch"><input type="checkbox" id="ignoreCaseSwitch" checked={formData.switchOptions.includes('ignoreCase')} onChange={() => handleOptionToggle('ignoreCase')} /><span className="slider"></span></div></div></div>
+                            </div>
+                        )}
+
+                        {node.data.type === 'chatTrigger' && (
+                            <div className="form-group mt-6">
+                                <label htmlFor="chatSessionName">
+                                    Chat Session Name
+                                </label>
+                                <input
+                                    type="text"
+                                    name="chatSessionName"
+                                    id="chatSessionName"
+                                    value={formData.chatSessionName || ''}
+                                    onChange={handleInputChange}
+                                    placeholder="My Chat Bot"
+                                />
+                                
+                                <label htmlFor="welcomeMessage" className="mt-4">
+                                    Welcome Message
+                                </label>
+                                <textarea
+                                    name="welcomeMessage"
+                                    id="welcomeMessage"
+                                    value={formData.welcomeMessage || ''}
+                                    onChange={handleInputChange}
+                                    placeholder="👋 Welcome! How can I help you today?"
+                                    rows="3"
+                                />
+                                
+                                <div className="toggle-option mt-4">
+                                    <label htmlFor="allowFileUploads" className="toggle-label">
+                                        Allow File Uploads
+                                    </label>
+                                    <div className="toggle-switch">
+                                        <input
+                                            type="checkbox"
+                                            id="allowFileUploads"
+                                            checked={formData.allowFileUploads || false}
+                                            onChange={(e) => handleInputChange({
+                                                target: { name: 'allowFileUploads', value: e.target.checked }
+                                            })}
+                                        />
+                                        <span className="slider"></span>
+                                    </div>
+                                </div>
+                                
+                                {formData.allowFileUploads && (
+                                    <div className="form-group mt-4">
+                                        <label htmlFor="allowedFileTypes">
+                                            Allowed File Types
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="allowedFileTypes"
+                                            id="allowedFileTypes"
+                                            value={formData.allowedFileTypes || '*'}
+                                            onChange={handleInputChange}
+                                            placeholder="image/*, text/*, application/pdf"
+                                        />
+                                        <small className="text-gray-500">
+                                            Comma-separated MIME types. Use * for all types.
+                                        </small>
+                                    </div>
+                                )}
+                                
+                                <div className="form-group mt-4">
+                                    <label>Chat URL</label>
+                                    <div className="webhook-url-display">
+                                        <span className="webhook-url">
+                                            {API_BASE_URL}/api/chat/{node.id || 'node-id'}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            className="copy-btn"
+                                            onClick={() => {
+                                                const url = `${API_BASE_URL}/api/chat/${node.id || 'node-id'}`;
+                                                navigator.clipboard.writeText(url);
+                                            }}
+                                            title="Copy chat URL"
+                                        >
+                                            <i className="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                    <small className="text-gray-500">
+                                        Use this URL to embed the chat widget or access the chat interface.
+                                    </small>
+                                </div>
+                                
+                                <div className="form-group mt-4">
+                                    <button
+                                        type="button"
+                                        className="test-btn"
+                                        onClick={() => {
+                                            const chatUrl = `${API_BASE_URL}/api/chat/${node.id || 'node-id'}`;
+                                            window.open(chatUrl, '_blank');
+                                        }}
+                                    >
+                                        <i className="fas fa-external-link-alt mr-2"></i>
+                                        Open Chat Interface
+                                    </button>
+                                </div>
                             </div>
                         )}
 

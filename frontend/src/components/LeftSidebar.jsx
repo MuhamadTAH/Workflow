@@ -16,9 +16,8 @@ function LeftSidebar() {
     },
     {
       name: 'Builder',
-      path: 'https://workflow-lg9z.onrender.com',
-      icon: 'fas fa-magic',
-      external: true
+      path: '/workflow-builder',
+      icon: 'fas fa-magic'
     },
     {
       name: 'Connections',
