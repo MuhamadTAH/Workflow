@@ -23,6 +23,7 @@ const NodeShape = ({ data = {}, nodeHeight, totalInputHandles, totalOutputHandle
   
   // Trigger nodes - these nodes start workflows and have no inputs
   const isTriggerNode = data.type === 'chatTrigger' || 
+                        data.type === 'chatbotTrigger' ||
                         data.type === 'telegramTrigger' || 
                         data.type === 'trigger';
 

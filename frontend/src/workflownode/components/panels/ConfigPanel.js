@@ -461,6 +461,11 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
       welcomeMessage: node.data.welcomeMessage || '👋 Welcome! How can I help you today?',
       allowFileUploads: node.data.allowFileUploads || false,
       allowedFileTypes: node.data.allowedFileTypes || '*',
+      // Chatbot Trigger specific fields
+      chatbotTitle: node.data.chatbotTitle || 'Customer Support',
+      chatbotSubtitle: node.data.chatbotSubtitle || 'How can we help you?',
+      chatbotTheme: node.data.chatbotTheme || '#667eea',
+      enableChatbot: node.data.enableChatbot || false,
   });
 
   // Chat Trigger specific state for real-time messages
@@ -575,6 +580,11 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
       welcomeMessage: node.data.welcomeMessage || '👋 Welcome! How can I help you today?',
       allowFileUploads: node.data.allowFileUploads || false,
       allowedFileTypes: node.data.allowedFileTypes || '*',
+      // Chatbot Trigger specific fields
+      chatbotTitle: node.data.chatbotTitle || 'Customer Support',
+      chatbotSubtitle: node.data.chatbotSubtitle || 'How can we help you?',
+      chatbotTheme: node.data.chatbotTheme || '#667eea',
+      enableChatbot: node.data.enableChatbot || false,
     });
   }, [node.id]);
   
@@ -1274,6 +1284,99 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     <small className="text-gray-500">
                                         Messages sent to your chat will appear here in real-time.
                                     </small>
+                                </div>
+                            </div>
+                        )}
+
+                        {node.data.type === 'chatbotTrigger' && (
+                            <div className="form-group mt-6">
+                                <label htmlFor="chatbotTitle">
+                                    Chatbot Title
+                                </label>
+                                <input
+                                    type="text"
+                                    name="chatbotTitle"
+                                    id="chatbotTitle"
+                                    value={formData.chatbotTitle || ''}
+                                    onChange={handleInputChange}
+                                    placeholder="Customer Support"
+                                />
+
+                                <label htmlFor="chatbotSubtitle" className="mt-4">
+                                    Chatbot Subtitle
+                                </label>
+                                <input
+                                    type="text"
+                                    name="chatbotSubtitle"
+                                    id="chatbotSubtitle"
+                                    value={formData.chatbotSubtitle || ''}
+                                    onChange={handleInputChange}
+                                    placeholder="How can we help you?"
+                                />
+
+                                <label htmlFor="chatbotTheme" className="mt-4">
+                                    Theme Color
+                                </label>
+                                <input
+                                    type="color"
+                                    name="chatbotTheme"
+                                    id="chatbotTheme"
+                                    value={formData.chatbotTheme || '#667eea'}
+                                    onChange={handleInputChange}
+                                />
+
+                                <div className="toggle-option mt-4">
+                                    <label htmlFor="enableChatbot" className="toggle-label">
+                                        Enable Floating Chatbot
+                                    </label>
+                                    <div className="toggle-switch">
+                                        <input
+                                            type="checkbox"
+                                            id="enableChatbot"
+                                            checked={formData.enableChatbot || false}
+                                            onChange={(e) => handleInputChange({
+                                                target: { name: 'enableChatbot', value: e.target.checked }
+                                            })}
+                                        />
+                                        <span className="slider"></span>
+                                    </div>
+                                </div>
+
+                                <div className="form-group mt-4">
+                                    <label>Chatbot URL</label>
+                                    <div className="webhook-url-display">
+                                        <span className="webhook-url">
+                                            {API_BASE_URL}/api/chatbot/{node.id || 'node-id'}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            className="copy-btn"
+                                            onClick={() => {
+                                                const url = `${API_BASE_URL}/api/chatbot/${node.id || 'node-id'}`;
+                                                navigator.clipboard.writeText(url);
+                                            }}
+                                            title="Copy chatbot URL"
+                                        >
+                                            <i className="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                    <small className="text-gray-500">
+                                        Use this URL to embed the floating chatbot widget on your website.
+                                    </small>
+                                </div>
+
+                                <div className="form-group mt-4">
+                                    <button
+                                        type="button"
+                                        className="test-btn"
+                                        onClick={() => {
+                                            const chatbotUrl = `${API_BASE_URL}/api/chatbot/${node.id || 'node-id'}`;
+                                            window.open(chatbotUrl, '_blank');
+                                        }}
+                                    >
+                                        <i className="fas fa-robot mr-2"></i>
+                                        Preview Chatbot Widget
+                                    </button>
                                 </div>
                             </div>
                         )}

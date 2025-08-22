@@ -87,6 +87,15 @@ const Sidebar = () => {
             type: 'chatTrigger' 
         }} 
       />
+      <DraggableNode 
+        nodeInfo={{ 
+            label: 'Chatbot Trigger', 
+            icon: 'fa-robot', 
+            color: 'text-blue-500',
+            description: 'Floating chatbot widget on your website',
+            type: 'chatbotTrigger' 
+        }} 
+      />
       
       </div>
 

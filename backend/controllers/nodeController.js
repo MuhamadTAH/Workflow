@@ -198,6 +198,37 @@ const runNode = async (req, res) => {
                         };
                         break;
 
+                    case 'chatbotTrigger':
+                        // For chatbot trigger test execution, generate sample chatbot data
+                        itemResult = {
+                            success: true,
+                            message: 'Sample chatbot data generated',
+                            data: {
+                                message: {
+                                    message_id: Date.now(),
+                                    text: 'Hello from chatbot widget!',
+                                    chat: {
+                                        id: 'chatbot_session_456',
+                                        type: 'widget'
+                                    },
+                                    from: {
+                                        id: 'chatbot_user_456',
+                                        first_name: 'Widget User',
+                                        username: 'widget_user'
+                                    },
+                                    date: Math.floor(Date.now() / 1000)
+                                },
+                                chatbot_session: {
+                                    id: 'chatbot_session_456',
+                                    title: processedConfig.chatbotTitle || 'Customer Support',
+                                    subtitle: processedConfig.chatbotSubtitle || 'How can we help you?',
+                                    theme: processedConfig.chatbotTheme || '#667eea'
+                                }
+                            },
+                            timestamp: new Date().toISOString()
+                        };
+                        break;
+
                     case 'telegramTrigger':
                         // For test execution, prioritize Telegram API for fresh data
                         if (processedConfig.botToken) {

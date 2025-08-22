@@ -23,6 +23,7 @@ import Sidebar from './Sidebar';
 import Toolbar from './Toolbar';
 import { CustomLogicNode } from '../nodes';
 import { ConfigPanel } from '../panels';
+import FloatingChatbot from '../widgets/FloatingChatbot';
 import { getId } from '../../utils';
 import WorkflowExecutor from '../../utils/workflowExecutor';
 import { API_BASE_URL } from '../../../config/api.js';
@@ -51,6 +52,9 @@ const App = ({ botContext }) => {
   const [executionProgress, setExecutionProgress] = useState('');
   const [workflowExecutor, setWorkflowExecutor] = useState(null);
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  
+  // Floating Chatbot state
+  const [activeChatbots, setActiveChatbots] = useState([]);
 
   // Generate a unique, readable workflow ID (moved to top to fix hoisting issue)
   const generateWorkflowId = useCallback(() => {
@@ -199,6 +203,20 @@ const App = ({ botContext }) => {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [currentWorkflowId, isActivated]);
+
+  // 🤖 FLOATING CHATBOT: Monitor for Chatbot Trigger nodes
+  useEffect(() => {
+    const chatbotNodes = nodes.filter(node => 
+      node.data.type === 'chatbotTrigger' && node.data.enableChatbot
+    );
+    
+    setActiveChatbots(chatbotNodes.map(node => ({
+      id: node.id,
+      title: node.data.chatbotTitle || 'Customer Support',
+      subtitle: node.data.chatbotSubtitle || 'How can we help you?',
+      themeColor: node.data.chatbotTheme || '#667eea'
+    })));
+  }, [nodes]);
 
   // Handle bot context from Live Chat
   useEffect(() => {
@@ -682,6 +700,21 @@ const App = ({ botContext }) => {
           workflowId={currentWorkflowId}
         />
       )}
+
+      {/* 🤖 FLOATING CHATBOT WIDGETS */}
+      {activeChatbots.map((chatbot, index) => (
+        <FloatingChatbot
+          key={chatbot.id}
+          isVisible={true}
+          nodeId={chatbot.id}
+          title={chatbot.title}
+          subtitle={chatbot.subtitle}
+          themeColor={chatbot.themeColor}
+          onClose={() => {
+            setActiveChatbots(prev => prev.filter(cb => cb.id !== chatbot.id));
+          }}
+        />
+      ))}
       
     </div>
   );
