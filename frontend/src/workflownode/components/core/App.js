@@ -295,14 +295,14 @@ const App = ({ botContext }) => {
         };
       }
 
-      // Auto-register Chat Trigger nodes
-      if (nodeData.type === 'chatTrigger') {
-        registerChatTrigger(newNode);
-      }
-
       setNodes((nds) => nds.concat(newNode));
+
+      // Auto-register Chat Trigger nodes after adding to nodes
+      if (nodeData.type === 'chatTrigger') {
+        setTimeout(() => registerChatTrigger(newNode), 100);
+      }
     },
-    [reactFlowInstance, setNodes, currentWorkflowId, generateWorkflowId, botContext, registerChatTrigger]
+    [reactFlowInstance, setNodes, currentWorkflowId, generateWorkflowId, botContext]
   );
 
   // Sets the currently selected node when double-clicked.
@@ -570,9 +570,9 @@ const App = ({ botContext }) => {
   }, []);
 
   // Register Chat Trigger node automatically
-  const registerChatTrigger = useCallback(async (node) => {
+  const registerChatTrigger = async (node) => {
     try {
-      const workflowId = currentWorkflowId || generateWorkflowId();
+      const workflowId = currentWorkflowId || `workflow-${Date.now()}`;
       
       const config = {
         chatSessionName: node.data.chatSessionName || `Chat Session ${node.id.slice(-4)}`,
@@ -621,7 +621,7 @@ const App = ({ botContext }) => {
     } catch (error) {
       console.error('❌ Error registering Chat Trigger:', error);
     }
-  }, [currentWorkflowId, generateWorkflowId, setNodes]);
+  };
 
   return (
     <div className={`professional-workflow-builder ${!sidebarVisible ? 'sidebar-hidden' : ''}`}>
