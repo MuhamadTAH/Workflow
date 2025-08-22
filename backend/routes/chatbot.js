@@ -10,6 +10,7 @@ const router = express.Router();
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const logger = require('../services/logger');
+const { executeWorkflowFromTrigger } = require('../services/workflowExecutor');
 
 // Database setup
 const dbPath = path.join(__dirname, '..', 'database.sqlite');
@@ -141,22 +142,66 @@ router.post('/:nodeId/message', async (req, res) => {
         // Store the message in database
         const insertQuery = `INSERT INTO chatbot_messages (node_id, session_id, message, sender) VALUES (?, ?, ?, ?)`;
         
-        db.run(insertQuery, [nodeId, sessionId, message, 'user'], function(err) {
+        db.run(insertQuery, [nodeId, sessionId, message, 'user'], async function(err) {
             if (err) {
                 logger.error('❌ Error storing chatbot message:', err);
                 return res.status(500).json({ error: 'Failed to store message' });
             }
             
+            const messageId = this.lastID;
             logger.info(`✅ Stored chatbot message for node ${nodeId}: ${message}`);
             
-            // TODO: Trigger workflow execution with this message
-            // For now, return a simple response
-            res.json({
-                success: true,
-                messageId: this.lastID,
-                response: "Thank you for your message! We'll get back to you soon.",
-                timestamp: new Date().toISOString()
-            });
+            try {
+                // Trigger workflow execution with the chatbot message data
+                const triggerData = {
+                    message: {
+                        message_id: messageId,
+                        text: message,
+                        chat: {
+                            id: sessionId,
+                            type: 'chatbot_widget'
+                        },
+                        from: {
+                            id: `chatbot_user_${Date.now()}`,
+                            first_name: 'Chatbot User',
+                            username: 'chatbot_user'
+                        },
+                        date: Math.floor(Date.now() / 1000)
+                    },
+                    chatbot_session: {
+                        id: sessionId,
+                        node_id: nodeId,
+                        timestamp: new Date().toISOString()
+                    }
+                };
+                
+                logger.info(`🚀 Triggering workflow for chatbot node ${nodeId} with message: ${message}`);
+                
+                // Execute workflow starting from this chatbot trigger node
+                const executionResult = await executeWorkflowFromTrigger(nodeId, triggerData);
+                
+                logger.info(`✅ Workflow execution completed for chatbot node ${nodeId}:`, executionResult);
+                
+                res.json({
+                    success: true,
+                    messageId: messageId,
+                    response: "Message received and workflow triggered!",
+                    timestamp: new Date().toISOString(),
+                    executionId: executionResult?.executionId
+                });
+                
+            } catch (workflowError) {
+                logger.error('❌ Error executing workflow for chatbot message:', workflowError);
+                
+                // Still return success for message storage, but indicate workflow error
+                res.json({
+                    success: true,
+                    messageId: messageId,
+                    response: "Message received, but workflow execution failed.",
+                    timestamp: new Date().toISOString(),
+                    workflowError: workflowError.message
+                });
+            }
         });
     } catch (error) {
         logger.error('❌ Error processing chatbot message:', error);
