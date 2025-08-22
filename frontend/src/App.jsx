@@ -9,6 +9,7 @@ import Connections from './pages/Connections';
 import InstagramCallback from './pages/InstagramCallback';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import LiveChat from './pages/LiveChat';
+import EchoSupport from './pages/EchoSupport';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import LeftSidebar from './components/LeftSidebar';
 // Initialize i18n
@@ -147,6 +148,27 @@ function Home() {
             <p className="hero-subtitle">
               Manage your automated marketing workflows and e-commerce operations
             </p>
+            <div className="hero-actions" style={{ marginTop: '20px' }}>
+              <Link 
+                to="/echo-support" 
+                className="btn btn-primary hero-btn"
+                style={{ 
+                  textDecoration: 'none',
+                  padding: '12px 24px',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  borderRadius: '8px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontWeight: '500',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <i className="fa-solid fa-headset"></i>
+                AI Chat Support Platform
+              </Link>
+            </div>
           </div>
         </header>
 
@@ -264,6 +286,7 @@ function App() {
         <Route path="/connections" element={<Connections />} />
         <Route path="/connections/callback/instagram" element={<InstagramCallback />} />
         <Route path="/live-chat" element={<LiveChat />} />
+        <Route path="/echo-support" element={<EchoSupport />} />
         <Route path="/workflow" element={<WorkflowBuilder />} />
         <Route path="/workflow-builder" element={<WorkflowBuilder />} />
         {/* <Route path="/workflownode" element={<WorkflowNode />} /> */}

@@ -2,18 +2,18 @@
 // Uses VITE_API_BASE_URL environment variable set in Render
 
 const getApiBaseUrl = () => {
-  // 1. Use Render environment variable if available
+  // 1. Force development environment to use local backend
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:3001';
+  }
+  
+  // 2. Use Render environment variable if available
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
-  // 2. Production detection - use current domain for API calls
-  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return window.location.origin; // This will use the current domain
-  }
-  
-  // 3. Development fallback
-  return 'http://localhost:3001';
+  // 3. Production fallback - use current domain for API calls
+  return window.location.origin;
 };
 
 export const API_BASE_URL = getApiBaseUrl();
