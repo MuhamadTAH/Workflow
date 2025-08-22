@@ -129,7 +129,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/chat-messages', chatRoutes);
 app.use('/api/live-chat', liveChatRoutes);
 app.use('/api/chat-trigger', chatTriggerRoutes);
-app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/v1/chatbot', chatbotRoutes);
 
 // Chat trigger alias route for frontend compatibility
 app.get('/api/chat/:nodeId', (req, res) => {

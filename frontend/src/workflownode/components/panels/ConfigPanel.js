@@ -609,9 +609,13 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
 
     const pollForMessages = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/chatbot/${node.id}/messages?limit=1`);
+        const url = `${API_BASE_URL}/chatbot/${node.id}/messages?limit=1`;
+        console.log('📡 Polling for messages:', url);
+        const response = await fetch(url);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log('📋 Messages response:', data);
           if (data.messages && data.messages.length > 0) {
             const latestMessage = data.messages[0];
             

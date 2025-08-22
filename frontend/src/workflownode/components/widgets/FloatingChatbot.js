@@ -59,7 +59,7 @@ const FloatingChatbot = ({
 
         // Send message to backend
         try {
-            const response = await fetch(`/api/chatbot/${nodeId}/message`, {
+            const response = await fetch(`/api/v1/chatbot/${nodeId}/message`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -70,8 +70,14 @@ const FloatingChatbot = ({
                 })
             });
 
+            console.log('📤 Message sent, response status:', response.status);
+            
             if (response.ok) {
-                const data = await response.json();
+                const responseText = await response.text();
+                console.log('📥 Raw response:', responseText);
+                
+                const data = responseText ? JSON.parse(responseText) : {};
+                console.log('📋 Parsed response:', data);
                 
                 // Simulate typing delay
                 setTimeout(() => {
@@ -84,6 +90,9 @@ const FloatingChatbot = ({
                     setMessages(prev => [...prev, botMessage]);
                     setIsTyping(false);
                 }, 1000);
+            } else {
+                console.error('❌ Response not ok:', response.status, response.statusText);
+                setIsTyping(false);
             }
         } catch (error) {
             console.error('Error sending message:', error);
