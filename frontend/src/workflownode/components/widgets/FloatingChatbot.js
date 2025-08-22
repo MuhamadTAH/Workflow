@@ -79,17 +79,8 @@ const FloatingChatbot = ({
                 const data = responseText ? JSON.parse(responseText) : {};
                 console.log('📋 Parsed response:', data);
                 
-                // Simulate typing delay
-                setTimeout(() => {
-                    const botMessage = {
-                        id: Date.now() + 1,
-                        text: data.response || "Thank you for your message! We'll get back to you soon.",
-                        sender: 'bot',
-                        timestamp: new Date()
-                    };
-                    setMessages(prev => [...prev, botMessage]);
-                    setIsTyping(false);
-                }, 1000);
+                // Just stop typing indicator, no automatic response
+                setIsTyping(false);
             } else {
                 console.error('❌ Response not ok:', response.status, response.statusText);
                 setIsTyping(false);
