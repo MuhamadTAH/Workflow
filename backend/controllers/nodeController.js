@@ -13,6 +13,13 @@ const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
 const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
 const instagramResponseNode = require('../nodes/actions/instagramResponseNode');
+const instagramGetDMsNode = require('../nodes/actions/instagramGetDMsNode');
+const instagramSendDMNode = require('../nodes/actions/instagramSendDMNode');
+const instagramPostImageNode = require('../nodes/actions/instagramPostImageNode');
+const instagramGetCommentsNode = require('../nodes/actions/instagramGetCommentsNode');
+const instagramReplyCommentNode = require('../nodes/actions/instagramReplyCommentNode');
+const instagramGetInsightsNode = require('../nodes/actions/instagramGetInsightsNode');
+const instagramGetProfileNode = require('../nodes/actions/instagramGetProfileNode');
 const ifNode = require('../nodes/logic/ifNode');
 const switchNode = require('../nodes/logic/switchNode');
 const waitNode = require('../nodes/logic/waitNode');
@@ -100,7 +107,7 @@ const runNode = async (req, res) => {
         console.log(`📋 Processing ${inputItems.length} item(s) for node ${node.type}`);
         
         // Check if this is an output node that should execute once regardless of input items
-        const outputNodes = ['telegramSendMessage', 'instagramResponse'];
+        const outputNodes = ['telegramSendMessage', 'instagramResponse', 'instagramSendDM', 'instagramPostImage', 'instagramReplyComment'];
         const shouldExecuteOnce = outputNodes.includes(node.type);
         
         if (shouldExecuteOnce) {
@@ -122,6 +129,21 @@ const runNode = async (req, res) => {
                     // Use first item or combined data for context
                     const instagramContextItem = allInputData[0] || {};
                     itemResult = await instagramResponseNode.execute(processedConfig, instagramContextItem, connectedNodes, executionContext);
+                    break;
+                
+                case 'instagramSendDM':
+                    const dmContextItem = allInputData[0] || {};
+                    itemResult = await instagramSendDMNode.execute(processedConfig, dmContextItem, connectedNodes, executionContext);
+                    break;
+                
+                case 'instagramPostImage':
+                    const postContextItem = allInputData[0] || {};
+                    itemResult = await instagramPostImageNode.execute(processedConfig, postContextItem, connectedNodes, executionContext);
+                    break;
+                
+                case 'instagramReplyComment':
+                    const replyContextItem = allInputData[0] || {};
+                    itemResult = await instagramReplyCommentNode.execute(processedConfig, replyContextItem, connectedNodes, executionContext);
                     break;
                 
                 default:
@@ -173,6 +195,22 @@ const runNode = async (req, res) => {
                     case 'dataStorage':
                         const dataStorageInstance = new DataStorageNode(processedConfig);
                         itemResult = await dataStorageInstance.process(currentItem, executionContext);
+                        break;
+                    
+                    case 'instagramGetDMs':
+                        itemResult = await instagramGetDMsNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                        break;
+                    
+                    case 'instagramGetComments':
+                        itemResult = await instagramGetCommentsNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                        break;
+                    
+                    case 'instagramGetInsights':
+                        itemResult = await instagramGetInsightsNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                        break;
+                    
+                    case 'instagramGetProfile':
+                        itemResult = await instagramGetProfileNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
                         break;
                     
                     case 'chatTrigger':

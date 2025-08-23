@@ -152,11 +152,74 @@ const Sidebar = () => {
       />
       <DraggableNode 
         nodeInfo={{ 
+            label: 'Instagram Get DMs', 
+            icon: 'fa-instagram', 
+            color: 'text-pink-400',
+            description: 'Fetch incoming Instagram direct messages',
+            type: 'instagramGetDMs' 
+        }} 
+      />
+      <DraggableNode 
+        nodeInfo={{ 
+            label: 'Instagram Send DM', 
+            icon: 'fa-instagram', 
+            color: 'text-pink-500',
+            description: 'Send direct messages via Instagram',
+            type: 'instagramSendDM' 
+        }} 
+      />
+      <DraggableNode 
+        nodeInfo={{ 
             label: 'Instagram Response', 
             icon: 'fa-instagram', 
             color: 'text-pink-500',
             description: 'Auto-respond to Instagram DMs and comments',
             type: 'instagramResponse' 
+        }} 
+      />
+      <DraggableNode 
+        nodeInfo={{ 
+            label: 'Instagram Get Comments', 
+            icon: 'fa-instagram', 
+            color: 'text-pink-400',
+            description: 'Fetch comments from Instagram posts',
+            type: 'instagramGetComments' 
+        }} 
+      />
+      <DraggableNode 
+        nodeInfo={{ 
+            label: 'Instagram Reply Comment', 
+            icon: 'fa-instagram', 
+            color: 'text-pink-500',
+            description: 'Reply to Instagram post comments',
+            type: 'instagramReplyComment' 
+        }} 
+      />
+      <DraggableNode 
+        nodeInfo={{ 
+            label: 'Instagram Post Image', 
+            icon: 'fa-instagram', 
+            color: 'text-pink-600',
+            description: 'Post images to Instagram feed',
+            type: 'instagramPostImage' 
+        }} 
+      />
+      <DraggableNode 
+        nodeInfo={{ 
+            label: 'Instagram Get Insights', 
+            icon: 'fa-instagram', 
+            color: 'text-pink-300',
+            description: 'Get Instagram analytics and insights',
+            type: 'instagramGetInsights' 
+        }} 
+      />
+      <DraggableNode 
+        nodeInfo={{ 
+            label: 'Instagram Get Profile', 
+            icon: 'fa-instagram', 
+            color: 'text-pink-300',
+            description: 'Get Instagram account profile info',
+            type: 'instagramGetProfile' 
         }} 
       />
       <DraggableNode 
