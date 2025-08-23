@@ -26,6 +26,23 @@ const waitNode = require('../nodes/logic/waitNode');
 const mergeNode = require('../nodes/logic/mergeNode');
 const filterNode = require('../nodes/logic/filterNode');
 
+// Facebook Nodes
+const facebookGetPageInfoNode = require('../nodes/actions/facebookGetPageInfoNode');
+const facebookPostToPageNode = require('../nodes/actions/facebookPostToPageNode');
+const facebookGetPagePostsNode = require('../nodes/actions/facebookGetPagePostsNode');
+const facebookGetMessagesNode = require('../nodes/actions/facebookGetMessagesNode');
+const facebookSendMessageNode = require('../nodes/actions/facebookSendMessageNode');
+const facebookReplyMessageNode = require('../nodes/actions/facebookReplyMessageNode');
+const facebookGetPostCommentsNode = require('../nodes/actions/facebookGetPostCommentsNode');
+const facebookReplyCommentNode = require('../nodes/actions/facebookReplyCommentNode');
+const facebookGetPageInsightsNode = require('../nodes/actions/facebookGetPageInsightsNode');
+
+// LinkedIn Nodes
+const linkedinGetProfileNode = require('../nodes/actions/linkedinGetProfileNode');
+const linkedinCreatePostNode = require('../nodes/actions/linkedinCreatePostNode');
+const linkedinSendMessageNode = require('../nodes/actions/linkedinSendMessageNode');
+const linkedinGetCompanyNode = require('../nodes/actions/linkedinGetCompanyNode');
+
 
 const { createBackendExecutionContext } = require('../utils/executionContext');
 
@@ -107,7 +124,11 @@ const runNode = async (req, res) => {
         console.log(`📋 Processing ${inputItems.length} item(s) for node ${node.type}`);
         
         // Check if this is an output node that should execute once regardless of input items
-        const outputNodes = ['telegramSendMessage', 'instagramResponse', 'instagramSendDM', 'instagramPostImage', 'instagramReplyComment'];
+        const outputNodes = [
+            'telegramSendMessage', 'instagramResponse', 'instagramSendDM', 'instagramPostImage', 'instagramReplyComment',
+            'facebookPostToPage', 'facebookSendMessage', 'facebookReplyMessage', 'facebookReplyComment',
+            'linkedinCreatePost', 'linkedinSendMessage'
+        ];
         const shouldExecuteOnce = outputNodes.includes(node.type);
         
         if (shouldExecuteOnce) {
@@ -146,10 +167,40 @@ const runNode = async (req, res) => {
                     itemResult = await instagramReplyCommentNode.execute(processedConfig, replyContextItem, connectedNodes, executionContext);
                     break;
                 
+                case 'facebookPostToPage':
+                    const fbPostContextItem = allInputData[0] || {};
+                    itemResult = await facebookPostToPageNode.execute(processedConfig, fbPostContextItem, connectedNodes, executionContext);
+                    break;
+                
+                case 'facebookSendMessage':
+                    const fbSendMessageContextItem = allInputData[0] || {};
+                    itemResult = await facebookSendMessageNode.execute(processedConfig, fbSendMessageContextItem, connectedNodes, executionContext);
+                    break;
+                
+                case 'facebookReplyMessage':
+                    const fbReplyMessageContextItem = allInputData[0] || {};
+                    itemResult = await facebookReplyMessageNode.execute(processedConfig, fbReplyMessageContextItem, connectedNodes, executionContext);
+                    break;
+                
+                case 'facebookReplyComment':
+                    const fbReplyCommentContextItem = allInputData[0] || {};
+                    itemResult = await facebookReplyCommentNode.execute(processedConfig, fbReplyCommentContextItem, connectedNodes, executionContext);
+                    break;
+                
+                case 'linkedinCreatePost':
+                    const linkedinPostContextItem = allInputData[0] || {};
+                    itemResult = await linkedinCreatePostNode.execute(processedConfig, linkedinPostContextItem, connectedNodes, executionContext);
+                    break;
+                
+                case 'linkedinSendMessage':
+                    const linkedinMessageContextItem = allInputData[0] || {};
+                    itemResult = await linkedinSendMessageNode.execute(processedConfig, linkedinMessageContextItem, connectedNodes, executionContext);
+                    break;
+                
                 default:
                     return res.status(400).json({ 
                         message: `Unsupported output node type: ${node.type}`,
-                        supportedOutputTypes: ['telegramSendMessage', 'instagramResponse']
+                        supportedOutputTypes: ['telegramSendMessage', 'instagramResponse', 'facebookPostToPage', 'facebookSendMessage', 'linkedinCreatePost', 'linkedinSendMessage']
                     });
             }
             
@@ -436,11 +487,45 @@ const runNode = async (req, res) => {
                         itemResult = await filterNode.execute(processedConfig, currentItem, executionContext);
                         break;
                     
+                    // Facebook Input Nodes
+                    case 'facebookGetPageInfo':
+                        itemResult = await facebookGetPageInfoNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                        break;
+                    
+                    case 'facebookGetPagePosts':
+                        itemResult = await facebookGetPagePostsNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                        break;
+                    
+                    case 'facebookGetMessages':
+                        itemResult = await facebookGetMessagesNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                        break;
+                    
+                    case 'facebookGetPostComments':
+                        itemResult = await facebookGetPostCommentsNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                        break;
+                    
+                    case 'facebookGetPageInsights':
+                        itemResult = await facebookGetPageInsightsNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                        break;
+                    
+                    // LinkedIn Input Nodes
+                    case 'linkedinGetProfile':
+                        itemResult = await linkedinGetProfileNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                        break;
+                    
+                    case 'linkedinGetCompany':
+                        itemResult = await linkedinGetCompanyNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                        break;
                     
                     default:
                         return res.status(400).json({ 
                             message: `Unsupported node type: ${node.type}`,
-                            supportedTypes: ['aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'if', 'switch', 'wait', 'merge', 'filter']
+                            supportedTypes: [
+                                'aiAgent', 'modelNode', 'googleDocs', 'dataStorage', 'telegramTrigger', 'if', 'switch', 'wait', 'merge', 'filter',
+                                'facebookGetPageInfo', 'facebookPostToPage', 'facebookGetPagePosts', 'facebookGetMessages', 'facebookSendMessage', 
+                                'facebookReplyMessage', 'facebookGetPostComments', 'facebookReplyComment', 'facebookGetPageInsights',
+                                'linkedinGetProfile', 'linkedinCreatePost', 'linkedinSendMessage', 'linkedinGetCompany'
+                            ]
                         });
                 }
                 
