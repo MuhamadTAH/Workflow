@@ -44,7 +44,7 @@ class InstagramReplyCommentNode {
                 typeOptions: {
                     rows: 3
                 },
-                default: 'Thanks for your comment! {{$json.commenter_name || ""}}'',
+                default: 'Thanks for your comment! {{$json.commenter_name || ""}}',
                 required: true,
                 description: 'Reply text (supports expressions)'
             },
