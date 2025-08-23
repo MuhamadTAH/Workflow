@@ -769,7 +769,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
     }));
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/connections/find-instagram-account-id`, {
+      const response = await fetch(`${API_BASE_URL}/api/nodes/find-instagram-account-id`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -848,7 +848,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
 
     try {
       // Call backend to validate Instagram account
-      const response = await fetch(`${API_BASE_URL}/api/connections/validate-instagram`, {
+      const response = await fetch(`${API_BASE_URL}/api/nodes/validate-instagram`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

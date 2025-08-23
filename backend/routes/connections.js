@@ -661,7 +661,7 @@ router.post('/telegram-client/verify-code', verifyToken, async (req, res) => {
   }
 });
 
-// POST /api/connections/find-instagram-account-id - Find Instagram Business Account ID from access token
+// POST /api/connections/find-instagram-account-id - Find Instagram Business Account ID from access token (no auth required for workflow builder)
 router.post('/find-instagram-account-id', async (req, res) => {
   try {
     const { accessToken } = req.body;
@@ -725,7 +725,7 @@ router.post('/find-instagram-account-id', async (req, res) => {
   }
 });
 
-// POST /api/connections/validate-instagram - Validate Instagram Account ID and Access Token
+// POST /api/connections/validate-instagram - Validate Instagram Account ID and Access Token (no auth required for workflow builder)
 router.post('/validate-instagram', async (req, res) => {
   try {
     const { accountId, accessToken } = req.body;
@@ -792,6 +792,15 @@ router.post('/validate-instagram', async (req, res) => {
       error: 'Failed to validate Instagram account: ' + error.message
     });
   }
+});
+
+// Test endpoint without authentication
+router.get('/test-no-auth', (req, res) => {
+  res.json({
+    success: true,
+    message: 'No auth endpoint working',
+    timestamp: new Date().toISOString()
+  });
 });
 
 module.exports = router;
