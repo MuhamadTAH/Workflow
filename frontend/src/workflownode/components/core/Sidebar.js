@@ -6,6 +6,7 @@ This component renders the sidebar with a complete list of all
 available draggable nodes for the workflow.
 */
 import React from 'react';
+import { NODE_DEFINITIONS, NODE_CATEGORIES } from '../../constants/nodeTypes';
 
 const DraggableNode = ({ nodeInfo }) => {
   const onDragStart = (event, nodeInfo) => {
@@ -222,25 +223,46 @@ const Sidebar = () => {
             type: 'instagramGetProfile' 
         }} 
       />
-      <DraggableNode 
-        nodeInfo={{ 
-            label: 'LinkedIn', 
-            icon: 'fa-linkedin', 
-            color: 'text-blue-700',
-            description: 'LinkedIn integration',
-            type: 'linkedin' 
-        }} 
-      />
-      <DraggableNode 
-        nodeInfo={{ 
-            label: 'TikTok', 
-            icon: 'fa-tiktok', 
-            color: 'text-black',
-            description: 'TikTok integration',
-            type: 'tiktok' 
-        }} 
-      />
-      
+      </div>
+
+      {/* FACEBOOK NODES */}
+      <div className="node-category">
+        <div className="category-header">
+          <i className="fa-brands fa-facebook category-icon"></i>
+          <span>Facebook</span>
+        </div>
+        {NODE_DEFINITIONS.filter(node => node.category === NODE_CATEGORIES.FACEBOOK).map(node => (
+          <DraggableNode 
+            key={node.type}
+            nodeInfo={{ 
+              label: node.label, 
+              icon: 'fa-facebook', 
+              color: 'text-blue-500',
+              description: node.description,
+              type: node.type 
+            }} 
+          />
+        ))}
+      </div>
+
+      {/* LINKEDIN NODES */}
+      <div className="node-category">
+        <div className="category-header">
+          <i className="fa-brands fa-linkedin category-icon"></i>
+          <span>LinkedIn</span>
+        </div>
+        {NODE_DEFINITIONS.filter(node => node.category === NODE_CATEGORIES.LINKEDIN).map(node => (
+          <DraggableNode 
+            key={node.type}
+            nodeInfo={{ 
+              label: node.label, 
+              icon: 'fa-linkedin', 
+              color: 'text-blue-600',
+              description: node.description,
+              type: node.type 
+            }} 
+          />
+        ))}
       </div>
 
       {/* UTILITY NODES */}
