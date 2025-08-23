@@ -1710,6 +1710,117 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                             </div>
                         )}
 
+                        {node.data.type === 'instagramResponse' && (
+                            <div className="form-group mt-6">
+                                <label>Instagram Response Configuration</label>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="accountId">Instagram Account ID</label>
+                                    <ExpressionInput 
+                                        name="accountId" 
+                                        value={formData.accountId || ''} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="Your Instagram Business Account ID"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Instagram Business Account ID from your connection</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="responseType">Response Type</label>
+                                    <div className="custom-select-wrapper">
+                                        <select name="responseType" id="responseType" value={formData.responseType || 'dm'} onChange={handleInputChange}>
+                                            <option value="dm">Direct Messages</option>
+                                            <option value="comment">Comments</option>
+                                            <option value="both">Both</option>
+                                        </select>
+                                    </div>
+                                    <p className="text-sm text-gray-500 mt-1">What type of Instagram interactions to respond to</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="responseMessage">Response Message</label>
+                                    <ExpressionInput 
+                                        name="responseMessage" 
+                                        value={formData.responseMessage || 'Hello {{$json.sender_name || "there"}}! Thanks for your message. We\'ll get back to you soon! 🙌'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="Hello {{$json.sender_name}}! Thanks for reaching out!"
+                                        isTextarea={true}
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Auto-response message with template expressions</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="triggerKeywords">Trigger Keywords (Optional)</label>
+                                    <ExpressionInput 
+                                        name="triggerKeywords" 
+                                        value={formData.triggerKeywords || ''} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="hello, hi, help, support"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Comma-separated keywords to trigger response (empty = respond to all)</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="responseDelay">Response Delay (seconds)</label>
+                                    <input
+                                        type="number"
+                                        name="responseDelay"
+                                        id="responseDelay"
+                                        value={formData.responseDelay || 2}
+                                        onChange={handleInputChange}
+                                        min="0"
+                                        max="300"
+                                        style={{ flex: 1 }}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Delay before sending response (0-300 seconds)</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="enableSmartResponse">Enable Smart Responses</label>
+                                    <div className="custom-select-wrapper">
+                                        <select name="enableSmartResponse" id="enableSmartResponse" value={formData.enableSmartResponse || 'false'} onChange={handleInputChange}>
+                                            <option value="false">No</option>
+                                            <option value="true">Yes (AI-generated responses)</option>
+                                        </select>
+                                    </div>
+                                    <p className="text-sm text-gray-500 mt-1">Use AI to generate contextual responses</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="accessToken">Access Token</label>
+                                    <ExpressionInput 
+                                        name="accessToken" 
+                                        value={formData.accessToken || '{{$env.INSTAGRAM_ACCESS_TOKEN}}'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="{{$env.INSTAGRAM_ACCESS_TOKEN}} or your access token"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                        type="password"
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Instagram API Access Token from your connection</p>
+                                </div>
+                                
+                                <div className="template-examples" style={{ background: '#f8f9fa', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
+                                    <strong>Instagram Template Examples:</strong><br/>
+                                    <code>{'{{$json.sender_name}}'}</code> - Message sender name<br/>
+                                    <code>{'{{$json.instagram_message.text}}'}</code> - Original message text<br/>
+                                    <code>{'{{$json.instagram_comment.text}}'}</code> - Comment text<br/>
+                                    <code>{'{{$node["AI Agent"].json.response}}'}</code> - From AI node<br/>
+                                    <code>{'{{$env.INSTAGRAM_ACCESS_TOKEN}}'}</code> - Environment variable
+                                </div>
+                            </div>
+                        )}
+
 
                         {node.data.type === 'executeSubWorkflow' && (
                             <>
