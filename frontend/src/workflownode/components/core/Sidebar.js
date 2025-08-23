@@ -152,11 +152,11 @@ const Sidebar = () => {
       />
       <DraggableNode 
         nodeInfo={{ 
-            label: 'Instagram', 
+            label: 'Instagram Response', 
             icon: 'fa-instagram', 
             color: 'text-pink-500',
-            description: 'Instagram integration',
-            type: 'instagram' 
+            description: 'Auto-respond to Instagram DMs and comments',
+            type: 'instagramResponse' 
         }} 
       />
       <DraggableNode 

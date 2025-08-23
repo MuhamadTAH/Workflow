@@ -1279,6 +1279,247 @@ router.post('/delete-telegram-webhook', async (req, res) => {
 });
 
 
+// Instagram webhook endpoints
+router.post('/instagram/:workflowId', asyncHandler(async (req, res) => {
+  const { workflowId } = req.params;
+  const update = req.body;
+
+  console.log('📷 Instagram webhook received for workflow:', workflowId);
+  console.log('📷 Instagram update data:', JSON.stringify(update, null, 2));
+
+  // Validate Instagram webhook signature (in production, verify webhook signature)
+  if (!update || typeof update !== 'object') {
+    console.log('❌ Invalid Instagram webhook data');
+    return res.status(400).json({ error: 'Invalid webhook data' });
+  }
+
+  try {
+    // Check if WorkflowExecutor is available
+    if (!workflowExecutor) {
+      console.log('⚠️ WorkflowExecutor not available for Instagram webhook');
+      return res.status(503).json({ 
+        success: false, 
+        error: 'WorkflowExecutor service unavailable' 
+      });
+    }
+
+    // Find the target workflow
+    const workflow = workflowExecutor.activeWorkflows.get(workflowId);
+    if (!workflow) {
+      console.log('❌ Instagram webhook: workflow not found:', workflowId);
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Workflow not found or not active' 
+      });
+    }
+
+    // Process Instagram webhook data
+    const instagramData = processInstagramWebhook(update);
+    
+    if (instagramData) {
+      console.log('🚀 Triggering workflow execution for Instagram event:', instagramData.type);
+      
+      // Execute the workflow with Instagram data
+      await workflowExecutor.executeWorkflow(workflowId, instagramData);
+      
+      res.status(200).json({ 
+        success: true, 
+        message: 'Instagram webhook processed',
+        eventType: instagramData.type
+      });
+    } else {
+      console.log('⚠️ Instagram webhook: no processable data found');
+      res.status(200).json({ 
+        success: true, 
+        message: 'Instagram webhook received but no action needed' 
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Instagram webhook processing error:', error);
+    logger.logError(error, {
+      context: 'instagram_webhook',
+      workflowId: workflowId,
+      updatePreview: JSON.stringify(update).substring(0, 200)
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error processing Instagram webhook'
+    });
+  }
+}));
+
+// Legacy Instagram webhook endpoint (for backwards compatibility)
+router.post('/instagram', asyncHandler(async (req, res) => {
+  const update = req.body;
+  
+  console.log('📷 Legacy Instagram webhook received');
+  console.log('📷 Update:', JSON.stringify(update, null, 2));
+
+  // Try to find an active workflow with Instagram trigger
+  if (workflowExecutor && workflowExecutor.activeWorkflows.size > 0) {
+    const activeWorkflows = Array.from(workflowExecutor.activeWorkflows.keys());
+    
+    let targetWorkflow = null;
+    for (const workflowId of activeWorkflows) {
+      const workflow = workflowExecutor.activeWorkflows.get(workflowId);
+      if (workflow && workflow.nodes) {
+        const hasInstagramTrigger = workflow.nodes.some(node => 
+          node.data.type === 'instagramTrigger' || node.data.type === 'instagramResponse'
+        );
+        if (hasInstagramTrigger) {
+          targetWorkflow = workflowId;
+          break;
+        }
+      }
+    }
+    
+    if (targetWorkflow) {
+      console.log(`🔄 LEGACY REDIRECT: Forwarding Instagram event to workflow: ${targetWorkflow}`);
+      
+      // Forward to workflow-specific endpoint
+      req.url = `/instagram/${targetWorkflow}`;
+      req.params = { workflowId: targetWorkflow };
+      
+      return router.handle(req, res, () => {
+        console.log('📷 LEGACY REDIRECT: Instagram event forwarded successfully');
+        res.status(200).json({ 
+          success: true, 
+          message: 'Instagram event forwarded to active workflow', 
+          workflowId: targetWorkflow 
+        });
+      });
+    } else {
+      console.log('⚠️ LEGACY ENDPOINT: No active workflows with Instagram triggers found');
+    }
+  }
+
+  res.status(200).json({ 
+    success: true, 
+    message: 'Instagram webhook received but no active workflows' 
+  });
+}));
+
+// Register Instagram webhook for specific workflow
+router.post('/register-instagram', asyncHandler(async (req, res) => {
+  const { accessToken, accountId, nodeId, webhookUrl } = req.body;
+  
+  if (!accessToken || !accountId || !nodeId || !webhookUrl) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required fields: accessToken, accountId, nodeId, webhookUrl'
+    });
+  }
+
+  try {
+    // Note: Instagram webhooks require app review and special permissions
+    // This is a placeholder for webhook registration logic
+    console.log('📷 Instagram webhook registration requested:', {
+      accountId,
+      nodeId,
+      webhookUrl: webhookUrl.substring(0, 50) + '...'
+    });
+
+    // Store webhook registration locally
+    registeredWebhooks.set(nodeId, {
+      platform: 'instagram',
+      accessToken,
+      accountId,
+      webhookUrl,
+      registeredAt: new Date().toISOString()
+    });
+
+    logger.info(`Instagram webhook registered for node ${nodeId}`, {
+      nodeId,
+      accountId,
+      webhookUrl
+    });
+
+    res.json({
+      success: true,
+      message: 'Instagram webhook registration prepared (requires app review for production)',
+      nodeId,
+      accountId,
+      webhookUrl,
+      note: 'Instagram webhooks require Facebook app review for production use'
+    });
+
+  } catch (error) {
+    console.error('❌ Instagram webhook registration error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+}));
+
+// Process Instagram webhook data
+function processInstagramWebhook(update) {
+  if (!update || typeof update !== 'object') {
+    return null;
+  }
+
+  // Instagram webhook structure varies by event type
+  if (update.entry && Array.isArray(update.entry)) {
+    const entry = update.entry[0];
+    
+    // Instagram messaging (requires special permissions)
+    if (entry.messaging && Array.isArray(entry.messaging)) {
+      const message = entry.messaging[0];
+      return {
+        type: 'dm',
+        instagram_message: {
+          sender_id: message.sender?.id,
+          sender_name: message.sender?.name || 'Unknown',
+          text: message.message?.text || '',
+          timestamp: message.timestamp,
+          message_id: message.message?.mid
+        },
+        raw_data: update
+      };
+    }
+    
+    // Instagram comments
+    if (entry.changes && Array.isArray(entry.changes)) {
+      const change = entry.changes.find(c => c.field === 'comments');
+      if (change && change.value) {
+        return {
+          type: 'comment',
+          instagram_comment: {
+            id: change.value.id,
+            text: change.value.text,
+            user: change.value.from,
+            media_id: change.value.media?.id,
+            parent_id: change.value.parent_id,
+            created_time: change.value.created_time
+          },
+          raw_data: update
+        };
+      }
+    }
+    
+    // Instagram mentions
+    if (entry.changes && Array.isArray(entry.changes)) {
+      const change = entry.changes.find(c => c.field === 'mentions');
+      if (change && change.value) {
+        return {
+          type: 'mention',
+          instagram_mention: {
+            comment_id: change.value.comment_id,
+            media_id: change.value.media_id,
+            text: change.value.text || '',
+            user: change.value.user
+          },
+          raw_data: update
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
 // Health check endpoint
 router.get('/health', (req, res) => {
   res.json({

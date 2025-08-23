@@ -2,9 +2,9 @@
 // Uses VITE_API_BASE_URL environment variable set in Render
 
 const getApiBaseUrl = () => {
-  // 1. Force development environment to use local backend
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:3001';
+  // 1. Use Render backend URL for production
+  if (window.location.hostname === 'frontend-dpcg.onrender.com') {
+    return 'https://workflow-lg9z.onrender.com';
   }
   
   // 2. Use Render environment variable if available
@@ -12,8 +12,13 @@ const getApiBaseUrl = () => {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
-  // 3. Production fallback - use current domain for API calls
-  return window.location.origin;
+  // 3. Development fallback - use local backend
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:3001';
+  }
+  
+  // 4. Production fallback - use Render backend
+  return 'https://workflow-lg9z.onrender.com';
 };
 
 export const API_BASE_URL = getApiBaseUrl();

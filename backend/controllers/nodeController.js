@@ -12,6 +12,7 @@ const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
 const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
+const instagramResponseNode = require('../nodes/actions/instagramResponseNode');
 const ifNode = require('../nodes/logic/ifNode');
 const switchNode = require('../nodes/logic/switchNode');
 const waitNode = require('../nodes/logic/waitNode');
@@ -99,7 +100,7 @@ const runNode = async (req, res) => {
         console.log(`📋 Processing ${inputItems.length} item(s) for node ${node.type}`);
         
         // Check if this is an output node that should execute once regardless of input items
-        const outputNodes = ['telegramSendMessage'];
+        const outputNodes = ['telegramSendMessage', 'instagramResponse'];
         const shouldExecuteOnce = outputNodes.includes(node.type);
         
         if (shouldExecuteOnce) {
@@ -117,11 +118,16 @@ const runNode = async (req, res) => {
                     itemResult = await telegramSendMessageNode.execute(processedConfig, contextItem, connectedNodes, executionContext);
                     break;
                 
+                case 'instagramResponse':
+                    // Use first item or combined data for context
+                    const instagramContextItem = allInputData[0] || {};
+                    itemResult = await instagramResponseNode.execute(processedConfig, instagramContextItem, connectedNodes, executionContext);
+                    break;
                 
                 default:
                     return res.status(400).json({ 
                         message: `Unsupported output node type: ${node.type}`,
-                        supportedOutputTypes: ['telegramSendMessage']
+                        supportedOutputTypes: ['telegramSendMessage', 'instagramResponse']
                     });
             }
             
