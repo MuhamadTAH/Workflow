@@ -661,6 +661,70 @@ router.post('/telegram-client/verify-code', verifyToken, async (req, res) => {
   }
 });
 
+// POST /api/connections/find-instagram-account-id - Find Instagram Business Account ID from access token
+router.post('/find-instagram-account-id', async (req, res) => {
+  try {
+    const { accessToken } = req.body;
+    
+    if (!accessToken) {
+      return res.status(400).json({
+        success: false,
+        error: 'Access Token is required'
+      });
+    }
+
+    // Use Instagram API service to get connected Instagram accounts
+    const { InstagramAPI } = require('../services/instagramAPI');
+    const instagramAPI = new InstagramAPI(accessToken);
+    
+    console.log('🔍 Finding Instagram Business accounts from access token...');
+
+    // First validate the access token
+    const tokenValidation = await instagramAPI.validateToken(accessToken);
+    if (!tokenValidation.success) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid access token: ${tokenValidation.error.message}`
+      });
+    }
+
+    // Get Instagram accounts connected to Facebook pages
+    const instagramAccounts = await instagramAPI.getInstagramAccounts(accessToken);
+    if (!instagramAccounts.success) {
+      return res.status(400).json({
+        success: false,
+        error: `Failed to get Instagram accounts: ${instagramAccounts.error.message}`
+      });
+    }
+
+    if (!instagramAccounts.data || instagramAccounts.data.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No Instagram Business accounts found. Make sure your Facebook Page is connected to an Instagram Business account.'
+      });
+    }
+
+    console.log('✅ Found Instagram Business accounts:', instagramAccounts.data.length);
+
+    res.json({
+      success: true,
+      message: `Found ${instagramAccounts.data.length} Instagram Business account(s)`,
+      accounts: instagramAccounts.data,
+      tokenInfo: {
+        userId: tokenValidation.data.id,
+        userName: tokenValidation.data.name
+      }
+    });
+
+  } catch (error) {
+    console.error('Instagram Account ID lookup error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to find Instagram Account ID: ' + error.message
+    });
+  }
+});
+
 // POST /api/connections/validate-instagram - Validate Instagram Account ID and Access Token
 router.post('/validate-instagram', async (req, res) => {
   try {

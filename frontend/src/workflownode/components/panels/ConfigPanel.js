@@ -746,6 +746,83 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
     setFormData(prev => ({ ...prev, switchOptions: newOptions }));
   };
 
+  // Find Instagram Account ID from access token
+  const findInstagramAccountId = async () => {
+    if (!formData.accessToken) {
+      setFormData(prev => ({
+        ...prev,
+        instagramAccountStatus: {
+          success: false,
+          error: 'Access Token is required to find Account ID'
+        }
+      }));
+      return;
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      instagramAccountStatus: {
+        success: false,
+        loading: true,
+        error: 'Finding your Instagram Business Account ID...'
+      }
+    }));
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/connections/find-instagram-account-id`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          accessToken: formData.accessToken
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success && result.accounts && result.accounts.length > 0) {
+        const account = result.accounts[0]; // Use first business account
+        
+        // Auto-fill the account ID
+        setFormData(prev => ({
+          ...prev,
+          accountId: account.instagram_account_id,
+          instagramAccountStatus: {
+            success: true,
+            accountInfo: {
+              username: account.page_name || 'Business Account',
+              name: account.page_name || 'Business Account',
+              followers_count: 'N/A',
+              media_count: 'N/A'
+            },
+            loading: false,
+            message: `Found Account ID: ${account.instagram_account_id}`
+          }
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          instagramAccountStatus: {
+            success: false,
+            error: result.error || 'No Instagram Business accounts found. Make sure your Facebook Page is connected to an Instagram Business account.',
+            loading: false
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('Instagram Account ID lookup error:', error);
+      setFormData(prev => ({
+        ...prev,
+        instagramAccountStatus: {
+          success: false,
+          error: 'Network error: Unable to find account ID',
+          loading: false
+        }
+      }));
+    }
+  };
+
   // Instagram Account Validation
   const checkInstagramAccount = async () => {
     if (!formData.accountId || !formData.accessToken) {
@@ -1795,6 +1872,18 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                 
                                 <div className="form-group">
                                     <label htmlFor="accountId">Instagram Account ID</label>
+                                    <div className="mb-2 p-2 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-800">
+                                        <strong>Need your Account ID?</strong> This is NOT your username (@MAHAMMAD_TAH). 
+                                        It's a numeric ID like "17841405309211844". 
+                                        <button
+                                            type="button"
+                                            onClick={() => findInstagramAccountId()}
+                                            disabled={!formData.accessToken}
+                                            className="ml-2 px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300"
+                                        >
+                                            Find My Account ID
+                                        </button>
+                                    </div>
                                     <div className="flex gap-2 items-center">
                                         <ExpressionInput 
                                             name="accountId" 
