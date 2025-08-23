@@ -9,7 +9,6 @@ import Connections from './pages/Connections';
 import InstagramCallback from './pages/InstagramCallback';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import LiveChat from './pages/LiveChat';
-import EchoSupport from './pages/EchoSupport';
 import EchoAssets from './pages/EchoAssets';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import LeftSidebar from './components/LeftSidebar';
@@ -289,7 +288,6 @@ function App() {
         <Route path="/connections" element={<Connections />} />
         <Route path="/connections/callback/instagram" element={<InstagramCallback />} />
         <Route path="/live-chat" element={<LiveChat />} />
-        <Route path="/echo-support" element={<EchoSupport />} />
         <Route path="/echo-assets" element={<EchoAssets />} />
         <Route path="/workflow" element={<WorkflowBuilder />} />
         <Route path="/workflow-builder" element={<WorkflowBuilder />} />
