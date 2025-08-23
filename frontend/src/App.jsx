@@ -9,7 +9,6 @@ import Connections from './pages/Connections';
 import InstagramCallback from './pages/InstagramCallback';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import LiveChat from './pages/LiveChat';
-import EchoAssets from './pages/EchoAssets';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import LeftSidebar from './components/LeftSidebar';
 // Initialize i18n
@@ -149,27 +148,6 @@ function Home() {
               Manage your automated marketing workflows and e-commerce operations
             </p>
             <div className="hero-actions" style={{ marginTop: '20px' }}>
-              <Link 
-                to="/echo-assets" 
-                className="btn btn-primary hero-btn"
-                style={{ 
-                  textDecoration: 'none',
-                  padding: '12px 24px',
-                  backgroundColor: '#667eea',
-                  color: 'white',
-                  borderRadius: '8px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontWeight: '500',
-                  transition: 'all 0.2s',
-                  background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
-                }}
-              >
-                <i className="fa-solid fa-robot"></i>
-                🚀 Echo-Assets Support Platform
-              </Link>
             </div>
           </div>
         </header>
@@ -288,7 +266,6 @@ function App() {
         <Route path="/connections" element={<Connections />} />
         <Route path="/connections/callback/instagram" element={<InstagramCallback />} />
         <Route path="/live-chat" element={<LiveChat />} />
-        <Route path="/echo-assets" element={<EchoAssets />} />
         <Route path="/workflow" element={<WorkflowBuilder />} />
         <Route path="/workflow-builder" element={<WorkflowBuilder />} />
         {/* <Route path="/workflownode" element={<WorkflowNode />} /> */}
