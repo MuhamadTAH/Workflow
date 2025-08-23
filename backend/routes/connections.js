@@ -661,4 +661,73 @@ router.post('/telegram-client/verify-code', verifyToken, async (req, res) => {
   }
 });
 
+// POST /api/connections/validate-instagram - Validate Instagram Account ID and Access Token
+router.post('/validate-instagram', async (req, res) => {
+  try {
+    const { accountId, accessToken } = req.body;
+    
+    if (!accountId || !accessToken) {
+      return res.status(400).json({
+        success: false,
+        error: 'Account ID and Access Token are required'
+      });
+    }
+
+    // Use Instagram API service to validate the account
+    const { InstagramAPI } = require('../services/instagramAPI');
+    const instagramAPI = new InstagramAPI(accessToken);
+    
+    console.log('🔍 Validating Instagram account:', { accountId: accountId.substring(0, 8) + '...' });
+
+    // First validate the access token
+    const tokenValidation = await instagramAPI.validateToken(accessToken);
+    if (!tokenValidation.success) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid access token: ${tokenValidation.error.message}`
+      });
+    }
+
+    // Then get the account information
+    const accountInfo = await instagramAPI.getAccountInfo(accountId, accessToken);
+    if (!accountInfo.success) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid account ID: ${accountInfo.error.message}`
+      });
+    }
+
+    console.log('✅ Instagram account validated:', {
+      username: accountInfo.data.username,
+      name: accountInfo.data.name,
+      followers: accountInfo.data.followers_count
+    });
+
+    res.json({
+      success: true,
+      message: 'Instagram account validated successfully',
+      accountInfo: {
+        id: accountInfo.data.id,
+        username: accountInfo.data.username,
+        name: accountInfo.data.name,
+        profile_picture_url: accountInfo.data.profile_picture_url,
+        followers_count: accountInfo.data.followers_count,
+        follows_count: accountInfo.data.follows_count,
+        media_count: accountInfo.data.media_count
+      },
+      tokenInfo: {
+        userId: tokenValidation.data.id,
+        userName: tokenValidation.data.name
+      }
+    });
+
+  } catch (error) {
+    console.error('Instagram validation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to validate Instagram account: ' + error.message
+    });
+  }
+});
+
 module.exports = router;

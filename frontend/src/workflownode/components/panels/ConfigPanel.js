@@ -586,6 +586,15 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
       chatbotSubtitle: node.data.chatbotSubtitle || 'How can we help you?',
       chatbotTheme: node.data.chatbotTheme || '#667eea',
       enableChatbot: node.data.enableChatbot !== undefined ? node.data.enableChatbot : true,
+      // Instagram Response Node specific fields
+      accountId: node.data.accountId || '',
+      responseType: node.data.responseType || 'dm',
+      responseMessage: node.data.responseMessage || 'Hello {{$json.sender_name || "there"}}! Thanks for your message. We\'ll get back to you soon! 🙌',
+      triggerKeywords: node.data.triggerKeywords || '',
+      responseDelay: node.data.responseDelay || 2,
+      enableSmartResponse: node.data.enableSmartResponse || false,
+      accessToken: node.data.accessToken || '{{$env.INSTAGRAM_ACCESS_TOKEN}}',
+      instagramAccountStatus: null,
     });
   }, [node.id]);
   
@@ -735,6 +744,76 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
     if (currentIndex === -1) { newOptions.push(option); } 
     else { newOptions.splice(currentIndex, 1); }
     setFormData(prev => ({ ...prev, switchOptions: newOptions }));
+  };
+
+  // Instagram Account Validation
+  const checkInstagramAccount = async () => {
+    if (!formData.accountId || !formData.accessToken) {
+      setFormData(prev => ({
+        ...prev,
+        instagramAccountStatus: {
+          success: false,
+          error: 'Account ID and Access Token are required'
+        }
+      }));
+      return;
+    }
+
+    // Clear previous status
+    setFormData(prev => ({
+      ...prev,
+      instagramAccountStatus: {
+        success: false,
+        loading: true,
+        error: 'Validating Instagram account...'
+      }
+    }));
+
+    try {
+      // Call backend to validate Instagram account
+      const response = await fetch(`${API_BASE_URL}/api/connections/validate-instagram`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          accountId: formData.accountId,
+          accessToken: formData.accessToken
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setFormData(prev => ({
+          ...prev,
+          instagramAccountStatus: {
+            success: true,
+            accountInfo: result.accountInfo,
+            loading: false
+          }
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          instagramAccountStatus: {
+            success: false,
+            error: result.error || 'Failed to validate Instagram account',
+            loading: false
+          }
+        }));
+      }
+    } catch (error) {
+      console.error('Instagram validation error:', error);
+      setFormData(prev => ({
+        ...prev,
+        instagramAccountStatus: {
+          success: false,
+          error: 'Network error: Unable to validate account',
+          loading: false
+        }
+      }));
+    }
   };
 
   const handleClose = () => {
@@ -1716,15 +1795,75 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                 
                                 <div className="form-group">
                                     <label htmlFor="accountId">Instagram Account ID</label>
-                                    <ExpressionInput 
-                                        name="accountId" 
-                                        value={formData.accountId || ''} 
-                                        onChange={handleInputChange} 
-                                        inputData={inputData} 
-                                        placeholder="Your Instagram Business Account ID"
-                                        currentNode={node} 
-                                        allNodes={nodes}
-                                    />
+                                    <div className="flex gap-2 items-center">
+                                        <ExpressionInput 
+                                            name="accountId" 
+                                            value={formData.accountId || ''} 
+                                            onChange={handleInputChange} 
+                                            inputData={inputData} 
+                                            placeholder="Your Instagram Business Account ID"
+                                            currentNode={node} 
+                                            allNodes={nodes}
+                                            style={{ flex: 1 }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => checkInstagramAccount()}
+                                            disabled={!formData.accountId || !formData.accessToken || formData.instagramAccountStatus?.loading}
+                                            className={`px-3 py-2 text-sm rounded-md border transition-all flex items-center gap-2 ${
+                                                formData.instagramAccountStatus?.loading
+                                                    ? 'bg-blue-500 text-white border-blue-500 cursor-wait'
+                                                    : formData.accountId && formData.accessToken
+                                                    ? 'bg-purple-500 text-white border-purple-500 hover:bg-purple-600'
+                                                    : 'bg-gray-200 text-gray-500 border-gray-300 cursor-not-allowed'
+                                            }`}
+                                            title="Check Instagram Account ID and Access Token"
+                                        >
+                                            {formData.instagramAccountStatus?.loading ? (
+                                                <>
+                                                    <i className="fas fa-spinner fa-spin"></i>
+                                                    Checking...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <i className="fab fa-instagram"></i>
+                                                    Check
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                    {formData.instagramAccountStatus && (
+                                        <div className={`mt-2 p-2 rounded-md text-sm ${
+                                            formData.instagramAccountStatus.success 
+                                                ? 'bg-green-100 text-green-800 border border-green-200' 
+                                                : 'bg-red-100 text-red-800 border border-red-200'
+                                        }`}>
+                                            <div className="flex items-center gap-2">
+                                                <i className={`fas ${formData.instagramAccountStatus.success ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
+                                                <strong>
+                                                    {formData.instagramAccountStatus.success ? 'Connected!' : 'Connection Failed'}
+                                                </strong>
+                                            </div>
+                                            {formData.instagramAccountStatus.success && formData.instagramAccountStatus.accountInfo && (
+                                                <div className="mt-1 text-xs">
+                                                    <strong>@{formData.instagramAccountStatus.accountInfo.username}</strong>
+                                                    {formData.instagramAccountStatus.accountInfo.name && (
+                                                        <span> - {formData.instagramAccountStatus.accountInfo.name}</span>
+                                                    )}
+                                                    <br/>
+                                                    <span>{formData.instagramAccountStatus.accountInfo.followers_count || 0} followers</span>
+                                                    {formData.instagramAccountStatus.accountInfo.media_count && (
+                                                        <span> • {formData.instagramAccountStatus.accountInfo.media_count} posts</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {!formData.instagramAccountStatus.success && (
+                                                <div className="mt-1 text-xs">
+                                                    {formData.instagramAccountStatus.error || 'Unable to verify Instagram account'}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                     <p className="text-sm text-gray-500 mt-1">Instagram Business Account ID from your connection</p>
                                 </div>
                                 
