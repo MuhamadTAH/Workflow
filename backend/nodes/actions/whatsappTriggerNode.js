@@ -21,45 +21,21 @@ class WhatsAppTriggerNode {
      */
     getParameters() {
         return {
-            phoneNumber: {
-                displayName: 'Phone Number',
-                name: 'phoneNumber',
+            appId: {
+                displayName: 'WhatsApp App ID',
+                name: 'appId',
                 type: 'string',
-                default: '',
+                default: '{{$env.WHATSAPP_APP_ID}}',
                 required: true,
-                description: 'WhatsApp phone number to listen for messages from (e.g., +1234567890)',
-                placeholder: '+1234567890'
+                description: 'WhatsApp App ID from Meta Developer Console'
             },
-            webhookUrl: {
-                displayName: 'Webhook URL',
-                name: 'webhookUrl',
+            clientSecret: {
+                displayName: 'Client Secret',
+                name: 'clientSecret',
                 type: 'string',
-                default: 'https://workflow-lg9z.onrender.com/api/webhooks/whatsapp',
+                default: '{{$env.WHATSAPP_CLIENT_SECRET}}',
                 required: true,
-                description: 'Webhook URL for WhatsApp messages'
-            },
-            accessToken: {
-                displayName: 'WhatsApp Access Token',
-                name: 'accessToken',
-                type: 'string',
-                default: '{{$env.WHATSAPP_ACCESS_TOKEN}}',
-                required: true,
-                description: 'WhatsApp Business API Access Token'
-            },
-            verifyToken: {
-                displayName: 'Webhook Verify Token',
-                name: 'verifyToken',
-                type: 'string',
-                default: '{{$env.WHATSAPP_VERIFY_TOKEN}}',
-                required: true,
-                description: 'Token used to verify webhook (set in WhatsApp Business API dashboard)'
-            },
-            filterMessages: {
-                displayName: 'Filter Messages',
-                name: 'filterMessages',
-                type: 'boolean',
-                default: true,
-                description: 'Only trigger for messages from the specified phone number'
+                description: 'WhatsApp App Client Secret from Meta Developer Console'
             }
         };
     }

@@ -20,14 +20,21 @@ class WhatsAppSendMessageNode {
      */
     getParameters() {
         return {
-            phoneNumber: {
-                displayName: 'Phone Number',
-                name: 'phoneNumber',
+            appId: {
+                displayName: 'WhatsApp App ID',
+                name: 'appId',
                 type: 'string',
-                default: '{{$json.from || $json.phoneNumber}}',
+                default: '{{$env.WHATSAPP_APP_ID}}',
                 required: true,
-                description: 'Phone number to send message to (include country code)',
-                placeholder: '+1234567890'
+                description: 'WhatsApp App ID from Meta Developer Console'
+            },
+            clientSecret: {
+                displayName: 'Client Secret',
+                name: 'clientSecret',
+                type: 'string',
+                default: '{{$env.WHATSAPP_CLIENT_SECRET}}',
+                required: true,
+                description: 'WhatsApp App Client Secret from Meta Developer Console'
             },
             messageText: {
                 displayName: 'Message Text',
@@ -39,33 +46,6 @@ class WhatsAppSendMessageNode {
                 default: 'Hello {{$json.fromName || "there"}}! Thanks for your message.',
                 required: true,
                 description: 'Message content (supports expressions)'
-            },
-            accessToken: {
-                displayName: 'WhatsApp Access Token',
-                name: 'accessToken',
-                type: 'string',
-                default: '{{$env.WHATSAPP_ACCESS_TOKEN}}',
-                required: true,
-                description: 'WhatsApp Business API Access Token'
-            },
-            phoneNumberId: {
-                displayName: 'Phone Number ID',
-                name: 'phoneNumberId',
-                type: 'string',
-                default: '{{$env.WHATSAPP_PHONE_NUMBER_ID}}',
-                required: true,
-                description: 'WhatsApp Business Phone Number ID from Meta'
-            },
-            messageType: {
-                displayName: 'Message Type',
-                name: 'messageType',
-                type: 'options',
-                options: [
-                    { name: 'Text', value: 'text' },
-                    { name: 'Template', value: 'template' }
-                ],
-                default: 'text',
-                description: 'Type of WhatsApp message to send'
             }
         };
     }

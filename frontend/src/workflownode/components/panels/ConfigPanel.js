@@ -1939,19 +1939,6 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                             <div className="form-group mt-6">
                                 <label>WhatsApp Trigger Configuration</label>
                                 
-                                <div className="form-group">
-                                    <label htmlFor="phoneNumber">Phone Number to Monitor</label>
-                                    <ExpressionInput 
-                                        name="phoneNumber" 
-                                        value={formData.phoneNumber || ''} 
-                                        onChange={handleInputChange} 
-                                        inputData={inputData} 
-                                        placeholder="+1234567890"
-                                        currentNode={node} 
-                                        allNodes={nodes}
-                                    />
-                                    <p className="text-sm text-gray-500 mt-1">WhatsApp phone number to trigger workflow from (include country code)</p>
-                                </div>
                                 
                                 <div className="form-group">
                                     <label htmlFor="appId">WhatsApp App ID</label>
@@ -2016,18 +2003,6 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     )}
                                 </div>
                                 
-                                <div className="form-group">
-                                    <label>
-                                        <input 
-                                            type="checkbox" 
-                                            name="filterMessages" 
-                                            checked={formData.filterMessages !== false} 
-                                            onChange={handleInputChange} 
-                                        /> 
-                                        Filter by Phone Number
-                                    </label>
-                                    <p className="text-sm text-gray-500 mt-1">Only trigger for messages from the specified phone number</p>
-                                </div>
                                 
                                 <div className="setup-guide" style={{ background: '#e3f2fd', padding: '12px', borderRadius: '6px', marginTop: '16px', border: '1px solid #25D366' }}>
                                     <strong>📱 Simple WhatsApp Setup (like n8n):</strong><br/>
@@ -2054,19 +2029,6 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                             <div className="form-group mt-6">
                                 <label>WhatsApp Send Message Configuration</label>
                                 
-                                <div className="form-group">
-                                    <label htmlFor="phoneNumber">Phone Number (To)</label>
-                                    <ExpressionInput 
-                                        name="phoneNumber" 
-                                        value={formData.phoneNumber || '{{$json.from || $json.phoneNumber}}'} 
-                                        onChange={handleInputChange} 
-                                        inputData={inputData} 
-                                        placeholder="{{$json.from}} or +1234567890"
-                                        currentNode={node} 
-                                        allNodes={nodes}
-                                    />
-                                    <p className="text-sm text-gray-500 mt-1">Phone number to send message to (include country code)</p>
-                                </div>
                                 
                                 <div className="form-group">
                                     <label htmlFor="messageText">Message Text</label>
