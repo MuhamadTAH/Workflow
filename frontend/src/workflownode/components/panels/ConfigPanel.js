@@ -921,8 +921,11 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
 
     try {
       // Call backend to validate WhatsApp credentials
-      console.log('🌐 Making WhatsApp validation request to:', API_ENDPOINTS.VALIDATE_WHATSAPP);
-      const response = await fetch(API_ENDPOINTS.VALIDATE_WHATSAPP, {
+      const hardcodedUrl = 'https://workflow-lg9z.onrender.com/api/nodes/validate-whatsapp';
+      console.log('🌐 API_ENDPOINTS.VALIDATE_WHATSAPP:', API_ENDPOINTS.VALIDATE_WHATSAPP);
+      console.log('🌐 Hardcoded URL:', hardcodedUrl);
+      console.log('🌐 Using hardcoded URL to bypass configuration issues');
+      const response = await fetch(hardcodedUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

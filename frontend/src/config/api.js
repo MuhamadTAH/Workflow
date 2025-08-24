@@ -58,14 +58,16 @@ export const API_ENDPOINTS = {
   
 };
 
-// Debug logging in development
-if (import.meta.env.DEV) {
-  console.log('🌐 API Configuration:', {
-    baseUrl: API_BASE_URL,
-    environment: import.meta.env.MODE,
-    hostname: window.location.hostname,
-    renderEnvVar: import.meta.env.VITE_API_BASE_URL
-  });
-}
+// Debug logging in development AND production for debugging
+console.log('🌐 API Configuration:', {
+  baseUrl: API_BASE_URL,
+  environment: import.meta.env.MODE,
+  hostname: window.location.hostname,
+  renderEnvVar: import.meta.env.VITE_API_BASE_URL,
+  validateWhatsappEndpoint: `${API_BASE_URL}/api/nodes/validate-whatsapp`,
+  allEndpoints: {
+    VALIDATE_WHATSAPP: `${API_BASE_URL}/api/nodes/validate-whatsapp`
+  }
+});
 
 export default API_BASE_URL;
