@@ -153,6 +153,15 @@ const Sidebar = () => {
       />
       <DraggableNode 
         nodeInfo={{ 
+            label: 'Send WhatsApp Message', 
+            icon: 'fa-whatsapp', 
+            color: 'text-green-500',
+            description: 'Send WhatsApp messages via WhatsApp Business API',
+            type: 'whatsappSendMessage' 
+        }} 
+      />
+      <DraggableNode 
+        nodeInfo={{ 
             label: 'Instagram Get DMs', 
             icon: 'fa-instagram', 
             color: 'text-pink-400',

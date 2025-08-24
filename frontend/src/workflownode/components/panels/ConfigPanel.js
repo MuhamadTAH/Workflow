@@ -1960,6 +1960,98 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                             </div>
                         )}
 
+                        {node.data.type === 'whatsappSendMessage' && (
+                            <div className="form-group mt-6">
+                                <label>WhatsApp Send Message Configuration</label>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="phoneNumber">Phone Number (To)</label>
+                                    <ExpressionInput 
+                                        name="phoneNumber" 
+                                        value={formData.phoneNumber || '{{$json.from || $json.phoneNumber}}'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="{{$json.from}} or +1234567890"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Phone number to send message to (include country code)</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="messageText">Message Text</label>
+                                    <ExpressionInput 
+                                        name="messageText" 
+                                        value={formData.messageText || 'Hello {{$json.fromName || "there"}}! Thanks for your message.'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="Your message text..."
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                        multiline={true}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Message content with template expressions</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="accessToken">WhatsApp Access Token</label>
+                                    <ExpressionInput 
+                                        name="accessToken" 
+                                        value={formData.accessToken || '{{$env.WHATSAPP_ACCESS_TOKEN}}'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="{{$env.WHATSAPP_ACCESS_TOKEN}} or EAA..."
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">WhatsApp Business API access token</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="phoneNumberId">Phone Number ID</label>
+                                    <ExpressionInput 
+                                        name="phoneNumberId" 
+                                        value={formData.phoneNumberId || '{{$env.WHATSAPP_PHONE_NUMBER_ID}}'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="{{$env.WHATSAPP_PHONE_NUMBER_ID}} or 123456789..."
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">WhatsApp Business Phone Number ID from Meta</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="messageType">Message Type</label>
+                                    <div className="custom-select-wrapper">
+                                        <select name="messageType" id="messageType" value={formData.messageType || 'text'} onChange={handleInputChange}>
+                                            <option value="text">Text</option>
+                                            <option value="template">Template</option>
+                                        </select>
+                                    </div>
+                                    <p className="text-sm text-gray-500 mt-1">Type of WhatsApp message to send</p>
+                                </div>
+                                
+                                <div className="setup-guide" style={{ background: '#e8f5e8', padding: '12px', borderRadius: '6px', marginTop: '16px', border: '1px solid #25D366' }}>
+                                    <strong>📤 WhatsApp Send Setup:</strong><br/>
+                                    1. Get Phone Number ID from Meta Business Account<br/>
+                                    2. Set environment variables: WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID<br/>
+                                    3. Use text type for regular messages, template for first messages<br/>
+                                    4. Phone number must include country code (e.g., +1234567890)<br/>
+                                    5. Recipient must have opted in to receive messages
+                                </div>
+                                
+                                <div className="template-examples" style={{ background: '#f8f9fa', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
+                                    <strong>Template Examples:</strong><br/>
+                                    <code>{'{{$json.from}}'}</code> - Sender's phone number<br/>
+                                    <code>{'{{$json.fromName}}'}</code> - Sender's name<br/>
+                                    <code>{'{{$json.message}}'}</code> - Original message text<br/>
+                                    <code>{'{{$node["AI Agent"].json.response}}'}</code> - From other node<br/>
+                                    <code>{'{{$env.WHATSAPP_ACCESS_TOKEN}}'}</code> - Environment variable
+                                </div>
+                            </div>
+                        )}
+
                         {node.data.type === 'instagramResponse' && (
                             <div className="form-group mt-6">
                                 <label>Instagram Response Configuration</label>

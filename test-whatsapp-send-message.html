@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Send Message Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #25D366;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        button {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1da851;
+        }
+        .response {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin: 5px 0;
+        }
+        .form-row input {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📤 WhatsApp Send Message Test</h1>
+        
+        <div class="test-section">
+            <h3>1. Test WhatsApp Send Message Node</h3>
+            <p>Test the WhatsApp send message functionality via backend node execution:</p>
+            
+            <label>Phone Number (To):</label>
+            <input type="text" id="phoneNumber" placeholder="+1234567890" value="+1234567890">
+            
+            <label>Message Text:</label>
+            <textarea id="messageText" rows="3" placeholder="Your WhatsApp message...">Hello! This is a test message from the workflow builder WhatsApp node.</textarea>
+            
+            <div class="form-row">
+                <div>
+                    <label>Access Token:</label>
+                    <input type="text" id="accessToken" placeholder="EAA... (your WhatsApp access token)">
+                </div>
+                <div>
+                    <label>Phone Number ID:</label>
+                    <input type="text" id="phoneNumberId" placeholder="123456789... (your phone number ID)">
+                </div>
+            </div>
+            
+            <label>Message Type:</label>
+            <select id="messageType">
+                <option value="text">Text</option>
+                <option value="template">Template</option>
+            </select>
+            
+            <br><br>
+            <button onclick="testWhatsAppSendMessage()">Test Send WhatsApp Message</button>
+            <div id="send-response" class="response"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Mock Workflow Trigger → Send Response</h3>
+            <p>Test a complete workflow: mock a WhatsApp trigger and send a response:</p>
+            
+            <label>Sender Phone Number:</label>
+            <input type="text" id="senderPhone" placeholder="+1234567890" value="+1234567890">
+            
+            <label>Sender Name:</label>
+            <input type="text" id="senderName" placeholder="John Doe" value="John Doe">
+            
+            <label>Incoming Message:</label>
+            <input type="text" id="incomingMessage" placeholder="Hello, I need help" value="Hello, I need help">
+            
+            <label>Response Template:</label>
+            <textarea id="responseTemplate" rows="3">Hi {{$json.fromName}}! Thanks for your message: "{{$json.message}}". How can I help you today?</textarea>
+            
+            <button onclick="testWorkflowFlow()">Test Complete Workflow</button>
+            <div id="workflow-response" class="response"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. WhatsApp Business API Setup</h3>
+            <p>Required environment variables and setup:</p>
+            <ul>
+                <li><strong>WHATSAPP_ACCESS_TOKEN:</strong> Access token from Meta Business</li>
+                <li><strong>WHATSAPP_PHONE_NUMBER_ID:</strong> Phone Number ID from WhatsApp Business Account</li>
+                <li><strong>WHATSAPP_VERIFY_TOKEN:</strong> Webhook verification token</li>
+            </ul>
+            
+            <p><strong>WhatsApp Business API Endpoints:</strong></p>
+            <ul>
+                <li>Send Message: https://graph.facebook.com/v18.0/{phone-number-id}/messages</li>
+                <li>Webhook URL: https://workflow-lg9z.onrender.com/api/webhooks/whatsapp</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Complete WhatsApp Workflow</h3>
+            <ol>
+                <li><strong>Setup:</strong> Configure WhatsApp Business API with webhook URL</li>
+                <li><strong>Receive:</strong> WhatsApp Trigger node receives incoming message</li>
+                <li><strong>Process:</strong> Connect to AI Agent, Logic nodes, etc.</li>
+                <li><strong>Respond:</strong> WhatsApp Send Message node sends response</li>
+                <li><strong>Monitor:</strong> Check logs and message delivery status</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://workflow-lg9z.onrender.com/api';
+
+        async function testWhatsAppSendMessage() {
+            const responseDiv = document.getElementById('send-response');
+            responseDiv.textContent = 'Testing WhatsApp send message...';
+            
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const messageText = document.getElementById('messageText').value;
+            const accessToken = document.getElementById('accessToken').value;
+            const phoneNumberId = document.getElementById('phoneNumberId').value;
+            const messageType = document.getElementById('messageType').value;
+            
+            if (!phoneNumber || !messageText || !accessToken || !phoneNumberId) {
+                responseDiv.textContent = '❌ Please fill in all required fields';
+                responseDiv.className = 'response error';
+                return;
+            }
+            
+            const nodeData = {
+                node: {
+                    id: 'test-whatsapp-send',
+                    type: 'whatsappSendMessage',
+                    data: { label: 'WhatsApp Send Message Test' }
+                },
+                inputData: {
+                    from: phoneNumber,
+                    fromName: 'Test User',
+                    message: 'Original message for context'
+                },
+                config: {
+                    phoneNumber: phoneNumber,
+                    messageText: messageText,
+                    accessToken: accessToken,
+                    phoneNumberId: phoneNumberId,
+                    messageType: messageType
+                }
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/nodes/execute`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(nodeData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    responseDiv.textContent = `✅ WhatsApp message sent successfully:\n${JSON.stringify(result, null, 2)}`;
+                    responseDiv.className = 'response success';
+                } else {
+                    responseDiv.textContent = `❌ WhatsApp send failed:\n${JSON.stringify(result, null, 2)}`;
+                    responseDiv.className = 'response error';
+                }
+            } catch (error) {
+                responseDiv.textContent = `❌ Network error: ${error.message}`;
+                responseDiv.className = 'response error';
+            }
+        }
+
+        async function testWorkflowFlow() {
+            const responseDiv = document.getElementById('workflow-response');
+            responseDiv.textContent = 'Testing complete workflow flow...';
+            
+            const senderPhone = document.getElementById('senderPhone').value;
+            const senderName = document.getElementById('senderName').value;
+            const incomingMessage = document.getElementById('incomingMessage').value;
+            const responseTemplate = document.getElementById('responseTemplate').value;
+            
+            // Step 1: Simulate WhatsApp trigger data
+            const triggerData = {
+                from: senderPhone,
+                fromName: senderName,
+                phoneNumber: senderPhone,
+                message: incomingMessage,
+                messageId: 'wamid.test_' + Date.now(),
+                timestamp: new Date().toISOString()
+            };
+            
+            // Step 2: Test send message with trigger data
+            const accessToken = document.getElementById('accessToken').value;
+            const phoneNumberId = document.getElementById('phoneNumberId').value;
+            
+            if (!accessToken || !phoneNumberId) {
+                responseDiv.textContent = '❌ Please fill in Access Token and Phone Number ID in the first test section';
+                responseDiv.className = 'response error';
+                return;
+            }
+            
+            const nodeData = {
+                node: {
+                    id: 'workflow-whatsapp-send',
+                    type: 'whatsappSendMessage',
+                    data: { label: 'WhatsApp Workflow Response' }
+                },
+                inputData: triggerData,
+                config: {
+                    phoneNumber: '{{$json.from}}',
+                    messageText: responseTemplate,
+                    accessToken: accessToken,
+                    phoneNumberId: phoneNumberId,
+                    messageType: 'text'
+                }
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/nodes/execute`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(nodeData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    responseDiv.textContent = `✅ Workflow test completed successfully!\n\nTrigger Data:\n${JSON.stringify(triggerData, null, 2)}\n\nResponse Result:\n${JSON.stringify(result, null, 2)}`;
+                    responseDiv.className = 'response success';
+                } else {
+                    responseDiv.textContent = `❌ Workflow test failed:\n${JSON.stringify(result, null, 2)}`;
+                    responseDiv.className = 'response error';
+                }
+            } catch (error) {
+                responseDiv.textContent = `❌ Workflow test error: ${error.message}`;
+                responseDiv.className = 'response error';
+            }
+        }
+    </script>
+</body>
+</html>

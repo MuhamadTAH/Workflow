@@ -40,7 +40,8 @@ export const NODE_TYPES = {
   LINKEDIN_GET_COMPANY: 'linkedinGetCompany',
   
   // WhatsApp Nodes
-  WHATSAPP_TRIGGER: 'whatsappTrigger'
+  WHATSAPP_TRIGGER: 'whatsappTrigger',
+  WHATSAPP_SEND_MESSAGE: 'whatsappSendMessage'
 };
 
 export const NODE_CATEGORIES = {
@@ -257,6 +258,14 @@ export const NODE_DEFINITIONS = [
     label: 'WhatsApp Trigger',
     description: 'Trigger workflow when receiving WhatsApp message from specific number',
     icon: '📱',
+    color: '#25D366'
+  },
+  {
+    type: NODE_TYPES.WHATSAPP_SEND_MESSAGE,
+    category: NODE_CATEGORIES.WHATSAPP,
+    label: 'Send WhatsApp Message',
+    description: 'Send WhatsApp messages via WhatsApp Business API',
+    icon: '📤',
     color: '#25D366'
   }
 ];
