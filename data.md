@@ -1,7 +1,7 @@
-August 24, 2025 at 12:15 AM
+August 24, 2025 at 12:30 AM
 failed
-22d277a
-Fix: Add Facebook and LinkedIn nodes to workflow builder sidebar Issue: Nodes were added to nodeTypes.js but not visible in UI Cause: Sidebar.js was using hardcoded nodes instead of dynamic NODE_DEFINITIONS Changes: - Import NODE_DEFINITIONS and NODE_CATEGORIES in Sidebar.js - Add Facebook nodes section with dynamic rendering - Add LinkedIn nodes section with dynamic rendering - Use proper Facebook and LinkedIn brand icons - Maintain consistent styling with existing nodes Now Available in Sidebar: Facebook (9 nodes): - Get Page Info, Post to Page, Get Page Posts - Get Messages, Send Message, Reply Message - Get Post Comments, Reply Comment, Get Page Insights LinkedIn (4 nodes): - Get Profile, Create Post, Send Message, Get Company 🤖 Generated with [Claude Code](https://claude.ai/code) Co-Authored-By: Claude <noreply@anthropic.com>
+d330de4
+Fix syntax error in instagramReplyCommentNode.js - resolve backend deployment failure Issue: Backend deployment failing with SyntaxError on line 47 Cause: Extra quote mark in default parameter value Fix: Corrected string formatting in replyText parameter 🤖 Generated with [Claude Code](https://claude.ai/code) Co-Authored-By: Claude <noreply@anthropic.com>
 
 Rollback
 Exited with status 1 while running your code.
@@ -11,15 +11,15 @@ All logs
 Search
 Search
 
-Live tail
+Aug 24, 12:29 AM - 12:34 AM
 GMT+3
 
 Menu
 
 ==> Cloning from https://github.com/MuhamadTAH/Workflow
-==> Checking out commit 22d277ac457ea946e43aee634f2335f2fdd6c663 in branch mains
+==> Checking out commit d330de4d3cc798bfdbbb5932d6122ea924d843f2 in branch mains
 ==> Downloading cache...
-==> Transferred 705MB in 10s. Extraction took 19s.
+==> Transferred 705MB in 10s. Extraction took 18s.
 ==> Using Node.js version 22.16.0 (default)
 ==> Docs on specifying a Node.js version: https://render.com/docs/node-version
 ==> Running build command 'npm install'...
@@ -31,13 +31,13 @@ up to date, audited 295 packages in 1s
   run `npm fund` for details
 found 0 vulnerabilities
 ==> Uploading build...
-==> Uploaded in 16.6s. Compression took 15.2s
+==> Uploaded in 15.1s. Compression took 20.1s
 ==> Build successful 🎉
 ==> Deploying...
 ==> Running 'npm start'
 > backend@1.0.0 start
 > node index.js
-[dotenv@17.2.1] injecting env (3) from .env -- tip: 📡 auto-backup env with Radar: https://dotenvx.com/radar
+[dotenv@17.2.1] injecting env (3) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
 ✅ Active workflows table initialized
 🚀 Job Queue initialized with config: {
   maxConcurrentJobs: 3,
@@ -46,7 +46,7 @@ found 0 vulnerabilities
   jobTimeout: 300000,
   cleanupInterval: 600000
 }
-[2025-08-23T21:19:14.711Z] INFO: Workflow engine initialized
+[2025-08-23T21:33:34.341Z] INFO: Workflow engine initialized
 ✅ WorkflowExecutor singleton loaded successfully
 🚀 LOADING NODES ROUTES FILE
 /opt/render/project/src/backend/nodes/actions/instagramReplyCommentNode.js:47
@@ -64,12 +64,14 @@ SyntaxError: Invalid or unexpected token
     at require (node:internal/modules/helpers:135:16)
     at Object.<anonymous> (/opt/render/project/src/backend/controllers/nodeController.js:20:35)
 Node.js v22.16.0
+==> No open ports detected, continuing to scan...
+==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
 ==> Exited with status 1
 ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
 ==> Running 'npm start'
 > backend@1.0.0 start
 > node index.js
-[dotenv@17.2.1] injecting env (3) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+[dotenv@17.2.1] injecting env (3) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
 ✅ Active workflows table initialized
 🚀 Job Queue initialized with config: {
   maxConcurrentJobs: 3,
@@ -78,7 +80,7 @@ Node.js v22.16.0
   jobTimeout: 300000,
   cleanupInterval: 600000
 }
-[2025-08-23T21:19:30.434Z] INFO: Workflow engine initialized
+[2025-08-23T21:33:53.747Z] INFO: Workflow engine initialized
 ✅ WorkflowExecutor singleton loaded successfully
 🚀 LOADING NODES ROUTES FILE
 /opt/render/project/src/backend/nodes/actions/instagramReplyCommentNode.js:47
