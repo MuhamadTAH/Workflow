@@ -633,6 +633,85 @@ const runNode = async (req, res) => {
     }
 };
 
+// WhatsApp credential validation
+const validateWhatsApp = async (req, res) => {
+    try {
+        const { appId, clientSecret, nodeType } = req.body;
+        
+        console.log(`🔍 Validating WhatsApp ${nodeType} credentials...`);
+        
+        if (!appId || !clientSecret) {
+            return res.status(400).json({
+                success: false,
+                error: 'App ID and Client Secret are required'
+            });
+        }
+
+        // Meta's App Access Token endpoint
+        const tokenUrl = `https://graph.facebook.com/oauth/access_token?client_id=${appId}&client_secret=${clientSecret}&grant_type=client_credentials`;
+        
+        const tokenResponse = await fetch(tokenUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        const tokenData = await tokenResponse.json();
+
+        if (!tokenResponse.ok || tokenData.error) {
+            console.log('❌ WhatsApp token validation failed:', tokenData);
+            return res.status(400).json({
+                success: false,
+                error: tokenData.error?.message || 'Invalid App ID or Client Secret'
+            });
+        }
+
+        // Validate the app token by checking app info
+        const appCheckUrl = `https://graph.facebook.com/v18.0/${appId}?access_token=${tokenData.access_token}`;
+        
+        const appResponse = await fetch(appCheckUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+
+        const appData = await appResponse.json();
+
+        if (!appResponse.ok || appData.error) {
+            console.log('❌ WhatsApp app validation failed:', appData);
+            return res.status(400).json({
+                success: false,
+                error: appData.error?.message || 'Failed to validate app credentials'
+            });
+        }
+
+        console.log('✅ WhatsApp credentials validated successfully');
+        
+        res.json({
+            success: true,
+            message: `WhatsApp ${nodeType} credentials validated successfully`,
+            appInfo: {
+                id: appData.id,
+                name: appData.name || 'WhatsApp Business App',
+                category: appData.category || 'Business',
+                link: appData.link || null
+            },
+            tokenGenerated: true,
+            validatedAt: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('❌ WhatsApp validation error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Network error: Unable to validate WhatsApp credentials'
+        });
+    }
+};
+
 module.exports = {
-    runNode
+    runNode,
+    validateWhatsApp
 };

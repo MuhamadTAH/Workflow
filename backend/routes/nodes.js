@@ -10,7 +10,7 @@ console.log('🚀 LOADING NODES ROUTES FILE');
 
 const express = require('express');
 const router = express.Router();
-const { runNode } = require('../controllers/nodeController');
+const { runNode, validateWhatsApp } = require('../controllers/nodeController');
 const { TelegramAPI } = require('../services/telegramAPI');
 // Temporarily comment out aiService import to test deployment
 // const { verifyClaudeApiKey } = require('../services/aiService');
@@ -386,6 +386,33 @@ router.post('/validate-instagram', async (req, res) => {
       error: 'Failed to validate Instagram account: ' + error.message
     });
   }
+});
+
+// POST /api/nodes/validate-whatsapp - Validate WhatsApp App ID and Client Secret
+console.log('📝 REGISTERING /validate-whatsapp route');
+router.post('/validate-whatsapp', async (req, res) => {
+  // Explicit CORS headers for this endpoint
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, Origin, Cache-Control, Pragma');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  await validateWhatsApp(req, res);
+});
+
+// OPTIONS handler for WhatsApp validation preflight
+router.options('/validate-whatsapp', (req, res) => {
+  console.log('🔧 OPTIONS request for /validate-whatsapp:', {
+    origin: req.headers.origin,
+    method: req.headers['access-control-request-method'],
+    headers: req.headers['access-control-request-headers']
+  });
+  
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, Origin, Cache-Control, Pragma');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.status(200).end();
 });
 
 console.log('✅ EXPORTING NODES ROUTER WITH ROUTES:', router.stack.map(r => r.route?.path).filter(Boolean));

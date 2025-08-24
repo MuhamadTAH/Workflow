@@ -603,6 +603,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
   const [activeTab, setActiveTab] = useState('parameters');
   const [inputData, setInputData] = useState(node.data.inputData || null);
   const [outputData, setOutputData] = useState(node.data.outputData || null);
+  const [whatsAppTestResult, setWhatsAppTestResult] = useState(null);
 
   // Custom function to update both local state and node data
   const updateOutputData = (newOutputData) => {
@@ -890,6 +891,71 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
           loading: false
         }
       }));
+    }
+  };
+
+  // WhatsApp Connection Testing
+  const testWhatsAppConnection = async (nodeType) => {
+    const appId = nodeType === 'trigger' ? formData.whatsappAppId : formData.appId;
+    const clientSecret = nodeType === 'trigger' ? formData.whatsappClientSecret : formData.clientSecret;
+    
+    if (!appId || !clientSecret) {
+      setWhatsAppTestResult({
+        success: false,
+        error: 'App ID and Client Secret are required',
+        nodeType: nodeType
+      });
+      return;
+    }
+
+    // Set loading state
+    setWhatsAppTestResult({
+      success: false,
+      loading: true,
+      error: 'Testing WhatsApp connection...',
+      nodeType: nodeType
+    });
+
+    try {
+      // Call backend to validate WhatsApp credentials
+      const response = await fetch(`${API_BASE_URL}/api/nodes/validate-whatsapp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          appId: appId,
+          clientSecret: clientSecret,
+          nodeType: nodeType
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setWhatsAppTestResult({
+          success: true,
+          appInfo: result.appInfo,
+          loading: false,
+          nodeType: nodeType,
+          message: `✅ WhatsApp ${nodeType} connection validated successfully`
+        });
+      } else {
+        setWhatsAppTestResult({
+          success: false,
+          error: result.error || 'Failed to validate WhatsApp connection',
+          loading: false,
+          nodeType: nodeType
+        });
+      }
+    } catch (error) {
+      console.error('WhatsApp validation error:', error);
+      setWhatsAppTestResult({
+        success: false,
+        error: 'Network error: Unable to validate WhatsApp connection',
+        loading: false,
+        nodeType: nodeType
+      });
     }
   };
 
@@ -1913,6 +1979,41 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                 </div>
                                 
                                 <div className="form-group">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => testWhatsAppConnection('trigger')}
+                                        className="test-connection-btn"
+                                        disabled={!formData.appId || !formData.clientSecret}
+                                        style={{
+                                            background: '#25D366',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '8px 16px',
+                                            borderRadius: '4px',
+                                            cursor: formData.appId && formData.clientSecret ? 'pointer' : 'not-allowed',
+                                            opacity: formData.appId && formData.clientSecret ? 1 : 0.6,
+                                            fontSize: '14px',
+                                            marginBottom: '10px'
+                                        }}
+                                    >
+                                        🔍 Test WhatsApp Connection
+                                    </button>
+                                    {whatsAppTestResult && (
+                                        <div style={{
+                                            padding: '8px 12px',
+                                            borderRadius: '4px',
+                                            marginBottom: '10px',
+                                            fontSize: '14px',
+                                            backgroundColor: whatsAppTestResult.success ? '#d4edda' : '#f8d7da',
+                                            color: whatsAppTestResult.success ? '#155724' : '#721c24',
+                                            border: `1px solid ${whatsAppTestResult.success ? '#c3e6cb' : '#f5c6cb'}`
+                                        }}>
+                                            {whatsAppTestResult.success ? '✅' : '❌'} {whatsAppTestResult.message}
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="form-group">
                                     <label>
                                         <input 
                                             type="checkbox" 
@@ -2005,6 +2106,41 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                         allNodes={nodes}
                                     />
                                     <p className="text-sm text-gray-500 mt-1">WhatsApp Client Secret from Meta Developers</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <button 
+                                        type="button" 
+                                        onClick={() => testWhatsAppConnection('send')}
+                                        className="test-connection-btn"
+                                        disabled={!formData.appId || !formData.clientSecret}
+                                        style={{
+                                            background: '#25D366',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '8px 16px',
+                                            borderRadius: '4px',
+                                            cursor: formData.appId && formData.clientSecret ? 'pointer' : 'not-allowed',
+                                            opacity: formData.appId && formData.clientSecret ? 1 : 0.6,
+                                            fontSize: '14px',
+                                            marginBottom: '10px'
+                                        }}
+                                    >
+                                        🔍 Test WhatsApp Connection
+                                    </button>
+                                    {whatsAppTestResult && (
+                                        <div style={{
+                                            padding: '8px 12px',
+                                            borderRadius: '4px',
+                                            marginBottom: '10px',
+                                            fontSize: '14px',
+                                            backgroundColor: whatsAppTestResult.success ? '#d4edda' : '#f8d7da',
+                                            color: whatsAppTestResult.success ? '#155724' : '#721c24',
+                                            border: `1px solid ${whatsAppTestResult.success ? '#c3e6cb' : '#f5c6cb'}`
+                                        }}>
+                                            {whatsAppTestResult.success ? '✅' : '❌'} {whatsAppTestResult.message}
+                                        </div>
+                                    )}
                                 </div>
                                 
                                 <div className="setup-guide" style={{ background: '#e8f5e8', padding: '12px', borderRadius: '6px', marginTop: '16px', border: '1px solid #25D366' }}>
