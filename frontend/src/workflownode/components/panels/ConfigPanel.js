@@ -1190,8 +1190,18 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
         // Always use production backend (as per deployment setup)
         const API_BASE = API_BASE_URL;
         
-        // Use the new n8n-style execution context route for all nodes
-        let endpoint = `${API_BASE}/api/nodes/run-node`;
+        console.log('🔍 Execute Step Debug:', {
+          API_BASE_URL,
+          constructedURL: `${API_BASE}/nodes/run-node`,
+          currentDomain: window.location.origin,
+          hostname: window.location.hostname
+        });
+        
+        // Use the new n8n-style execution context route for all nodes  
+        // Fix: Use hardcoded URL to bypass proxy issues
+        let endpoint = 'https://workflow-lg9z.onrender.com/api/nodes/run-node';
+        
+        console.log('🔍 Bypassing API_BASE due to proxy issues, using:', endpoint);
         
         const response = await fetch(endpoint, {
             method: 'POST',
