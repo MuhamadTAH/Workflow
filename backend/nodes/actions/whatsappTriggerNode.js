@@ -65,7 +65,50 @@ class WhatsAppTriggerNode {
             
             console.log('🔒 Processed config with context:', processedConfig);
 
-            // Validate webhook data
+            // Check if this is manual execution (no webhook data) or real webhook
+            if (!inputData || (!inputData.object && !inputData.entry)) {
+                console.log('📱 Manual execution detected - providing sample WhatsApp message data');
+                
+                // Return sample data for manual testing
+                return {
+                    success: true,
+                    data: {
+                        message: "Hello! This is a sample WhatsApp message for testing.",
+                        from: "+1234567890",
+                        fromName: "Test User",
+                        phoneNumber: "+1234567890",
+                        messageId: "wamid.sample_" + Date.now(),
+                        timestamp: new Date().toISOString(),
+                        messageType: "text",
+                        whatsappData: {
+                            object: "whatsapp_business_account",
+                            entry: [{
+                                changes: [{
+                                    field: "messages",
+                                    value: {
+                                        messages: [{
+                                            id: "wamid.sample_" + Date.now(),
+                                            from: "+1234567890",
+                                            timestamp: Math.floor(Date.now() / 1000).toString(),
+                                            text: { body: "Hello! This is a sample WhatsApp message for testing." },
+                                            type: "text"
+                                        }],
+                                        contacts: [{
+                                            profile: { name: "Test User" },
+                                            wa_id: "+1234567890"
+                                        }]
+                                    }
+                                }]
+                            }]
+                        }
+                    },
+                    trigger: true,
+                    nodeType: this.type,
+                    message: `📱 Sample WhatsApp message for testing (manual execution)`
+                };
+            }
+
+            // Validate webhook data for real webhook calls
             const validation = this.validateWebhookData(inputData, processedConfig);
             if (!validation.valid) {
                 console.log(`⚠️ Webhook validation failed: ${validation.errors.join(', ')}`);
