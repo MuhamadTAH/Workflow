@@ -35,7 +35,7 @@ class FacebookReplyCommentNode {
                 typeOptions: {
                     rows: 4
                 },
-                default: 'Thank you for your comment! {{$json.commenter_name ? "Hi " + $json.commenter_name + "!" : ""}}',
+                default: 'Thank you for your comment!',
                 required: true,
                 description: 'Reply message content (supports expressions)'
             },
@@ -63,7 +63,7 @@ class FacebookReplyCommentNode {
                 displayName: 'Context Template',
                 name: 'contextTemplate',
                 type: 'string',
-                default: '@{{$json.commenter_name}} regarding your comment: "{{$json.original_comment}}"',
+                default: 'Thanks for your comment!',
                 description: 'Template for including original comment context'
             },
             autoModerate: {
@@ -98,7 +98,7 @@ class FacebookReplyCommentNode {
                 displayName: 'Private Message Template',
                 name: 'privateMessageTemplate',
                 type: 'string',
-                default: 'Hi {{$json.commenter_name}}, thanks for commenting on our post! We\'d like to follow up with you privately.',
+                default: 'Thanks for commenting on our post!',
                 description: 'Template for private message (when reply type is private)'
             },
             accessToken: {
@@ -598,12 +598,12 @@ class FacebookReplyCommentNode {
             replyMessage: 'Thank you for your comment!',
             replyType: 'public',
             includeContext: false,
-            contextTemplate: '@{{$json.commenter_name}} regarding your comment: "{{$json.original_comment}}"',
+            contextTemplate: 'Thanks for your comment!',
             autoModerate: false,
             moderationKeywords: '',
             tagPageAdmin: false,
             adminUserId: '',
-            privateMessageTemplate: 'Hi {{$json.commenter_name}}, thanks for commenting!',
+            privateMessageTemplate: 'Thanks for commenting!',
             accessToken: 'your_facebook_page_access_token'
         };
     }
