@@ -8,7 +8,7 @@ drag-and-drop functionality.
 */
 import React, { useState, useEffect, useRef } from 'react';
 import { createExecutionContext } from '../../utils/executionContext';
-import { API_BASE_URL } from '../../../config/api.js';
+import { API_BASE_URL, API_ENDPOINTS } from '../../../config/api.js';
 
 
 // Legacy resolveExpression function for backwards compatibility
@@ -921,7 +921,8 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
 
     try {
       // Call backend to validate WhatsApp credentials
-      const response = await fetch(`${API_BASE_URL}/api/nodes/validate-whatsapp`, {
+      console.log('🌐 Making WhatsApp validation request to:', API_ENDPOINTS.VALIDATE_WHATSAPP);
+      const response = await fetch(API_ENDPOINTS.VALIDATE_WHATSAPP, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

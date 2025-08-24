@@ -47,6 +47,7 @@ export const API_ENDPOINTS = {
   RUN_NODE: `${API_BASE_URL}/api/nodes/run-node`,
   VALIDATE_TELEGRAM: `${API_BASE_URL}/api/nodes/validate-telegram-token`,
   GET_TELEGRAM_UPDATES: `${API_BASE_URL}/api/nodes/telegram-get-updates`,
+  VALIDATE_WHATSAPP: `${API_BASE_URL}/api/nodes/validate-whatsapp`,
   
   // Uploads (will need custom handling)
   UPLOAD_PRODUCT_IMAGE: `${API_BASE_URL}/api/uploads/product-image`,
