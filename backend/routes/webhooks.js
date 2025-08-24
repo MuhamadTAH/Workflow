@@ -1520,6 +1520,206 @@ function processInstagramWebhook(update) {
   return null;
 }
 
+// ============================================
+// WHATSAPP WEBHOOKS
+// ============================================
+
+// WhatsApp webhook verification (GET request from Meta)
+router.get('/whatsapp', (req, res) => {
+  console.log('📱 WhatsApp webhook verification request:', req.query);
+  
+  const hubMode = req.query['hub.mode'];
+  const hubChallenge = req.query['hub.challenge'];
+  const hubVerifyToken = req.query['hub.verify_token'];
+  
+  // Use environment variable for verify token
+  const expectedToken = process.env.WHATSAPP_VERIFY_TOKEN || 'whatsapp_verify_token_12345';
+  
+  if (hubMode === 'subscribe' && hubVerifyToken === expectedToken) {
+    console.log('✅ WhatsApp webhook verification successful');
+    res.status(200).send(hubChallenge);
+  } else {
+    console.log('❌ WhatsApp webhook verification failed');
+    res.status(403).json({ error: 'Forbidden: Invalid verification token' });
+  }
+});
+
+// WhatsApp webhook for receiving messages (POST request from Meta)
+router.post('/whatsapp', asyncHandler(async (req, res) => {
+  console.log('📱 WhatsApp webhook received:', JSON.stringify(req.body, null, 2));
+  
+  try {
+    const webhookData = req.body;
+    
+    // Acknowledge webhook immediately
+    res.status(200).json({ success: true });
+    
+    // Process webhook asynchronously
+    await processWhatsAppWebhook(webhookData);
+    
+  } catch (error) {
+    console.error('❌ WhatsApp webhook processing error:', error);
+    // Still return 200 to prevent Meta from retrying
+    res.status(200).json({ success: false, error: error.message });
+  }
+}));
+
+// WhatsApp webhook for specific workflows
+router.post('/whatsapp/:workflowId', asyncHandler(async (req, res) => {
+  const workflowId = req.params.workflowId;
+  console.log(`📱 WhatsApp webhook for workflow ${workflowId}:`, JSON.stringify(req.body, null, 2));
+  
+  try {
+    const webhookData = req.body;
+    
+    // Acknowledge webhook immediately
+    res.status(200).json({ success: true });
+    
+    // Process webhook for specific workflow
+    await processWhatsAppWebhookForWorkflow(webhookData, workflowId);
+    
+  } catch (error) {
+    console.error('❌ WhatsApp webhook processing error:', error);
+    res.status(200).json({ success: false, error: error.message });
+  }
+}));
+
+/**
+ * Process WhatsApp webhook data
+ */
+async function processWhatsAppWebhook(webhookData) {
+  try {
+    console.log('🔄 Processing WhatsApp webhook...');
+    
+    // Find all workflows with WhatsApp trigger nodes
+    const whatsappWorkflows = findWhatsAppTriggerWorkflows();
+    
+    if (whatsappWorkflows.length === 0) {
+      console.log('📱 No WhatsApp trigger workflows found');
+      return;
+    }
+    
+    for (const workflow of whatsappWorkflows) {
+      try {
+        await processWhatsAppWebhookForWorkflow(webhookData, workflow.id);
+      } catch (error) {
+        console.error(`❌ Error processing WhatsApp webhook for workflow ${workflow.id}:`, error);
+      }
+    }
+    
+  } catch (error) {
+    console.error('❌ Error in processWhatsAppWebhook:', error);
+  }
+}
+
+/**
+ * Process WhatsApp webhook for specific workflow
+ */
+async function processWhatsAppWebhookForWorkflow(webhookData, workflowId) {
+  try {
+    console.log(`🔄 Processing WhatsApp webhook for workflow ${workflowId}...`);
+    
+    // Validate webhook data
+    if (!webhookData || webhookData.object !== 'whatsapp_business_account') {
+      console.log('📱 Invalid WhatsApp webhook data, ignoring');
+      return;
+    }
+    
+    // Extract message data
+    const messageData = extractWhatsAppMessageData(webhookData);
+    if (!messageData) {
+      console.log('📱 No valid message data found in WhatsApp webhook');
+      return;
+    }
+    
+    console.log('📱 Extracted WhatsApp message data:', messageData);
+    
+    // Trigger workflow execution
+    if (workflowExecutor) {
+      const triggerData = {
+        trigger: 'whatsapp',
+        data: messageData,
+        whatsappWebhook: webhookData,
+        timestamp: new Date().toISOString()
+      };
+      
+      console.log(`🚀 Triggering workflow ${workflowId} with WhatsApp data`);
+      await workflowExecutor.executeWorkflow(workflowId, triggerData);
+    } else {
+      console.warn('⚠️ WorkflowExecutor not available for WhatsApp webhook');
+    }
+    
+  } catch (error) {
+    console.error(`❌ Error processing WhatsApp webhook for workflow ${workflowId}:`, error);
+  }
+}
+
+/**
+ * Find workflows with WhatsApp trigger nodes
+ */
+function findWhatsAppTriggerWorkflows() {
+  const whatsappWorkflows = [];
+  
+  // In a real implementation, this would query the database
+  // For now, return workflows from memory
+  for (const [workflowId, config] of workflowConfigs.entries()) {
+    if (config && config.nodes) {
+      const hasWhatsAppTrigger = config.nodes.some(node => 
+        node.type === 'whatsappTrigger' || node.type === 'whatsapp_trigger'
+      );
+      
+      if (hasWhatsAppTrigger) {
+        whatsappWorkflows.push({ id: workflowId, config });
+      }
+    }
+  }
+  
+  return whatsappWorkflows;
+}
+
+/**
+ * Extract message data from WhatsApp webhook
+ */
+function extractWhatsAppMessageData(webhookData) {
+  try {
+    if (!webhookData.entry || !Array.isArray(webhookData.entry) || webhookData.entry.length === 0) {
+      return null;
+    }
+    
+    const entry = webhookData.entry[0];
+    if (!entry.changes || !Array.isArray(entry.changes) || entry.changes.length === 0) {
+      return null;
+    }
+    
+    const change = entry.changes[0];
+    const value = change.value;
+    
+    if (!value.messages || !Array.isArray(value.messages) || value.messages.length === 0) {
+      return null;
+    }
+    
+    const message = value.messages[0];
+    const contact = value.contacts && value.contacts.length > 0 ? value.contacts[0] : null;
+    
+    return {
+      messageId: message.id,
+      from: message.from,
+      phoneNumber: message.from,
+      fromName: contact?.profile?.name || contact?.wa_id || message.from,
+      text: message.text?.body || message.type || 'Unknown message type',
+      messageType: message.type,
+      timestamp: new Date(parseInt(message.timestamp) * 1000).toISOString(),
+      contact: contact,
+      rawMessage: message,
+      rawWebhook: webhookData
+    };
+    
+  } catch (error) {
+    console.error('❌ Error extracting WhatsApp message data:', error);
+    return null;
+  }
+}
+
 // Health check endpoint
 router.get('/health', (req, res) => {
   res.json({

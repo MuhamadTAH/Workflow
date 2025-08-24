@@ -12,6 +12,7 @@ const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
 const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
+const whatsappTriggerNode = require('../nodes/actions/whatsappTriggerNode');
 const instagramResponseNode = require('../nodes/actions/instagramResponseNode');
 const instagramGetDMsNode = require('../nodes/actions/instagramGetDMsNode');
 const instagramSendDMNode = require('../nodes/actions/instagramSendDMNode');
@@ -455,6 +456,22 @@ const runNode = async (req, res) => {
                             itemResult = {
                                 success: false,
                                 message: '❌ Bot token not configured. Configure the bot token first.',
+                                data: {},
+                                timestamp: new Date().toISOString()
+                            };
+                        }
+                        break;
+
+                    case 'whatsappTrigger':
+                        console.log('📱 Executing WhatsApp Trigger Node');
+                        try {
+                            itemResult = await whatsappTriggerNode.execute(processedConfig, currentItem, connectedNodes, executionContext);
+                            console.log('📱 WhatsApp Trigger Result:', itemResult);
+                        } catch (error) {
+                            console.error('❌ WhatsApp Trigger Error:', error);
+                            itemResult = {
+                                success: false,
+                                message: `❌ WhatsApp Trigger failed: ${error.message}`,
                                 data: {},
                                 timestamp: new Date().toISOString()
                             };

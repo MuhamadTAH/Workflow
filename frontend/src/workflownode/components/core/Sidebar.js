@@ -144,11 +144,11 @@ const Sidebar = () => {
       />
       <DraggableNode 
         nodeInfo={{ 
-            label: 'WhatsApp', 
+            label: 'WhatsApp Trigger', 
             icon: 'fa-whatsapp', 
             color: 'text-green-500',
-            description: 'WhatsApp integration',
-            type: 'whatsapp' 
+            description: 'Trigger workflow when receiving WhatsApp message from specific number',
+            type: 'whatsappTrigger' 
         }} 
       />
       <DraggableNode 

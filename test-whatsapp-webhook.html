@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Webhook Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #25D366;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        button {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #1da851;
+        }
+        .response {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 WhatsApp Trigger Node Test</h1>
+        
+        <div class="test-section">
+            <h3>1. Test Webhook Verification</h3>
+            <p>This tests the WhatsApp webhook verification endpoint (GET request):</p>
+            <button onclick="testWebhookVerification()">Test Webhook Verification</button>
+            <div id="verification-response" class="response"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Test WhatsApp Message Webhook</h3>
+            <p>This simulates a WhatsApp message webhook (POST request):</p>
+            <label>Phone Number (to filter by):</label>
+            <input type="text" id="phoneNumber" placeholder="+1234567890" value="+1234567890">
+            <label>Message Text:</label>
+            <input type="text" id="messageText" placeholder="Hello from WhatsApp!" value="Hello from WhatsApp test!">
+            <button onclick="testMessageWebhook()">Test Message Webhook</button>
+            <div id="message-response" class="response"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. WhatsApp Webhook Endpoints</h3>
+            <p>Available endpoints:</p>
+            <ul>
+                <li><strong>Verification (GET):</strong> https://workflow-lg9z.onrender.com/api/webhooks/whatsapp</li>
+                <li><strong>Messages (POST):</strong> https://workflow-lg9z.onrender.com/api/webhooks/whatsapp</li>
+                <li><strong>Workflow-specific (POST):</strong> https://workflow-lg9z.onrender.com/api/webhooks/whatsapp/:workflowId</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Setup Instructions</h3>
+            <ol>
+                <li>Create a WhatsApp Business App on Meta Developers</li>
+                <li>Add webhook URL: https://workflow-lg9z.onrender.com/api/webhooks/whatsapp</li>
+                <li>Set verify token in environment: WHATSAPP_VERIFY_TOKEN</li>
+                <li>Subscribe to 'messages' webhook field</li>
+                <li>Add WhatsApp Trigger node to your workflow</li>
+                <li>Configure the target phone number in the node</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://workflow-lg9z.onrender.com/api';
+
+        async function testWebhookVerification() {
+            const responseDiv = document.getElementById('verification-response');
+            responseDiv.textContent = 'Testing webhook verification...';
+            
+            try {
+                const params = new URLSearchParams({
+                    'hub.mode': 'subscribe',
+                    'hub.challenge': 'test_challenge_12345',
+                    'hub.verify_token': 'whatsapp_verify_token_12345'
+                });
+                
+                const response = await fetch(`${API_BASE}/webhooks/whatsapp?${params}`, {
+                    method: 'GET'
+                });
+                
+                const result = await response.text();
+                
+                if (response.ok) {
+                    responseDiv.textContent = `✅ Verification successful: ${result}`;
+                    responseDiv.className = 'response success';
+                } else {
+                    responseDiv.textContent = `❌ Verification failed: ${result}`;
+                    responseDiv.className = 'response error';
+                }
+            } catch (error) {
+                responseDiv.textContent = `❌ Error: ${error.message}`;
+                responseDiv.className = 'response error';
+            }
+        }
+
+        async function testMessageWebhook() {
+            const responseDiv = document.getElementById('message-response');
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const messageText = document.getElementById('messageText').value;
+            
+            responseDiv.textContent = 'Testing message webhook...';
+            
+            const mockWebhookData = {
+                object: 'whatsapp_business_account',
+                entry: [{
+                    id: '123456789',
+                    changes: [{
+                        value: {
+                            messaging_product: 'whatsapp',
+                            metadata: {
+                                display_phone_number: phoneNumber,
+                                phone_number_id: '123456789'
+                            },
+                            contacts: [{
+                                profile: {
+                                    name: 'Test User'
+                                },
+                                wa_id: phoneNumber.replace(/\D/g, '')
+                            }],
+                            messages: [{
+                                from: phoneNumber.replace(/\D/g, ''),
+                                id: 'wamid.test12345',
+                                timestamp: Math.floor(Date.now() / 1000).toString(),
+                                text: {
+                                    body: messageText
+                                },
+                                type: 'text'
+                            }]
+                        },
+                        field: 'messages'
+                    }]
+                }]
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/webhooks/whatsapp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(mockWebhookData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    responseDiv.textContent = `✅ Message webhook test successful:\n${JSON.stringify(result, null, 2)}`;
+                    responseDiv.className = 'response success';
+                } else {
+                    responseDiv.textContent = `❌ Message webhook test failed:\n${JSON.stringify(result, null, 2)}`;
+                    responseDiv.className = 'response error';
+                }
+            } catch (error) {
+                responseDiv.textContent = `❌ Error: ${error.message}`;
+                responseDiv.className = 'response error';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -37,7 +37,10 @@ export const NODE_TYPES = {
   LINKEDIN_GET_PROFILE: 'linkedinGetProfile',
   LINKEDIN_CREATE_POST: 'linkedinCreatePost',
   LINKEDIN_SEND_MESSAGE: 'linkedinSendMessage',
-  LINKEDIN_GET_COMPANY: 'linkedinGetCompany'
+  LINKEDIN_GET_COMPANY: 'linkedinGetCompany',
+  
+  // WhatsApp Nodes
+  WHATSAPP_TRIGGER: 'whatsappTrigger'
 };
 
 export const NODE_CATEGORIES = {
@@ -46,7 +49,8 @@ export const NODE_CATEGORIES = {
   WORKFLOW_CONTROL: 'Workflow Control',
   ADVANCED_OPERATIONS: 'Advanced Operations',
   FACEBOOK: 'Facebook',
-  LINKEDIN: 'LinkedIn'
+  LINKEDIN: 'LinkedIn',
+  WHATSAPP: 'WhatsApp'
 };
 
 export const NODE_DEFINITIONS = [
@@ -244,5 +248,15 @@ export const NODE_DEFINITIONS = [
     description: 'Get LinkedIn company page information',
     icon: '🏢',
     color: '#0077B5'
+  },
+  
+  // WhatsApp Nodes
+  {
+    type: NODE_TYPES.WHATSAPP_TRIGGER,
+    category: NODE_CATEGORIES.WHATSAPP,
+    label: 'WhatsApp Trigger',
+    description: 'Trigger workflow when receiving WhatsApp message from specific number',
+    icon: '📱',
+    color: '#25D366'
   }
 ];
