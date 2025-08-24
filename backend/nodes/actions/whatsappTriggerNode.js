@@ -66,7 +66,7 @@ class WhatsAppTriggerNode {
             console.log('🔒 Processed config with context:', processedConfig);
 
             // Check if this is manual execution (no webhook data) or real webhook
-            if (!inputData || (!inputData.object && !inputData.entry)) {
+            if (!inputData || Object.keys(inputData).length === 0 || (!inputData.object && !inputData.entry)) {
                 console.log('📱 Manual execution detected - providing sample WhatsApp message data');
                 
                 // Return sample data for manual testing
