@@ -1866,6 +1866,100 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                             </div>
                         )}
 
+                        {node.data.type === 'whatsappTrigger' && (
+                            <div className="form-group mt-6">
+                                <label>WhatsApp Trigger Configuration</label>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="phoneNumber">Phone Number to Monitor</label>
+                                    <ExpressionInput 
+                                        name="phoneNumber" 
+                                        value={formData.phoneNumber || ''} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="+1234567890"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">WhatsApp phone number to trigger workflow from (include country code)</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="webhookUrl">Webhook URL</label>
+                                    <ExpressionInput 
+                                        name="webhookUrl" 
+                                        value={formData.webhookUrl || 'https://workflow-lg9z.onrender.com/api/webhooks/whatsapp'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="https://workflow-lg9z.onrender.com/api/webhooks/whatsapp"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Webhook URL to configure in WhatsApp Business API</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="accessToken">WhatsApp Access Token</label>
+                                    <ExpressionInput 
+                                        name="accessToken" 
+                                        value={formData.accessToken || '{{$env.WHATSAPP_ACCESS_TOKEN}}'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="{{$env.WHATSAPP_ACCESS_TOKEN}} or EAA..."
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">WhatsApp Business API access token</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="verifyToken">Webhook Verify Token</label>
+                                    <ExpressionInput 
+                                        name="verifyToken" 
+                                        value={formData.verifyToken || '{{$env.WHATSAPP_VERIFY_TOKEN}}'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="{{$env.WHATSAPP_VERIFY_TOKEN}} or your_verify_token"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Token for webhook verification (set in Meta Developer Console)</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label>
+                                        <input 
+                                            type="checkbox" 
+                                            name="filterMessages" 
+                                            checked={formData.filterMessages !== false} 
+                                            onChange={handleInputChange} 
+                                        /> 
+                                        Filter by Phone Number
+                                    </label>
+                                    <p className="text-sm text-gray-500 mt-1">Only trigger for messages from the specified phone number</p>
+                                </div>
+                                
+                                <div className="setup-guide" style={{ background: '#e3f2fd', padding: '12px', borderRadius: '6px', marginTop: '16px', border: '1px solid #25D366' }}>
+                                    <strong>📱 WhatsApp Setup Guide:</strong><br/>
+                                    1. Create WhatsApp Business App on Meta Developers<br/>
+                                    2. Add webhook URL: <code>https://workflow-lg9z.onrender.com/api/webhooks/whatsapp</code><br/>
+                                    3. Set verify token in environment variables<br/>
+                                    4. Subscribe to 'messages' webhook field<br/>
+                                    5. Configure phone number to monitor above<br/>
+                                    6. Test with the test file: <code>test-whatsapp-webhook.html</code>
+                                </div>
+                                
+                                <div className="template-examples" style={{ background: '#f8f9fa', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
+                                    <strong>Template Examples:</strong><br/>
+                                    <code>{'{{$json.message}}'}</code> - Received message text<br/>
+                                    <code>{'{{$json.from}}'}</code> - Sender phone number<br/>
+                                    <code>{'{{$json.fromName}}'}</code> - Sender display name<br/>
+                                    <code>{'{{$json.messageId}}'}</code> - WhatsApp message ID<br/>
+                                    <code>{'{{$json.timestamp}}'}</code> - Message timestamp
+                                </div>
+                            </div>
+                        )}
+
                         {node.data.type === 'instagramResponse' && (
                             <div className="form-group mt-6">
                                 <label>Instagram Response Configuration</label>
