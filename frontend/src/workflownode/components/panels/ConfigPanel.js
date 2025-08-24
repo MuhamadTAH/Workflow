@@ -896,8 +896,11 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
 
   // WhatsApp Connection Testing
   const testWhatsAppConnection = async (nodeType) => {
-    const appId = nodeType === 'trigger' ? formData.whatsappAppId : formData.appId;
-    const clientSecret = nodeType === 'trigger' ? formData.whatsappClientSecret : formData.clientSecret;
+    console.log('🔍 Testing WhatsApp connection for:', nodeType);
+    console.log('FormData:', { appId: formData.appId?.substring(0, 8) + '...', clientSecret: !!formData.clientSecret });
+    
+    const appId = formData.appId;
+    const clientSecret = formData.clientSecret;
     
     if (!appId || !clientSecret) {
       setWhatsAppTestResult({
@@ -2008,7 +2011,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                             color: whatsAppTestResult.success ? '#155724' : '#721c24',
                                             border: `1px solid ${whatsAppTestResult.success ? '#c3e6cb' : '#f5c6cb'}`
                                         }}>
-                                            {whatsAppTestResult.success ? '✅' : '❌'} {whatsAppTestResult.message}
+                                            {whatsAppTestResult.success ? '✅' : '❌'} {whatsAppTestResult.message || whatsAppTestResult.error}
                                         </div>
                                     )}
                                 </div>
@@ -2138,7 +2141,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                             color: whatsAppTestResult.success ? '#155724' : '#721c24',
                                             border: `1px solid ${whatsAppTestResult.success ? '#c3e6cb' : '#f5c6cb'}`
                                         }}>
-                                            {whatsAppTestResult.success ? '✅' : '❌'} {whatsAppTestResult.message}
+                                            {whatsAppTestResult.success ? '✅' : '❌'} {whatsAppTestResult.message || whatsAppTestResult.error}
                                         </div>
                                     )}
                                 </div>
