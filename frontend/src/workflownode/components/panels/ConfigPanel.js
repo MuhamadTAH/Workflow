@@ -1885,45 +1885,31 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                 </div>
                                 
                                 <div className="form-group">
-                                    <label htmlFor="webhookUrl">Webhook URL</label>
+                                    <label htmlFor="appId">WhatsApp App ID</label>
                                     <ExpressionInput 
-                                        name="webhookUrl" 
-                                        value={formData.webhookUrl || 'https://workflow-lg9z.onrender.com/api/webhooks/whatsapp'} 
+                                        name="appId" 
+                                        value={formData.appId || '{{$env.WHATSAPP_APP_ID}}'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
-                                        placeholder="https://workflow-lg9z.onrender.com/api/webhooks/whatsapp"
+                                        placeholder="{{$env.WHATSAPP_APP_ID}} or 123456789..."
                                         currentNode={node} 
                                         allNodes={nodes}
                                     />
-                                    <p className="text-sm text-gray-500 mt-1">Webhook URL to configure in WhatsApp Business API</p>
+                                    <p className="text-sm text-gray-500 mt-1">WhatsApp App ID from Meta Developers</p>
                                 </div>
                                 
                                 <div className="form-group">
-                                    <label htmlFor="accessToken">WhatsApp Access Token</label>
+                                    <label htmlFor="clientSecret">Client Secret</label>
                                     <ExpressionInput 
-                                        name="accessToken" 
-                                        value={formData.accessToken || '{{$env.WHATSAPP_ACCESS_TOKEN}}'} 
+                                        name="clientSecret" 
+                                        value={formData.clientSecret || '{{$env.WHATSAPP_CLIENT_SECRET}}'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
-                                        placeholder="{{$env.WHATSAPP_ACCESS_TOKEN}} or EAA..."
+                                        placeholder="{{$env.WHATSAPP_CLIENT_SECRET}} or abc123..."
                                         currentNode={node} 
                                         allNodes={nodes}
                                     />
-                                    <p className="text-sm text-gray-500 mt-1">WhatsApp Business API access token</p>
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="verifyToken">Webhook Verify Token</label>
-                                    <ExpressionInput 
-                                        name="verifyToken" 
-                                        value={formData.verifyToken || '{{$env.WHATSAPP_VERIFY_TOKEN}}'} 
-                                        onChange={handleInputChange} 
-                                        inputData={inputData} 
-                                        placeholder="{{$env.WHATSAPP_VERIFY_TOKEN}} or your_verify_token"
-                                        currentNode={node} 
-                                        allNodes={nodes}
-                                    />
-                                    <p className="text-sm text-gray-500 mt-1">Token for webhook verification (set in Meta Developer Console)</p>
+                                    <p className="text-sm text-gray-500 mt-1">WhatsApp Client Secret from Meta Developers</p>
                                 </div>
                                 
                                 <div className="form-group">
@@ -1940,13 +1926,13 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                 </div>
                                 
                                 <div className="setup-guide" style={{ background: '#e3f2fd', padding: '12px', borderRadius: '6px', marginTop: '16px', border: '1px solid #25D366' }}>
-                                    <strong>📱 WhatsApp Setup Guide:</strong><br/>
-                                    1. Create WhatsApp Business App on Meta Developers<br/>
-                                    2. Add webhook URL: <code>https://workflow-lg9z.onrender.com/api/webhooks/whatsapp</code><br/>
-                                    3. Set verify token in environment variables<br/>
-                                    4. Subscribe to 'messages' webhook field<br/>
-                                    5. Configure phone number to monitor above<br/>
-                                    6. Test with the test file: <code>test-whatsapp-webhook.html</code>
+                                    <strong>📱 Simple WhatsApp Setup (like n8n):</strong><br/>
+                                    1. Create WhatsApp App on Meta Developers<br/>
+                                    2. Get App ID and Client Secret<br/>
+                                    3. Set environment variables: WHATSAPP_APP_ID, WHATSAPP_CLIENT_SECRET<br/>
+                                    4. Webhook URL configured automatically: <code>https://workflow-lg9z.onrender.com/api/webhooks/whatsapp</code><br/>
+                                    5. OAuth authentication handled automatically<br/>
+                                    6. No complex token management needed!
                                 </div>
                                 
                                 <div className="template-examples" style={{ background: '#f8f9fa', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
@@ -1994,51 +1980,40 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                 </div>
                                 
                                 <div className="form-group">
-                                    <label htmlFor="accessToken">WhatsApp Access Token</label>
+                                    <label htmlFor="appId">WhatsApp App ID</label>
                                     <ExpressionInput 
-                                        name="accessToken" 
-                                        value={formData.accessToken || '{{$env.WHATSAPP_ACCESS_TOKEN}}'} 
+                                        name="appId" 
+                                        value={formData.appId || '{{$env.WHATSAPP_APP_ID}}'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
-                                        placeholder="{{$env.WHATSAPP_ACCESS_TOKEN}} or EAA..."
+                                        placeholder="{{$env.WHATSAPP_APP_ID}} or 123456789..."
                                         currentNode={node} 
                                         allNodes={nodes}
                                     />
-                                    <p className="text-sm text-gray-500 mt-1">WhatsApp Business API access token</p>
+                                    <p className="text-sm text-gray-500 mt-1">WhatsApp App ID from Meta Developers</p>
                                 </div>
                                 
                                 <div className="form-group">
-                                    <label htmlFor="phoneNumberId">Phone Number ID</label>
+                                    <label htmlFor="clientSecret">Client Secret</label>
                                     <ExpressionInput 
-                                        name="phoneNumberId" 
-                                        value={formData.phoneNumberId || '{{$env.WHATSAPP_PHONE_NUMBER_ID}}'} 
+                                        name="clientSecret" 
+                                        value={formData.clientSecret || '{{$env.WHATSAPP_CLIENT_SECRET}}'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
-                                        placeholder="{{$env.WHATSAPP_PHONE_NUMBER_ID}} or 123456789..."
+                                        placeholder="{{$env.WHATSAPP_CLIENT_SECRET}} or abc123..."
                                         currentNode={node} 
                                         allNodes={nodes}
                                     />
-                                    <p className="text-sm text-gray-500 mt-1">WhatsApp Business Phone Number ID from Meta</p>
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="messageType">Message Type</label>
-                                    <div className="custom-select-wrapper">
-                                        <select name="messageType" id="messageType" value={formData.messageType || 'text'} onChange={handleInputChange}>
-                                            <option value="text">Text</option>
-                                            <option value="template">Template</option>
-                                        </select>
-                                    </div>
-                                    <p className="text-sm text-gray-500 mt-1">Type of WhatsApp message to send</p>
+                                    <p className="text-sm text-gray-500 mt-1">WhatsApp Client Secret from Meta Developers</p>
                                 </div>
                                 
                                 <div className="setup-guide" style={{ background: '#e8f5e8', padding: '12px', borderRadius: '6px', marginTop: '16px', border: '1px solid #25D366' }}>
-                                    <strong>📤 WhatsApp Send Setup:</strong><br/>
-                                    1. Get Phone Number ID from Meta Business Account<br/>
-                                    2. Set environment variables: WHATSAPP_ACCESS_TOKEN, WHATSAPP_PHONE_NUMBER_ID<br/>
-                                    3. Use text type for regular messages, template for first messages<br/>
-                                    4. Phone number must include country code (e.g., +1234567890)<br/>
-                                    5. Recipient must have opted in to receive messages
+                                    <strong>📤 Simple WhatsApp Setup (like n8n):</strong><br/>
+                                    1. Create WhatsApp App on Meta Developers<br/>
+                                    2. Get App ID and Client Secret<br/>
+                                    3. Set environment variables: WHATSAPP_APP_ID, WHATSAPP_CLIENT_SECRET<br/>
+                                    4. OAuth authentication handled automatically<br/>
+                                    5. Much simpler than manual API setup!
                                 </div>
                                 
                                 <div className="template-examples" style={{ background: '#f8f9fa', padding: '12px', borderRadius: '6px', marginTop: '16px' }}>
@@ -2047,7 +2022,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     <code>{'{{$json.fromName}}'}</code> - Sender's name<br/>
                                     <code>{'{{$json.message}}'}</code> - Original message text<br/>
                                     <code>{'{{$node["AI Agent"].json.response}}'}</code> - From other node<br/>
-                                    <code>{'{{$env.WHATSAPP_ACCESS_TOKEN}}'}</code> - Environment variable
+                                    <code>{'{{$env.WHATSAPP_APP_ID}}'}</code> - Environment variable
                                 </div>
                             </div>
                         )}
