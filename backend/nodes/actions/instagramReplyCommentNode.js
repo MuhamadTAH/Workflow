@@ -288,11 +288,12 @@ class InstagramReplyCommentNode {
         return {
             accountId: 'your_instagram_business_account_id',
             commentId: 'instagram_comment_id',
-            replyText: 'Thanks for your comment! We appreciate your feedback.',
+            replyText: 'Thanks for your comment!',
             includeUsername: true,
             accessToken: 'your_instagram_access_token'
         };
     }
 }
 
+// Fixed syntax error - deployment timestamp: 2025-08-24
 module.exports = new InstagramReplyCommentNode();
