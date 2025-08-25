@@ -129,12 +129,16 @@ class WhatsAppTriggerNode {
                 // If we got real webhook data, process it
                 if (webhookResult.success && webhookResult.data) {
                     console.log('✅ Received real WhatsApp message via webhook!');
+                    
+                    // Return clean data like n8n (just the webhook structure)
+                    const cleanData = webhookResult.rawWebhookData?.entry?.[0]?.changes?.[0]?.value || webhookResult.rawWebhookData;
+                    
                     return {
                         success: true,
-                        data: webhookResult.data,
+                        data: cleanData,
                         trigger: true,
                         nodeType: this.type,
-                        message: `📱 Real WhatsApp message received from ${webhookResult.data.phoneNumber}`,
+                        message: `📱 Real WhatsApp message received`,
                         executionId: executionId,
                         isRealMessage: true
                     };
