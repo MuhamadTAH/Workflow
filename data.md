@@ -1,133 +1,60 @@
-{
-  "success": true,
-  "result": {
-    "success": true,
-    "data": {
-      "messageId": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBM0JCRUFENjJFRjJGNEExMDY2AA==",
-      "from": "9647700716669",
-      "phoneNumber": "9647700716669",
-      "fromName": "Muhammad Tarq",
-      "text": "Hohhot",
-      "messageType": "text",
-      "timestamp": "2025-08-25T21:07:03.000Z",
-      "contact": {
-        "profile": {
-          "name": "Muhammad Tarq"
-        },
-        "wa_id": "9647700716669"
-      },
-      "rawMessage": {
-        "from": "9647700716669",
-        "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBM0JCRUFENjJFRjJGNEExMDY2AA==",
-        "timestamp": "1756156023",
-        "text": {
-          "body": "Hohhot"
-        },
-        "type": "text"
-      },
-      "rawWebhook": {
-        "object": "whatsapp_business_account",
-        "entry": [
-          {
-            "id": "1411124906823702",
-            "changes": [
-              {
-                "value": {
-                  "messaging_product": "whatsapp",
-                  "metadata": {
-                    "display_phone_number": "15556646119",
-                    "phone_number_id": "628007790405551"
-                  },
-                  "contacts": [
-                    {
-                      "profile": {
-                        "name": "Muhammad Tarq"
-                      },
-                      "wa_id": "9647700716669"
-                    }
-                  ],
-                  "messages": [
-                    {
-                      "from": "9647700716669",
-                      "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBM0JCRUFENjJFRjJGNEExMDY2AA==",
-                      "timestamp": "1756156023",
-                      "text": {
-                        "body": "Hohhot"
-                      },
-                      "type": "text"
-                    }
-                  ]
-                },
-                "field": "messages"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    "trigger": true,
-    "nodeType": "whatsappTrigger",
-    "message": "📱 Real WhatsApp message received from 9647700716669",
-    "executionId": "manual_whatsapp_1756156021376_7fknpdqmb",
-    "isRealMessage": true,
-    "itemIndex": 0,
-    "processedAt": "2025-08-25T21:07:04.552Z"
-  },
-  "nodeType": "whatsappTrigger",
-  "executedAt": "2025-08-25T21:07:04.552Z",
-  "executionContext": {
-    "nodeId": "dndnode_0",
-    "executionId": "live_1756156020665",
-    "runIndex": 0,
-    "itemsProcessed": 1,
-    "isolatedContext": true
-  }
-}
-
-N8N data
-
-[
-{
-"messaging_product": 
-"whatsapp",
-"metadata": 
-{
-"display_phone_number": 
-"15556646119",
-"phone_number_id": 
-"628007790405551"
-},
-"contacts": 
-[
-{
-"profile": 
-{
-"name": 
-"Muhammad Tarq"
-},
-"wa_id": 
-"9647700716669"
-}
-],
-"messages": 
-[
-{
-"from": 
-"9647700716669",
-"id": 
-"wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBN0VCMjcwMzFGNDM3NzMxNjMzAA==",
-"timestamp": 
-"1756153137",
-"text": 
-{
-"body": 
-"Drug"
-},
-"type": 
-"text"
-}
-],
-"field": 
-"messages"
-}
-]
+==> Cloning from https://github.com/MuhamadTAH/Workflow
+==> Checking out commit 0b39e8f5d6058fc215836fd4034e56b3a5279911 in branch mains
+==> Installing dependencies with npm...
+==> Requesting Node.js version >=18.0.0
+==> Using Node.js version 24.6.0 via /opt/render/project/src/frontend/package.json
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+added 359 packages, and audited 360 packages in 7s
+54 packages are looking for funding
+  run `npm fund` for details
+found 0 vulnerabilities
+up to date, audited 360 packages in 654ms
+54 packages are looking for funding
+  run `npm fund` for details
+found 0 vulnerabilities
+==> Running build command 'npm install --legacy-peer-deps && npm run build'...
+up to date, audited 360 packages in 629ms
+54 packages are looking for funding
+  run `npm fund` for details
+found 0 vulnerabilities
+> frontend@0.0.0 prebuild
+> npm install --legacy-peer-deps
+up to date, audited 360 packages in 646ms
+54 packages are looking for funding
+  run `npm fund` for details
+found 0 vulnerabilities
+> frontend@0.0.0 build
+> npm install --legacy-peer-deps && vite build
+up to date, audited 360 packages in 673ms
+54 packages are looking for funding
+  run `npm fund` for details
+found 0 vulnerabilities
+vite v6.3.5 building for production...
+transforming...
+✓ 140 modules transformed.
+✗ Build failed in 1.84s
+error during build:
+[vite:esbuild] Transform failed with 1 error:
+/opt/render/project/src/frontend/src/workflownode/components/panels/ConfigPanel.js:2531:0: ERROR: Unexpected "export"
+file: /opt/render/project/src/frontend/src/workflownode/components/panels/ConfigPanel.js:2531:0
+Unexpected "export"
+2529|  };
+2530|  
+2531|  export default ConfigPanel;
+   |  ^
+2532|  
+    at failureErrorWithLog (/opt/render/project/src/frontend/node_modules/esbuild/lib/main.js:1467:15)
+    at /opt/render/project/src/frontend/node_modules/esbuild/lib/main.js:736:50
+    at responseCallbacks.<computed> (/opt/render/project/src/frontend/node_modules/esbuild/lib/main.js:603:9)
+    at handleIncomingPacket (/opt/render/project/src/frontend/node_modules/esbuild/lib/main.js:658:12)
+    at Socket.readFromStdout (/opt/render/project/src/frontend/node_modules/esbuild/lib/main.js:581:7)
+    at Socket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+==> Build failed 😞
+==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+==> Requesting Node.js version >=18.0.0
+==> Using Node.js version 24.6.0 via /opt/render/project/src/frontend/package.json
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
