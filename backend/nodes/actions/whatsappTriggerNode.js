@@ -82,6 +82,8 @@ class WhatsAppTriggerNode {
                 isManualExecution: isManualExecution
             });
             
+            console.log('🚀 WEBHOOK WAITING SYSTEM: About to check manual execution...');
+            
             if (isManualExecution) {
                 console.log('📱 Manual execution detected - starting webhook waiting mode');
                 
