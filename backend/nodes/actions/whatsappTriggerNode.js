@@ -6,6 +6,15 @@ WhatsApp Trigger Node - Receives messages from specific WhatsApp number
 */
 
 const { createBackendExecutionContext } = require('../../utils/executionContext');
+
+// Test if webhookStateManager loads properly
+try {
+    const webhookStateManager = require('../../services/webhookStateManager');
+    console.log('✅ WhatsApp Trigger: webhookStateManager loaded successfully');
+} catch (error) {
+    console.error('❌ WhatsApp Trigger: Failed to load webhookStateManager:', error.message);
+}
+
 const webhookStateManager = require('../../services/webhookStateManager');
 
 class WhatsAppTriggerNode {
@@ -96,10 +105,23 @@ class WhatsAppTriggerNode {
                 
                 console.log('🔥 ABOUT TO CALL webhookStateManager.startWaiting...');
                 
+                // Test if webhookStateManager is available
+                if (!webhookStateManager) {
+                    console.error('❌ webhookStateManager is null or undefined!');
+                    return {
+                        success: false,
+                        error: 'Webhook state manager not available',
+                        nodeType: this.type,
+                        timestamp: new Date().toISOString()
+                    };
+                }
+                
+                console.log('✅ webhookStateManager is available, starting wait...');
+                
                 // Start waiting for webhook data
                 const webhookResult = await webhookStateManager.startWaiting(executionId, 30000);
                 
-                console.log('🔥 WEBHOOK WAITING RESULT:', webhookResult);
+                console.log('🔥 WEBHOOK WAITING COMPLETED! Result:', webhookResult);
                 
                 // If we got real webhook data, process it
                 if (webhookResult.success && webhookResult.data) {
