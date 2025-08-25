@@ -16,25 +16,44 @@ class WhatsAppSendMessageNode {
     }
 
     /**
-     * Get node parameters structure (for UI configuration)
+     * Get node parameters structure (for UI configuration) - Match n8n exactly
      */
     getParameters() {
         return {
-            appId: {
-                displayName: 'WhatsApp App ID',
-                name: 'appId',
+            accessToken: {
+                displayName: 'Access Token',
+                name: 'accessToken',
                 type: 'string',
-                default: '{{$env.WHATSAPP_APP_ID}}',
+                default: '{{$env.WHATSAPP_ACCESS_TOKEN}}',
                 required: true,
-                description: 'WhatsApp App ID from Meta Developer Console'
+                description: 'WhatsApp Business API Access Token from Meta Developer Console',
+                placeholder: 'EAAxxxxxxxx...'
             },
-            clientSecret: {
-                displayName: 'Client Secret',
-                name: 'clientSecret',
+            businessId: {
+                displayName: 'Business ID',
+                name: 'businessId', 
                 type: 'string',
-                default: '{{$env.WHATSAPP_CLIENT_SECRET}}',
+                default: '{{$env.WHATSAPP_BUSINESS_ID}}',
                 required: true,
-                description: 'WhatsApp App Client Secret from Meta Developer Console'
+                description: 'WhatsApp Business Account ID',
+                placeholder: '1234567890123456'
+            },
+            phoneNumberId: {
+                displayName: 'Phone Number Send ID',
+                name: 'phoneNumberId',
+                type: 'string',
+                default: '{{$env.WHATSAPP_PHONE_NUMBER_ID}}',
+                required: true,
+                description: 'WhatsApp Phone Number ID (the number that sends messages)',
+                placeholder: '628007790405551'
+            },
+            recipientPhoneNumber: {
+                displayName: 'Recipient Phone Number',
+                name: 'recipientPhoneNumber',
+                type: 'string',
+                required: true,
+                description: 'Phone number to send message to (without + sign)',
+                placeholder: '9647700716669'
             },
             messageText: {
                 displayName: 'Message Text',
@@ -45,7 +64,8 @@ class WhatsAppSendMessageNode {
                 },
                 default: 'Hello {{$json.fromName || "there"}}! Thanks for your message.',
                 required: true,
-                description: 'Message content (supports expressions)'
+                description: 'Text message to send',
+                placeholder: 'Hello! This is a message from WhatsApp Business API.'
             }
         };
     }
@@ -88,14 +108,14 @@ class WhatsAppSendMessageNode {
                 success: true,
                 data: {
                     messageId: result.messages?.[0]?.id,
-                    phoneNumber: processedConfig.phoneNumber,
+                    recipientPhoneNumber: processedConfig.recipientPhoneNumber,
                     messageText: processedConfig.messageText,
                     status: result.messages?.[0]?.message_status || 'sent',
-                    sentAt: new Date().toISOString()
+                    sentAt: new Date().toISOString(),
+                    whatsappResponse: result
                 },
-                whatsapp: result,
                 nodeType: this.type,
-                message: 'WhatsApp message sent successfully'
+                message: `📱 WhatsApp message sent to ${processedConfig.recipientPhoneNumber}`
             };
 
         } catch (error) {
@@ -126,8 +146,8 @@ class WhatsAppSendMessageNode {
         console.log('🔍 Text field value before processing:', processed.text);
         console.log('🔍 MessageText field value:', processed.messageText);
         
-        // Fields that support template expressions
-        const templateFields = ['phoneNumber', 'text', 'messageText', 'accessToken', 'phoneNumberId'];
+        // Fields that support template expressions - updated for n8n-style parameters
+        const templateFields = ['accessToken', 'businessId', 'phoneNumberId', 'recipientPhoneNumber', 'messageText'];
         
         templateFields.forEach(field => {
             if (processed[field] && typeof processed[field] === 'string') {
@@ -147,49 +167,54 @@ class WhatsAppSendMessageNode {
             }
         });
         
-        // Debug final processed values
-        console.log('🔍 Final text field value after processing:', processed.text);
-        console.log('🔍 Final phoneNumber field value after processing:', processed.phoneNumber);
+        // Debug final processed values  
+        console.log('🔍 Final messageText field value after processing:', processed.messageText);
+        console.log('🔍 Final recipientPhoneNumber field value after processing:', processed.recipientPhoneNumber);
 
         return processed;
     }
 
     /**
-     * Validate required parameters
+     * Validate required parameters - updated for n8n-style parameters
      */
     validateParameters(config, inputData = null) {
         const errors = [];
         
         // Debug validation inputs
         console.log('🔍 Validating config:', {
-            hasText: !!config.text,
-            textValue: config.text,
-            textType: typeof config.text,
-            hasPhoneNumber: !!config.phoneNumber,
-            phoneNumberValue: config.phoneNumber,
+            hasAccessToken: !!config.accessToken,
+            hasBusinessId: !!config.businessId,
+            hasPhoneNumberId: !!config.phoneNumberId,
+            hasRecipientPhoneNumber: !!config.recipientPhoneNumber,
+            hasMessageText: !!config.messageText,
+            messageTextValue: config.messageText,
             allFields: Object.keys(config)
         });
         
-        if (!config.phoneNumber || config.phoneNumber.trim() === '') {
-            errors.push('Phone number is required');
-        }
-        
-        if (!config.text || config.text.trim() === '') {
-            console.log('❌ Text validation failed - text field:', config.text);
-            errors.push('Message text is required');
-        }
-        
         if (!config.accessToken || config.accessToken.trim() === '') {
-            errors.push('WhatsApp Access Token is required');
+            errors.push('Access Token is required');
+        }
+        
+        if (!config.businessId || config.businessId.trim() === '') {
+            errors.push('Business ID is required');
         }
         
         if (!config.phoneNumberId || config.phoneNumberId.trim() === '') {
-            errors.push('Phone Number ID is required');
+            errors.push('Phone Number Send ID is required');
         }
         
-        // Validate phone number format
-        if (config.phoneNumber && !this.isValidPhoneNumber(config.phoneNumber)) {
-            errors.push('Invalid phone number format (should include country code, e.g., +1234567890)');
+        if (!config.recipientPhoneNumber || config.recipientPhoneNumber.trim() === '') {
+            errors.push('Recipient Phone Number is required');
+        }
+        
+        if (!config.messageText || config.messageText.trim() === '') {
+            console.log('❌ Message text validation failed - messageText field:', config.messageText);
+            errors.push('Message Text is required');
+        }
+        
+        // Validate phone number format (basic validation for digits)
+        if (config.recipientPhoneNumber && !/^\d+$/.test(config.recipientPhoneNumber.replace(/\s/g, ''))) {
+            errors.push('Recipient Phone Number should contain only digits (no + sign)');
         }
 
         return {
@@ -215,38 +240,26 @@ class WhatsAppSendMessageNode {
     }
 
     /**
-     * Send message to WhatsApp Business API
+     * Send message to WhatsApp Business API - updated for n8n-style parameters
      */
     async sendWhatsAppMessage(config) {
-        const url = `https://graph.facebook.com/v18.0/${config.phoneNumberId}/messages`;
+        const url = `https://graph.facebook.com/v21.0/${config.phoneNumberId}/messages`;
         
-        // Build request body based on message type
+        // Build request body for WhatsApp Business API
         const body = {
             messaging_product: 'whatsapp',
-            to: config.phoneNumber.replace(/\D/g, ''), // Remove non-digits for API
-            type: config.messageType || 'text'
+            to: config.recipientPhoneNumber,
+            type: 'text',
+            text: {
+                body: config.messageText
+            }
         };
-        
-        if (config.messageType === 'template') {
-            // Template message format (for initial conversations)
-            body.template = {
-                name: config.templateName || 'hello_world',
-                language: {
-                    code: config.languageCode || 'en_US'
-                }
-            };
-        } else {
-            // Text message format (default)
-            body.text = {
-                body: config.text
-            };
-        }
 
         console.log('📤 Sending to WhatsApp API:', { 
             url: url.replace(/\/\d+\//, '/[PHONE_ID]/'), 
             body: {
                 ...body,
-                to: body.to.slice(-4) // Only show last 4 digits
+                to: `***${body.to.slice(-4)}` // Only show last 4 digits
             }
         });
 
@@ -265,6 +278,7 @@ class WhatsAppSendMessageNode {
 
             if (!response.ok) {
                 const errorMsg = data.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+                console.error('❌ WhatsApp API Error Response:', data);
                 throw new Error(`WhatsApp API Error: ${errorMsg}`);
             }
 
@@ -280,6 +294,7 @@ class WhatsAppSendMessageNode {
             if (error.name === 'TypeError' && error.message.includes('fetch')) {
                 throw new Error('Network error: Unable to connect to WhatsApp API');
             }
+            console.error('❌ WhatsApp Send Error:', error);
             throw error;
         }
     }
