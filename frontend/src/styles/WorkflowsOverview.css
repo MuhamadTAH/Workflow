@@ -2,21 +2,52 @@
 =================================================================
 FILE: frontend/src/styles/WorkflowsOverview.css
 =================================================================
-Professional styles for the Workflows Overview page
+Luxury styles for the Workflows Overview page with gold theme
 */
+
+:root {
+  --luxury-gold: #d4af37;
+  --luxury-gold-dark: #b8860b;
+  --luxury-gold-deep: #8b6914;
+  --luxury-gold-light: #f4e4a6;
+  --luxury-gold-glow: rgba(212, 175, 55, 0.3);
+  --luxury-bg: #fafafa;
+  --luxury-bg-dark: #f5f5f5;
+  --luxury-shadow: rgba(212, 175, 55, 0.1);
+}
 
 .workflows-overview {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, var(--luxury-bg) 0%, var(--luxury-bg-dark) 100%);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 /* Header Section */
 .overview-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--luxury-gold) 0%, var(--luxury-gold-deep) 100%);
   color: white;
   padding: 2rem 0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px var(--luxury-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.overview-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+  transform: translateX(-100%);
+  animation: luxuryShimmer 3s ease-in-out infinite;
+}
+
+@keyframes luxuryShimmer {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+  100% { transform: translateX(100%); }
 }
 
 .header-content {
@@ -89,13 +120,30 @@ Professional styles for the Workflows Overview page
   gap: 0.5rem;
   backdrop-filter: blur(10px);
   text-decoration: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.new-workflow-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.new-workflow-btn:hover::before {
+  left: 100%;
 }
 
 .new-workflow-btn:hover {
   background: rgba(255, 255, 255, 0.25);
   border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px var(--luxury-shadow);
 }
 
 .new-workflow-btn i {
@@ -118,27 +166,45 @@ Professional styles for the Workflows Overview page
 }
 
 .stat-card {
-  background: white;
+  background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 4px 16px var(--luxury-shadow);
+  border: 1px solid var(--luxury-gold-glow);
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
   gap: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--luxury-gold), var(--luxury-gold-deep));
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  border-color: rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 24px var(--luxury-shadow);
+  border-color: var(--luxury-gold);
+}
+
+.stat-card:hover::before {
+  opacity: 1;
 }
 
 .stat-icon {
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, var(--luxury-gold), var(--luxury-gold-deep));
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -146,6 +212,24 @@ Professional styles for the Workflows Overview page
   color: white;
   font-size: 1.5rem;
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-icon::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform: rotate(45deg);
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover .stat-icon::before {
+  transform: rotate(45deg) translate(50%, 50%);
 }
 
 .stat-info {
@@ -203,8 +287,8 @@ Professional styles for the Workflows Overview page
 
 .search-box input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--luxury-gold);
+  box-shadow: 0 0 0 3px var(--luxury-gold-glow);
 }
 
 .filter-buttons {
@@ -222,13 +306,31 @@ Professional styles for the Workflows Overview page
   cursor: pointer;
   transition: all 0.2s ease;
   color: #64748b;
+  position: relative;
+  overflow: hidden;
+}
+
+.filter-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.1), transparent);
+  transition: left 0.3s ease;
+}
+
+.filter-btn:hover::before {
+  left: 100%;
 }
 
 .filter-btn:hover,
 .filter-btn.active {
-  background: #667eea;
+  background: linear-gradient(135deg, var(--luxury-gold), var(--luxury-gold-dark));
   color: white;
-  border-color: #667eea;
+  border-color: var(--luxury-gold);
+  box-shadow: 0 2px 8px var(--luxury-shadow);
 }
 
 /* Sort Dropdown */

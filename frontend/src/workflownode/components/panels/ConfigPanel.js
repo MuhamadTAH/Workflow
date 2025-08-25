@@ -1170,6 +1170,53 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
     }
   };
 
+  // Filter formData to only include fields relevant to the specific node type
+  const getFilteredConfig = (nodeType, formData) => {
+    // Define the fields each node type actually needs
+    const nodeFieldMappings = {
+      'whatsappTrigger': ['appId', 'clientSecret'],
+      'whatsappSendMessage': ['appId', 'clientSecret', 'messageText', 'phoneNumber', 'accessToken', 'phoneNumberId'],
+      'instagramTrigger': ['accessToken', 'accountId', 'responseType', 'responseMessage', 'triggerKeywords', 'responseDelay', 'enableSmartResponse'],
+      'instagramResponse': ['accessToken', 'accountId', 'responseType', 'responseMessage', 'triggerKeywords', 'responseDelay', 'enableSmartResponse'],
+      'telegramSendMessage': ['botToken', 'chatId', 'messageType', 'messageText', 'parseMode', 'disableWebPagePreview', 'photoUrl', 'photoCaption', 'videoUrl', 'videoCaption', 'videoDuration', 'audioUrl', 'audioCaption', 'voiceUrl', 'documentUrl', 'animationUrl', 'stickerFileId', 'latitude', 'longitude', 'locationHorizontalAccuracy', 'contactPhoneNumber', 'contactFirstName', 'contactLastName', 'pollQuestion', 'pollOptions', 'banUserId'],
+      'telegramTrigger': ['botToken'],
+      'aiAgent': ['apiKey', 'model', 'systemPrompt', 'userMessage'],
+      'compare': ['fieldsToMatch'],
+      'if': ['conditions', 'combinator', 'ignoreCase'],
+      'filter': ['conditions', 'combinator', 'ignoreCase'],
+      'switch': ['switchRules', 'switchOptions'],
+      'wait': ['resumeCondition', 'waitAmount', 'waitUnit'],
+      'stopAndError': ['errorType', 'errorMessage'],
+      'merge': ['mergeMode', 'batchSize'],
+      'executeSubWorkflow': ['source', 'workflow', 'workflowId', 'mode'],
+      'setData': ['fields'],
+      'chatbotWidget': ['chatSessionName', 'welcomeMessage', 'allowFileUploads', 'allowedFileTypes', 'chatbotTitle', 'chatbotSubtitle', 'chatbotTheme', 'enableChatbot']
+    };
+    
+    const relevantFields = nodeFieldMappings[nodeType] || [];
+    const filteredConfig = {};
+    
+    // Always include basic fields
+    filteredConfig.label = formData.label;
+    filteredConfig.description = formData.description;
+    
+    // Only include fields that are relevant to this node type
+    relevantFields.forEach(field => {
+      if (formData[field] !== undefined) {
+        filteredConfig[field] = formData[field];
+      }
+    });
+    
+    console.log(`🔧 Config filtered for ${nodeType}:`, {
+      originalFieldCount: Object.keys(formData).length,
+      filteredFieldCount: Object.keys(filteredConfig).length,
+      relevantFields: relevantFields,
+      filteredConfig: filteredConfig
+    });
+    
+    return filteredConfig;
+  };
+
   const handlePostData = async () => {
     setIsLoading(true);
     updateOutputData(null);
@@ -1203,6 +1250,9 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
         
         console.log('🔍 Bypassing API_BASE due to proxy issues, using:', endpoint);
         
+        // Filter config to only relevant fields for this node type
+        const filteredConfig = getFilteredConfig(node.data.type, formData);
+        
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1210,7 +1260,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                 node: { 
                     id: node.id,
                     type: node.data.type, 
-                    config: formData,
+                    config: filteredConfig,
                     data: node.data
                 },
                 inputData: inputData,

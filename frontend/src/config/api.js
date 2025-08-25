@@ -2,14 +2,22 @@
 // Uses VITE_API_BASE_URL environment variable set in Render
 
 const getApiBaseUrl = () => {
+  // Fix: Remove /api/v1 from environment variable if present
+  const cleanUrl = (url) => {
+    if (url && url.endsWith('/api/v1')) {
+      return url.replace('/api/v1', '');
+    }
+    return url;
+  };
+
   // 1. Use Render backend URL for production
   if (window.location.hostname === 'frontend-dpcg.onrender.com') {
     return 'https://workflow-lg9z.onrender.com';
   }
   
-  // 2. Use Render environment variable if available
+  // 2. Use Render environment variable if available (cleaned)
   if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
+    return cleanUrl(import.meta.env.VITE_API_BASE_URL);
   }
   
   // 3. Development fallback - use local backend
