@@ -897,20 +897,42 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
   // WhatsApp Connection Testing
   const testWhatsAppConnection = async (nodeType) => {
     console.log('🔍 Testing WhatsApp connection for:', nodeType);
-    console.log('FormData:', { appId: formData.appId?.substring(0, 8) + '...', clientSecret: !!formData.clientSecret });
     
-    const appId = formData.appId;
-    const clientSecret = formData.clientSecret;
-    
-    if (!appId || !clientSecret) {
-      setWhatsAppTestResult({
-        success: false,
-        error: 'App ID and Client Secret are required',
+    if (nodeType === 'send') {
+      // For WhatsApp Send Message - check new parameters
+      console.log('FormData:', { 
+        accessToken: formData.accessToken?.substring(0, 8) + '...', 
+        phoneNumberId: !!formData.phoneNumberId,
+        businessId: !!formData.businessId
+      });
+      
+      const accessToken = formData.accessToken;
+      const phoneNumberId = formData.phoneNumberId;
+      
+      if (!accessToken || !phoneNumberId) {
+        setWhatsAppTestResult({
+          success: false,
+          error: 'Access Token and Phone Number Send ID are required',
         nodeType: nodeType
       });
       return;
+    } else {
+      // For WhatsApp Trigger - check old parameters
+      console.log('FormData:', { appId: formData.appId?.substring(0, 8) + '...', clientSecret: !!formData.clientSecret });
+      
+      const appId = formData.appId;
+      const clientSecret = formData.clientSecret;
+      
+      if (!appId || !clientSecret) {
+        setWhatsAppTestResult({
+          success: false,
+          error: 'App ID and Client Secret are required',
+          nodeType: nodeType
+        });
+        return;
+      }
     }
-
+    
     // Set loading state
     setWhatsAppTestResult({
       success: false,
@@ -930,9 +952,14 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          appId: appId,
-          clientSecret: clientSecret,
+        body: JSON.stringify(nodeType === 'send' ? {
+          accessToken: formData.accessToken,
+          phoneNumberId: formData.phoneNumberId,
+          businessId: formData.businessId,
+          nodeType: nodeType
+        } : {
+          appId: formData.appId,
+          clientSecret: formData.clientSecret,
           nodeType: nodeType
         })
       });
