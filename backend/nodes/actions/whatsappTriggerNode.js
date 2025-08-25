@@ -86,6 +86,7 @@ class WhatsAppTriggerNode {
             
             if (isManualExecution) {
                 console.log('📱 Manual webhook detected - starting webhook waiting mode');
+                console.log('🚀 ENTERING WEBHOOK WAITING SYSTEM NOW!');
                 
                 // Generate unique execution ID for this manual execution
                 const executionId = `manual_whatsapp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -93,8 +94,12 @@ class WhatsAppTriggerNode {
                 console.log(`🔄 Starting webhook wait for execution: ${executionId}`);
                 console.log('📱 Waiting for real WhatsApp message... (30 second timeout)');
                 
+                console.log('🔥 ABOUT TO CALL webhookStateManager.startWaiting...');
+                
                 // Start waiting for webhook data
                 const webhookResult = await webhookStateManager.startWaiting(executionId, 30000);
+                
+                console.log('🔥 WEBHOOK WAITING RESULT:', webhookResult);
                 
                 // If we got real webhook data, process it
                 if (webhookResult.success && webhookResult.data) {
