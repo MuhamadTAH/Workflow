@@ -1355,7 +1355,9 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                 <h3><i className={`${node.data.icon} mr-2`}></i>{formData.label}</h3>
                 <div className="flex items-center">
                     <span className="saved-status"><i className="fa-solid fa-check mr-2"></i>Saved</span>
-                    <button className="execute-step-btn" disabled={isLoading} onClick={handlePostData}>Webhook Step</button>
+                    <button className="execute-step-btn" disabled={isLoading} onClick={handlePostData}>
+                        {isLoading && node.data.type === 'whatsappTrigger' ? 'Waiting for WhatsApp...' : isLoading ? 'Loading...' : 'Webhook Step'}
+                    </button>
                     <button onClick={handleClose} className="close-button">&times;</button>
                 </div>
             </div>
