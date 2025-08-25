@@ -54,9 +54,25 @@ class WhatsAppTriggerNode {
      * Execute the WhatsApp Trigger Node (called when webhook receives data)
      */
     async execute(config, inputData, connectedNodes = [], executionContext = null) {
-        console.log('🚀 Executing WhatsApp Trigger Node');
+        console.log('🚀 WEBHOOK WAITING SYSTEM V2: Executing WhatsApp Trigger Node');
+        console.log('🔥 NEW CODE IS RUNNING - DEPLOYMENT SUCCESSFUL!');
         console.log('Config:', JSON.stringify(config, null, 2));
         console.log('Input data:', JSON.stringify(inputData, null, 2));
+        
+        // FORCE RETURN NEW VERSION MESSAGE FOR TESTING
+        if (true) {
+            return {
+                success: true,
+                data: { 
+                    message: "🔥 NEW WEBHOOK WAITING SYSTEM IS ACTIVE!",
+                    version: "v2.0",
+                    timestamp: new Date().toISOString(),
+                    deploymentTest: "SUCCESS"
+                },
+                nodeType: this.type,
+                message: "🚀 Webhook waiting system v2.0 is active and ready!"
+            };
+        }
 
         try {
             // Create execution context if not provided
