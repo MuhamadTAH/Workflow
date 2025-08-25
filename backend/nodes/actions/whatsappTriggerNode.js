@@ -67,8 +67,9 @@ class WhatsAppTriggerNode {
 
             // Check if this is manual execution (no webhook data) or real webhook
             const isManualExecution = !inputData || 
-                                    Object.keys(inputData).length === 0 || 
-                                    (typeof inputData === 'object' && !inputData.object && !inputData.entry);
+                                    inputData === null ||
+                                    (inputData && typeof inputData === 'object' && Object.keys(inputData).length === 0) || 
+                                    (inputData && typeof inputData === 'object' && !inputData.object && !inputData.entry);
             
             console.log('🔍 Manual execution check:', {
                 hasInputData: !!inputData,
