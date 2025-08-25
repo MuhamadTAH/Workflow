@@ -82,10 +82,10 @@ class WhatsAppTriggerNode {
                 isManualExecution: isManualExecution
             });
             
-            console.log('🚀 WEBHOOK WAITING SYSTEM: About to check manual execution...');
+            console.log('🚀 WEBHOOK WAITING SYSTEM: About to check manual webhook...');
             
             if (isManualExecution) {
-                console.log('📱 Manual execution detected - starting webhook waiting mode');
+                console.log('📱 Manual webhook detected - starting webhook waiting mode');
                 
                 // Generate unique execution ID for this manual execution
                 const executionId = `manual_whatsapp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
