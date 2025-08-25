@@ -352,13 +352,13 @@ Luxury styles for the Workflows Overview page with gold theme
 }
 
 .sort-select:hover {
-  border-color: #667eea;
+  border-color: var(--luxury-gold);
 }
 
 .sort-select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--luxury-gold);
+  box-shadow: 0 0 0 3px var(--luxury-gold-glow);
 }
 
 /* View Toggle */
@@ -385,7 +385,7 @@ Luxury styles for the Workflows Overview page with gold theme
 
 .view-btn:hover,
 .view-btn.active {
-  background: #667eea;
+  background: linear-gradient(135deg, var(--luxury-gold), var(--luxury-gold-dark));
   color: white;
 }
 
@@ -395,20 +395,31 @@ Luxury styles for the Workflows Overview page with gold theme
 
 /* Workflows Section */
 .workflows-section {
-  background: white;
+  background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 4px 16px var(--luxury-shadow);
+  border: 1px solid var(--luxury-gold-glow);
   overflow: hidden;
+  position: relative;
+}
+
+.workflows-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--luxury-gold), var(--luxury-gold-deep), var(--luxury-gold));
 }
 
 .section-header {
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--luxury-gold-glow);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, var(--luxury-bg) 0%, #ffffff 100%);
 }
 
 .section-header h2 {
@@ -434,7 +445,13 @@ Luxury styles for the Workflows Overview page with gold theme
 .loading-spinner {
   font-size: 2rem;
   margin-bottom: 1rem;
-  color: #d4af37;
+  color: var(--luxury-gold);
+  animation: luxuryPulse 2s ease-in-out infinite;
+}
+
+@keyframes luxuryPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
 }
 
 /* Empty State */
@@ -462,10 +479,15 @@ Luxury styles for the Workflows Overview page with gold theme
 }
 
 .empty-state .new-workflow-btn {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, var(--luxury-gold), var(--luxury-gold-deep));
   color: white;
   border: none;
   display: inline-flex;
+  box-shadow: 0 4px 16px var(--luxury-shadow);
+}
+
+.empty-state .new-workflow-btn:hover {
+  box-shadow: 0 8px 24px var(--luxury-shadow);
 }
 
 /* Workflows Grid */
@@ -477,8 +499,8 @@ Luxury styles for the Workflows Overview page with gold theme
 }
 
 .workflow-card {
-  background: white;
-  border: 1px solid #f1f5f9;
+  background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);
+  border: 1px solid var(--luxury-gold-glow);
   border-radius: 12px;
   padding: 1.5rem;
   transition: all 0.3s ease;
@@ -493,14 +515,15 @@ Luxury styles for the Workflows Overview page with gold theme
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, var(--luxury-gold), var(--luxury-gold-deep));
   opacity: 0;
   transition: opacity 0.3s ease;
+  border-radius: 12px 12px 0 0;
 }
 
 .workflow-card:hover {
-  border-color: #e2e8f0;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border-color: var(--luxury-gold);
+  box-shadow: 0 8px 24px var(--luxury-shadow);
   transform: translateY(-2px);
 }
 
@@ -783,7 +806,7 @@ Luxury styles for the Workflows Overview page with gold theme
 .name-edit-input {
   flex: 1;
   padding: 6px 8px;
-  border: 2px solid #667eea;
+  border: 2px solid var(--luxury-gold);
   border-radius: 6px;
   font-size: 16px;
   font-weight: 600;
@@ -793,8 +816,8 @@ Luxury styles for the Workflows Overview page with gold theme
 }
 
 .name-edit-input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--luxury-gold);
+  box-shadow: 0 0 0 3px var(--luxury-gold-glow);
 }
 
 .name-edit-actions {
@@ -926,7 +949,7 @@ Luxury styles for the Workflows Overview page with gold theme
 
 .modal-header h3 i {
   font-size: 18px;
-  color: #667eea;
+  color: var(--luxury-gold);
 }
 
 .modal-body {

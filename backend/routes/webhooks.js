@@ -2,6 +2,7 @@ const { logWorkflowTriggered } = require('../controllers/workflowController');
 const scheduler = require('../services/scheduler');
 const TriggerDataProcessor = require('../services/triggerDataProcessor');
 const jobQueue = require('../services/jobQueue');
+const webhookStateManager = require('../services/webhookStateManager');
 
 const express = require('express');
 const router = express.Router();
@@ -1551,10 +1552,25 @@ router.post('/whatsapp', asyncHandler(async (req, res) => {
   try {
     const webhookData = req.body;
     
+    // Check if any executions are waiting for this webhook
+    const matchedExecution = webhookStateManager.matchAndResolve({
+      success: true,
+      data: extractWhatsAppMessageData(webhookData),
+      rawWebhookData: webhookData,
+      timestamp: new Date().toISOString(),
+      isRealMessage: true
+    });
+    
+    if (matchedExecution) {
+      console.log(`✅ WhatsApp webhook matched to waiting execution: ${matchedExecution}`);
+      res.status(200).json({ success: true, matchedExecution });
+      return;
+    }
+    
     // Acknowledge webhook immediately
     res.status(200).json({ success: true });
     
-    // Process webhook asynchronously
+    // Process webhook asynchronously for active workflows
     await processWhatsAppWebhook(webhookData);
     
   } catch (error) {

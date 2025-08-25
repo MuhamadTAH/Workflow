@@ -6,6 +6,7 @@ WhatsApp Trigger Node - Receives messages from specific WhatsApp number
 */
 
 const { createBackendExecutionContext } = require('../../utils/executionContext');
+const webhookStateManager = require('../../services/webhookStateManager');
 
 class WhatsAppTriggerNode {
     constructor() {
@@ -82,45 +83,34 @@ class WhatsAppTriggerNode {
             });
             
             if (isManualExecution) {
-                console.log('📱 Manual execution detected - providing sample WhatsApp message data');
+                console.log('📱 Manual execution detected - starting webhook waiting mode');
                 
-                // Return sample data for manual testing
-                return {
-                    success: true,
-                    data: {
-                        message: "Hello! This is a sample WhatsApp message for testing.",
-                        from: "+1234567890",
-                        fromName: "Test User",
-                        phoneNumber: "+1234567890",
-                        messageId: "wamid.sample_" + Date.now(),
-                        timestamp: new Date().toISOString(),
-                        messageType: "text",
-                        whatsappData: {
-                            object: "whatsapp_business_account",
-                            entry: [{
-                                changes: [{
-                                    field: "messages",
-                                    value: {
-                                        messages: [{
-                                            id: "wamid.sample_" + Date.now(),
-                                            from: "+1234567890",
-                                            timestamp: Math.floor(Date.now() / 1000).toString(),
-                                            text: { body: "Hello! This is a sample WhatsApp message for testing." },
-                                            type: "text"
-                                        }],
-                                        contacts: [{
-                                            profile: { name: "Test User" },
-                                            wa_id: "+1234567890"
-                                        }]
-                                    }
-                                }]
-                            }]
-                        }
-                    },
-                    trigger: true,
-                    nodeType: this.type,
-                    message: `📱 Sample WhatsApp message for testing (manual execution)`
-                };
+                // Generate unique execution ID for this manual execution
+                const executionId = `manual_whatsapp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                
+                console.log(`🔄 Starting webhook wait for execution: ${executionId}`);
+                console.log('📱 Waiting for real WhatsApp message... (30 second timeout)');
+                
+                // Start waiting for webhook data
+                const webhookResult = await webhookStateManager.startWaiting(executionId, 30000);
+                
+                // If we got real webhook data, process it
+                if (webhookResult.success && webhookResult.data) {
+                    console.log('✅ Received real WhatsApp message via webhook!');
+                    return {
+                        success: true,
+                        data: webhookResult.data,
+                        trigger: true,
+                        nodeType: this.type,
+                        message: `📱 Real WhatsApp message received from ${webhookResult.data.phoneNumber}`,
+                        executionId: executionId,
+                        isRealMessage: true
+                    };
+                } else {
+                    // Timeout or error occurred
+                    console.log('⏰ Webhook waiting timeout or error');
+                    return webhookResult;
+                }
             }
 
             // Validate webhook data for real webhook calls
