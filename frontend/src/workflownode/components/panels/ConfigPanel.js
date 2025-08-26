@@ -897,15 +897,62 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
   // WhatsApp Connection Testing
   const testWhatsAppConnection = async (nodeType) => {
     console.log('🔍 Testing WhatsApp connection for:', nodeType);
-    console.log('FormData:', { appId: formData.appId?.substring(0, 8) + '...', clientSecret: !!formData.clientSecret });
     
-    const appId = formData.appId;
-    const clientSecret = formData.clientSecret;
+    let validationData = {};
+    let validationErrors = [];
     
-    if (!appId || !clientSecret) {
+    if (nodeType === 'trigger') {
+      // For trigger nodes - use old parameters
+      const appId = formData.appId;
+      const clientSecret = formData.clientSecret;
+      
+      if (!appId || !clientSecret) {
+        validationErrors.push('App ID and Client Secret are required for trigger');
+      }
+      
+      validationData = {
+        appId: appId,
+        clientSecret: clientSecret,
+        nodeType: nodeType
+      };
+      
+      console.log('FormData (trigger):', { appId: appId?.substring(0, 8) + '...', clientSecret: !!clientSecret });
+    } else if (nodeType === 'send') {
+      // For send message nodes - use new n8n-style parameters
+      const accessToken = formData.accessToken;
+      const businessId = formData.businessId;
+      const phoneNumberId = formData.phoneNumberId;
+      const recipientPhoneNumber = formData.recipientPhoneNumber;
+      const messageText = formData.messageText;
+      
+      if (!accessToken) validationErrors.push('Access Token is required');
+      if (!businessId) validationErrors.push('Business ID is required');
+      if (!phoneNumberId) validationErrors.push('Phone Number Send ID is required');
+      if (!recipientPhoneNumber) validationErrors.push('Recipient Phone Number is required');
+      if (!messageText) validationErrors.push('Message Text is required');
+      
+      validationData = {
+        accessToken: accessToken,
+        businessId: businessId,
+        phoneNumberId: phoneNumberId,
+        recipientPhoneNumber: recipientPhoneNumber,
+        messageText: messageText,
+        nodeType: nodeType
+      };
+      
+      console.log('FormData (send):', { 
+        accessToken: accessToken?.substring(0, 8) + '...', 
+        businessId: businessId?.substring(0, 8) + '...',
+        phoneNumberId: phoneNumberId?.substring(0, 8) + '...',
+        recipientPhoneNumber: recipientPhoneNumber,
+        messageText: messageText?.substring(0, 30) + '...'
+      });
+    }
+    
+    if (validationErrors.length > 0) {
       setWhatsAppTestResult({
         success: false,
-        error: 'App ID and Client Secret are required',
+        error: validationErrors.join(', '),
         nodeType: nodeType
       });
       return;
@@ -915,7 +962,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
     setWhatsAppTestResult({
       success: false,
       loading: true,
-      error: 'Testing WhatsApp connection...',
+      error: `Testing WhatsApp ${nodeType === 'send' ? 'send message' : 'connection'}...`,
       nodeType: nodeType
     });
 
@@ -930,11 +977,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          appId: appId,
-          clientSecret: clientSecret,
-          nodeType: nodeType
-        })
+        body: JSON.stringify(validationData)
       });
 
       const result = await response.json();
@@ -945,12 +988,12 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
           appInfo: result.appInfo,
           loading: false,
           nodeType: nodeType,
-          message: `✅ WhatsApp ${nodeType} connection validated successfully`
+          message: `✅ WhatsApp ${nodeType === 'send' ? 'send message' : nodeType} validated successfully`
         });
       } else {
         setWhatsAppTestResult({
           success: false,
-          error: result.error || 'Failed to validate WhatsApp connection',
+          error: result.error || `Failed to validate WhatsApp ${nodeType === 'send' ? 'send message' : 'connection'}`,
           loading: false,
           nodeType: nodeType
         });
@@ -959,7 +1002,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
       console.error('WhatsApp validation error:', error);
       setWhatsAppTestResult({
         success: false,
-        error: 'Network error: Unable to validate WhatsApp connection',
+        error: `Network error: Unable to validate WhatsApp ${nodeType === 'send' ? 'send message' : 'connection'}`,
         loading: false,
         nodeType: nodeType
       });
@@ -1175,7 +1218,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
     // Define the fields each node type actually needs
     const nodeFieldMappings = {
       'whatsappTrigger': ['appId', 'clientSecret'],
-      'whatsappSendMessage': ['appId', 'clientSecret', 'messageText', 'phoneNumber', 'accessToken', 'phoneNumberId'],
+      'whatsappSendMessage': ['accessToken', 'businessId', 'phoneNumberId', 'recipientPhoneNumber', 'messageText'],
       'instagramTrigger': ['accessToken', 'accountId', 'responseType', 'responseMessage', 'triggerKeywords', 'responseDelay', 'enableSmartResponse'],
       'instagramResponse': ['accessToken', 'accountId', 'responseType', 'responseMessage', 'triggerKeywords', 'responseDelay', 'enableSmartResponse'],
       'telegramSendMessage': ['botToken', 'chatId', 'messageType', 'messageText', 'parseMode', 'disableWebPagePreview', 'photoUrl', 'photoCaption', 'videoUrl', 'videoCaption', 'videoDuration', 'audioUrl', 'audioCaption', 'voiceUrl', 'documentUrl', 'animationUrl', 'stickerFileId', 'latitude', 'longitude', 'locationHorizontalAccuracy', 'contactPhoneNumber', 'contactFirstName', 'contactLastName', 'pollQuestion', 'pollOptions', 'banUserId'],
@@ -2095,6 +2138,61 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                             <div className="form-group mt-6">
                                 <label>WhatsApp Send Message Configuration</label>
                                 
+                                <div className="form-group">
+                                    <label htmlFor="accessToken">Access Token</label>
+                                    <ExpressionInput 
+                                        name="accessToken" 
+                                        value={formData.accessToken || '{{$env.WHATSAPP_ACCESS_TOKEN}}'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="{{$env.WHATSAPP_ACCESS_TOKEN}} or EAAxxxxxxxx..."
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">WhatsApp Business API Access Token from Meta Developer Console</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="businessId">Business ID</label>
+                                    <ExpressionInput 
+                                        name="businessId" 
+                                        value={formData.businessId || '{{$env.WHATSAPP_BUSINESS_ID}}'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="{{$env.WHATSAPP_BUSINESS_ID}} or 1234567890123456"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">WhatsApp Business Account ID</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="phoneNumberId">Phone Number Send ID</label>
+                                    <ExpressionInput 
+                                        name="phoneNumberId" 
+                                        value={formData.phoneNumberId || '{{$env.WHATSAPP_PHONE_NUMBER_ID}}'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="{{$env.WHATSAPP_PHONE_NUMBER_ID}} or 628007790405551"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">WhatsApp Phone Number ID (the number that sends messages)</p>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label htmlFor="recipientPhoneNumber">Recipient Phone Number</label>
+                                    <ExpressionInput 
+                                        name="recipientPhoneNumber" 
+                                        value={formData.recipientPhoneNumber || '{{$json.from || "9647700716669"}}'} 
+                                        onChange={handleInputChange} 
+                                        inputData={inputData} 
+                                        placeholder="9647700716669 (without + sign)"
+                                        currentNode={node} 
+                                        allNodes={nodes}
+                                    />
+                                    <p className="text-sm text-gray-500 mt-1">Phone number to send message to (without + sign)</p>
+                                </div>
                                 
                                 <div className="form-group">
                                     <label htmlFor="messageText">Message Text</label>
@@ -2108,35 +2206,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                         allNodes={nodes}
                                         multiline={true}
                                     />
-                                    <p className="text-sm text-gray-500 mt-1">Message content with template expressions</p>
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="appId">WhatsApp App ID</label>
-                                    <ExpressionInput 
-                                        name="appId" 
-                                        value={formData.appId || '{{$env.WHATSAPP_APP_ID}}'} 
-                                        onChange={handleInputChange} 
-                                        inputData={inputData} 
-                                        placeholder="{{$env.WHATSAPP_APP_ID}} or 123456789..."
-                                        currentNode={node} 
-                                        allNodes={nodes}
-                                    />
-                                    <p className="text-sm text-gray-500 mt-1">WhatsApp App ID from Meta Developers</p>
-                                </div>
-                                
-                                <div className="form-group">
-                                    <label htmlFor="clientSecret">Client Secret</label>
-                                    <ExpressionInput 
-                                        name="clientSecret" 
-                                        value={formData.clientSecret || '{{$env.WHATSAPP_CLIENT_SECRET}}'} 
-                                        onChange={handleInputChange} 
-                                        inputData={inputData} 
-                                        placeholder="{{$env.WHATSAPP_CLIENT_SECRET}} or abc123..."
-                                        currentNode={node} 
-                                        allNodes={nodes}
-                                    />
-                                    <p className="text-sm text-gray-500 mt-1">WhatsApp Client Secret from Meta Developers</p>
+                                    <p className="text-sm text-gray-500 mt-1">Text message to send</p>
                                 </div>
                                 
                                 <div className="form-group">
@@ -2144,20 +2214,20 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                         type="button" 
                                         onClick={() => testWhatsAppConnection('send')}
                                         className="test-connection-btn"
-                                        disabled={!formData.appId || !formData.clientSecret}
+                                        disabled={!formData.accessToken || !formData.businessId || !formData.phoneNumberId || !formData.recipientPhoneNumber || !formData.messageText}
                                         style={{
                                             background: '#25D366',
                                             color: 'white',
                                             border: 'none',
                                             padding: '8px 16px',
                                             borderRadius: '4px',
-                                            cursor: formData.appId && formData.clientSecret ? 'pointer' : 'not-allowed',
-                                            opacity: formData.appId && formData.clientSecret ? 1 : 0.6,
+                                            cursor: (formData.accessToken && formData.businessId && formData.phoneNumberId && formData.recipientPhoneNumber && formData.messageText) ? 'pointer' : 'not-allowed',
+                                            opacity: (formData.accessToken && formData.businessId && formData.phoneNumberId && formData.recipientPhoneNumber && formData.messageText) ? 1 : 0.6,
                                             fontSize: '14px',
                                             marginBottom: '10px'
                                         }}
                                     >
-                                        🔍 Test WhatsApp Connection
+                                        🔍 Test WhatsApp Send Message
                                     </button>
                                     {whatsAppTestResult && (
                                         <div style={{
