@@ -1676,18 +1676,28 @@ async function processWhatsAppWebhookForWorkflow(webhookData, workflowId) {
 function findWhatsAppTriggerWorkflows() {
   const whatsappWorkflows = [];
   
-  // In a real implementation, this would query the database
-  // For now, return workflows from memory
-  for (const [workflowId, config] of workflowConfigs.entries()) {
-    if (config && config.nodes) {
-      const hasWhatsAppTrigger = config.nodes.some(node => 
-        node.type === 'whatsappTrigger' || node.type === 'whatsapp_trigger'
-      );
+  // Check active workflows from workflowExecutor
+  if (workflowExecutor && workflowExecutor.activeWorkflows) {
+    console.log(`🔍 Checking ${workflowExecutor.activeWorkflows.size} active workflows for WhatsApp triggers`);
+    
+    for (const [workflowId, workflowConfig] of workflowExecutor.activeWorkflows.entries()) {
+      console.log(`   📋 Workflow ${workflowId}: ${workflowConfig.nodes?.length || 0} nodes`);
       
-      if (hasWhatsAppTrigger) {
-        whatsappWorkflows.push({ id: workflowId, config });
+      if (workflowConfig && workflowConfig.nodes) {
+        const hasWhatsAppTrigger = workflowConfig.nodes.some(node => 
+          node.data && (node.data.type === 'whatsappTrigger' || node.data.type === 'whatsapp_trigger')
+        );
+        
+        if (hasWhatsAppTrigger) {
+          console.log(`   ✅ Found WhatsApp trigger in workflow ${workflowId}`);
+          whatsappWorkflows.push({ id: workflowId, config: workflowConfig });
+        } else {
+          console.log(`   ❌ No WhatsApp trigger in workflow ${workflowId}`);
+        }
       }
     }
+  } else {
+    console.log('❌ workflowExecutor or activeWorkflows not available');
   }
   
   return whatsappWorkflows;
