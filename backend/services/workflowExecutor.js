@@ -129,7 +129,7 @@ class WorkflowExecutor {
 
                 try {
                     // Skip trigger node (already executed)
-                    if (node.data.type === 'trigger' || node.data.type === 'telegramTrigger') {
+                    if (node.data.type === 'trigger' || node.data.type === 'telegramTrigger' || node.data.type === 'whatsappTrigger') {
                         stepLog.outputData = currentData;
                         stepLog.status = 'skipped';
                         stepLog.message = 'Trigger node - using trigger data';
@@ -152,6 +152,9 @@ class WorkflowExecutor {
                         if (node.data.type === 'telegramTrigger') {
                             stepData['telegram'] = currentData;
                             stepData['chat'] = currentData;
+                        } else if (node.data.type === 'whatsappTrigger') {
+                            stepData['whatsapp'] = currentData;
+                            stepData['message'] = currentData;
                         }
                         
                         console.log(`✅ Added trigger step: ${stepKey} with aliases: trigger, triggerData, ${node.data.type}`);
@@ -306,6 +309,7 @@ class WorkflowExecutor {
         const triggerNode = nodes.find(node => 
             node.data.type === 'trigger' || 
             node.data.type === 'telegramTrigger' ||
+            node.data.type === 'whatsappTrigger' ||
             node.data.type === 'chatTrigger'
         );
         if (!triggerNode) {
@@ -531,7 +535,8 @@ class WorkflowExecutor {
         // Critical node types that should stop workflow on error
         const criticalNodeTypes = [
             'trigger',
-            'telegramTrigger', 
+            'telegramTrigger',
+            'whatsappTrigger', 
         ];
         
         // If it's a critical node, stop execution
@@ -768,7 +773,8 @@ class WorkflowExecutor {
                 // Skip trigger nodes if replaying from failed step (already have their data)
                 if (fromFailedStep && i < startStep && (
                     node.data.type === 'trigger' || 
-                    node.data.type === 'telegramTrigger'
+                    node.data.type === 'telegramTrigger' ||
+                    node.data.type === 'whatsappTrigger'
                 )) {
                     console.log(`🔄 REPLAY: Skipping trigger node ${node.data.type} (using restored data)`);
                     continue;
@@ -1087,6 +1093,7 @@ class WorkflowExecutor {
         const triggerNodes = [
             'trigger',
             'telegramTrigger',
+            'whatsappTrigger',
         ];
         
         return externalActionNodes.includes(nodeType);

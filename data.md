@@ -1,25 +1,25 @@
-[2025-08-26T18:22:44.197Z] INFO: Incoming request {"method":"OPTIONS","url":"/api/workflows/untitled-workflow-jzepz7/activate","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"}
+[2025-08-26T19:32:25.422Z] INFO: Incoming request {"method":"OPTIONS","url":"/api/workflows/untitled-workflow-qanca1/activate","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"}
 🚨 WORKFLOW ACTIVATION: {
   method: 'OPTIONS',
-  url: '/api/workflows/untitled-workflow-jzepz7/activate',
+  url: '/api/workflows/untitled-workflow-qanca1/activate',
   origin: 'https://fixdai.com',
   userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb',
   contentType: undefined,
   contentLength: undefined,
   authorization: 'missing',
-  timestamp: '2025-08-26T18:22:44.197Z'
+  timestamp: '2025-08-26T19:32:25.422Z'
 }
-[2025-08-26T18:22:44.198Z] INFO: Request completed {"method":"OPTIONS","url":"/api/workflows/untitled-workflow-jzepz7/activate","status":200,"duration":"1ms"}
-[2025-08-26T18:22:44.498Z] INFO: Incoming request {"method":"POST","url":"/api/workflows/untitled-workflow-jzepz7/activate","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"}
+[2025-08-26T19:32:25.423Z] INFO: Request completed {"method":"OPTIONS","url":"/api/workflows/untitled-workflow-qanca1/activate","status":200,"duration":"1ms"}
+[2025-08-26T19:32:25.687Z] INFO: Incoming request {"method":"POST","url":"/api/workflows/untitled-workflow-qanca1/activate","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"}
 🚨 WORKFLOW ACTIVATION: {
   method: 'POST',
-  url: '/api/workflows/untitled-workflow-jzepz7/activate',
+  url: '/api/workflows/untitled-workflow-qanca1/activate',
   origin: 'https://fixdai.com',
   userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb',
   contentType: 'application/json',
-  contentLength: '2162',
+  contentLength: '820',
   authorization: 'present',
-  timestamp: '2025-08-26T18:22:44.498Z'
+  timestamp: '2025-08-26T19:32:25.687Z'
 }
 📦 ACTIVATION REQUEST BODY PREVIEW: {
   hasBody: false,
@@ -30,11 +30,11 @@
 }
 🔧 WORKFLOW ROUTE DEBUG: {
   method: 'POST',
-  originalUrl: '/api/workflows/untitled-workflow-jzepz7/activate',
+  originalUrl: '/api/workflows/untitled-workflow-qanca1/activate',
   params: {},
   query: {},
-  bodySize: 2158,
-  timestamp: '2025-08-26T18:22:44.499Z'
+  bodySize: 820,
+  timestamp: '2025-08-26T19:32:25.700Z'
 }
 🎯 WORKFLOW ACTIVATION ROUTE HIT: {
   workflowId: undefined,
@@ -45,133 +45,45 @@
 🚀 WORKFLOW ACTIVATION REQUEST RECEIVED!
 📋 Request details: {
   method: 'POST',
-  url: '/untitled-workflow-jzepz7/activate',
-  params: { id: 'untitled-workflow-jzepz7' },
+  url: '/untitled-workflow-qanca1/activate',
+  params: { id: 'untitled-workflow-qanca1' },
   bodyKeys: [ 'workflow' ],
   origin: 'https://fixdai.com',
-  timestamp: '2025-08-26T18:22:44.499Z'
+  timestamp: '2025-08-26T19:32:25.701Z'
 }
 🔍 Activation data validation: {
-  workflowId: 'untitled-workflow-jzepz7',
+  workflowId: 'untitled-workflow-qanca1',
   hasWorkflow: true,
   hasNodes: true,
   hasEdges: true,
-  nodeCount: 1,
-  edgeCount: 0,
+  nodeCount: 2,
+  edgeCount: 1,
   dryRun: false
 }
 ============================================================
 🚀 WORKFLOW ACTIVATION STARTED
-🔄 Activating workflow: untitled-workflow-jzepz7
+🔄 Activating workflow: untitled-workflow-qanca1
 📋 Found 1 trigger node(s): [ 'whatsappTrigger' ]
 📊 Current active workflows count: 0
 ============================================================
-Registering workflow untitled-workflow-jzepz7 for automatic execution
+Registering workflow untitled-workflow-qanca1 for automatic execution
 Workflow config received: {
-  nodes: 1,
-  edges: 0,
-  nodeTypes: [ 'whatsappTrigger (dndnode_0)' ],
-  edgeConnections: []
+  nodes: 2,
+  edges: 1,
+  nodeTypes: [ 'whatsappTrigger (dndnode_0)', 'whatsappSendMessage (dndnode_1)' ],
+  edgeConnections: [ 'dndnode_0 → dndnode_1' ]
 }
 Found trigger node: WhatsApp Trigger (dndnode_0)
-Workflow untitled-workflow-jzepz7 registered successfully with 1 nodes and 0 edges
-✅ Workflow untitled-workflow-jzepz7 registered for auto-execution
+Workflow untitled-workflow-qanca1 registered successfully with 2 nodes and 1 edges
+✅ Workflow untitled-workflow-qanca1 registered for auto-execution
 WorkflowExecutor active workflows count: 1
-🔄 Auto-updating WhatsApp webhook for workflow: untitled-workflow-jzepz7
+🔄 Auto-updating WhatsApp webhook for workflow: untitled-workflow-qanca1
 📋 WhatsApp trigger node data: {
   "label": "WhatsApp Trigger",
   "icon": "fa-whatsapp",
   "color": "text-green-500",
   "description": "Trigger workflow when receiving WhatsApp message from specific number",
-  "type": "whatsappTrigger",
-  "fieldsToMatch": [
-    {
-      "key1": "",
-      "key2": ""
-    }
-  ],
-  "resumeCondition": "afterTimeInterval",
-  "waitAmount": 5,
-  "waitUnit": "seconds",
-  "conditions": [
-    {
-      "value1": "",
-      "operator": "is_equal_to",
-      "value2": ""
-    }
-  ],
-  "combinator": "AND",
-  "ignoreCase": false,
-  "errorType": "errorMessage",
-  "errorMessage": "An error occurred!",
-  "switchRules": [
-    {
-      "value1": "",
-      "operator": "is_equal_to",
-      "value2": ""
-    }
-  ],
-  "switchOptions": [],
-  "source": "database",
-  "workflow": "fromList",
-  "workflowId": "",
-  "mode": "runOnce",
-  "mergeMode": "append",
-  "batchSize": 1,
-  "fields": [
-    {
-      "key": "",
-      "value": ""
-    }
-  ],
-  "botToken": "",
-  "chatId": "{{message.chat.id}}",
-  "messageType": "text",
-  "messageText": "Hello! This is a message from your bot.",
-  "parseMode": "",
-  "disableWebPagePreview": false,
-  "photoUrl": "",
-  "photoCaption": "",
-  "videoUrl": "",
-  "videoCaption": "",
-  "videoDuration": "",
-  "audioUrl": "",
-  "audioCaption": "",
-  "voiceUrl": "",
-  "documentUrl": "",
-  "animationUrl": "",
-  "stickerFileId": "",
-  "latitude": "",
-  "longitude": "",
-  "locationHorizontalAccuracy": "",
-  "contactPhoneNumber": "",
-  "contactFirstName": "",
-  "contactLastName": "",
-  "pollQuestion": "",
-  "pollOptions": "",
-  "banUserId": "",
-  "apiKey": "",
-  "model": "claude-3-5-sonnet-20241022",
-  "systemPrompt": "",
-  "userMessage": "",
-  "chatSessionName": "My Chat Bot",
-  "welcomeMessage": "👋 Welcome! How can I help you today?",
-  "allowFileUploads": false,
-  "allowedFileTypes": "*",
-  "chatbotTitle": "Customer Support",
-  "chatbotSubtitle": "How can we help you?",
-  "chatbotTheme": "#667eea",
-  "enableChatbot": true,
-  "accountId": "",
-  "responseType": "dm",
-  "responseMessage": "Hello {{$json.sender_name || \"there\"}}! Thanks for your message. We'll get back to you soon! 🙌",
-  "triggerKeywords": "",
-  "responseDelay": 2,
-  "enableSmartResponse": false,
-  "accessToken": "{{$env.INSTAGRAM_ACCESS_TOKEN}}",
-  "instagramAccountStatus": null,
-  "inputData": null,
-  "outputData": null
+  "type": "whatsappTrigger"
 }
 🔍 WhatsApp configuration search results:
    - whatsappTrigger.data.appId: not found
@@ -180,32 +92,32 @@ WorkflowExecutor active workflows count: 1
 💡 Make sure the App ID and Client Secret are configured in the WhatsApp trigger node
 ============================================================
 ✅ WORKFLOW ACTIVATION COMPLETED SUCCESSFULLY!
-🎯 Workflow ID: untitled-workflow-jzepz7
+🎯 Workflow ID: untitled-workflow-qanca1
 📊 Controller active workflows: 1
 🚀 Executor active workflows: 1
 🔗 Trigger URLs generated: 1
-   1. whatsappTrigger: https://workflow-lg9z.onrender.com/api/webhooks/whatsapp/untitled-workflow-jzepz7
-⏰ Activated at: 2025-08-26T18:22:44.500Z
+   1. whatsappTrigger: https://workflow-lg9z.onrender.com/api/webhooks/whatsapp/untitled-workflow-qanca1
+⏰ Activated at: 2025-08-26T19:32:25.703Z
 ============================================================
-💾 Stored active workflow untitled-workflow-jzepz7 to database
+💾 Stored active workflow untitled-workflow-qanca1 to database
 ✅ ACTIVATION SUCCESS - Sending response: {
   success: true,
-  workflowId: 'untitled-workflow-jzepz7',
+  workflowId: 'untitled-workflow-qanca1',
   triggerUrlCount: 1,
   responseSize: 309,
-  timestamp: '2025-08-26T18:22:44.501Z'
+  timestamp: '2025-08-26T19:32:25.704Z'
 }
-[2025-08-26T18:22:44.501Z] INFO: Request completed {"method":"POST","url":"/untitled-workflow-jzepz7/activate","status":200,"duration":"3ms"}
-[2025-08-26T18:23:06.142Z] INFO: Incoming request {"method":"POST","url":"/api/webhooks/whatsapp","ip":"::1","userAgent":"facebookexternalua"}
+[2025-08-26T19:32:25.704Z] INFO: Request completed {"method":"POST","url":"/untitled-workflow-qanca1/activate","status":200,"duration":"17ms"}
+[2025-08-26T19:33:45.833Z] INFO: Incoming request {"method":"POST","url":"/api/webhooks/whatsapp","ip":"::1","userAgent":"facebookexternalua"}
 🌐 INCOMING REQUEST: {
   method: 'POST',
   url: '/api/webhooks/whatsapp',
   origin: undefined,
   userAgent: 'facebookexternalua',
   contentType: 'application/json',
-  contentLength: '483',
+  contentLength: '481',
   authorization: 'missing',
-  timestamp: '2025-08-26T18:23:06.142Z'
+  timestamp: '2025-08-26T19:33:45.833Z'
 }
 📱 WhatsApp webhook received: {
   "object": "whatsapp_business_account",
@@ -231,10 +143,10 @@ WorkflowExecutor active workflows count: 1
             "messages": [
               {
                 "from": "9647700716669",
-                "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBMzZGMDQxRDUxQUUxMjlCNEYzAA==",
-                "timestamp": "1756232585",
+                "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNTcyRUE1QTk4NTc5Mjc4RjZCAA==",
+                "timestamp": "1756236823",
                 "text": {
-                  "body": "Burke"
+                  "body": "Fog"
                 },
                 "type": "text"
               }
@@ -247,5 +159,161 @@ WorkflowExecutor active workflows count: 1
   ]
 }
 🔄 Processing WhatsApp webhook...
-📱 No WhatsApp trigger workflows found
-[2025-08-26T18:23:06.145Z] INFO: Request completed {"method":"POST","url":"/whatsapp","status":200,"duration":"3ms"}
+🔍 Checking 1 active workflows for WhatsApp triggers
+   📋 Workflow untitled-workflow-qanca1: 2 nodes
+   ✅ Found WhatsApp trigger in workflow untitled-workflow-qanca1
+🔄 Processing WhatsApp webhook for workflow untitled-workflow-qanca1...
+📱 Extracted WhatsApp message data: {
+  messageId: 'wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNTcyRUE1QTk4NTc5Mjc4RjZCAA==',
+  from: '9647700716669',
+  phoneNumber: '9647700716669',
+  fromName: 'Muhammad Tarq',
+  text: 'Fog',
+  messageType: 'text',
+  timestamp: '2025-08-26T19:33:43.000Z',
+  contact: { profile: { name: 'Muhammad Tarq' }, wa_id: '9647700716669' },
+  rawMessage: {
+    from: '9647700716669',
+    id: 'wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNTcyRUE1QTk4NTc5Mjc4RjZCAA==',
+    timestamp: '1756236823',
+    text: { body: 'Fog' },
+    type: 'text'
+  },
+  rawWebhook: { object: 'whatsapp_business_account', entry: [ [Object] ] }
+}
+🚀 Triggering workflow untitled-workflow-qanca1 with WhatsApp data
+=== EXECUTING WORKFLOW untitled-workflow-qanca1 ===
+Trigger data: {
+  "trigger": "whatsapp",
+  "data": {
+    "messageId": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNTcyRUE1QTk4NTc5Mjc4RjZCAA==",
+    "from": "9647700716669",
+    "phoneNumber": "9647700716669",
+    "fromName": "Muhammad Tarq",
+    "text": "Fog",
+    "messageType": "text",
+    "timestamp": "2025-08-26T19:33:43.000Z",
+    "contact": {
+      "profile": {
+        "name": "Muhammad Tarq"
+      },
+      "wa_id": "9647700716669"
+    },
+    "rawMessage": {
+      "from": "9647700716669",
+      "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNTcyRUE1QTk4NTc5Mjc4RjZCAA==",
+      "timestamp": "1756236823",
+      "text": {
+        "body": "Fog"
+      },
+      "type": "text"
+    },
+    "rawWebhook": {
+      "object": "whatsapp_business_account",
+      "entry": [
+        {
+          "id": "1411124906823702",
+          "changes": [
+            {
+              "value": {
+                "messaging_product": "whatsapp",
+                "metadata": {
+                  "display_phone_number": "15556646119",
+                  "phone_number_id": "628007790405551"
+                },
+                "contacts": [
+                  {
+                    "profile": {
+                      "name": "Muhammad Tarq"
+                    },
+                    "wa_id": "9647700716669"
+                  }
+                ],
+                "messages": [
+                  {
+                    "from": "9647700716669",
+                    "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNTcyRUE1QTk4NTc5Mjc4RjZCAA==",
+                    "timestamp": "1756236823",
+                    "text": {
+                      "body": "Fog"
+                    },
+                    "type": "text"
+                  }
+                ]
+              },
+              "field": "messages"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "whatsappWebhook": {
+    "object": "whatsapp_business_account",
+    "entry": [
+      {
+        "id": "1411124906823702",
+        "changes": [
+          {
+            "value": {
+              "messaging_product": "whatsapp",
+              "metadata": {
+                "display_phone_number": "15556646119",
+                "phone_number_id": "628007790405551"
+              },
+              "contacts": [
+                {
+                  "profile": {
+                    "name": "Muhammad Tarq"
+                  },
+                  "wa_id": "9647700716669"
+                }
+              ],
+              "messages": [
+                {
+                  "from": "9647700716669",
+                  "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNTcyRUE1QTk4NTc5Mjc4RjZCAA==",
+                  "timestamp": "1756236823",
+                  "text": {
+                    "body": "Fog"
+                  },
+                  "type": "text"
+                }
+              ]
+            },
+            "field": "messages"
+          }
+        ]
+      }
+    ]
+  },
+  "timestamp": "2025-08-26T19:33:45.837Z"
+}
+Building execution order from workflow: {
+  totalNodes: 2,
+  totalEdges: 1,
+  nodes: [ 'whatsappTrigger (dndnode_0)', 'whatsappSendMessage (dndnode_1)' ],
+  edges: [ 'dndnode_0 → dndnode_1' ]
+}
+Workflow execution failed: No trigger node found in workflow
+🔥 WORKFLOW ERROR LOG: {
+  "timestamp": "2025-08-26T19:33:45.838Z",
+  "workflowId": "untitled-workflow-qanca1",
+  "errorType": "Error",
+  "errorMessage": "No trigger node found in workflow",
+  "executionId": "exec_1756236825837_2uuxfhuqn",
+  "executionTime": 0,
+  "stackTrace": "Error: No trigger node found in workflow\n    at WorkflowExecutor.buildExecutionOrder (/opt/render/project/src/backend/services/workflowExecutor.js:312:19)\n    at WorkflowExecutor.executeWorkflow (/opt/render/project/src/backend/services/workflowExecutor.js:107:41)\n    at processWhatsAppWebhookForWorkflow (/opt/render/project/src/backend/routes/webhooks.js:1663:30)\n    at processWhatsAppWebhook (/opt/render/project/src/backend/routes/webhooks.js:1620:15)\n    at /opt/render/project/src/backend/routes/webhooks.js:1574:11\n    at /opt/render/project/src/backend/middleware/errorHandler.js:55:21\n    at Layer.handle [as handle_request] (/opt/render/project/src/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/opt/render/project/src/backend/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/opt/render/project/src/backend/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/opt/render/project/src/backend/node_modules/express/lib/router/layer.js:95:5)"
+}
+[2025-08-26T19:33:45.838Z] INFO: Request completed {"method":"POST","url":"/whatsapp","status":200,"duration":"5ms"}
+❌ Error processing WhatsApp webhook for workflow untitled-workflow-qanca1: Error: No trigger node found in workflow
+    at WorkflowExecutor.buildExecutionOrder (/opt/render/project/src/backend/services/workflowExecutor.js:312:19)
+    at WorkflowExecutor.executeWorkflow (/opt/render/project/src/backend/services/workflowExecutor.js:107:41)
+    at processWhatsAppWebhookForWorkflow (/opt/render/project/src/backend/routes/webhooks.js:1663:30)
+    at processWhatsAppWebhook (/opt/render/project/src/backend/routes/webhooks.js:1620:15)
+    at /opt/render/project/src/backend/routes/webhooks.js:1574:11
+    at /opt/render/project/src/backend/middleware/errorHandler.js:55:21
+    at Layer.handle [as handle_request] (/opt/render/project/src/backend/node_modules/express/lib/router/layer.js:95:5)
+    at next (/opt/render/project/src/backend/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/opt/render/project/src/backend/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/opt/render/project/src/backend/node_modules/express/lib/router/layer.js:95:5)
