@@ -691,7 +691,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
   // Debug logging for WhatsApp form data initialization
   useEffect(() => {
     if (node.data.type === 'whatsappSendMessage' || node.data.type === 'whatsappTrigger') {
-      console.log(`[DEBUG] ${node.data.type} panel opened with node.data:`, {
+      console.log(`[DEBUG] ${node.data.type} panel opened with node.data:`, JSON.stringify({
         accessToken: node.data.accessToken,
         businessId: node.data.businessId,
         phoneNumberId: node.data.phoneNumberId,
@@ -699,8 +699,8 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
         messageText: node.data.messageText,
         appId: node.data.appId,
         clientSecret: node.data.clientSecret
-      });
-      console.log(`[DEBUG] ${node.data.type} formData initialized as:`, {
+      }, null, 2));
+      console.log(`[DEBUG] ${node.data.type} formData initialized as:`, JSON.stringify({
         accessToken: formData.accessToken,
         businessId: formData.businessId,
         phoneNumberId: formData.phoneNumberId,
@@ -708,7 +708,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
         messageText: formData.messageText,
         appId: formData.appId,
         clientSecret: formData.clientSecret
-      });
+      }, null, 2));
     }
   }, [node.data.type, node.id]);
 
@@ -1051,7 +1051,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
     
     // Debug logging for WhatsApp fields
     if (node.data.type === 'whatsappSendMessage' || node.data.type === 'whatsappTrigger') {
-      console.log(`[DEBUG] ${node.data.type} saving data:`, {
+      console.log(`[DEBUG] ${node.data.type} saving data:`, JSON.stringify({
         accessToken: allUpdatedData.accessToken,
         businessId: allUpdatedData.businessId,
         phoneNumberId: allUpdatedData.phoneNumberId,
@@ -1059,7 +1059,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
         messageText: allUpdatedData.messageText,
         appId: allUpdatedData.appId,
         clientSecret: allUpdatedData.clientSecret
-      });
+      }, null, 2));
     }
     
     // For pre-configured Telegram trigger nodes, also save botToken to config
