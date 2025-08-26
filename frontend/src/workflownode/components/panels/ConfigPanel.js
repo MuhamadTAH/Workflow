@@ -2103,7 +2103,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     <label htmlFor="appId">WhatsApp App ID</label>
                                     <ExpressionInput 
                                         name="appId" 
-                                        value={formData.appId !== undefined ? formData.appId : '{{$env.WHATSAPP_APP_ID}}'} 
+                                        value={formData.appId !== undefined ? formData.appId : '1261111005587060'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
                                         placeholder="{{$env.WHATSAPP_APP_ID}} or 123456789..."
@@ -2117,7 +2117,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     <label htmlFor="clientSecret">Client Secret</label>
                                     <ExpressionInput 
                                         name="clientSecret" 
-                                        value={formData.clientSecret !== undefined ? formData.clientSecret : '{{$env.WHATSAPP_CLIENT_SECRET}}'} 
+                                        value={formData.clientSecret !== undefined ? formData.clientSecret : 'f04db1124f610ae4d7c4a201c73a4c73'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
                                         placeholder="{{$env.WHATSAPP_CLIENT_SECRET}} or abc123..."
@@ -2206,7 +2206,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     <label htmlFor="businessId">Business ID</label>
                                     <ExpressionInput 
                                         name="businessId" 
-                                        value={formData.businessId !== undefined ? formData.businessId : '{{$env.WHATSAPP_BUSINESS_ID}}'} 
+                                        value={formData.businessId !== undefined ? formData.businessId : '1411124906823702'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
                                         placeholder="{{$env.WHATSAPP_BUSINESS_ID}} or 1234567890123456"
@@ -2220,7 +2220,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     <label htmlFor="phoneNumberId">Phone Number Send ID</label>
                                     <ExpressionInput 
                                         name="phoneNumberId" 
-                                        value={formData.phoneNumberId !== undefined ? formData.phoneNumberId : '{{$env.WHATSAPP_PHONE_NUMBER_ID}}'} 
+                                        value={formData.phoneNumberId !== undefined ? formData.phoneNumberId : '628007790405551'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
                                         placeholder="{{$env.WHATSAPP_PHONE_NUMBER_ID}} or 628007790405551"
@@ -2234,7 +2234,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     <label htmlFor="recipientPhoneNumber">Recipient Phone Number</label>
                                     <ExpressionInput 
                                         name="recipientPhoneNumber" 
-                                        value={formData.recipientPhoneNumber !== undefined ? formData.recipientPhoneNumber : '{{$json.from || "9647700716669"}}'} 
+                                        value={formData.recipientPhoneNumber !== undefined ? formData.recipientPhoneNumber : '9647700716669'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
                                         placeholder="9647700716669 (without + sign)"
