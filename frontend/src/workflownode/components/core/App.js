@@ -491,6 +491,15 @@ const App = ({ botContext }) => {
       const result = await response.json();
       console.log('📦 FRONTEND RESPONSE DATA:', result);
 
+      // Handle token expiration
+      if (response.status === 401 && (result.error === 'Invalid token' || result.error === 'No token provided')) {
+        console.log('🔄 Token expired, clearing localStorage and redirecting to login...');
+        localStorage.clear();
+        alert('Your session has expired. Please log in again.');
+        window.location.href = '/login';
+        return;
+      }
+
       if (response.ok && result.success) {
         setIsActivated(true);
         setExecutionProgress(`✅ Workflow activated! Listening for triggers...`);
@@ -550,6 +559,15 @@ const App = ({ botContext }) => {
       });
 
       const result = await response.json();
+
+      // Handle token expiration
+      if (response.status === 401 && (result.error === 'Invalid token' || result.error === 'No token provided')) {
+        console.log('🔄 Token expired, clearing localStorage and redirecting to login...');
+        localStorage.clear();
+        alert('Your session has expired. Please log in again.');
+        window.location.href = '/login';
+        return;
+      }
 
       if (response.ok && result.success) {
         setIsActivated(false);
