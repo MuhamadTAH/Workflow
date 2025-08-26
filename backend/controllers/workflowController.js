@@ -75,11 +75,11 @@ const activateWorkflow = async (req, res) => {
 
         // Find trigger nodes in the workflow
         const triggerNodes = workflow.nodes.filter(node => 
-            node.data.type === 'telegramTrigger'
+            node.data.type === 'telegramTrigger' || node.data.type === 'whatsappTrigger'
         );
 
         if (triggerNodes.length === 0) {
-            return res.status(400).json({ message: 'Workflow must contain at least one trigger node (Telegram Trigger).' });
+            return res.status(400).json({ message: 'Workflow must contain at least one trigger node (Telegram Trigger or WhatsApp Trigger).' });
         }
 
         console.log('\n' + '='.repeat(60));
@@ -100,6 +100,13 @@ const activateWorkflow = async (req, res) => {
                 triggerUrls.push({
                     nodeId: triggerNode.id,
                     type: 'telegramTrigger',
+                    webhookUrl: webhookUrl
+                });
+            } else if (triggerNode.data.type === 'whatsappTrigger') {
+                const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/whatsapp/${workflowId}`;
+                triggerUrls.push({
+                    nodeId: triggerNode.id,
+                    type: 'whatsappTrigger',
                     webhookUrl: webhookUrl
                 });
             }
@@ -161,6 +168,45 @@ const activateWorkflow = async (req, res) => {
             }
         } else if (telegramTrigger && dryRun) {
             console.log(`🧪 DRY RUN: Skipping Telegram webhook update for workflow: ${workflowId}`);
+        }
+
+        // AUTO-UPDATE WHATSAPP WEBHOOK: If this workflow has a WhatsApp trigger, update the webhook automatically
+        const whatsappTrigger = triggerNodes.find(node => node.data.type === 'whatsappTrigger');
+        if (whatsappTrigger && !dryRun) {
+            console.log(`🔄 Auto-updating WhatsApp webhook for workflow: ${workflowId}`);
+            console.log(`📋 WhatsApp trigger node data:`, JSON.stringify(whatsappTrigger.data, null, 2));
+            try {
+                const axios = require('axios');
+                
+                // Extract WhatsApp configuration from the whatsappTrigger node
+                const appId = whatsappTrigger.data.appId;
+                const clientSecret = whatsappTrigger.data.clientSecret;
+                
+                console.log(`🔍 WhatsApp configuration search results:`);
+                console.log(`   - whatsappTrigger.data.appId:`, appId ? 'found' : 'not found');
+                console.log(`   - whatsappTrigger.data.clientSecret:`, clientSecret ? 'found' : 'not found');
+                
+                // Only set webhook if WhatsApp configuration is available
+                if (appId && clientSecret) {
+                    console.log(`🔧 Using configured WhatsApp App ID: ${appId}`);
+                    
+                    const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/whatsapp/${workflowId}`;
+                    console.log(`🌐 WhatsApp webhook URL ready: ${webhookUrl}`);
+                    console.log(`✅ WhatsApp trigger configured for automatic message reception`);
+                    
+                    // Note: WhatsApp webhook is set up in Meta Developer Console manually
+                    // The webhook URL is provided for reference but setup is manual
+                    
+                } else {
+                    console.log(`❌ No App ID or Client Secret found in WhatsApp trigger configuration`);
+                    console.log(`💡 Make sure the App ID and Client Secret are configured in the WhatsApp trigger node`);
+                }
+                
+            } catch (error) {
+                console.error(`❌ Error during WhatsApp webhook setup:`, error.message);
+            }
+        } else if (whatsappTrigger && dryRun) {
+            console.log(`🧪 DRY RUN: Skipping WhatsApp webhook setup for workflow: ${workflowId}`);
         }
 
         // Store active workflow

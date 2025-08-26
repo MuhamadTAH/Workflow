@@ -438,11 +438,11 @@ const App = ({ botContext }) => {
 
     // Check if workflow has trigger nodes
     const triggerNodes = nodes.filter(node => 
-      node.data.type === 'telegramTrigger'
+      node.data.type === 'telegramTrigger' || node.data.type === 'whatsappTrigger'
     );
 
     if (triggerNodes.length === 0) {
-      alert('Workflow must contain at least one trigger node (Telegram Trigger) to be activated.');
+      alert('Workflow must contain at least one trigger node (Telegram Trigger or WhatsApp Trigger) to be activated.');
       return;
     }
 
