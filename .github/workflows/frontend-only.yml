@@ -1,0 +1,30 @@
+name: Frontend Only Check
+
+on:
+  pull_request:
+    branches: [ mains ]
+
+jobs:
+  check-frontend-only:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    
+    - name: Check if only frontend files are modified
+      run: |
+        # Get list of changed files
+        CHANGED_FILES=$(git diff --name-only origin/mains...HEAD)
+        echo "Changed files: $CHANGED_FILES"
+        
+        # Check if any non-frontend files are modified
+        BACKEND_CHANGES=$(echo "$CHANGED_FILES" | grep -v "^frontend/" | grep -v "^\.github/" || true)
+        
+        if [ -n "$BACKEND_CHANGES" ]; then
+          echo "❌ Backend files modified. Only frontend changes allowed:"
+          echo "$BACKEND_CHANGES"
+          exit 1
+        else
+          echo "✅ Only frontend files modified. Good to go!"
+        fi

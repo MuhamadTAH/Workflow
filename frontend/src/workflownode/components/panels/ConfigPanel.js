@@ -2150,7 +2150,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     <label htmlFor="accessToken">Access Token</label>
                                     <ExpressionInput 
                                         name="accessToken" 
-                                        value={formData.accessToken || '{{$env.WHATSAPP_ACCESS_TOKEN}}'} 
+                                        value={formData.accessToken !== undefined ? formData.accessToken : '{{$env.WHATSAPP_ACCESS_TOKEN}}'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
                                         placeholder="{{$env.WHATSAPP_ACCESS_TOKEN}} or EAAxxxxxxxx..."
@@ -2164,7 +2164,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     <label htmlFor="businessId">Business ID</label>
                                     <ExpressionInput 
                                         name="businessId" 
-                                        value={formData.businessId || '{{$env.WHATSAPP_BUSINESS_ID}}'} 
+                                        value={formData.businessId !== undefined ? formData.businessId : '{{$env.WHATSAPP_BUSINESS_ID}}'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
                                         placeholder="{{$env.WHATSAPP_BUSINESS_ID}} or 1234567890123456"
@@ -2178,7 +2178,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     <label htmlFor="phoneNumberId">Phone Number Send ID</label>
                                     <ExpressionInput 
                                         name="phoneNumberId" 
-                                        value={formData.phoneNumberId || '{{$env.WHATSAPP_PHONE_NUMBER_ID}}'} 
+                                        value={formData.phoneNumberId !== undefined ? formData.phoneNumberId : '{{$env.WHATSAPP_PHONE_NUMBER_ID}}'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
                                         placeholder="{{$env.WHATSAPP_PHONE_NUMBER_ID}} or 628007790405551"
@@ -2192,7 +2192,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     <label htmlFor="recipientPhoneNumber">Recipient Phone Number</label>
                                     <ExpressionInput 
                                         name="recipientPhoneNumber" 
-                                        value={formData.recipientPhoneNumber || '{{$json.from || "9647700716669"}}'} 
+                                        value={formData.recipientPhoneNumber !== undefined ? formData.recipientPhoneNumber : '{{$json.from || "9647700716669"}}'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
                                         placeholder="9647700716669 (without + sign)"
@@ -2206,7 +2206,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     <label htmlFor="messageText">Message Text</label>
                                     <ExpressionInput 
                                         name="messageText" 
-                                        value={formData.messageText || 'Hello {{$json.fromName || "there"}}! Thanks for your message.'} 
+                                        value={formData.messageText !== undefined ? formData.messageText : 'Hello {{$json.fromName || "there"}}! Thanks for your message.'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
                                         placeholder="Your message text..."

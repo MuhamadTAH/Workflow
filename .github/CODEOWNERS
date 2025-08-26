@@ -1,0 +1,17 @@
+# Global rule - you own everything by default
+* @MuhamadTAH
+
+# Frontend files - can be edited by frontend developer
+frontend/ @MuhamadTAH @THEIR_GITHUB_USERNAME
+
+# Backend files - only you can approve changes
+backend/ @MuhamadTAH
+*.env @MuhamadTAH
+*.env.* @MuhamadTAH
+package.json @MuhamadTAH
+*.md @MuhamadTAH
+
+# Specific frontend files they can work on
+frontend/src/ @MuhamadTAH @THEIR_GITHUB_USERNAME
+frontend/public/ @MuhamadTAH @THEIR_GITHUB_USERNAME
+frontend/package.json @THEIR_GITHUB_USERNAME
