@@ -688,9 +688,34 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
     return () => clearInterval(pollInterval);
   }, [node.id, node.data.type]);
 
+  // Debug logging for WhatsApp Send Message form data initialization
+  useEffect(() => {
+    if (node.data.type === 'whatsappSendMessage') {
+      console.log('[DEBUG] WhatsApp Send Message panel opened with node.data:', {
+        accessToken: node.data.accessToken,
+        businessId: node.data.businessId,
+        phoneNumberId: node.data.phoneNumberId,
+        recipientPhoneNumber: node.data.recipientPhoneNumber,
+        messageText: node.data.messageText
+      });
+      console.log('[DEBUG] WhatsApp Send Message formData initialized as:', {
+        accessToken: formData.accessToken,
+        businessId: formData.businessId,
+        phoneNumberId: formData.phoneNumberId,
+        recipientPhoneNumber: formData.recipientPhoneNumber,
+        messageText: formData.messageText
+      });
+    }
+  }, [node.data.type, node.id]);
+
   const handleInputChange = (e, index) => {
     const { name, value, type, checked } = e.target;
     const val = type === 'checkbox' ? checked : value;
+    
+    // Debug logging for WhatsApp Send Message fields
+    if (['accessToken', 'businessId', 'phoneNumberId', 'recipientPhoneNumber', 'messageText'].includes(name)) {
+      console.log(`[DEBUG] WhatsApp field change: ${name} = "${val}"`);
+    }
 
     if (['value1', 'operator', 'value2'].includes(name) && (node.data.type === 'if' || node.data.type === 'filter')) {
         const newConditions = formData.conditions.map((cond, i) => {
@@ -1019,6 +1044,17 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
 
   const handleClose = () => {
     const allUpdatedData = { ...formData, inputData, outputData };
+    
+    // Debug logging for WhatsApp Send Message fields
+    if (node.data.type === 'whatsappSendMessage') {
+      console.log('[DEBUG] WhatsApp Send Message saving data:', {
+        accessToken: allUpdatedData.accessToken,
+        businessId: allUpdatedData.businessId,
+        phoneNumberId: allUpdatedData.phoneNumberId,
+        recipientPhoneNumber: allUpdatedData.recipientPhoneNumber,
+        messageText: allUpdatedData.messageText
+      });
+    }
     
     // For pre-configured Telegram trigger nodes, also save botToken to config
     if (node.data.type === 'telegramTrigger' && node.data.config?.preConfigured) {
