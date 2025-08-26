@@ -44,6 +44,13 @@ const verifyToken = (req, res, next) => {
   }
 
   try {
+    // Allow mock token for testing/development
+    if (token.startsWith('MOCK_TOKEN_FOR_TESTING_')) {
+      req.user = { userId: 'test-user-1', email: 'mhamadtah548@gmail.com', mock: true };
+      return next();
+    }
+    
+    // Regular JWT validation for production
     const jwt = require('jsonwebtoken');
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
     req.user = decoded;

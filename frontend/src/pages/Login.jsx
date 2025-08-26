@@ -63,7 +63,7 @@ function Login() {
       // TODO: Integrate with n8n authentication
       // For now, bypass authentication to test n8n workflows
       if (formData.email === 'mhamadtah548@gmail.com' && formData.password === '1qazxsw2') {
-        const mockToken = 'n8n-test-token-' + Date.now();
+        const mockToken = 'MOCK_TOKEN_FOR_TESTING_' + Date.now();
         tokenManager.setToken(mockToken);
         addMessage("Awesome, you're in! Welcome back! 🚀", 'them');
         
