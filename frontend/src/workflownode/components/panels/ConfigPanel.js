@@ -1047,18 +1047,34 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
   };
 
   const handleClose = () => {
-    const allUpdatedData = { ...formData, inputData, outputData };
+    // Filter formData to only include relevant fields for this node type
+    const filteredData = getFilteredConfig(node.data.type, formData);
+    
+    // Always include basic node properties
+    const allUpdatedData = { 
+      ...filteredData, 
+      inputData, 
+      outputData,
+      // Keep essential node properties
+      label: formData.label,
+      description: formData.description,
+      type: node.data.type,
+      icon: node.data.icon,
+      color: node.data.color
+    };
     
     // Debug logging for WhatsApp fields
     if (node.data.type === 'whatsappSendMessage' || node.data.type === 'whatsappTrigger') {
-      console.log(`[DEBUG] ${node.data.type} saving data:`, JSON.stringify({
+      console.log(`[DEBUG] ${node.data.type} FILTERED saving data:`, JSON.stringify({
         accessToken: allUpdatedData.accessToken,
         businessId: allUpdatedData.businessId,
         phoneNumberId: allUpdatedData.phoneNumberId,
         recipientPhoneNumber: allUpdatedData.recipientPhoneNumber,
         messageText: allUpdatedData.messageText,
         appId: allUpdatedData.appId,
-        clientSecret: allUpdatedData.clientSecret
+        clientSecret: allUpdatedData.clientSecret,
+        totalFields: Object.keys(allUpdatedData).length,
+        allFields: Object.keys(allUpdatedData)
       }, null, 2));
     }
     
