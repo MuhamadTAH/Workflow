@@ -688,22 +688,26 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
     return () => clearInterval(pollInterval);
   }, [node.id, node.data.type]);
 
-  // Debug logging for WhatsApp Send Message form data initialization
+  // Debug logging for WhatsApp form data initialization
   useEffect(() => {
-    if (node.data.type === 'whatsappSendMessage') {
-      console.log('[DEBUG] WhatsApp Send Message panel opened with node.data:', {
+    if (node.data.type === 'whatsappSendMessage' || node.data.type === 'whatsappTrigger') {
+      console.log(`[DEBUG] ${node.data.type} panel opened with node.data:`, {
         accessToken: node.data.accessToken,
         businessId: node.data.businessId,
         phoneNumberId: node.data.phoneNumberId,
         recipientPhoneNumber: node.data.recipientPhoneNumber,
-        messageText: node.data.messageText
+        messageText: node.data.messageText,
+        appId: node.data.appId,
+        clientSecret: node.data.clientSecret
       });
-      console.log('[DEBUG] WhatsApp Send Message formData initialized as:', {
+      console.log(`[DEBUG] ${node.data.type} formData initialized as:`, {
         accessToken: formData.accessToken,
         businessId: formData.businessId,
         phoneNumberId: formData.phoneNumberId,
         recipientPhoneNumber: formData.recipientPhoneNumber,
-        messageText: formData.messageText
+        messageText: formData.messageText,
+        appId: formData.appId,
+        clientSecret: formData.clientSecret
       });
     }
   }, [node.data.type, node.id]);
@@ -712,8 +716,8 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
     const { name, value, type, checked } = e.target;
     const val = type === 'checkbox' ? checked : value;
     
-    // Debug logging for WhatsApp Send Message fields
-    if (['accessToken', 'businessId', 'phoneNumberId', 'recipientPhoneNumber', 'messageText'].includes(name)) {
+    // Debug logging for WhatsApp fields
+    if (['accessToken', 'businessId', 'phoneNumberId', 'recipientPhoneNumber', 'messageText', 'appId', 'clientSecret'].includes(name)) {
       console.log(`[DEBUG] WhatsApp field change: ${name} = "${val}"`);
     }
 
@@ -1045,14 +1049,16 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
   const handleClose = () => {
     const allUpdatedData = { ...formData, inputData, outputData };
     
-    // Debug logging for WhatsApp Send Message fields
-    if (node.data.type === 'whatsappSendMessage') {
-      console.log('[DEBUG] WhatsApp Send Message saving data:', {
+    // Debug logging for WhatsApp fields
+    if (node.data.type === 'whatsappSendMessage' || node.data.type === 'whatsappTrigger') {
+      console.log(`[DEBUG] ${node.data.type} saving data:`, {
         accessToken: allUpdatedData.accessToken,
         businessId: allUpdatedData.businessId,
         phoneNumberId: allUpdatedData.phoneNumberId,
         recipientPhoneNumber: allUpdatedData.recipientPhoneNumber,
-        messageText: allUpdatedData.messageText
+        messageText: allUpdatedData.messageText,
+        appId: allUpdatedData.appId,
+        clientSecret: allUpdatedData.clientSecret
       });
     }
     
@@ -2097,7 +2103,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     <label htmlFor="appId">WhatsApp App ID</label>
                                     <ExpressionInput 
                                         name="appId" 
-                                        value={formData.appId || '{{$env.WHATSAPP_APP_ID}}'} 
+                                        value={formData.appId !== undefined ? formData.appId : '{{$env.WHATSAPP_APP_ID}}'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
                                         placeholder="{{$env.WHATSAPP_APP_ID}} or 123456789..."
@@ -2111,7 +2117,7 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
                                     <label htmlFor="clientSecret">Client Secret</label>
                                     <ExpressionInput 
                                         name="clientSecret" 
-                                        value={formData.clientSecret || '{{$env.WHATSAPP_CLIENT_SECRET}}'} 
+                                        value={formData.clientSecret !== undefined ? formData.clientSecret : '{{$env.WHATSAPP_CLIENT_SECRET}}'} 
                                         onChange={handleInputChange} 
                                         inputData={inputData} 
                                         placeholder="{{$env.WHATSAPP_CLIENT_SECRET}} or abc123..."
