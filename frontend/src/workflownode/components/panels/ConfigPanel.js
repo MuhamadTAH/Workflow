@@ -390,92 +390,147 @@ const ExpressionInput = ({ name, value, onChange, inputData, placeholder, isText
 };
 
 
-const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) => {
-  const [formData, setFormData] = useState({
-      label: node.data.label || '',
-      description: node.data.description || '',
-      fieldsToMatch: node.data.fieldsToMatch || [{ key1: '', key2: '' }],
-      resumeCondition: node.data.resumeCondition || 'afterTimeInterval',
-      waitAmount: node.data.waitAmount || 5,
-      waitUnit: node.data.waitUnit || 'seconds',
-      conditions: node.data.conditions || [{ value1: '', operator: 'is_equal_to', value2: '' }],
-      combinator: node.data.combinator || 'AND',
-      ignoreCase: node.data.ignoreCase || false,
-      errorType: node.data.errorType || 'errorMessage',
-      errorMessage: node.data.errorMessage || 'An error occurred!',
-      switchRules: node.data.switchRules || [{ value1: '', operator: 'is_equal_to', value2: '' }],
-      switchOptions: node.data.switchOptions || [],
-      source: node.data.source || 'database',
-      workflow: node.data.workflow || 'fromList',
-      workflowId: node.data.workflowId || '',
-      mode: node.data.mode || 'runOnce',
-      mergeMode: node.data.mergeMode || 'append',
-      batchSize: node.data.batchSize || 1,
-      fields: node.data.fields || [{ key: '', value: '' }],
-      // Telegram trigger specific fields
-      botToken: node.data.botToken || node.data.config?.botToken || '',
-      // Telegram send message fields
-      chatId: node.data.chatId || '{{message.chat.id}}',
-      messageType: node.data.messageType || 'text',
-      // text
-      messageText: node.data.messageText || 'Hello! This is a message from your bot.',
-      parseMode: node.data.parseMode || '',
-      disableWebPagePreview: node.data.disableWebPagePreview || false,
-      // photo
-      photoUrl: node.data.photoUrl || '',
-      photoCaption: node.data.photoCaption || '',
-      // video
-      videoUrl: node.data.videoUrl || '',
-      videoCaption: node.data.videoCaption || '',
-      videoDuration: node.data.videoDuration || '',
-      // audio
-      audioUrl: node.data.audioUrl || '',
-      audioCaption: node.data.audioCaption || '',
-      // voice
-      voiceUrl: node.data.voiceUrl || '',
-      // document
-      documentUrl: node.data.documentUrl || '',
-      // animation
-      animationUrl: node.data.animationUrl || '',
-      // sticker
-      stickerFileId: node.data.stickerFileId || '',
-      // location
-      latitude: node.data.latitude || '',
-      longitude: node.data.longitude || '',
-      locationHorizontalAccuracy: node.data.locationHorizontalAccuracy || '',
-      // contact
-      contactPhoneNumber: node.data.contactPhoneNumber || '',
-      contactFirstName: node.data.contactFirstName || '',
-      contactLastName: node.data.contactLastName || '',
-      // poll
-      pollQuestion: node.data.pollQuestion || '',
-      pollOptions: node.data.pollOptions || '',
-      // admin
-      banUserId: node.data.banUserId || '',
-      // AI Agent
-      apiKey: node.data.apiKey || '',
-      model: node.data.model || 'claude-3-5-sonnet-20241022',
-      systemPrompt: node.data.systemPrompt || '',
-      userMessage: node.data.userMessage || '',
-      // Chat Trigger specific fields
-      chatSessionName: node.data.chatSessionName || 'My Chat Bot',
-      welcomeMessage: node.data.welcomeMessage || '👋 Welcome! How can I help you today?',
-      allowFileUploads: node.data.allowFileUploads || false,
-      allowedFileTypes: node.data.allowedFileTypes || '*',
-      // Chatbot Trigger specific fields
-      chatbotTitle: node.data.chatbotTitle || 'Customer Support',
-      chatbotSubtitle: node.data.chatbotSubtitle || 'How can we help you?',
-      chatbotTheme: node.data.chatbotTheme || '#667eea',
-      enableChatbot: node.data.enableChatbot !== undefined ? node.data.enableChatbot : true,
-      // WhatsApp Trigger specific fields
+// Helper function to initialize formData based on node type
+const initializeFormData = (node) => {
+  // Base fields that all nodes have
+  const baseData = {
+    label: node.data.label || '',
+    description: node.data.description || '',
+  };
+
+  // Node type-specific field defaults
+  const nodeTypeDefaults = {
+    'whatsappTrigger': {
       appId: node.data.appId || '',
       clientSecret: node.data.clientSecret || '',
-      // WhatsApp Send Message specific fields (n8n-style parameters)
+    },
+    'whatsappSendMessage': {
       accessToken: node.data.accessToken || '',
       businessId: node.data.businessId || '',
       phoneNumberId: node.data.phoneNumberId || '',
       recipientPhoneNumber: node.data.recipientPhoneNumber || '',
+      messageText: node.data.messageText || 'Hello {{$json.fromName || "there"}}! Thanks for your message.',
+    },
+    'telegramTrigger': {
+      botToken: node.data.botToken || node.data.config?.botToken || '',
+    },
+    'telegramSendMessage': {
+      botToken: node.data.botToken || node.data.config?.botToken || '',
+      chatId: node.data.chatId || '{{message.chat.id}}',
+      messageType: node.data.messageType || 'text',
+      messageText: node.data.messageText || 'Hello! This is a message from your bot.',
+      parseMode: node.data.parseMode || '',
+      disableWebPagePreview: node.data.disableWebPagePreview || false,
+      photoUrl: node.data.photoUrl || '',
+      photoCaption: node.data.photoCaption || '',
+      videoUrl: node.data.videoUrl || '',
+      videoCaption: node.data.videoCaption || '',
+      videoDuration: node.data.videoDuration || '',
+      audioUrl: node.data.audioUrl || '',
+      audioCaption: node.data.audioCaption || '',
+      voiceUrl: node.data.voiceUrl || '',
+      documentUrl: node.data.documentUrl || '',
+      animationUrl: node.data.animationUrl || '',
+      stickerFileId: node.data.stickerFileId || '',
+      latitude: node.data.latitude || '',
+      longitude: node.data.longitude || '',
+      locationHorizontalAccuracy: node.data.locationHorizontalAccuracy || '',
+      contactPhoneNumber: node.data.contactPhoneNumber || '',
+      contactFirstName: node.data.contactFirstName || '',
+      contactLastName: node.data.contactLastName || '',
+      pollQuestion: node.data.pollQuestion || '',
+      pollOptions: node.data.pollOptions || '',
+      banUserId: node.data.banUserId || '',
+    },
+    'instagramTrigger': {
+      accessToken: node.data.accessToken || '{{$env.INSTAGRAM_ACCESS_TOKEN}}',
+      accountId: node.data.accountId || '',
+      responseType: node.data.responseType || 'dm',
+      responseMessage: node.data.responseMessage || 'Hello {{$json.sender_name || "there"}}! Thanks for your message. We\'ll get back to you soon! 🙌',
+      triggerKeywords: node.data.triggerKeywords || '',
+      responseDelay: node.data.responseDelay || 2,
+      enableSmartResponse: node.data.enableSmartResponse || false,
+    },
+    'instagramResponse': {
+      accessToken: node.data.accessToken || '{{$env.INSTAGRAM_ACCESS_TOKEN}}',
+      accountId: node.data.accountId || '',
+      responseType: node.data.responseType || 'dm',
+      responseMessage: node.data.responseMessage || 'Hello {{$json.sender_name || "there"}}! Thanks for your message. We\'ll get back to you soon! 🙌',
+      triggerKeywords: node.data.triggerKeywords || '',
+      responseDelay: node.data.responseDelay || 2,
+      enableSmartResponse: node.data.enableSmartResponse || false,
+    },
+    'aiAgent': {
+      apiKey: node.data.apiKey || '',
+      model: node.data.model || 'claude-3-5-sonnet-20241022',
+      systemPrompt: node.data.systemPrompt || '',
+      userMessage: node.data.userMessage || '',
+    },
+    'compare': {
+      fieldsToMatch: node.data.fieldsToMatch || [{ key1: '', key2: '' }],
+    },
+    'if': {
+      conditions: node.data.conditions || [{ value1: '', operator: 'is_equal_to', value2: '' }],
+      combinator: node.data.combinator || 'AND',
+      ignoreCase: node.data.ignoreCase || false,
+    },
+    'filter': {
+      conditions: node.data.conditions || [{ value1: '', operator: 'is_equal_to', value2: '' }],
+      combinator: node.data.combinator || 'AND',
+      ignoreCase: node.data.ignoreCase || false,
+    },
+    'switch': {
+      switchRules: node.data.switchRules || [{ value1: '', operator: 'is_equal_to', value2: '' }],
+      switchOptions: node.data.switchOptions || [],
+    },
+    'wait': {
+      resumeCondition: node.data.resumeCondition || 'afterTimeInterval',
+      waitAmount: node.data.waitAmount || 5,
+      waitUnit: node.data.waitUnit || 'seconds',
+    },
+    'stopAndError': {
+      errorType: node.data.errorType || 'errorMessage',
+      errorMessage: node.data.errorMessage || 'An error occurred!',
+    },
+    'merge': {
+      mergeMode: node.data.mergeMode || 'append',
+      batchSize: node.data.batchSize || 1,
+    },
+    'executeSubWorkflow': {
+      source: node.data.source || 'database',
+      workflow: node.data.workflow || 'fromList',
+      workflowId: node.data.workflowId || '',
+      mode: node.data.mode || 'runOnce',
+    },
+    'setData': {
+      fields: node.data.fields || [{ key: '', value: '' }],
+    },
+    'chatbotWidget': {
+      chatSessionName: node.data.chatSessionName || 'My Chat Bot',
+      welcomeMessage: node.data.welcomeMessage || '👋 Welcome! How can I help you today?',
+      allowFileUploads: node.data.allowFileUploads || false,
+      allowedFileTypes: node.data.allowedFileTypes || '*',
+      chatbotTitle: node.data.chatbotTitle || 'Customer Support',
+      chatbotSubtitle: node.data.chatbotSubtitle || 'How can we help you?',
+      chatbotTheme: node.data.chatbotTheme || '#667eea',
+      enableChatbot: node.data.enableChatbot !== undefined ? node.data.enableChatbot : true,
+    }
+  };
+
+  // Merge base data with node-specific defaults
+  const nodeSpecificData = nodeTypeDefaults[node.data.type] || {};
+  
+  console.log(`🔧 Initializing formData for ${node.data.type}:`, {
+    baseFields: Object.keys(baseData),
+    specificFields: Object.keys(nodeSpecificData),
+    totalFields: Object.keys({...baseData, ...nodeSpecificData}).length
   });
+
+  return { ...baseData, ...nodeSpecificData };
+};
+
+const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) => {
+  const [formData, setFormData] = useState(initializeFormData(node));
 
   // Chat Trigger specific state for real-time messages
   const [chatMessages, setChatMessages] = useState([]);
