@@ -363,11 +363,8 @@ const App = ({ botContext }) => {
             })
         );
         
-        // Auto-save to database when parameters are updated
-        console.log('🔄 Auto-saving workflow after parameter update...');
-        setTimeout(() => {
-          handleSave();
-        }, 500); // Small delay to ensure state is updated
+        // Auto-save disabled - user must manually save
+        console.log('📝 Node parameters updated (auto-save disabled)');
     }
     setSelectedNode(null); // Close the panel
   };

@@ -157,6 +157,40 @@ router.post('/', verifyToken, (req, res) => {
     }
   };
 
+  // 💾 DETAILED SAVE LOGGING - Show what's being saved
+  console.log('💾 ========================================');
+  console.log('💾 WORKFLOW SAVE DETAILS (CREATE)');
+  console.log('💾 ========================================');
+  console.log(`💾 Workflow Name: ${name}`);
+  console.log(`💾 Node Count: ${nodes.length}`);
+  console.log(`💾 Connection Count: ${connections.length}`);
+  console.log('💾 Node Details:');
+  
+  nodes.forEach((node, index) => {
+    console.log(`💾   Node ${index + 1}:`);
+    console.log(`💾     - ID: ${node.id}`);
+    console.log(`💾     - Type: ${node.data?.type || 'unknown'}`);
+    console.log(`💾     - Label: ${node.data?.label || 'no label'}`);
+    
+    // Show all node data properties
+    if (node.data) {
+      const dataKeys = Object.keys(node.data);
+      console.log(`💾     - Data Properties: [${dataKeys.join(', ')}]`);
+      
+      // Show specific important properties
+      if (node.data.appId) console.log(`💾     - App ID: ${node.data.appId}`);
+      if (node.data.clientSecret) console.log(`💾     - Client Secret: ${node.data.clientSecret ? '[SET]' : '[NOT SET]'}`);
+      if (node.data.accessToken) console.log(`💾     - Access Token: ${node.data.accessToken ? '[SET]' : '[NOT SET]'}`);
+      if (node.data.phoneNumberId) console.log(`💾     - Phone Number ID: ${node.data.phoneNumberId}`);
+      if (node.data.messageText) console.log(`💾     - Message Text: ${node.data.messageText}`);
+    }
+  });
+  
+  connections.forEach((conn, index) => {
+    console.log(`💾   Connection ${index + 1}: ${conn.source} → ${conn.target}`);
+  });
+  console.log('💾 ========================================');
+
   db.run(
     'INSERT INTO workflows (user_id, name, description, data) VALUES (?, ?, ?, ?)',
     [userId, name, description || '', JSON.stringify(workflowData)],
@@ -217,6 +251,41 @@ router.put('/:id', verifyToken, (req, res) => {
       savedAt: new Date().toISOString()
     }
   };
+
+  // 💾 DETAILED SAVE LOGGING - Show what's being updated
+  console.log('💾 ========================================');
+  console.log('💾 WORKFLOW SAVE DETAILS (UPDATE)');
+  console.log('💾 ========================================');
+  console.log(`💾 Workflow ID: ${workflowId}`);
+  console.log(`💾 Workflow Name: ${name}`);
+  console.log(`💾 Node Count: ${nodes.length}`);
+  console.log(`💾 Connection Count: ${connections.length}`);
+  console.log('💾 Node Details:');
+  
+  nodes.forEach((node, index) => {
+    console.log(`💾   Node ${index + 1}:`);
+    console.log(`💾     - ID: ${node.id}`);
+    console.log(`💾     - Type: ${node.data?.type || 'unknown'}`);
+    console.log(`💾     - Label: ${node.data?.label || 'no label'}`);
+    
+    // Show all node data properties
+    if (node.data) {
+      const dataKeys = Object.keys(node.data);
+      console.log(`💾     - Data Properties: [${dataKeys.join(', ')}]`);
+      
+      // Show specific important properties
+      if (node.data.appId) console.log(`💾     - App ID: ${node.data.appId}`);
+      if (node.data.clientSecret) console.log(`💾     - Client Secret: ${node.data.clientSecret ? '[SET]' : '[NOT SET]'}`);
+      if (node.data.accessToken) console.log(`💾     - Access Token: ${node.data.accessToken ? '[SET]' : '[NOT SET]'}`);
+      if (node.data.phoneNumberId) console.log(`💾     - Phone Number ID: ${node.data.phoneNumberId}`);
+      if (node.data.messageText) console.log(`💾     - Message Text: ${node.data.messageText}`);
+    }
+  });
+  
+  connections.forEach((conn, index) => {
+    console.log(`💾   Connection ${index + 1}: ${conn.source} → ${conn.target}`);
+  });
+  console.log('💾 ========================================');
 
   db.run(
     'UPDATE workflows SET name = ?, description = ?, data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',

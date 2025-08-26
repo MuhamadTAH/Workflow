@@ -1,25 +1,25 @@
-[2025-08-26T20:34:09.342Z] INFO: Incoming request {"method":"OPTIONS","url":"/api/workflows/untitled-workflow-zk1ulg/activate","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"}
+[2025-08-26T22:51:35.524Z] INFO: Incoming request {"method":"OPTIONS","url":"/api/workflows/workflow-3-aqi3ik/activate","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"}
 🚨 WORKFLOW ACTIVATION: {
   method: 'OPTIONS',
-  url: '/api/workflows/untitled-workflow-zk1ulg/activate',
+  url: '/api/workflows/workflow-3-aqi3ik/activate',
   origin: 'https://fixdai.com',
   userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb',
   contentType: undefined,
   contentLength: undefined,
   authorization: 'missing',
-  timestamp: '2025-08-26T20:34:09.342Z'
+  timestamp: '2025-08-26T22:51:35.524Z'
 }
-[2025-08-26T20:34:09.343Z] INFO: Request completed {"method":"OPTIONS","url":"/api/workflows/untitled-workflow-zk1ulg/activate","status":200,"duration":"1ms"}
-[2025-08-26T20:34:09.611Z] INFO: Incoming request {"method":"POST","url":"/api/workflows/untitled-workflow-zk1ulg/activate","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"}
+[2025-08-26T22:51:35.524Z] INFO: Request completed {"method":"OPTIONS","url":"/api/workflows/workflow-3-aqi3ik/activate","status":200,"duration":"0ms"}
+[2025-08-26T22:51:35.784Z] INFO: Incoming request {"method":"POST","url":"/api/workflows/workflow-3-aqi3ik/activate","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"}
 🚨 WORKFLOW ACTIVATION: {
   method: 'POST',
-  url: '/api/workflows/untitled-workflow-zk1ulg/activate',
+  url: '/api/workflows/workflow-3-aqi3ik/activate',
   origin: 'https://fixdai.com',
   userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb',
   contentType: 'application/json',
-  contentLength: '816',
+  contentLength: '894',
   authorization: 'present',
-  timestamp: '2025-08-26T20:34:09.611Z'
+  timestamp: '2025-08-26T22:51:35.784Z'
 }
 📦 ACTIVATION REQUEST BODY PREVIEW: {
   hasBody: false,
@@ -30,11 +30,11 @@
 }
 🔧 WORKFLOW ROUTE DEBUG: {
   method: 'POST',
-  originalUrl: '/api/workflows/untitled-workflow-zk1ulg/activate',
+  originalUrl: '/api/workflows/workflow-3-aqi3ik/activate',
   params: {},
   query: {},
-  bodySize: 816,
-  timestamp: '2025-08-26T20:34:09.627Z'
+  bodySize: 894,
+  timestamp: '2025-08-26T22:51:35.785Z'
 }
 🎯 WORKFLOW ACTIVATION ROUTE HIT: {
   workflowId: undefined,
@@ -45,14 +45,14 @@
 🚀 WORKFLOW ACTIVATION REQUEST RECEIVED!
 📋 Request details: {
   method: 'POST',
-  url: '/untitled-workflow-zk1ulg/activate',
-  params: { id: 'untitled-workflow-zk1ulg' },
+  url: '/workflow-3-aqi3ik/activate',
+  params: { id: 'workflow-3-aqi3ik' },
   bodyKeys: [ 'workflow' ],
   origin: 'https://fixdai.com',
-  timestamp: '2025-08-26T20:34:09.628Z'
+  timestamp: '2025-08-26T22:51:35.786Z'
 }
 🔍 Activation data validation: {
-  workflowId: 'untitled-workflow-zk1ulg',
+  workflowId: 'workflow-3-aqi3ik',
   hasWorkflow: true,
   hasNodes: true,
   hasEdges: true,
@@ -62,11 +62,11 @@
 }
 ============================================================
 🚀 WORKFLOW ACTIVATION STARTED
-🔄 Activating workflow: untitled-workflow-zk1ulg
+🔄 Activating workflow: workflow-3-aqi3ik
 📋 Found 1 trigger node(s): [ 'whatsappTrigger' ]
 📊 Current active workflows count: 0
 ============================================================
-Registering workflow untitled-workflow-zk1ulg for automatic execution
+Registering workflow workflow-3-aqi3ik for automatic execution
 Workflow config received: {
   nodes: 2,
   edges: 1,
@@ -74,10 +74,10 @@ Workflow config received: {
   edgeConnections: [ 'dndnode_0 → dndnode_1' ]
 }
 Found trigger node: WhatsApp Trigger (dndnode_0)
-Workflow untitled-workflow-zk1ulg registered successfully with 2 nodes and 1 edges
-✅ Workflow untitled-workflow-zk1ulg registered for auto-execution
+Workflow workflow-3-aqi3ik registered successfully with 2 nodes and 1 edges
+✅ Workflow workflow-3-aqi3ik registered for auto-execution
 WorkflowExecutor active workflows count: 1
-🔄 Auto-updating WhatsApp webhook for workflow: untitled-workflow-zk1ulg
+🔄 Auto-updating WhatsApp webhook for workflow: workflow-3-aqi3ik
 📋 WhatsApp trigger node data: {
   "label": "WhatsApp Trigger",
   "icon": "fa-whatsapp",
@@ -92,831 +92,43 @@ WorkflowExecutor active workflows count: 1
 💡 Make sure the App ID and Client Secret are configured in the WhatsApp trigger node
 ============================================================
 ✅ WORKFLOW ACTIVATION COMPLETED SUCCESSFULLY!
-🎯 Workflow ID: untitled-workflow-zk1ulg
+🎯 Workflow ID: workflow-3-aqi3ik
 📊 Controller active workflows: 1
 🚀 Executor active workflows: 1
 🔗 Trigger URLs generated: 1
-   1. whatsappTrigger: https://workflow-lg9z.onrender.com/api/webhooks/whatsapp/untitled-workflow-zk1ulg
-⏰ Activated at: 2025-08-26T20:34:09.629Z
+   1. whatsappTrigger: https://workflow-lg9z.onrender.com/api/webhooks/whatsapp/workflow-3-aqi3ik
+⏰ Activated at: 2025-08-26T22:51:35.788Z
 ============================================================
-💾 Stored active workflow untitled-workflow-zk1ulg to database
+💾 Stored active workflow workflow-3-aqi3ik to database
 ✅ ACTIVATION SUCCESS - Sending response: {
   success: true,
-  workflowId: 'untitled-workflow-zk1ulg',
+  workflowId: 'workflow-3-aqi3ik',
   triggerUrlCount: 1,
-  responseSize: 309,
-  timestamp: '2025-08-26T20:34:09.630Z'
+  responseSize: 295,
+  timestamp: '2025-08-26T22:51:35.788Z'
 }
-[2025-08-26T20:34:09.630Z] INFO: Request completed {"method":"POST","url":"/untitled-workflow-zk1ulg/activate","status":200,"duration":"19ms"}
-[2025-08-26T20:34:56.274Z] INFO: Incoming request {"method":"POST","url":"/api/webhooks/whatsapp","ip":"::1","userAgent":"facebookexternalua"}
+[2025-08-26T22:51:35.788Z] INFO: Request completed {"method":"POST","url":"/workflow-3-aqi3ik/activate","status":200,"duration":"4ms"}
+[2025-08-26T22:52:04.426Z] INFO: Incoming request {"method":"OPTIONS","url":"/api/workflows/workflow-3-aqi3ik","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"}
 🌐 INCOMING REQUEST: {
-  method: 'POST',
-  url: '/api/webhooks/whatsapp',
-  origin: undefined,
-  userAgent: 'facebookexternalua',
-  contentType: 'application/json',
-  contentLength: '484',
+  method: 'OPTIONS',
+  url: '/api/workflows/workflow-3-aqi3ik',
+  origin: 'https://fixdai.com',
+  userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb',
+  contentType: undefined,
+  contentLength: undefined,
   authorization: 'missing',
-  timestamp: '2025-08-26T20:34:56.274Z'
+  timestamp: '2025-08-26T22:52:04.426Z'
 }
-📱 WhatsApp webhook received: {
-  "object": "whatsapp_business_account",
-  "entry": [
-    {
-      "id": "1411124906823702",
-      "changes": [
-        {
-          "value": {
-            "messaging_product": "whatsapp",
-            "metadata": {
-              "display_phone_number": "15556646119",
-              "phone_number_id": "628007790405551"
-            },
-            "contacts": [
-              {
-                "profile": {
-                  "name": "Muhammad Tarq"
-                },
-                "wa_id": "9647700716669"
-              }
-            ],
-            "messages": [
-              {
-                "from": "9647700716669",
-                "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-                "timestamp": "1756240495",
-                "text": {
-                  "body": "Do she"
-                },
-                "type": "text"
-              }
-            ]
-          },
-          "field": "messages"
-        }
-      ]
-    }
-  ]
+[2025-08-26T22:52:04.427Z] INFO: Request completed {"method":"OPTIONS","url":"/api/workflows/workflow-3-aqi3ik","status":200,"duration":"1ms"}
+[2025-08-26T22:52:04.693Z] INFO: Incoming request {"method":"PUT","url":"/api/workflows/workflow-3-aqi3ik","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"}
+🌐 INCOMING REQUEST: {
+  method: 'PUT',
+  url: '/api/workflows/workflow-3-aqi3ik',
+  origin: 'https://fixdai.com',
+  userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb',
+  contentType: 'application/json',
+  contentLength: '947',
+  authorization: 'present',
+  timestamp: '2025-08-26T22:52:04.693Z'
 }
-🔄 Processing WhatsApp webhook...
-🔍 Checking 1 active workflows for WhatsApp triggers
-   📋 Workflow untitled-workflow-zk1ulg: 2 nodes
-   ✅ Found WhatsApp trigger in workflow untitled-workflow-zk1ulg
-🔄 Processing WhatsApp webhook for workflow untitled-workflow-zk1ulg...
-📱 Extracted WhatsApp message data: {
-  messageId: 'wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==',
-  from: '9647700716669',
-  phoneNumber: '9647700716669',
-  fromName: 'Muhammad Tarq',
-  text: 'Do she',
-  messageType: 'text',
-  timestamp: '2025-08-26T20:34:55.000Z',
-  contact: { profile: { name: 'Muhammad Tarq' }, wa_id: '9647700716669' },
-  rawMessage: {
-    from: '9647700716669',
-    id: 'wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==',
-    timestamp: '1756240495',
-    text: { body: 'Do she' },
-    type: 'text'
-  },
-  rawWebhook: { object: 'whatsapp_business_account', entry: [ [Object] ] }
-}
-🚀 Triggering workflow untitled-workflow-zk1ulg with WhatsApp data
-=== EXECUTING WORKFLOW untitled-workflow-zk1ulg ===
-Trigger data: {
-  "trigger": "whatsapp",
-  "data": {
-    "messageId": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-    "from": "9647700716669",
-    "phoneNumber": "9647700716669",
-    "fromName": "Muhammad Tarq",
-    "text": "Do she",
-    "messageType": "text",
-    "timestamp": "2025-08-26T20:34:55.000Z",
-    "contact": {
-      "profile": {
-        "name": "Muhammad Tarq"
-      },
-      "wa_id": "9647700716669"
-    },
-    "rawMessage": {
-      "from": "9647700716669",
-      "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-      "timestamp": "1756240495",
-      "text": {
-        "body": "Do she"
-      },
-      "type": "text"
-    },
-    "rawWebhook": {
-      "object": "whatsapp_business_account",
-      "entry": [
-        {
-          "id": "1411124906823702",
-          "changes": [
-            {
-              "value": {
-                "messaging_product": "whatsapp",
-                "metadata": {
-                  "display_phone_number": "15556646119",
-                  "phone_number_id": "628007790405551"
-                },
-                "contacts": [
-                  {
-                    "profile": {
-                      "name": "Muhammad Tarq"
-                    },
-                    "wa_id": "9647700716669"
-                  }
-                ],
-                "messages": [
-                  {
-                    "from": "9647700716669",
-                    "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-                    "timestamp": "1756240495",
-                    "text": {
-                      "body": "Do she"
-                    },
-                    "type": "text"
-                  }
-                ]
-              },
-              "field": "messages"
-            }
-          ]
-        }
-      ]
-    }
-  },
-  "whatsappWebhook": {
-    "object": "whatsapp_business_account",
-    "entry": [
-      {
-        "id": "1411124906823702",
-        "changes": [
-          {
-            "value": {
-              "messaging_product": "whatsapp",
-              "metadata": {
-                "display_phone_number": "15556646119",
-                "phone_number_id": "628007790405551"
-              },
-              "contacts": [
-                {
-                  "profile": {
-                    "name": "Muhammad Tarq"
-                  },
-                  "wa_id": "9647700716669"
-                }
-              ],
-              "messages": [
-                {
-                  "from": "9647700716669",
-                  "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-                  "timestamp": "1756240495",
-                  "text": {
-                    "body": "Do she"
-                  },
-                  "type": "text"
-                }
-              ]
-            },
-            "field": "messages"
-          }
-        ]
-      }
-    ]
-  },
-  "timestamp": "2025-08-26T20:34:56.277Z"
-}
-Building execution order from workflow: {
-  totalNodes: 2,
-  totalEdges: 1,
-  nodes: [ 'whatsappTrigger (dndnode_0)', 'whatsappSendMessage (dndnode_1)' ],
-  edges: [ 'dndnode_0 → dndnode_1' ]
-}
-Starting execution order with trigger: dndnode_0
-Processing node: dndnode_0
-Adding node to execution order: whatsappTrigger (dndnode_0)
-Found 1 outgoing edges from dndnode_0: [ 'dndnode_0 → dndnode_1' ]
-Following edge: dndnode_0 → dndnode_1
-Processing node: dndnode_1
-Adding node to execution order: whatsappSendMessage (dndnode_1)
-Found 0 outgoing edges from dndnode_1: []
-Final execution order: 2 nodes
-Step 1: whatsappTrigger (dndnode_0)
-Step 2: whatsappSendMessage (dndnode_1)
-Execution order: [ 'WhatsApp Trigger (dndnode_0)', 'Send WhatsApp Message (dndnode_1)' ]
---- Step 1: Executing WhatsApp Trigger ---
-✅ Added trigger step: step_1_WhatsApp_Trigger with aliases: trigger, triggerData, whatsappTrigger
-Step 1 completed: ⏭️
---- Step 2: Executing Send WhatsApp Message ---
-Step-based input data for node: {
-  "step_1_WhatsApp_Trigger": {
-    "trigger": "whatsapp",
-    "data": {
-      "messageId": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-      "from": "9647700716669",
-      "phoneNumber": "9647700716669",
-      "fromName": "Muhammad Tarq",
-      "text": "Do she",
-      "messageType": "text",
-      "timestamp": "2025-08-26T20:34:55.000Z",
-      "contact": {
-        "profile": {
-          "name": "Muhammad Tarq"
-        },
-        "wa_id": "9647700716669"
-      },
-      "rawMessage": {
-        "from": "9647700716669",
-        "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-        "timestamp": "1756240495",
-        "text": {
-          "body": "Do she"
-        },
-        "type": "text"
-      },
-      "rawWebhook": {
-        "object": "whatsapp_business_account",
-        "entry": [
-          {
-            "id": "1411124906823702",
-            "changes": [
-              {
-                "value": {
-                  "messaging_product": "whatsapp",
-                  "metadata": {
-                    "display_phone_number": "15556646119",
-                    "phone_number_id": "628007790405551"
-                  },
-                  "contacts": [
-                    {
-                      "profile": {
-                        "name": "Muhammad Tarq"
-                      },
-                      "wa_id": "9647700716669"
-                    }
-                  ],
-                  "messages": [
-                    {
-                      "from": "9647700716669",
-                      "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-                      "timestamp": "1756240495",
-                      "text": {
-                        "body": "Do she"
-                      },
-                      "type": "text"
-                    }
-                  ]
-                },
-                "field": "messages"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    "whatsappWebhook": {
-      "object": "whatsapp_business_account",
-      "entry": [
-        {
-          "id": "1411124906823702",
-          "changes": [
-            {
-              "value": {
-                "messaging_product": "whatsapp",
-                "metadata": {
-                  "display_phone_number": "15556646119",
-                  "phone_number_id": "628007790405551"
-                },
-                "contacts": [
-                  {
-                    "profile": {
-                      "name": "Muhammad Tarq"
-                    },
-                    "wa_id": "9647700716669"
-                  }
-                ],
-                "messages": [
-                  {
-                    "from": "9647700716669",
-                    "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-                    "timestamp": "1756240495",
-                    "text": {
-                      "body": "Do she"
-                    },
-                    "type": "text"
-                  }
-                ]
-              },
-              "field": "messages"
-            }
-          ]
-        }
-      ]
-    },
-    "timestamp": "2025-08-26T20:34:56.277Z"
-  },
-  "trigger": "whatsapp",
-  "triggerData": {
-    "trigger": "whatsapp",
-    "data": {
-      "messageId": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-      "from": "9647700716669",
-      "phoneNumber": "9647700716669",
-      "fromName": "Muhammad Tarq",
-      "text": "Do she",
-      "messageType": "text",
-      "timestamp": "2025-08-26T20:34:55.000Z",
-      "contact": {
-        "profile": {
-          "name": "Muhammad Tarq"
-        },
-        "wa_id": "9647700716669"
-      },
-      "rawMessage": {
-        "from": "9647700716669",
-        "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-        "timestamp": "1756240495",
-        "text": {
-          "body": "Do she"
-        },
-        "type": "text"
-      },
-      "rawWebhook": {
-        "object": "whatsapp_business_account",
-        "entry": [
-          {
-            "id": "1411124906823702",
-            "changes": [
-              {
-                "value": {
-                  "messaging_product": "whatsapp",
-                  "metadata": {
-                    "display_phone_number": "15556646119",
-                    "phone_number_id": "628007790405551"
-                  },
-                  "contacts": [
-                    {
-                      "profile": {
-                        "name": "Muhammad Tarq"
-                      },
-                      "wa_id": "9647700716669"
-                    }
-                  ],
-                  "messages": [
-                    {
-                      "from": "9647700716669",
-                      "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-                      "timestamp": "1756240495",
-                      "text": {
-                        "body": "Do she"
-                      },
-                      "type": "text"
-                    }
-                  ]
-                },
-                "field": "messages"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    "whatsappWebhook": {
-      "object": "whatsapp_business_account",
-      "entry": [
-        {
-          "id": "1411124906823702",
-          "changes": [
-            {
-              "value": {
-                "messaging_product": "whatsapp",
-                "metadata": {
-                  "display_phone_number": "15556646119",
-                  "phone_number_id": "628007790405551"
-                },
-                "contacts": [
-                  {
-                    "profile": {
-                      "name": "Muhammad Tarq"
-                    },
-                    "wa_id": "9647700716669"
-                  }
-                ],
-                "messages": [
-                  {
-                    "from": "9647700716669",
-                    "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-                    "timestamp": "1756240495",
-                    "text": {
-                      "body": "Do she"
-                    },
-                    "type": "text"
-                  }
-                ]
-              },
-              "field": "messages"
-            }
-          ]
-        }
-      ]
-    },
-    "timestamp": "2025-08-26T20:34:56.277Z"
-  },
-  "whatsapp": {
-    "trigger": "whatsapp",
-    "data": {
-      "messageId": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-      "from": "9647700716669",
-      "phoneNumber": "9647700716669",
-      "fromName": "Muhammad Tarq",
-      "text": "Do she",
-      "messageType": "text",
-      "timestamp": "2025-08-26T20:34:55.000Z",
-      "contact": {
-        "profile": {
-          "name": "Muhammad Tarq"
-        },
-        "wa_id": "9647700716669"
-      },
-      "rawMessage": {
-        "from": "9647700716669",
-        "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-        "timestamp": "1756240495",
-        "text": {
-          "body": "Do she"
-        },
-        "type": "text"
-      },
-      "rawWebhook": {
-        "object": "whatsapp_business_account",
-        "entry": [
-          {
-            "id": "1411124906823702",
-            "changes": [
-              {
-                "value": {
-                  "messaging_product": "whatsapp",
-                  "metadata": {
-                    "display_phone_number": "15556646119",
-                    "phone_number_id": "628007790405551"
-                  },
-                  "contacts": [
-                    {
-                      "profile": {
-                        "name": "Muhammad Tarq"
-                      },
-                      "wa_id": "9647700716669"
-                    }
-                  ],
-                  "messages": [
-                    {
-                      "from": "9647700716669",
-                      "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-                      "timestamp": "1756240495",
-                      "text": {
-                        "body": "Do she"
-                      },
-                      "type": "text"
-                    }
-                  ]
-                },
-                "field": "messages"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    "whatsappWebhook": {
-      "object": "whatsapp_business_account",
-      "entry": [
-        {
-          "id": "1411124906823702",
-          "changes": [
-            {
-              "value": {
-                "messaging_product": "whatsapp",
-                "metadata": {
-                  "display_phone_number": "15556646119",
-                  "phone_number_id": "628007790405551"
-                },
-                "contacts": [
-                  {
-                    "profile": {
-                      "name": "Muhammad Tarq"
-                    },
-                    "wa_id": "9647700716669"
-                  }
-                ],
-                "messages": [
-                  {
-                    "from": "9647700716669",
-                    "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-                    "timestamp": "1756240495",
-                    "text": {
-                      "body": "Do she"
-                    },
-                    "type": "text"
-                  }
-                ]
-              },
-              "field": "messages"
-            }
-          ]
-        }
-      ]
-    },
-    "timestamp": "2025-08-26T20:34:56.277Z"
-  },
-  "message": {
-    "trigger": "whatsapp",
-    "data": {
-      "messageId": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-      "from": "9647700716669",
-      "phoneNumber": "9647700716669",
-      "fromName": "Muhammad Tarq",
-      "text": "Do she",
-      "messageType": "text",
-      "timestamp": "2025-08-26T20:34:55.000Z",
-      "contact": {
-        "profile": {
-          "name": "Muhammad Tarq"
-        },
-        "wa_id": "9647700716669"
-      },
-      "rawMessage": {
-        "from": "9647700716669",
-        "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-        "timestamp": "1756240495",
-        "text": {
-          "body": "Do she"
-        },
-        "type": "text"
-      },
-      "rawWebhook": {
-        "object": "whatsapp_business_account",
-        "entry": [
-          {
-            "id": "1411124906823702",
-            "changes": [
-              {
-                "value": {
-                  "messaging_product": "whatsapp",
-                  "metadata": {
-                    "display_phone_number": "15556646119",
-                    "phone_number_id": "628007790405551"
-                  },
-                  "contacts": [
-                    {
-                      "profile": {
-                        "name": "Muhammad Tarq"
-                      },
-                      "wa_id": "9647700716669"
-                    }
-                  ],
-                  "messages": [
-                    {
-                      "from": "9647700716669",
-                      "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-                      "timestamp": "1756240495",
-                      "text": {
-                        "body": "Do she"
-                      },
-                      "type": "text"
-                    }
-                  ]
-                },
-                "field": "messages"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    "whatsappWebhook": {
-      "object": "whatsapp_business_account",
-      "entry": [
-        {
-          "id": "1411124906823702",
-          "changes": [
-            {
-              "value": {
-                "messaging_product": "whatsapp",
-                "metadata": {
-                  "display_phone_number": "15556646119",
-                  "phone_number_id": "628007790405551"
-                },
-                "contacts": [
-                  {
-                    "profile": {
-                      "name": "Muhammad Tarq"
-                    },
-                    "wa_id": "9647700716669"
-                  }
-                ],
-                "messages": [
-                  {
-                    "from": "9647700716669",
-                    "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-                    "timestamp": "1756240495",
-                    "text": {
-                      "body": "Do she"
-                    },
-                    "type": "text"
-                  }
-                ]
-              },
-              "field": "messages"
-            }
-          ]
-        }
-      ]
-    },
-    "timestamp": "2025-08-26T20:34:56.277Z"
-  },
-  "data": {
-    "messageId": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-    "from": "9647700716669",
-    "phoneNumber": "9647700716669",
-    "fromName": "Muhammad Tarq",
-    "text": "Do she",
-    "messageType": "text",
-    "timestamp": "2025-08-26T20:34:55.000Z",
-    "contact": {
-      "profile": {
-        "name": "Muhammad Tarq"
-      },
-      "wa_id": "9647700716669"
-    },
-    "rawMessage": {
-      "from": "9647700716669",
-      "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-      "timestamp": "1756240495",
-      "text": {
-        "body": "Do she"
-      },
-      "type": "text"
-    },
-    "rawWebhook": {
-      "object": "whatsapp_business_account",
-      "entry": [
-        {
-          "id": "1411124906823702",
-          "changes": [
-            {
-              "value": {
-                "messaging_product": "whatsapp",
-                "metadata": {
-                  "display_phone_number": "15556646119",
-                  "phone_number_id": "628007790405551"
-                },
-                "contacts": [
-                  {
-                    "profile": {
-                      "name": "Muhammad Tarq"
-                    },
-                    "wa_id": "9647700716669"
-                  }
-                ],
-                "messages": [
-                  {
-                    "from": "9647700716669",
-                    "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-                    "timestamp": "1756240495",
-                    "text": {
-                      "body": "Do she"
-                    },
-                    "type": "text"
-                  }
-                ]
-              },
-              "field": "messages"
-            }
-          ]
-        }
-      ]
-    }
-  },
-  "whatsappWebhook": {
-    "object": "whatsapp_business_account",
-    "entry": [
-      {
-        "id": "1411124906823702",
-        "changes": [
-          {
-            "value": {
-              "messaging_product": "whatsapp",
-              "metadata": {
-                "display_phone_number": "15556646119",
-                "phone_number_id": "628007790405551"
-              },
-              "contacts": [
-❌ Node execution failed: whatsappSendMessage (dndnode_1)
-                {
-                  "profile": {
-                    "name": "Muhammad Tarq"
-                  },
-                  "wa_id": "9647700716669"
-                }
-              ],
-              "messages": [
-                {
-                  "from": "9647700716669",
-                  "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-                  "timestamp": "1756240495",
-                  "text": {
-                    "body": "Do she"
-                  },
-                  "type": "text"
-                }
-              ]
-            },
-            "field": "messages"
-          }
-        ]
-      }
-    ]
-  },
-  "timestamp": "2025-08-26T20:34:56.277Z"
-}
-🔧 Executing node: whatsappSendMessage (dndnode_1) [Attempt 1/4]
-📋 Raw ConfigPanel data: {
-  "label": "Send WhatsApp Message",
-  "icon": "fa-whatsapp",
-  "color": "text-green-500",
-  "description": "Send WhatsApp messages via WhatsApp Business API",
-  "type": "whatsappSendMessage"
-}
-🔍 Resolving templates for whatsappSendMessage node...
-🔍 Enhanced template resolution context:
-  - Available step keys: [ 'step_1_WhatsApp_Trigger' ]
-  - Total context keys: 11
-  - Sample context: {
-  "step_1_WhatsApp_Trigger": {
-    "trigger": "whatsapp",
-    "data": {
-      "messageId": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBNzEwOUU0NTQwOTc3MTk1NjQzAA==",
-      "from": "9647700716669",
-      "phoneNumber": "9647700716669",
-      "fromName": "Muhammad Tarq",
-      "text": "Do she",
-      "messageType": "text",
-      "timestamp": "2025-08-26T20:34:55.000Z",
-      "contact": {
-        "profile": {
-          "name": "Muhammad Tarq"
-        },
-        "wa_id": "9647700716669"
-      },
-      ...
-✨ Resolved ConfigPanel data: {
-  "label": "Send WhatsApp Message",
-  "icon": "fa-whatsapp",
-  "color": "text-green-500",
-  "description": "Send WhatsApp messages via WhatsApp Business API",
-  "type": "whatsappSendMessage"
-}
-[2025-08-26T20:34:56.280Z] INFO: Request completed {"method":"POST","url":"/whatsapp","status":200,"duration":"6ms"}
-❌ Error details: Unsupported node type: whatsappSendMessage
-❌ Stack trace: Error: Unsupported node type: whatsappSendMessage
-    at WorkflowExecutor.executeNodeByType (/opt/render/project/src/backend/services/workflowExecutor.js:463:23)
-    at WorkflowExecutor.executeNode (/opt/render/project/src/backend/services/workflowExecutor.js:394:31)
-    at WorkflowExecutor.executeWorkflow (/opt/render/project/src/backend/services/workflowExecutor.js:179:49)
-    at processWhatsAppWebhookForWorkflow (/opt/render/project/src/backend/routes/webhooks.js:1663:30)
-    at processWhatsAppWebhook (/opt/render/project/src/backend/routes/webhooks.js:1620:15)
-    at /opt/render/project/src/backend/routes/webhooks.js:1574:11
-    at /opt/render/project/src/backend/middleware/errorHandler.js:55:21
-    at Layer.handle [as handle_request] (/opt/render/project/src/backend/node_modules/express/lib/router/layer.js:95:5)
-    at next (/opt/render/project/src/backend/node_modules/express/lib/router/route.js:149:13)
-    at Route.dispatch (/opt/render/project/src/backend/node_modules/express/lib/router/route.js:119:3)
-💥 Node execution failed permanently after 1 attempts
-📊 STRUCTURED ERROR LOG: {
-  "timestamp": "2025-08-26T20:34:56.281Z",
-  "nodeType": "whatsappSendMessage",
-  "nodeLabel": "Send WhatsApp Message",
-  "errorType": "Error",
-  "errorMessage": "Unsupported node type: whatsappSendMessage",
-  "attemptCount": 1,
-  "isRetryable": false,
-  "stackTrace": "Error: Unsupported node type: whatsappSendMessage\n    at WorkflowExecutor.executeNodeByType (/opt/render/project/src/backend/services/workflowExecutor.js:463:23)\n    at WorkflowExecutor.executeNode (/opt/render/project/src/backend/services/workflowExecutor.js:394:31)\n    at WorkflowExecutor.executeWorkflow (/opt/render/project/src/backend/services/workflowExecutor.js:179:49)\n    at processWhatsAppWebhookForWorkflow (/opt/render/project/src/backend/routes/webhooks.js:1663:30)\n    at processWhatsAppWebhook (/opt/render/project/src/backend/routes/webhooks.js:1620:15)\n    at /opt/render/project/src/backend/routes/webhooks.js:1574:11\n    at /opt/render/project/src/backend/middleware/errorHandler.js:55:21\n    at Layer.handle [as handle_request] (/opt/render/project/src/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/opt/render/project/src/backend/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/opt/render/project/src/backend/node_modules/express/lib/router/route.js:119:3)"
-}
-🚨 Node execution failed in workflow: {
-  message: 'Unsupported node type: whatsappSendMessage',
-  type: 'Error',
-  code: 'EXECUTION_ERROR',
-  retryCount: 1,
-  isRetryable: false,
-  timestamp: '2025-08-26T20:34:56.281Z',
-  nodeId: 'dndnode_1',
-  nodeType: 'whatsappSendMessage',
-  nodeLabel: 'Send WhatsApp Message'
-}
-⚠️ Continuing workflow execution despite node error
-✅ Added node step: step_2_Send_WhatsApp_Message with type alias: whatsappSendMessage
-Step 2 completed: ✅
-=== WORKFLOW untitled-workflow-zk1ulg COMPLETED ===
-Total steps: 2
-Duration: 4ms
+[2025-08-26T22:52:04.694Z] INFO: Request completed {"method":"PUT","url":"/workflow-3-aqi3ik","status":404,"duration":"1ms"}
