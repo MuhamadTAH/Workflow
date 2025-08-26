@@ -467,6 +467,14 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
       chatbotSubtitle: node.data.chatbotSubtitle || 'How can we help you?',
       chatbotTheme: node.data.chatbotTheme || '#667eea',
       enableChatbot: node.data.enableChatbot !== undefined ? node.data.enableChatbot : true,
+      // WhatsApp Trigger specific fields
+      appId: node.data.appId || '',
+      clientSecret: node.data.clientSecret || '',
+      // WhatsApp Send Message specific fields (n8n-style parameters)
+      accessToken: node.data.accessToken || '',
+      businessId: node.data.businessId || '',
+      phoneNumberId: node.data.phoneNumberId || '',
+      recipientPhoneNumber: node.data.recipientPhoneNumber || '',
   });
 
   // Chat Trigger specific state for real-time messages
