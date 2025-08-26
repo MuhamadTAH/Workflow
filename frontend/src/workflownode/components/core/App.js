@@ -362,6 +362,12 @@ const App = ({ botContext }) => {
                 return node;
             })
         );
+        
+        // Auto-save to database when parameters are updated
+        console.log('🔄 Auto-saving workflow after parameter update...');
+        setTimeout(() => {
+          handleSave();
+        }, 500); // Small delay to ensure state is updated
     }
     setSelectedNode(null); // Close the panel
   };
@@ -380,7 +386,9 @@ const App = ({ botContext }) => {
   }, [setNodes]);
 
   // Toolbar action handlers
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
+    console.log('💾 Saving workflow to database...');
+    
     // Create workflow data to save
     const workflowId = currentWorkflowId || generateWorkflowId();
     const workflowData = {
@@ -388,45 +396,125 @@ const App = ({ botContext }) => {
       name: workflowName,
       description: `Workflow with ${nodes.length} nodes`,
       nodes: nodes,
-      edges: edges,
+      connections: edges, // Backend expects "connections", not "edges"
       createdAt: currentWorkflowId ? undefined : new Date().toISOString(), // Keep original creation date if editing
       updatedAt: new Date().toISOString(),
     };
 
-    // Get existing workflows from localStorage
-    const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
-    
-    // Check if workflow already exists (editing existing workflow)
-    const existingIndex = savedWorkflows.findIndex(w => w.id === workflowId);
-    
-    if (existingIndex >= 0) {
-      // Update existing workflow, preserve creation date
-      savedWorkflows[existingIndex] = { 
-        ...savedWorkflows[existingIndex], 
-        ...workflowData,
-        createdAt: savedWorkflows[existingIndex].createdAt, // Keep original creation date
-        updatedAt: new Date().toISOString() 
-      };
-    } else {
-      // Add new workflow
-      workflowData.createdAt = new Date().toISOString();
-      savedWorkflows.push(workflowData);
-      setCurrentWorkflowId(workflowId); // Set current workflow ID for future saves
-    }
+    console.log('💾 Workflow data to save:', JSON.stringify({
+      ...workflowData,
+      nodes: `${workflowData.nodes.length} nodes`,
+      connections: `${workflowData.connections.length} connections`
+    }, null, 2));
 
-    // Save to localStorage
-    localStorage.setItem('savedWorkflows', JSON.stringify(savedWorkflows));
-    
-    setLastSaved('just now');
-    
-    // Update saved state to mark as no longer having unsaved changes
-    const newSavedState = createStateSnapshot();
-    setLastSavedState(newSavedState);
-    setHasUnsavedChanges(false);
-    
-    
-    alert(`✅ Workflow "${workflowName}" saved successfully!`);
-  }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId, navigate, createStateSnapshot]);
+    try {
+      // Save to database first
+      const token = localStorage.getItem('token');
+      const isNewWorkflow = !currentWorkflowId;
+      
+      const apiUrl = isNewWorkflow 
+        ? `${API_BASE}/api/workflows`
+        : `${API_BASE}/api/workflows/${workflowId}`;
+      
+      const method = isNewWorkflow ? 'POST' : 'PUT';
+      
+      console.log(`💾 Making ${method} request to ${apiUrl}`);
+      
+      const response = await fetch(apiUrl, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: workflowData.name,
+          description: workflowData.description,
+          nodes: workflowData.nodes,
+          connections: workflowData.connections
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Handle token expiration
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+          return;
+        }
+        throw new Error(result.error || `Database save failed: ${response.status}`);
+      }
+
+      console.log('✅ Database save successful:', result);
+
+      // Set current workflow ID for future saves (for new workflows)
+      if (isNewWorkflow && result.workflow?.id) {
+        setCurrentWorkflowId(result.workflow.id.toString());
+      }
+
+      // Also save to localStorage for offline access
+      const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
+      
+      // Check if workflow already exists (editing existing workflow)
+      const existingIndex = savedWorkflows.findIndex(w => w.id === workflowId);
+      
+      if (existingIndex >= 0) {
+        // Update existing workflow, preserve creation date
+        savedWorkflows[existingIndex] = { 
+          ...savedWorkflows[existingIndex], 
+          ...workflowData,
+          createdAt: savedWorkflows[existingIndex].createdAt, // Keep original creation date
+          updatedAt: new Date().toISOString() 
+        };
+      } else {
+        // Add new workflow
+        workflowData.createdAt = new Date().toISOString();
+        savedWorkflows.push(workflowData);
+      }
+
+      // Save to localStorage
+      localStorage.setItem('savedWorkflows', JSON.stringify(savedWorkflows));
+      
+      setLastSaved('just now');
+      
+      // Update saved state to mark as no longer having unsaved changes
+      const newSavedState = createStateSnapshot();
+      setLastSavedState(newSavedState);
+      setHasUnsavedChanges(false);
+      
+      alert(`✅ Workflow "${workflowName}" saved successfully to database!`);
+
+    } catch (error) {
+      console.error('❌ Database save error:', error);
+      alert(`❌ Failed to save workflow to database: ${error.message}\n\nWorkflow saved to local storage only.`);
+      
+      // Still save to localStorage as fallback
+      const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
+      
+      const existingIndex = savedWorkflows.findIndex(w => w.id === workflowId);
+      
+      if (existingIndex >= 0) {
+        savedWorkflows[existingIndex] = { 
+          ...savedWorkflows[existingIndex], 
+          ...workflowData,
+          createdAt: savedWorkflows[existingIndex].createdAt,
+          updatedAt: new Date().toISOString() 
+        };
+      } else {
+        workflowData.createdAt = new Date().toISOString();
+        savedWorkflows.push(workflowData);
+        setCurrentWorkflowId(workflowId);
+      }
+
+      localStorage.setItem('savedWorkflows', JSON.stringify(savedWorkflows));
+      setLastSaved('just now (local only)');
+      
+      const newSavedState = createStateSnapshot();
+      setLastSavedState(newSavedState);
+      setHasUnsavedChanges(false);
+    }
+  }, [workflowName, nodes, edges, currentWorkflowId, generateWorkflowId, createStateSnapshot]);
 
   const handleActivate = useCallback(async () => {
     console.log('🚀 FRONTEND ACTIVATION STARTING...');
