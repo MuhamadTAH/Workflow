@@ -11,6 +11,7 @@ const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
 const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
+const whatsappSendMessageNode = require('../nodes/actions/whatsappSendMessageNode');
 // Removed: MultiLanguageChatResponseNode (old system deleted)
 
 class WorkflowExecutor {
@@ -454,6 +455,8 @@ class WorkflowExecutor {
             case 'telegramSendMessage':
                 return await telegramSendMessageNode.execute(resolvedConfig, inputData, connectedNodes);
             
+            case 'whatsappSendMessage':
+                return await whatsappSendMessageNode.execute(resolvedConfig, inputData, connectedNodes);
             
             case 'multiLanguageChatResponse':
                 // Removed: MultiLanguageChatResponseNode (old system deleted)
@@ -1115,6 +1118,20 @@ class WorkflowExecutor {
                         messageId: 'dry_run_message_' + Date.now(),
                         chatId: node.data.chatId || 'dry_run_chat',
                         text: node.data.messageText || 'DRY RUN: Message content',
+                        sentAt: new Date().toISOString(),
+                        dryRun: true
+                    }
+                };
+                
+            case 'whatsappSendMessage':
+                return {
+                    success: true,
+                    message: 'DRY RUN: WhatsApp message would be sent',
+                    outputData: {
+                        messageId: 'dry_run_whatsapp_' + Date.now(),
+                        from: node.data.phoneNumberId || 'dry_run_phone',
+                        to: node.data.recipientPhoneNumber || 'dry_run_recipient',
+                        text: node.data.messageText || 'DRY RUN: WhatsApp message content',
                         sentAt: new Date().toISOString(),
                         dryRun: true
                     }
