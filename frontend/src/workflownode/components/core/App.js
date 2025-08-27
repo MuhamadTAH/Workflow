@@ -446,11 +446,15 @@ const App = ({ botContext }) => {
       updatedAt: new Date().toISOString(),
     };
 
-    console.log('💾 Workflow data to save:', JSON.stringify({
-      ...workflowData,
-      nodes: `${workflowData.nodes.length} nodes`,
-      connections: `${workflowData.connections.length} connections`
-    }, null, 2));
+    console.log('💾 Workflow data to save (SUMMARY):', {
+      id: workflowData.id,
+      name: workflowData.name,
+      nodeCount: workflowData.nodes.length,
+      connectionCount: workflowData.connections.length
+    });
+    
+    console.log('💾 ACTUAL NODES DATA being sent:', workflowData.nodes);
+    console.log('💾 ACTUAL CONNECTIONS DATA being sent:', workflowData.connections);
 
     try {
       // Save to database first
