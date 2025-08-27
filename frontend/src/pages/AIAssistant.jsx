@@ -5,6 +5,11 @@ function AIAssistant() {
   const [isAiActive, setIsAiActive] = useState(false);
   const [isHumanTakeoverActive, setIsHumanTakeoverActive] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [currentAssistantId] = useState(1);
+  
+  // API Configuration - Using production URLs from rules.md
+  const API_BASE = 'https://workflow-lg9z.onrender.com/api';
+  const WS_BASE = 'https://workflow-lg9z.onrender.com';
 
   // Mock data
   const users = {
@@ -79,10 +84,124 @@ function AIAssistant() {
     }
   };
 
+  // API Functions
+  const testTelegramToken = async () => {
+    const tokenInput = document.getElementById('bot-token');
+    const statusDiv = document.getElementById('telegram-status');
+    
+    if (!tokenInput || !tokenInput.value.trim()) {
+      alert('Please enter a Telegram bot token');
+      return;
+    }
+    
+    // Show loading
+    statusDiv.innerHTML = '<span class="status-dot status-not-connected animate-pulse"></span><span class="text-yellow-600">Testing...</span>';
+    
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/test-telegram`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          telegram_token: tokenInput.value.trim() 
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        statusDiv.innerHTML = '<span class="status-dot status-connected"></span><span class="text-green-600">Connected</span>';
+      } else {
+        statusDiv.innerHTML = '<span class="status-dot status-not-connected"></span><span class="text-red-600">Failed</span>';
+      }
+    } catch (error) {
+      console.error('Telegram test failed:', error);
+      statusDiv.innerHTML = '<span class="status-dot status-not-connected"></span><span class="text-red-600">Error</span>';
+    }
+  };
+
+  const testAiApi = async () => {
+    const keyInput = document.getElementById('api-key');
+    const statusDiv = document.getElementById('api-status');
+    
+    if (!keyInput || !keyInput.value.trim()) {
+      alert('Please enter an API key');
+      return;
+    }
+    
+    // Show loading
+    statusDiv.innerHTML = '<span class="status-dot status-not-connected animate-pulse"></span><span class="text-yellow-600">Testing...</span>';
+    
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/test-ai-api`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          ai_api_key: keyInput.value.trim() 
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        statusDiv.innerHTML = '<span class="status-dot status-connected"></span><span class="text-green-600">Connected</span>';
+      } else {
+        statusDiv.innerHTML = '<span class="status-dot status-not-connected"></span><span class="text-red-600">Failed</span>';
+      }
+    } catch (error) {
+      console.error('AI API test failed:', error);
+      statusDiv.innerHTML = '<span class="status-dot status-not-connected"></span><span class="text-red-600">Error</span>';
+    }
+  };
+
+  const activateAI = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/activate`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const result = await response.json();
+      return result.success;
+    } catch (error) {
+      console.error('AI activation failed:', error);
+      return false;
+    }
+  };
+
+  const deactivateAI = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/deactivate`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const result = await response.json();
+      return result.success;
+    } catch (error) {
+      console.error('AI deactivation failed:', error);
+      return false;
+    }
+  };
+
   // Initialize
   useEffect(() => {
     // Set default template
     applyTemplate('customer-service');
+    
+    // Set up authentication token
+    localStorage.setItem('token', 'MOCK_TOKEN_FOR_TESTING_test-user-1');
     
     // Collapse panels by default
     setTimeout(() => {
@@ -108,6 +227,31 @@ function AIAssistant() {
 
   const deleteFile = (index) => {
     setUploadedFiles(files => files.filter((_, i) => i !== index));
+  };
+
+  const handleAiActivation = async () => {
+    if (isAiActive) {
+      const success = await deactivateAI();
+      if (success) {
+        setIsAiActive(false);
+        if (!isHumanTakeoverActive) {
+          // Update status to inactive
+        }
+      }
+    } else {
+      const success = await activateAI();
+      if (success) {
+        setIsAiActive(true);
+        setIsHumanTakeoverActive(false);
+      }
+    }
+  };
+
+  const handleHumanTakeover = () => {
+    setIsHumanTakeoverActive(!isHumanTakeoverActive);
+    if (!isHumanTakeoverActive) {
+      setIsAiActive(false);
+    }
   };
 
   return (
@@ -236,7 +380,7 @@ function AIAssistant() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex gap-2">
-                      <button className="btn btn-primary text-sm">Test</button>
+                      <button onClick={testTelegramToken} className="btn btn-primary text-sm">Test</button>
                       <button className="btn btn-secondary text-sm">Guide</button>
                     </div>
                     <div id="telegram-status" className="flex items-center text-sm font-medium">
@@ -278,7 +422,7 @@ function AIAssistant() {
                     </select>
                   </div>
                   <div className="flex items-center justify-between">
-                    <button className="btn btn-primary text-sm">Test API</button>
+                    <button onClick={testAiApi} className="btn btn-primary text-sm">Test API</button>
                     <div id="api-status" className="flex items-center text-sm font-medium">
                       <span className="status-dot status-not-connected"></span>
                       <span className="text-gray-500">Offline</span>
@@ -472,7 +616,7 @@ function AIAssistant() {
                       <button 
                         id="activation-btn" 
                         className={`btn w-full h-14 text-lg font-bold tracking-wider ${isAiActive ? 'bg-red-600 hover:bg-red-700 text-white' : 'btn-primary'}`}
-                        onClick={() => setIsAiActive(!isAiActive)}
+                        onClick={handleAiActivation}
                       >
                         <i data-lucide={isAiActive ? "pause-circle" : "rocket"} className="w-5 h-5 mr-2"></i>
                         {isAiActive ? 'DEACTIVATE AI' : 'ACTIVATE AI'}
@@ -480,7 +624,7 @@ function AIAssistant() {
                       <button 
                         id="human-takeover-btn" 
                         className={`btn w-full h-10 text-base font-bold ${isHumanTakeoverActive ? 'bg-green-600 text-white hover:bg-green-700' : 'btn-secondary'}`}
-                        onClick={() => setIsHumanTakeoverActive(!isHumanTakeoverActive)}
+                        onClick={handleHumanTakeover}
                       >
                         <i data-lucide={isHumanTakeoverActive ? "user-check" : "user-cog"} className="w-4 h-4 mr-2"></i>
                         {isHumanTakeoverActive ? 'End Takeover' : 'Human Takeover'}
