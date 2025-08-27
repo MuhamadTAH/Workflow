@@ -463,12 +463,19 @@ const App = ({ botContext }) => {
       if (isNewWorkflow && result.workflow?.id) {
         console.log('🔄 DEBUG: Setting new workflow ID:', result.workflow.id.toString());
         
-        // Check if localStorage has any status for this workflow
+        // CLEAR any existing status for this workflow ID to prevent auto-activation
         const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
-        console.log('🔄 DEBUG: Current localStorage workflowStatuses:', workflowStatuses);
-        console.log('🔄 DEBUG: Status for this workflow:', workflowStatuses[result.workflow.id.toString()]);
+        const workflowIdStr = result.workflow.id.toString();
         
-        setCurrentWorkflowId(result.workflow.id.toString());
+        console.log('🔄 DEBUG: Status BEFORE clearing:', workflowStatuses[workflowIdStr]);
+        
+        // Clear the status for this workflow (new workflows should start inactive)
+        delete workflowStatuses[workflowIdStr];
+        localStorage.setItem('workflowStatuses', JSON.stringify(workflowStatuses));
+        
+        console.log('🔄 DEBUG: Status AFTER clearing:', workflowStatuses[workflowIdStr]);
+        
+        setCurrentWorkflowId(workflowIdStr);
       }
 
       // Also save to localStorage for offline access
