@@ -192,9 +192,19 @@ const App = ({ botContext }) => {
     if (currentWorkflowId) {
       const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
       const currentStatus = workflowStatuses[currentWorkflowId];
+      
+      console.log('🔄 DEBUG: LocalStorage sync check:', {
+        currentWorkflowId,
+        currentStatus,
+        isActivated,
+        allStatuses: workflowStatuses
+      });
+      
       if (currentStatus === 'active' && !isActivated) {
+        console.log('🚨 AUTO-ACTIVATION TRIGGER: LocalStorage says active, setting isActivated=true');
         setIsActivated(true);
       } else if (currentStatus === 'inactive' && isActivated) {
+        console.log('🔄 Auto-deactivation: LocalStorage says inactive, setting isActivated=false');
         setIsActivated(false);
       }
     }
@@ -385,6 +395,10 @@ const App = ({ botContext }) => {
   // Toolbar action handlers
   const handleSave = useCallback(async () => {
     console.log('💾 Saving workflow to database...');
+    console.log('💾 DEBUG: Current nodes state:', nodes);
+    console.log('💾 DEBUG: Current edges state:', edges);
+    console.log('💾 DEBUG: Nodes count:', nodes.length);
+    console.log('💾 DEBUG: Edges count:', edges.length);
     
     // Create workflow data to save
     const workflowId = currentWorkflowId || generateWorkflowId();
@@ -447,6 +461,13 @@ const App = ({ botContext }) => {
 
       // Set current workflow ID for future saves (for new workflows)
       if (isNewWorkflow && result.workflow?.id) {
+        console.log('🔄 DEBUG: Setting new workflow ID:', result.workflow.id.toString());
+        
+        // Check if localStorage has any status for this workflow
+        const workflowStatuses = JSON.parse(localStorage.getItem('workflowStatuses') || '{}');
+        console.log('🔄 DEBUG: Current localStorage workflowStatuses:', workflowStatuses);
+        console.log('🔄 DEBUG: Status for this workflow:', workflowStatuses[result.workflow.id.toString()]);
+        
         setCurrentWorkflowId(result.workflow.id.toString());
       }
 
