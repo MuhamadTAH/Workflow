@@ -30,6 +30,11 @@ function LeftSidebar() {
       icon: 'fas fa-comments'
     },
     {
+      name: 'AI Assistant',
+      path: '/ai-assistant',
+      icon: 'fas fa-robot'
+    },
+    {
       name: 'Shop',
       path: '/shop',
       icon: 'fas fa-store'
