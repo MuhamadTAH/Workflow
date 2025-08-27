@@ -1102,8 +1102,13 @@ const ConfigPanel = ({ node, nodes, edges, onClose, onNodeUpdate, workflowId }) 
   };
 
   const handleClose = () => {
+    // DEBUG: Log what's in formData before filtering
+    console.log('🔧 ConfigPanel handleClose - Raw formData:', formData);
+    
     // Filter formData to only include relevant fields for this node type
     const filteredData = getFilteredConfig(node.data.type, formData);
+    
+    console.log('🔧 ConfigPanel handleClose - Filtered data:', filteredData);
     
     // Always include basic node properties
     const allUpdatedData = { 
