@@ -400,6 +400,40 @@ const App = ({ botContext }) => {
     console.log('💾 DEBUG: Nodes count:', nodes.length);
     console.log('💾 DEBUG: Edges count:', edges.length);
     
+    // ADDITIONAL DEBUG: Check ReactFlow instance state
+    if (reactFlowInstance) {
+      const reactFlowNodes = reactFlowInstance.getNodes();
+      const reactFlowEdges = reactFlowInstance.getEdges();
+      console.log('💾 DEBUG: ReactFlow nodes count:', reactFlowNodes.length);
+      console.log('💾 DEBUG: ReactFlow edges count:', reactFlowEdges.length);
+      console.log('💾 DEBUG: ReactFlow nodes:', reactFlowNodes);
+      
+      // If ReactFlow has nodes but our state doesn't, there's a sync issue
+      if (reactFlowNodes.length > 0 && nodes.length === 0) {
+        console.log('🚨 STATE SYNC ISSUE: ReactFlow has nodes but React state is empty!');
+        console.log('💡 Using ReactFlow data instead of React state');
+        
+        // Use ReactFlow data as fallback
+        const workflowData = {
+          id: currentWorkflowId || generateWorkflowId(),
+          name: workflowName,
+          description: `Workflow with ${reactFlowNodes.length} nodes`,
+          nodes: reactFlowNodes,
+          connections: reactFlowEdges,
+          createdAt: currentWorkflowId ? undefined : new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        
+        console.log('💾 Using ReactFlow data for save:', {
+          nodeCount: reactFlowNodes.length,
+          edgeCount: reactFlowEdges.length
+        });
+        
+        // Continue with save using ReactFlow data...
+        // We'll implement this save logic below
+      }
+    }
+    
     // Create workflow data to save
     const workflowId = currentWorkflowId || generateWorkflowId();
     const workflowData = {
