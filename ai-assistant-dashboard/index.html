@@ -1,51 +1,3 @@
-Project Report: Easy AI Assistant Dashboard
-1. Project Overview
-
-The "Easy AI Assistant" is a comprehensive web-based dashboard designed for the setup, management, and real-time monitoring of an AI-powered customer service system. The user interface has been meticulously designed to be intuitive and efficient, separating one-time configuration from daily operational tasks. The result is a clean, powerful, and user-friendly platform that simplifies a complex workflow.
-
-2. Key Features & Functionality
-
-The application is logically divided into two main areas: a collapsible configuration sidebar and a multi-panel main dashboard for live operations.
-
-A. Configuration Sidebar:
-This section contains all the necessary setup steps, organized into collapsible panels to maintain a clean workspace.
-
-Telegram Bot Setup: Securely input a bot token with options to test the connection.
-
-AI Model Settings: Configure the AI provider (e.g., OpenAI, Claude), enter an API key, and select the specific model to be used.
-
-AI Behavior Instructions: A large text area for the system prompt, complete with pre-built templates for different roles (Customer Service, Tech Support, etc.).
-
-Knowledge Base: An intuitive drag-and-drop area for uploading documents (PDF, DOCX, etc.) that will serve as the AI's source of information.
-
-B. Live Operations Dashboard:
-The main view is a dynamic, three-column layout designed for active management.
-
-Conversations Panel: Displays a list of all active user chats. Clicking a user in this list dynamically updates the other panels with their specific information and chat history.
-
-Live Feed Panel: The central panel shows the selected conversation in real-time, distinguishing between messages from the customer, the AI, and a human agent. It includes a full-featured input area for manual intervention, allowing agents to send text, images, and voice messages.
-
-Control & Information Panel: This area is split into two compact sections:
-
-Current User Information: Displays the profile picture, name, user ID, and other relevant details of the currently selected user.
-
-System Control: Features the primary controls to activate or deactivate the AI assistant and to initiate or end a "Human Takeover." The two modes are mutually exclusive to prevent conflicts.
-
-3. UI/UX Design Highlights
-
-Modern & Clean Aesthetic: The interface uses a professional color palette with clear visual hierarchy, powered by Tailwind CSS.
-
-Fully Responsive: The layout seamlessly adapts from large desktop monitors down to mobile devices, ensuring full functionality on any platform.
-
-Interactive & Intuitive: The design is highly interactive, featuring smooth animations for collapsing panels, a dynamic sidebar toggle, and clear status indicators (e.g., "Active," "Inactive," "Human Control").
-
-User-Centric Workflow: The separation of configuration and operation allows users to focus on the task at hand without unnecessary clutter.
-
-4. Current Status
-
-The project is currently a high-fidelity, fully interactive front-end prototype. All major UI components are in place, and the core user interactions have been mocked to simulate a live environment. The design is robust, scalable, and ready for integration with a backend service to power the API connections and live chat functionality.
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,6 +7,7 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -169,7 +122,7 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
                         </div>
                         <div class="flex items-center justify-between">
                             <div class="flex gap-2">
-                                <button class="btn btn-primary text-sm">Test</button>
+                                <button onclick="testTelegramToken()" class="btn btn-primary text-sm">Test</button>
                                 <button class="btn btn-secondary text-sm">Guide</button>
                             </div>
                             <div id="telegram-status" class="flex items-center text-sm font-medium">
@@ -211,7 +164,7 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
                             </select>
                         </div>
                         <div class="flex items-center justify-between">
-                             <button class="btn btn-primary text-sm">Test API</button>
+                             <button onclick="testAiApi()" class="btn btn-primary text-sm">Test API</button>
                              <div id="api-status" class="flex items-center text-sm font-medium">
                                 <span class="status-dot status-not-connected"></span>
                                 <span class="text-gray-500">Offline</span>
@@ -257,7 +210,7 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
                             <i data-lucide="upload-cloud" class="w-8 h-8 text-gray-400 mb-1"></i>
                             <p class="text-sm text-gray-500">Drop files or <span class="text-indigo-600 font-semibold">click</span></p>
                             <p class="text-xs text-gray-400 mt-1">PDF, DOCX, TXT, MD</p>
-                            <input type="file" class="hidden" multiple>
+                            <input type="file" class="hidden" multiple accept=".pdf,.docx,.txt,.md">
                         </div>
                         <div class="mt-3">
                             <h3 class="font-medium text-gray-600 mb-2 text-sm">Uploaded Files:</h3>
@@ -358,11 +311,11 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="font-medium">Conversations:</span>
-                                <span class="font-semibold text-gray-800">47</span>
+                                <span id="conversations-count" class="font-semibold text-gray-800">0</span>
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="font-medium">Success Rate:</span>
-                                <span class="font-semibold text-gray-800">89%</span>
+                                <span id="success-rate" class="font-semibold text-gray-800">0%</span>
                             </div>
                         </div>
                     </div>
@@ -372,9 +325,20 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
     </div>
 
     <script>
+        // Configuration
+        const API_BASE = 'http://localhost:3001/api';
+        const WS_BASE = 'http://localhost:3001';
+        
+        // Authentication token (replace with real auth)
+        localStorage.setItem('token', 'MOCK_TOKEN_FOR_TESTING_test-user-1');
+        
+        let currentAssistantId = 1;
+        let socket = null;
+        
+        // Initialize Lucide icons
         lucide.createIcons();
 
-        // --- Mock Data ---
+        // Mock data for initial display
         const users = {
             'john': {
                 name: 'John Doe',
@@ -417,7 +381,213 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
         };
         let activeUserId = 'john';
 
-        // --- Panel Collapse Logic ---
+        // API Integration Functions
+        async function testTelegramToken() {
+            const token = document.getElementById('bot-token').value;
+            if (!token) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/test-telegram`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ telegram_token: token })
+                });
+                
+                const result = await response.json();
+                updateTelegramStatus(result.success);
+            } catch (error) {
+                console.error('Telegram test failed:', error);
+                updateTelegramStatus(false);
+            }
+        }
+
+        async function testAiApi() {
+            const apiKey = document.getElementById('api-key').value;
+            if (!apiKey) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/test-ai-api`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ai_api_key: apiKey })
+                });
+                
+                const result = await response.json();
+                updateApiStatus(result.success);
+            } catch (error) {
+                console.error('AI API test failed:', error);
+                updateApiStatus(false);
+            }
+        }
+
+        async function uploadDocuments(files) {
+            const formData = new FormData();
+            for (let file of files) {
+                formData.append('documents', file);
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/upload-documents`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    updateFileList(result.uploaded_files);
+                }
+            } catch (error) {
+                console.error('Document upload failed:', error);
+            }
+        }
+
+        async function activateAI() {
+            try {
+                const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/activate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                const result = await response.json();
+                return result.success;
+            } catch (error) {
+                console.error('AI activation failed:', error);
+                return false;
+            }
+        }
+
+        async function deactivateAI() {
+            try {
+                const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/deactivate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                const result = await response.json();
+                return result.success;
+            } catch (error) {
+                console.error('AI deactivation failed:', error);
+                return false;
+            }
+        }
+
+        async function loadAnalytics() {
+            try {
+                const response = await fetch(`${API_BASE}/ai-assistant-advanced/analytics/overview`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    updateDashboardStats(data.analytics.overview);
+                }
+            } catch (error) {
+                console.error('Analytics loading failed:', error);
+            }
+        }
+
+        // WebSocket Connection
+        function setupWebSocketConnection() {
+            try {
+                socket = io(WS_BASE);
+                
+                socket.on('connect', () => {
+                    console.log('WebSocket connected');
+                    socket.emit('authenticate', {
+                        token: localStorage.getItem('token'),
+                        userId: 'test-user-1'
+                    });
+                });
+                
+                socket.on('authenticated', (data) => {
+                    console.log('WebSocket authenticated:', data);
+                    startMonitoring(currentAssistantId);
+                });
+                
+                socket.on('new_conversation', (data) => {
+                    console.log('New conversation:', data);
+                    // Update conversation list and feed
+                    renderConversationFeed();
+                });
+                
+                socket.on('assistant_status_change', (data) => {
+                    console.log('Status change:', data);
+                    // Update system status
+                });
+                
+            } catch (error) {
+                console.error('WebSocket connection failed:', error);
+            }
+        }
+
+        function startMonitoring(assistantId) {
+            if (socket && socket.connected) {
+                socket.emit('monitor_assistant', { assistantId });
+            }
+        }
+
+        // Status Update Functions
+        function updateTelegramStatus(success) {
+            const statusEl = document.getElementById('telegram-status');
+            if (success) {
+                statusEl.innerHTML = '<span class="status-dot status-connected"></span><span class="text-green-600">Connected</span>';
+            } else {
+                statusEl.innerHTML = '<span class="status-dot status-not-connected"></span><span class="text-red-600">Failed</span>';
+            }
+        }
+
+        function updateApiStatus(success) {
+            const statusEl = document.getElementById('api-status');
+            if (success) {
+                statusEl.innerHTML = '<span class="status-dot status-connected"></span><span class="text-green-600">Connected</span>';
+            } else {
+                statusEl.innerHTML = '<span class="status-dot status-not-connected"></span><span class="text-red-600">Failed</span>';
+            }
+        }
+
+        function updateDashboardStats(stats) {
+            document.getElementById('conversations-count').textContent = stats.total_conversations || 0;
+            const successRate = stats.overall_success_rate || 0;
+            document.getElementById('success-rate').textContent = `${successRate}%`;
+        }
+
+        function updateFileList(files) {
+            const fileList = document.getElementById('file-list');
+            fileList.innerHTML = '';
+            
+            files.forEach((file, index) => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center justify-between bg-gray-50 p-2 rounded-md text-sm';
+                li.innerHTML = `
+                    <div class="flex items-center overflow-hidden">
+                        <i data-lucide="file-text" class="w-4 h-4 mr-2 text-gray-500 flex-shrink-0"></i>
+                        <span class="font-medium text-gray-700 truncate" title="${file.filename}">${file.filename}</span>
+                    </div>
+                    <button onclick="deleteFile(${index})" class="text-red-500 hover:text-red-700 ml-2">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                `;
+                fileList.appendChild(li);
+            });
+            lucide.createIcons();
+        }
+
+        // Panel Collapse Logic
         function togglePanel(panelId) {
             const content = document.getElementById(`${panelId}-content`);
             const icon = document.getElementById(`${panelId}-icon`);
@@ -426,7 +596,7 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
             icon.classList.toggle('-rotate-180');
         }
 
-        // --- Sidebar Logic ---
+        // Sidebar Logic
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('main-content');
         const masterToggleBtn = document.getElementById('sidebar-master-toggle');
@@ -464,8 +634,7 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
         
         window.addEventListener('resize', handleResize);
 
-
-        // --- Conversation Switching Logic ---
+        // Conversation Logic
         const conversationList = document.getElementById('conversation-list');
         const conversationFeed = document.getElementById('conversation-feed');
         const userInfoPanel = document.getElementById('user-panel-content');
@@ -500,7 +669,7 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
                             <p class="text-sm text-gray-800">${msg.text}</p>
                         </div>
                     `;
-                } else { // 'ai' or 'human'
+                } else {
                      messageElement.innerHTML = `
                         <p class="text-sm font-semibold ${msg.from === 'ai' ? 'text-indigo-600' : 'text-green-600'} text-right">${msg.from === 'ai' ? '🤖 AI Assistant' : '👤 Human Agent'}</p>
                         <div class="flex justify-end">
@@ -544,11 +713,11 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
             renderUserInfo();
         }
 
-        // --- Mock Interactivity ---
+        // File Upload Logic
         const dropZone = document.getElementById('drop-zone');
         const fileList = document.getElementById('file-list');
         let uploadedFiles = [];
-        const mockFiles = [ { name: 'FAQ.pdf', size: 2.1 }, { name: 'Product_Guide.docx', size: 1.8 } ];
+        const mockFiles = [ { filename: 'FAQ.pdf', size: 2.1 }, { filename: 'Product_Guide.docx', size: 1.8 } ];
 
         function renderFileList() {
             fileList.innerHTML = '';
@@ -558,7 +727,7 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
                 li.innerHTML = `
                     <div class="flex items-center overflow-hidden">
                         <i data-lucide="file-text" class="w-4 h-4 mr-2 text-gray-500 flex-shrink-0"></i>
-                        <span class="font-medium text-gray-700 truncate" title="${file.name}">${file.name}</span>
+                        <span class="font-medium text-gray-700 truncate" title="${file.filename}">${file.filename}</span>
                     </div>
                     <button onclick="deleteFile(${index})" class="text-red-500 hover:text-red-700 ml-2">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -575,14 +744,18 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
         }
 
         dropZone.addEventListener('click', () => {
-            const newFile = { name: `New_Doc_${uploadedFiles.length + 1}.txt`, size: (Math.random() * 2 + 0.5).toFixed(1) };
-            uploadedFiles.push(newFile);
-            renderFileList();
+            document.querySelector('input[type="file"]').click();
+        });
+
+        document.querySelector('input[type="file"]').addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            uploadDocuments(files);
         });
         
         uploadedFiles = [...mockFiles];
         renderFileList();
 
+        // System Control Logic
         const activationBtn = document.getElementById('activation-btn');
         const systemStatus = document.getElementById('system-status');
         const humanTakeoverBtn = document.getElementById('human-takeover-btn');
@@ -590,15 +763,25 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
         let isAiActive = false;
         let isHumanTakeoverActive = false;
 
-        function setAiActive(state) {
-            isAiActive = state;
-            if (isAiActive) {
+        async function setAiActive(state) {
+            if (state) {
+                const result = await activateAI();
+                if (!result) return;
+                
+                isAiActive = true;
                 activationBtn.innerHTML = `<i data-lucide="pause-circle" class="w-5 h-5 mr-2"></i> DEACTIVATE AI`;
                 activationBtn.classList.remove('btn-primary');
                 activationBtn.classList.add('bg-red-600', 'hover:bg-red-700');
                 systemStatus.innerHTML = `<span class="status-dot status-active"></span><span class="text-green-600">Active</span>`;
+                
+                // Start real-time monitoring
+                startMonitoring(currentAssistantId);
+                
                 if (isHumanTakeoverActive) setHumanTakeoverActive(false);
             } else {
+                await deactivateAI();
+                
+                isAiActive = false;
                 activationBtn.innerHTML = `<i data-lucide="rocket" class="w-5 h-5 mr-2"></i> ACTIVATE AI`;
                 activationBtn.classList.add('btn-primary');
                 activationBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
@@ -631,6 +814,7 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
         activationBtn.addEventListener('click', () => setAiActive(!isAiActive));
         humanTakeoverBtn.addEventListener('click', () => setHumanTakeoverActive(!isHumanTakeoverActive));
         
+        // Manual Message Sending
         const sendMessageBtn = document.getElementById('send-message-btn');
         const messageInput = document.getElementById('manual-message-input');
 
@@ -646,6 +830,7 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
         sendMessageBtn.addEventListener('click', sendManualMessage);
         messageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendManualMessage(); });
 
+        // Prompt Templates
         const promptTextarea = document.getElementById('system-prompt');
         const templates = {
             'customer-service': `You are a helpful customer service assistant for [Company Name].\n\nGuidelines:\n- Use the uploaded documents to answer questions accurately.\n- If you don't know something, say so politely.\n- Be professional and friendly.`,
@@ -659,11 +844,17 @@ The project is currently a high-fidelity, fully interactive front-end prototype.
             if (templateName === 'custom') promptTextarea.focus();
         }
         
-        // Initial Render
-        document.addEventListener('DOMContentLoaded', () => {
+        // Initialization
+        document.addEventListener('DOMContentLoaded', async () => {
             applyTemplate('customer-service');
             renderAll();
             handleResize();
+            
+            // Load analytics data
+            await loadAnalytics();
+            
+            // Setup WebSocket connection
+            setupWebSocketConnection();
             
             // Collapse all config panels by default
             togglePanel('telegram-panel');

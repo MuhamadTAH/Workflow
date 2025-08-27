@@ -1,28 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import './AIAssistant.css';
+import React, { useState, useEffect } from 'react';
 
 function AIAssistant() {
-  const { t } = useTranslation();
-  
-  // State management
-  const [currentAssistantId] = useState(1);
   const [activeUserId, setActiveUserId] = useState('john');
   const [isAiActive, setIsAiActive] = useState(false);
   const [isHumanTakeoverActive, setIsHumanTakeoverActive] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [uploadedFiles, setUploadedFiles] = useState([
-    { filename: 'FAQ.pdf', size: 2.1 }, 
-    { filename: 'Product_Guide.docx', size: 1.8 }
-  ]);
-  const [socket, setSocket] = useState(null);
-  
-  // API Configuration
-  const API_BASE = 'http://localhost:3001/api';
-  const WS_BASE = 'http://localhost:3001';
-  
-  // Mock users data
-  const [users] = useState({
+
+  // Mock data
+  const users = {
     'john': {
       name: 'John Doe',
       username: '@john_doe_123',
@@ -61,554 +46,480 @@ function AIAssistant() {
         { from: 'user', text: 'Do you ship internationally?' }
       ]
     }
-  });
-  
-  // Refs
-  const conversationFeedRef = useRef(null);
-  const messageInputRef = useRef(null);
-  const systemPromptRef = useRef(null);
-  
-  // Template data
-  const templates = {
-    'customer-service': `You are a helpful customer service assistant for [Company Name].\n\nGuidelines:\n- Use the uploaded documents to answer questions accurately.\n- If you don't know something, say so politely.\n- Be professional and friendly.`,
-    'tech-support': `You are a technical support specialist for [Product Name].\n\nGuidelines:\n- Provide step-by-step instructions from the knowledge base.\n- If a solution isn't found, create a support ticket.\n- Maintain a patient and clear tone.`,
-    'sales': `You are a sales assistant for [Company Name].\n\nGuidelines:\n- Highlight product features and benefits.\n- Answer questions about pricing and availability.\n- Guide customers to the checkout page.`,
-    'custom': ''
   };
 
-  // Initialize component
+  const [uploadedFiles, setUploadedFiles] = useState([
+    { name: 'FAQ.pdf', size: 2.1 }, 
+    { name: 'Product_Guide.docx', size: 1.8 }
+  ]);
+
+  // Panel toggle
+  const togglePanel = (panelId) => {
+    const content = document.getElementById(`${panelId}-content`);
+    const icon = document.getElementById(`${panelId}-icon`);
+    if (content && icon) {
+      content.classList.toggle('collapsed');
+      icon.classList.toggle('transform');
+      icon.classList.toggle('rotate-180');
+    }
+  };
+
+  // Template functions
+  const applyTemplate = (templateName) => {
+    const templates = {
+      'customer-service': `You are a helpful customer service assistant for [Company Name].\n\nGuidelines:\n- Use the uploaded documents to answer questions accurately.\n- If you don't know something, say so politely.\n- Be professional and friendly.`,
+      'tech-support': `You are a technical support specialist for [Product Name].\n\nGuidelines:\n- Provide step-by-step instructions from the knowledge base.\n- If a solution isn't found, create a support ticket.\n- Maintain a patient and clear tone.`,
+      'sales': `You are a sales assistant for [Company Name].\n\nGuidelines:\n- Highlight product features and benefits.\n- Answer questions about pricing and availability.\n- Guide customers to the checkout page.`,
+      'custom': ''
+    };
+    const textarea = document.getElementById('system-prompt');
+    if (textarea) {
+      textarea.value = templates[templateName];
+      if (templateName === 'custom') textarea.focus();
+    }
+  };
+
+  // Initialize
   useEffect(() => {
     // Set default template
     applyTemplate('customer-service');
     
-    // Set up authentication token
-    localStorage.setItem('token', 'MOCK_TOKEN_FOR_TESTING_test-user-1');
+    // Collapse panels by default
+    setTimeout(() => {
+      togglePanel('telegram-panel');
+      togglePanel('model-panel');
+      togglePanel('prompt-panel');
+      togglePanel('kb-panel');
+    }, 100);
     
-    // Handle resize
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setIsSidebarOpen(false);
-      } else {
-        setIsSidebarOpen(true);
-      }
-    };
-    
-    window.addEventListener('resize', handleResize);
-    handleResize();
-    
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (socket) {
-        socket.disconnect();
-      }
-    };
+    // Create Lucide icons
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
   }, []);
 
-  // API Functions
-  const testTelegramToken = async () => {
-    const token = document.getElementById('bot-token')?.value;
-    if (!token) return;
-    
-    try {
-      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/test-telegram`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ telegram_token: token })
-      });
-      
-      const result = await response.json();
-      updateTelegramStatus(result.success);
-    } catch (error) {
-      console.error('Telegram test failed:', error);
-      updateTelegramStatus(false);
-    }
-  };
-
-  const testAiApi = async () => {
-    const apiKey = document.getElementById('api-key')?.value;
-    if (!apiKey) return;
-    
-    try {
-      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/test-ai-api`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ ai_api_key: apiKey })
-      });
-      
-      const result = await response.json();
-      updateApiStatus(result.success);
-    } catch (error) {
-      console.error('AI API test failed:', error);
-      updateApiStatus(false);
-    }
-  };
-
-  const activateAI = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/activate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      const result = await response.json();
-      return result.success;
-    } catch (error) {
-      console.error('AI activation failed:', error);
-      return false;
-    }
-  };
-
-  const deactivateAI = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/deactivate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      
-      const result = await response.json();
-      return result.success;
-    } catch (error) {
-      console.error('AI deactivation failed:', error);
-      return false;
-    }
-  };
-
-  // Status update functions
-  const updateTelegramStatus = (success) => {
-    const statusEl = document.getElementById('telegram-status');
-    if (statusEl) {
-      statusEl.innerHTML = success 
-        ? '<span class="status-dot status-connected"></span><span class="text-green-600">Connected</span>'
-        : '<span class="status-dot status-not-connected"></span><span class="text-red-600">Failed</span>';
-    }
-  };
-
-  const updateApiStatus = (success) => {
-    const statusEl = document.getElementById('api-status');
-    if (statusEl) {
-      statusEl.innerHTML = success 
-        ? '<span class="status-dot status-connected"></span><span class="text-green-600">Connected</span>'
-        : '<span class="status-dot status-not-connected"></span><span class="text-red-600">Failed</span>';
-    }
-  };
-
-  // Panel toggle function
-  const togglePanel = (panelId) => {
-    const content = document.getElementById(`${panelId}-content`);
-    const icon = document.getElementById(`${panelId}-icon`);
-    
-    if (content && icon) {
-      content.classList.toggle('collapsed');
-      icon.classList.toggle('-rotate-180');
-    }
-  };
-
-  // Template application
-  const applyTemplate = (templateName) => {
-    if (systemPromptRef.current) {
-      systemPromptRef.current.value = templates[templateName];
-      if (templateName === 'custom') {
-        systemPromptRef.current.focus();
-      }
-    }
-  };
-
-  // AI Control functions
-  const handleAiActivation = async () => {
-    if (isAiActive) {
-      await deactivateAI();
-      setIsAiActive(false);
-      if (!isHumanTakeoverActive) {
-        // Update status to inactive
-      }
-    } else {
-      const result = await activateAI();
-      if (result) {
-        setIsAiActive(true);
-        setIsHumanTakeoverActive(false);
-      }
-    }
-  };
-
-  const handleHumanTakeover = () => {
-    setIsHumanTakeoverActive(!isHumanTakeoverActive);
-    if (!isHumanTakeoverActive) {
-      setIsAiActive(false);
-    }
-  };
-
-  // Message sending
   const sendManualMessage = () => {
-    const messageText = messageInputRef.current?.value.trim();
-    if (!messageText) return;
-    
-    const updatedUsers = { ...users };
-    updatedUsers[activeUserId].messages.push({ from: 'human', text: messageText });
-    updatedUsers[activeUserId].lastMessage = messageText;
-    
-    if (messageInputRef.current) {
-      messageInputRef.current.value = '';
-    }
-    
-    // Scroll to bottom
-    setTimeout(() => {
-      if (conversationFeedRef.current) {
-        conversationFeedRef.current.scrollTop = conversationFeedRef.current.scrollHeight;
-      }
-    }, 100);
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      sendManualMessage();
+    const input = document.getElementById('manual-message-input');
+    if (input && input.value.trim()) {
+      // Add message logic here
+      input.value = '';
     }
   };
 
-  // File management
-  const handleFileDelete = (index) => {
-    const newFiles = uploadedFiles.filter((_, i) => i !== index);
-    setUploadedFiles(newFiles);
-  };
-
-  const handleFileUpload = () => {
-    const fileInput = document.querySelector('input[type="file"]');
-    if (fileInput) {
-      fileInput.click();
-    }
+  const deleteFile = (index) => {
+    setUploadedFiles(files => files.filter((_, i) => i !== index));
   };
 
   return (
-    <div className="ai-assistant-container">
-      {/* Master Sidebar Toggle Button */}
-      <button 
-        className={`sidebar-master-toggle ${!isSidebarOpen ? 'sidebar-closed' : ''}`}
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-      >
-        <i className={`fas ${isSidebarOpen ? 'fa-chevron-left' : 'fa-chevron-right'}`}></i>
-      </button>
+    <>
+      {/* Load Tailwind and Lucide */}
+      <script src="https://cdn.tailwindcss.com"></script>
+      <script src="https://unpkg.com/lucide@latest"></script>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+      
+      <style>{`
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        .input-field {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
+        .status-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        .status-not-connected { background-color: #9ca3af; }
+        .status-connected { background-color: #22c55e; }
+        .status-inactive { background-color: #ef4444; }
+        .status-active { background-color: #22c55e; }
 
-      <div className="ai-assistant-layout">
-        {/* Configuration Sidebar */}
-        <aside className={`config-sidebar ${!isSidebarOpen ? 'sidebar-hidden' : ''}`}>
-          <div className="sidebar-header">
-            <h2 className="sidebar-title">Configuration</h2>
-          </div>
-          
-          <div className="config-panels">
-            {/* 1. Telegram Bot Configuration */}
-            <div className="config-card">
-              <div className="config-header" onClick={() => togglePanel('telegram-panel')}>
-                <h3 className="config-title">
-                  <i className="fas fa-paper-plane"></i>
-                  1. Telegram Bot Setup
-                </h3>
-                <i id="telegram-panel-icon" className="fas fa-chevron-down panel-icon"></i>
-              </div>
-              <div id="telegram-panel-content" className="panel-content">
-                <div className="form-group">
-                  <label htmlFor="bot-token">Bot Token</label>
-                  <input 
-                    type="password" 
-                    id="bot-token" 
-                    className="form-input" 
-                    placeholder="Enter your Telegram Bot Token"
-                  />
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        #main-content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+        
+        .panel-content {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, margin-top 0.4s ease-in-out;
+            opacity: 1;
+        }
+
+        .panel-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0 !important;
+        }
+      `}</style>
+
+      <div className="bg-gray-100 h-screen overflow-hidden">
+        {/* Master Sidebar Toggle Button */}
+        <button 
+          id="sidebar-master-toggle" 
+          className={`fixed ${isSidebarOpen ? 'left-80' : 'left-4'} top-6 z-30 p-2 bg-white rounded-md shadow-md transition-all duration-300 ease-in-out`}
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        >
+          <i data-lucide={isSidebarOpen ? "chevrons-left" : "chevrons-right"} className="w-6 h-6 text-gray-700"></i>
+        </button>
+
+        <div className="relative h-full flex">
+          {/* Sidebar */}
+          <aside 
+            id="sidebar" 
+            className={`bg-white w-96 h-full p-6 fixed top-0 left-0 z-20 shadow-lg overflow-y-auto transition-transform duration-300 ease-in-out ${!isSidebarOpen ? '-translate-x-full' : 'transform-none'}`}
+          >
+            <div className="flex items-center justify-between pb-4 border-b border-gray-200 mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Configuration</h2>
+            </div>
+            
+            <div className="flex flex-col gap-6">
+              {/* 1. Telegram Bot Configuration */}
+              <div className="card !p-4 !shadow-none border border-gray-200">
+                <div className="flex items-center justify-between cursor-pointer" onClick={() => togglePanel('telegram-panel')}>
+                  <h2 className="text-md font-semibold text-gray-700 flex items-center">
+                    <i data-lucide="send" className="w-5 h-5 mr-2 text-indigo-600"></i>
+                    1. Telegram Bot Setup
+                  </h2>
+                  <i id="telegram-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
                 </div>
-                <div className="form-actions">
-                  <div className="button-group">
-                    <button onClick={testTelegramToken} className="btn btn-primary">Test</button>
-                    <button className="btn btn-secondary">Guide</button>
+                <div id="telegram-panel-content" className="panel-content space-y-3 mt-3">
+                  <div>
+                    <label htmlFor="bot-token" className="block text-sm font-medium text-gray-600 mb-1">Bot Token</label>
+                    <input type="password" id="bot-token" className="input-field" placeholder="Enter your Telegram Bot Token" />
                   </div>
-                  <div id="telegram-status" className="status-indicator">
-                    <span className="status-dot status-not-connected"></span>
-                    <span className="status-text">Offline</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-2">
+                      <button className="btn btn-primary text-sm">Test</button>
+                      <button className="btn btn-secondary text-sm">Guide</button>
+                    </div>
+                    <div id="telegram-status" className="flex items-center text-sm font-medium">
+                      <span className="status-dot status-not-connected"></span>
+                      <span className="text-gray-500">Offline</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. AI Model API Configuration */}
+              <div className="card !p-4 !shadow-none border border-gray-200">
+                <div className="flex items-center justify-between cursor-pointer" onClick={() => togglePanel('model-panel')}>
+                  <h2 className="text-md font-semibold text-gray-700 flex items-center">
+                    <i data-lucide="cpu" className="w-5 h-5 mr-2 text-indigo-600"></i>
+                    2. AI Model Settings
+                  </h2>
+                  <i id="model-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
+                </div>
+                <div id="model-panel-content" className="panel-content space-y-3 mt-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Provider</label>
+                    <div className="flex gap-2">
+                      <button className="btn btn-primary text-sm">OpenAI</button>
+                      <button className="btn btn-secondary text-sm">Claude</button>
+                      <button className="btn btn-secondary text-sm">Custom</button>
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="api-key" className="block text-sm font-medium text-gray-600 mb-1">API Key</label>
+                    <input type="password" id="api-key" className="input-field" placeholder="sk-proj-..." />
+                  </div>
+                  <div>
+                    <label htmlFor="model" className="block text-sm font-medium text-gray-600 mb-1">Model</label>
+                    <select id="model" className="input-field bg-white">
+                      <option>gpt-4o</option>
+                      <option>gpt-4-turbo</option>
+                      <option>gpt-3.5-turbo</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <button className="btn btn-primary text-sm">Test API</button>
+                    <div id="api-status" className="flex items-center text-sm font-medium">
+                      <span className="status-dot status-not-connected"></span>
+                      <span className="text-gray-500">Offline</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. System Prompt Configuration */}
+              <div className="card !p-4 !shadow-none border border-gray-200">
+                <div className="flex items-center justify-between cursor-pointer" onClick={() => togglePanel('prompt-panel')}>
+                  <h2 className="text-md font-semibold text-gray-700 flex items-center">
+                    <i data-lucide="terminal" className="w-5 h-5 mr-2 text-indigo-600"></i>
+                    3. AI Behavior Instructions
+                  </h2>
+                  <i id="prompt-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
+                </div>
+                <div id="prompt-panel-content" className="panel-content space-y-3 mt-3">
+                  <textarea id="system-prompt" className="input-field min-h-[120px] resize-y" placeholder="Enter your system prompt here..."></textarea>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Templates:</label>
+                    <div className="flex flex-wrap gap-2">
+                      <button className="btn btn-secondary text-xs" onClick={() => applyTemplate('customer-service')}>Customer Service</button>
+                      <button className="btn btn-secondary text-xs" onClick={() => applyTemplate('tech-support')}>Tech Support</button>
+                      <button className="btn btn-secondary text-xs" onClick={() => applyTemplate('sales')}>Sales</button>
+                      <button className="btn btn-secondary text-xs" onClick={() => applyTemplate('custom')}>Custom</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Knowledge Base Documents */}
+              <div className="card !p-4 !shadow-none border border-gray-200">
+                <div className="flex items-center justify-between cursor-pointer" onClick={() => togglePanel('kb-panel')}>
+                  <h2 className="text-md font-semibold text-gray-700 flex items-center">
+                    <i data-lucide="folder-up" className="w-5 h-5 mr-2 text-indigo-600"></i>
+                    4. Knowledge Base
+                  </h2>
+                  <i id="kb-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
+                </div>
+                <div id="kb-panel-content" className="panel-content mt-3">
+                  <div id="drop-zone" className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-indigo-500 transition-colors">
+                    <i data-lucide="upload-cloud" className="w-8 h-8 text-gray-400 mb-1"></i>
+                    <p className="text-sm text-gray-500">Drop files or <span className="text-indigo-600 font-semibold">click</span></p>
+                    <p className="text-xs text-gray-400 mt-1">PDF, DOCX, TXT, MD</p>
+                    <input type="file" className="hidden" multiple accept=".pdf,.docx,.txt,.md" />
+                  </div>
+                  <div className="mt-3">
+                    <h3 className="font-medium text-gray-600 mb-2 text-sm">Uploaded Files:</h3>
+                    <ul id="file-list" className="space-y-2 max-h-24 overflow-y-auto">
+                      {uploadedFiles.map((file, index) => (
+                        <li key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md text-sm">
+                          <div className="flex items-center overflow-hidden">
+                            <i data-lucide="file-text" className="w-4 h-4 mr-2 text-gray-500 flex-shrink-0"></i>
+                            <span className="font-medium text-gray-700 truncate" title={file.name}>{file.name}</span>
+                          </div>
+                          <button onClick={() => deleteFile(index)} className="text-red-500 hover:text-red-700 ml-2">
+                            <i data-lucide="trash-2" className="w-4 h-4"></i>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
               </div>
             </div>
+          </aside>
 
-            {/* 2. AI Model API Configuration */}
-            <div className="config-card">
-              <div className="config-header" onClick={() => togglePanel('model-panel')}>
-                <h3 className="config-title">
-                  <i className="fas fa-microchip"></i>
-                  2. AI Model Settings
-                </h3>
-                <i id="model-panel-icon" className="fas fa-chevron-down panel-icon"></i>
-              </div>
-              <div id="model-panel-content" className="panel-content">
-                <div className="form-group">
-                  <label>Provider</label>
-                  <div className="provider-buttons">
-                    <button className="btn btn-primary">OpenAI</button>
-                    <button className="btn btn-secondary">Claude</button>
-                    <button className="btn btn-secondary">Custom</button>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label htmlFor="api-key">API Key</label>
-                  <input 
-                    type="password" 
-                    id="api-key" 
-                    className="form-input" 
-                    placeholder="sk-proj-..."
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="model">Model</label>
-                  <select id="model" className="form-input">
-                    <option>gpt-4o</option>
-                    <option>gpt-4-turbo</option>
-                    <option>gpt-3.5-turbo</option>
-                  </select>
-                </div>
-                <div className="form-actions">
-                  <button onClick={testAiApi} className="btn btn-primary">Test API</button>
-                  <div id="api-status" className="status-indicator">
-                    <span className="status-dot status-not-connected"></span>
-                    <span className="status-text">Offline</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. System Prompt Configuration */}
-            <div className="config-card">
-              <div className="config-header" onClick={() => togglePanel('prompt-panel')}>
-                <h3 className="config-title">
-                  <i className="fas fa-terminal"></i>
-                  3. AI Behavior Instructions
-                </h3>
-                <i id="prompt-panel-icon" className="fas fa-chevron-down panel-icon"></i>
-              </div>
-              <div id="prompt-panel-content" className="panel-content">
-                <textarea 
-                  ref={systemPromptRef}
-                  id="system-prompt" 
-                  className="form-textarea" 
-                  placeholder="Enter your system prompt here..."
-                ></textarea>
-                <div className="form-group">
-                  <label>Templates:</label>
-                  <div className="template-buttons">
-                    <button className="btn btn-secondary btn-sm" onClick={() => applyTemplate('customer-service')}>Customer Service</button>
-                    <button className="btn btn-secondary btn-sm" onClick={() => applyTemplate('tech-support')}>Tech Support</button>
-                    <button className="btn btn-secondary btn-sm" onClick={() => applyTemplate('sales')}>Sales</button>
-                    <button className="btn btn-secondary btn-sm" onClick={() => applyTemplate('custom')}>Custom</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 4. Knowledge Base Documents */}
-            <div className="config-card">
-              <div className="config-header" onClick={() => togglePanel('kb-panel')}>
-                <h3 className="config-title">
-                  <i className="fas fa-folder-open"></i>
-                  4. Knowledge Base
-                </h3>
-                <i id="kb-panel-icon" className="fas fa-chevron-down panel-icon"></i>
-              </div>
-              <div id="kb-panel-content" className="panel-content">
-                <div className="drop-zone" onClick={handleFileUpload}>
-                  <i className="fas fa-cloud-upload-alt drop-icon"></i>
-                  <p>Drop files or <span className="highlight">click</span></p>
-                  <p className="file-types">PDF, DOCX, TXT, MD</p>
-                  <input type="file" className="hidden-input" multiple accept=".pdf,.docx,.txt,.md" />
-                </div>
-                <div className="file-list">
-                  <h4>Uploaded Files:</h4>
-                  <ul className="files">
-                    {uploadedFiles.map((file, index) => (
-                      <li key={index} className="file-item">
-                        <div className="file-info">
-                          <i className="fas fa-file-text"></i>
-                          <span className="file-name" title={file.filename}>{file.filename}</span>
+          {/* Main Content */}
+          <main id="main-content" className={`flex-1 p-4 sm:p-6 md:p-8 transition-all duration-300 ease-in-out flex flex-col h-full ${isSidebarOpen ? 'md:ml-96' : ''}`}>
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 flex-grow">
+              {/* Conversations List */}
+              <div className="card xl:col-span-3 flex flex-col">
+                <h2 className="text-lg font-semibold text-gray-700 flex items-center mb-4 flex-shrink-0">
+                  <i data-lucide="users" className="w-5 h-5 mr-2 text-indigo-600"></i>
+                  Conversations
+                </h2>
+                <div id="conversation-list" className="space-y-2 overflow-y-auto">
+                  {Object.keys(users).map((userId) => {
+                    const user = users[userId];
+                    return (
+                      <div 
+                        key={userId}
+                        className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${userId === activeUserId ? 'bg-indigo-100' : 'hover:bg-gray-50'}`}
+                        onClick={() => setActiveUserId(userId)}
+                      >
+                        <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full mr-3" />
+                        <div className="flex-grow overflow-hidden">
+                          <p className="font-semibold text-gray-800 truncate">{user.name}</p>
+                          <p className="text-sm text-gray-500 truncate">{user.lastMessage}</p>
                         </div>
-                        <button 
-                          onClick={() => handleFileDelete(index)} 
-                          className="delete-btn"
-                        >
-                          <i className="fas fa-trash-alt"></i>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        {/* Main Content */}
-        <main className={`main-content ${!isSidebarOpen ? 'sidebar-collapsed' : ''}`}>
-          <div className="dashboard-grid">
-            {/* Conversations List */}
-            <div className="dashboard-card conversations-card">
-              <h2 className="card-title">
-                <i className="fas fa-users"></i>
-                Conversations
-              </h2>
-              <div className="conversation-list">
-                {Object.keys(users).map((userId) => {
-                  const user = users[userId];
-                  return (
-                    <div 
-                      key={userId}
-                      className={`conversation-item ${userId === activeUserId ? 'active' : ''}`}
-                      onClick={() => setActiveUserId(userId)}
-                    >
-                      <img src={user.avatar} alt={user.name} className="user-avatar" />
-                      <div className="user-info">
-                        <p className="user-name">{user.name}</p>
-                        <p className="last-message">{user.lastMessage}</p>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Live Conversation Monitor */}
-            <div className="dashboard-card feed-card">
-              <h2 className="card-title">
-                <i className="fas fa-comments"></i>
-                Live Feed
-              </h2>
-              <div ref={conversationFeedRef} className="conversation-feed">
-                {users[activeUserId].messages.map((msg, index) => (
-                  <div key={index} className={`message ${msg.from}`}>
-                    <p className="message-sender">
-                      {msg.from === 'user' ? `👤 Customer (${users[activeUserId].name.split(' ')[0]})` :
-                       msg.from === 'ai' ? '🤖 AI Assistant' : '👤 Human Agent'}
-                    </p>
-                    <div className={`message-bubble ${msg.from}`}>
-                      <p>{msg.text}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Manual message input */}
-              <div className="message-input-area">
-                <div className="input-row">
-                  <button className="btn btn-secondary btn-icon">
-                    <i className="fas fa-microphone"></i>
-                  </button>
-                  <button className="btn btn-secondary btn-icon">
-                    <i className="fas fa-image"></i>
-                  </button>
-                  <input 
-                    ref={messageInputRef}
-                    type="text" 
-                    placeholder="Type a message to take over..." 
-                    className="message-input"
-                    onKeyDown={handleKeyDown}
-                  />
-                  <button onClick={sendManualMessage} className="btn btn-primary btn-icon">
-                    <i className="fas fa-paper-plane"></i>
-                  </button>
-                </div>
-                <div className="input-status">
-                  <div className="auto-refresh">
-                    <i className="fas fa-sync-alt rotating"></i>
-                    <span>Auto-refresh: ON</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Controls and User Info */}
-            <div className="controls-column">
-              {/* User Information Panel */}
-              <div className="dashboard-card user-card">
-                <div className="config-header" onClick={() => togglePanel('user-panel')}>
-                  <h3 className="config-title">
-                    <i className="fas fa-user-circle"></i>
-                    Current User Information
-                  </h3>
-                  <i id="user-panel-icon" className="fas fa-chevron-down panel-icon"></i>
-                </div>
-                <div id="user-panel-content" className="panel-content">
-                  <div className="user-details">
-                    <img src={users[activeUserId].avatar} alt="User Profile" className="profile-avatar" />
-                    <div className="user-text">
-                      <p className="profile-name">{users[activeUserId].name}</p>
-                      <p className="profile-username">{users[activeUserId].username}</p>
-                    </div>
-                  </div>
-                  <div className="user-meta">
-                    <div className="meta-row">
-                      <strong>Chat ID:</strong> <span>{users[activeUserId].chatId}</span>
-                    </div>
-                    <div className="meta-row">
-                      <strong>User ID:</strong> <span>{users[activeUserId].userId}</span>
-                    </div>
-                    <div className="meta-row">
-                      <strong>Language:</strong> <span>{users[activeUserId].language}</span>
-                    </div>
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* System Control */}
-              <div className="dashboard-card control-card">
-                <h3 className="card-title">
-                  <i className="fas fa-power-off"></i>
-                  System Control
-                </h3>
-                <div className="control-buttons">
-                  <button 
-                    onClick={handleAiActivation}
-                    className={`control-btn primary ${isAiActive ? 'active' : ''}`}
-                  >
-                    <i className={`fas ${isAiActive ? 'fa-pause-circle' : 'fa-rocket'}`}></i>
-                    {isAiActive ? 'DEACTIVATE AI' : 'ACTIVATE AI'}
-                  </button>
-                  <button 
-                    onClick={handleHumanTakeover}
-                    className={`control-btn secondary ${isHumanTakeoverActive ? 'active' : ''}`}
-                  >
-                    <i className={`fas ${isHumanTakeoverActive ? 'fa-user-check' : 'fa-user-cog'}`}></i>
-                    {isHumanTakeoverActive ? 'End Takeover' : 'Human Takeover'}
-                  </button>
+              {/* Live Conversation Monitor */}
+              <div className="card xl:col-span-5 flex flex-col">
+                <h2 className="text-lg font-semibold text-gray-700 flex items-center mb-4 flex-shrink-0">
+                  <i data-lucide="message-square-text" className="w-5 h-5 mr-2 text-indigo-600"></i>
+                  Live Feed
+                </h2>
+                <div id="conversation-feed" className="bg-gray-50 p-4 rounded-lg overflow-y-auto space-y-4 flex-grow">
+                  {users[activeUserId].messages.map((msg, index) => {
+                    const user = users[activeUserId];
+                    if (msg.from === 'user') {
+                      return (
+                        <div key={index}>
+                          <p className="text-sm font-semibold text-gray-700">👤 Customer ({user.name.split(' ')[0]})</p>
+                          <div className="bg-white p-3 rounded-lg mt-1 inline-block max-w-xs shadow-sm">
+                            <p className="text-sm text-gray-800">{msg.text}</p>
+                          </div>
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <div key={index}>
+                          <p className={`text-sm font-semibold ${msg.from === 'ai' ? 'text-indigo-600' : 'text-green-600'} text-right`}>
+                            {msg.from === 'ai' ? '🤖 AI Assistant' : '👤 Human Agent'}
+                          </p>
+                          <div className="flex justify-end">
+                            <div className={`${msg.from === 'ai' ? 'bg-indigo-100' : 'bg-green-100'} p-3 rounded-lg mt-1 inline-block max-w-xs shadow-sm`}>
+                              <p className="text-sm text-gray-800">{msg.text}</p>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                  })}
                 </div>
                 
-                <div className="system-stats">
-                  <div className="stat-row">
-                    <span>Status:</span>
-                    <div className="system-status">
-                      <span className={`status-dot ${isAiActive ? 'status-active' : isHumanTakeoverActive ? 'status-active' : 'status-inactive'}`}></span>
-                      <span className={isAiActive ? 'text-success' : isHumanTakeoverActive ? 'text-success' : 'text-danger'}>
-                        {isAiActive ? 'Active' : isHumanTakeoverActive ? 'Human Control' : 'Inactive'}
-                      </span>
+                {/* Manual message input */}
+                <div className="mt-4 pt-4 border-t border-gray-200 flex-shrink-0">
+                  <div className="flex gap-2">
+                    <button className="btn btn-secondary px-3">
+                      <i data-lucide="mic" className="w-4 h-4"></i>
+                    </button>
+                    <button className="btn btn-secondary px-3">
+                      <i data-lucide="image" className="w-4 h-4"></i>
+                    </button>
+                    <input id="manual-message-input" type="text" placeholder="Type a message to take over..." className="input-field flex-grow" />
+                    <button id="send-message-btn" className="btn btn-primary" onClick={sendManualMessage}>
+                      <i data-lucide="send-horizontal" className="w-4 h-4"></i>
+                    </button>
+                  </div>
+                  <div className="flex justify-between items-center mt-3 text-sm">
+                    <div className="flex items-center gap-2 text-gray-500">
+                      <i data-lucide="refresh-cw" className="w-4 h-4 animate-spin"></i>
+                      <span>Auto-refresh: ON</span>
                     </div>
                   </div>
-                  <div className="stat-row">
-                    <span>Conversations:</span>
-                    <span className="stat-value">{Object.keys(users).length}</span>
+                </div>
+              </div>
+
+              {/* Right Column: Controls and User Info */}
+              <div className="xl:col-span-4 flex flex-col gap-4">
+                {/* User Information Panel */}
+                <div className="card !p-4">
+                  <div className="flex items-center justify-between cursor-pointer" onClick={() => togglePanel('user-panel')}>
+                    <h2 className="text-md font-semibold text-gray-700 flex items-center">
+                      <i data-lucide="user-circle" className="w-5 h-5 mr-2 text-indigo-600"></i>
+                      Current User Information
+                    </h2>
+                    <i id="user-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
                   </div>
-                  <div className="stat-row">
-                    <span>Success Rate:</span>
-                    <span className="stat-value">89%</span>
+                  <div id="user-panel-content" className="panel-content space-y-2 mt-3">
+                    <div className="flex items-center gap-3">
+                      <img src={users[activeUserId].avatar} alt="User Profile Picture" className="w-12 h-12 rounded-full" />
+                      <div className="text-sm">
+                        <p className="font-bold text-gray-800">{users[activeUserId].name}</p>
+                        <p className="text-gray-500">{users[activeUserId].username}</p>
+                      </div>
+                    </div>
+                    <div className="text-xs space-y-1 pt-2">
+                      <p><strong className="font-medium text-gray-600">Chat ID:</strong> <span className="text-gray-800">{users[activeUserId].chatId}</span></p>
+                      <p><strong className="font-medium text-gray-600">User ID:</strong> <span className="text-gray-800">{users[activeUserId].userId}</span></p>
+                      <p><strong className="font-medium text-gray-600">Language:</strong> <span className="text-gray-800">{users[activeUserId].language}</span></p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Activation Control */}
+                <div className="card !p-4 flex flex-col justify-between">
+                  <div>
+                    <h2 className="text-md font-semibold text-gray-700 flex items-center mb-3">
+                      <i data-lucide="power" className="w-5 h-5 mr-2 text-indigo-600"></i>
+                      System Control
+                    </h2>
+                    <div className="space-y-2">
+                      <button 
+                        id="activation-btn" 
+                        className={`btn w-full h-14 text-lg font-bold tracking-wider ${isAiActive ? 'bg-red-600 hover:bg-red-700 text-white' : 'btn-primary'}`}
+                        onClick={() => setIsAiActive(!isAiActive)}
+                      >
+                        <i data-lucide={isAiActive ? "pause-circle" : "rocket"} className="w-5 h-5 mr-2"></i>
+                        {isAiActive ? 'DEACTIVATE AI' : 'ACTIVATE AI'}
+                      </button>
+                      <button 
+                        id="human-takeover-btn" 
+                        className={`btn w-full h-10 text-base font-bold ${isHumanTakeoverActive ? 'bg-green-600 text-white hover:bg-green-700' : 'btn-secondary'}`}
+                        onClick={() => setIsHumanTakeoverActive(!isHumanTakeoverActive)}
+                      >
+                        <i data-lucide={isHumanTakeoverActive ? "user-check" : "user-cog"} className="w-4 h-4 mr-2"></i>
+                        {isHumanTakeoverActive ? 'End Takeover' : 'Human Takeover'}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-gray-200 space-y-2 text-sm text-gray-600">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Status:</span>
+                      <div id="system-status" className="flex items-center font-semibold">
+                        <span className={`status-dot ${isAiActive ? 'status-active' : isHumanTakeoverActive ? 'status-active' : 'status-inactive'}`}></span>
+                        <span className={isAiActive ? 'text-green-600' : isHumanTakeoverActive ? 'text-green-600' : 'text-red-600'}>
+                          {isAiActive ? 'Active' : isHumanTakeoverActive ? 'Human Control' : 'Inactive'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Conversations:</span>
+                      <span className="font-semibold text-gray-800">{Object.keys(users).length}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Success Rate:</span>
+                      <span className="font-semibold text-gray-800">89%</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </main>
+          </main>
+        </div>
+
+        <script>{`
+          // Initialize Lucide icons
+          if (window.lucide) {
+            lucide.createIcons();
+          }
+        `}</script>
       </div>
-    </div>
+    </>
   );
 }
 

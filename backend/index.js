@@ -18,6 +18,8 @@ const chatRoutes = require('./routes/chat');
 const liveChatRoutes = require('./routes/livechat');
 const chatTriggerRoutes = require('./routes/chatTrigger');
 const chatbotRoutes = require('./routes/chatbot');
+// AI ASSISTANT SYSTEM - New Addition
+const aiAssistantRoutes = require('./routes/aiAssistant');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
@@ -114,6 +116,9 @@ app.use('/uploads', express.static('uploads'));
 // Serve static public files (including hosted chat page)
 app.use('/public', express.static('public'));
 
+// Serve AI Assistant Dashboard
+app.use('/dashboard', express.static('../ai-assistant-dashboard'));
+
 
 // Routes
 app.use('/api', authRoutes);
@@ -130,6 +135,14 @@ app.use('/api/chat-messages', chatRoutes);
 app.use('/api/live-chat', liveChatRoutes);
 app.use('/api/chat-trigger', chatTriggerRoutes);
 app.use('/api/v1/chatbot', chatbotRoutes);
+// AI ASSISTANT SYSTEM ROUTES
+app.use('/api/ai-assistant', aiAssistantRoutes);
+// AI ASSISTANT ADVANCED FEATURES
+const aiAssistantAdvancedRoutes = require('./routes/aiAssistantAdvanced');
+app.use('/api/ai-assistant-advanced', aiAssistantAdvancedRoutes);
+// AI ASSISTANT REALTIME FEATURES
+const { router: aiAssistantRealtimeRoutes, realtimeManager } = require('./routes/aiAssistantRealtime');
+app.use('/api/ai-assistant-realtime', aiAssistantRealtimeRoutes);
 
 // Chat trigger alias route for frontend compatibility
 app.get('/api/chat/:nodeId', (req, res) => {
@@ -163,8 +176,28 @@ app.get('/', (req, res) => {
     status: 'ok', 
     message: '✅ Workflow Backend API is running!',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
+    dashboard_url: '/ai-assistant',
+    launcher_url: '/ai-assistant/start'
   });
+});
+
+// AI Assistant Dashboard Routes
+app.get('/ai-assistant', (req, res) => {
+  res.sendFile(require('path').join(__dirname, '../ai-assistant-dashboard/index.html'));
+});
+
+app.get('/ai-assistant/start', (req, res) => {
+  res.sendFile(require('path').join(__dirname, '../ai-assistant-dashboard/start.html'));
+});
+
+// Easy access redirects
+app.get('/dashboard', (req, res) => {
+  res.redirect('/ai-assistant');
+});
+
+app.get('/start', (req, res) => {
+  res.redirect('/ai-assistant/start');
 });
 
 // Test route
@@ -342,8 +375,17 @@ async function restoreTelegramConnections() {
 }
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, async () => {
-  console.log(`🚀 Backend server with IF node routing fix started on port ${PORT}`);
+
+// Create HTTP server for Socket.IO
+const http = require('http');
+const server = http.createServer(app);
+
+// Initialize WebSocket server
+realtimeManager.initialize(server);
+
+server.listen(PORT, async () => {
+  console.log(`🚀 Backend server with AI Assistant system started on port ${PORT}`);
+  console.log(`🔌 WebSocket server ready for real-time connections`);
   logger.info(`Backend server started on port ${PORT}`, { port: PORT });
   
   // Initialize scheduler and job queue with workflow executor

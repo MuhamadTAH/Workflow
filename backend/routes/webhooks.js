@@ -1757,5 +1757,141 @@ router.get('/health', (req, res) => {
   });
 });
 
+// =================================================================
+// AI ASSISTANT WEBHOOK HANDLER
+// =================================================================
+
+// AI Assistant Telegram webhook - handles messages for AI assistants  
+router.post('/ai-assistant/:assistantId', asyncHandler(async (req, res) => {
+  const assistantId = req.params.assistantId;
+  const update = req.body;
+
+  console.log('🤖 AI Assistant webhook received:', assistantId);
+  console.log('📦 Update data:', JSON.stringify(update, null, 2));
+
+  try {
+    // Acknowledge Telegram immediately
+    res.status(200).json({ ok: true });
+
+    // Validate update structure
+    if (!update || !update.message) {
+      console.log('❌ Invalid update structure - no message');
+      return;
+    }
+
+    const message = update.message;
+    const chatId = message.chat.id;
+    const messageText = message.text;
+    const customerName = message.from.first_name || message.from.username || 'Unknown';
+
+    // Prepare customer info
+    const customerInfo = {
+      chatId: chatId.toString(),
+      name: customerName,
+      username: message.from.username,
+      firstName: message.from.first_name,
+      lastName: message.from.last_name
+    };
+
+    // Prepare customer message
+    const customerMessage = {
+      text: messageText,
+      messageId: message.message_id,
+      timestamp: new Date(message.date * 1000).toISOString()
+    };
+
+    // Use Advanced AI Processor for enhanced conversation handling
+    const advancedAIProcessor = require('../services/advancedAIProcessor');
+    const startTime = Date.now();
+    
+    console.log('🧠 Using Advanced AI Processing for assistant:', assistantId);
+    console.log('👤 Customer:', customerName, `(${chatId})`);
+    console.log('💬 Message:', messageText);
+
+    // Process conversation with advanced features
+    const result = await advancedAIProcessor.processAdvancedConversation(
+      assistantId,
+      customerMessage,
+      customerInfo
+    );
+
+    if (result.success) {
+      // Send response back to Telegram
+      const db = require('../db');
+      const assistant = await new Promise((resolve, reject) => {
+        db.get('SELECT telegram_token, user_id FROM ai_assistants WHERE id = ?', 
+          [assistantId], (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+          });
+      });
+
+      if (assistant && assistant.telegram_token) {
+        const fetch = require('node-fetch');
+        const telegramResponse = await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: result.response,
+            parse_mode: 'Markdown'
+          })
+        });
+
+        const telegramData = await telegramResponse.json();
+        
+        if (telegramData.ok) {
+          console.log('✅ Enhanced AI response sent successfully');
+          result.metadata.processing_time = Date.now() - startTime;
+          
+          // Broadcast to real-time monitors
+          try {
+            const { realtimeManager } = require('./aiAssistantRealtime');
+            realtimeManager.broadcastNewConversation(assistantId, {
+              customer_id: chatId.toString(),
+              customer_name: customerName,
+              message_text: messageText,
+              response_text: result.response,
+              response_time_ms: result.metadata.processing_time,
+              language: result.metadata.language,
+              sentiment: result.metadata.sentiment,
+              prompt_variant: result.metadata.prompt_variant,
+              success: true,
+              created_at: new Date().toISOString()
+            });
+          } catch (broadcastError) {
+            console.error('⚠️ Failed to broadcast conversation:', broadcastError);
+          }
+        } else {
+          throw new Error(`Telegram API error: ${telegramData.description}`);
+        }
+      }
+    } else {
+      console.error('❌ Advanced AI processing failed:', result.error);
+      
+      // Send fallback response
+      if (result.fallback_response && assistant && assistant.telegram_token) {
+        try {
+          const fetch = require('node-fetch');
+          await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: result.fallback_response
+            })
+          });
+        } catch (telegramError) {
+          console.error('❌ Failed to send fallback message:', telegramError);
+        }
+      }
+    }
+
+  } catch (error) {
+    console.error('❌ AI Assistant webhook processing failed:', error);
+    // Response already sent, so just log the error
+  }
+}));
+
 
 module.exports = router;
