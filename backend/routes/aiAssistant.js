@@ -276,6 +276,8 @@ router.post('/:id/test-telegram', verifyToken, async (req, res) => {
     const { telegram_token } = req.body;
 
     console.log('🔍 Testing Telegram connection for assistant:', assistantId);
+    console.log('🔍 User ID:', userId);
+    console.log('🔍 Token provided:', telegram_token ? 'Yes' : 'No');
 
     if (!telegram_token) {
       return res.status(400).json({
@@ -284,8 +286,23 @@ router.post('/:id/test-telegram', verifyToken, async (req, res) => {
       });
     }
 
+    // Create AI assistant record if it doesn't exist
+    await new Promise((resolve, reject) => {
+      db.run(`
+        INSERT OR IGNORE INTO ai_assistants (id, user_id, name, ai_api_key, created_at) 
+        VALUES (?, ?, 'Default AI Assistant', 'pending', CURRENT_TIMESTAMP)
+      `, [assistantId, userId], (err) => {
+        if (err) {
+          console.error('Error creating assistant:', err);
+          reject(err);
+        } else {
+          console.log('✅ Assistant record ensured');
+          resolve();
+        }
+      });
+    });
+
     // Test connection to Telegram API
-    const fetch = require('node-fetch');
     const response = await fetch(`https://api.telegram.org/bot${telegram_token}/getMe`);
     const data = await response.json();
 
@@ -338,7 +355,7 @@ router.post('/:id/test-ai-api', verifyToken, async (req, res) => {
     const userId = req.user.userId;
     const { ai_provider, ai_api_key, ai_model } = req.body;
 
-    console.log('🔍 Testing AI API connection:', ai_provider, ai_model);
+    console.log('🔍 Testing AI API connection:', ai_provider || 'openai', ai_model || 'gpt-3.5-turbo');
 
     if (!ai_api_key) {
       return res.status(400).json({
@@ -347,30 +364,52 @@ router.post('/:id/test-ai-api', verifyToken, async (req, res) => {
       });
     }
 
+    // Create AI assistant record if it doesn't exist
+    await new Promise((resolve, reject) => {
+      db.run(`
+        INSERT OR IGNORE INTO ai_assistants (id, user_id, name, ai_api_key, created_at) 
+        VALUES (?, ?, 'Default AI Assistant', 'pending', CURRENT_TIMESTAMP)
+      `, [assistantId, userId], (err) => {
+        if (err) {
+          console.error('Error creating assistant:', err);
+          reject(err);
+        } else {
+          resolve();
+        }
+      });
+    });
+
     let testResult = null;
 
+    // Simple API key validation for now
     // Test different AI providers
-    if (ai_provider === 'openai') {
-      const { Configuration, OpenAIApi } = require('openai');
-      
+    if (!ai_provider || ai_provider === 'openai') {
       try {
-        const configuration = new Configuration({
-          apiKey: ai_api_key,
-        });
-        const openai = new OpenAIApi(configuration);
-
-        const response = await openai.createChatCompletion({
-          model: ai_model || 'gpt-3.5-turbo',
-          messages: [{ role: 'user', content: 'Test connection - respond with OK' }],
-          max_tokens: 10
+        // Test OpenAI API with a simple request
+        const response = await fetch('https://api.openai.com/v1/models', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${ai_api_key}`,
+            'Content-Type': 'application/json'
+          }
         });
 
-        testResult = {
-          success: true,
-          model_used: ai_model,
-          response: response.data.choices[0].message.content,
-          usage: response.data.usage
-        };
+        if (response.ok) {
+          const data = await response.json();
+          testResult = {
+            success: true,
+            provider: 'openai',
+            model_used: ai_model || 'gpt-3.5-turbo',
+            available_models: data.data?.length || 0
+          };
+        } else {
+          const errorData = await response.json();
+          return res.status(400).json({
+            success: false,
+            error: `OpenAI API error: ${errorData.error?.message || 'Invalid API key'}`,
+            provider: 'openai'
+          });
+        }
 
       } catch (openaiError) {
         return res.status(400).json({
@@ -785,7 +824,6 @@ router.post('/:id/activate', verifyToken, async (req, res) => {
 
     // Set Telegram webhook
     try {
-      const fetch = require('node-fetch');
       const telegramResponse = await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/setWebhook`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -861,8 +899,7 @@ router.post('/:id/deactivate', verifyToken, async (req, res) => {
     // Remove Telegram webhook
     if (assistant.telegram_token) {
       try {
-        const fetch = require('node-fetch');
-        await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/deleteWebhook`);
+          await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/deleteWebhook`);
         console.log('📡 Telegram webhook removed');
       } catch (webhookError) {
         console.error('⚠️ Warning: Failed to remove Telegram webhook:', webhookError);
@@ -1100,8 +1137,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
 
       if (assistant.telegram_token) {
         try {
-          const fetch = require('node-fetch');
-          await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/deleteWebhook`);
+              await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/deleteWebhook`);
         } catch (webhookError) {
           console.error('⚠️ Warning: Failed to remove webhook during deletion');
         }
