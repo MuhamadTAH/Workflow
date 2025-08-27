@@ -124,6 +124,7 @@ function AIAssistant() {
 
   const testAiApi = async () => {
     const keyInput = document.getElementById('api-key');
+    const modelSelect = document.getElementById('model');
     const statusDiv = document.getElementById('api-status');
     
     if (!keyInput || !keyInput.value.trim()) {
@@ -142,7 +143,9 @@ function AIAssistant() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-          ai_api_key: keyInput.value.trim() 
+          ai_provider: 'claude',
+          ai_api_key: keyInput.value.trim(),
+          ai_model: modelSelect.value
         })
       });
       
@@ -404,21 +407,19 @@ function AIAssistant() {
                   <div>
                     <label className="block text-sm font-medium text-gray-600 mb-1">Provider</label>
                     <div className="flex gap-2">
-                      <button className="btn btn-primary text-sm">OpenAI</button>
-                      <button className="btn btn-secondary text-sm">Claude</button>
-                      <button className="btn btn-secondary text-sm">Custom</button>
+                      <button className="btn btn-primary text-sm">Claude</button>
                     </div>
                   </div>
                   <div>
                     <label htmlFor="api-key" className="block text-sm font-medium text-gray-600 mb-1">API Key</label>
-                    <input type="password" id="api-key" className="input-field" placeholder="sk-proj-..." />
+                    <input type="password" id="api-key" className="input-field" placeholder="sk-ant-api03-..." />
                   </div>
                   <div>
                     <label htmlFor="model" className="block text-sm font-medium text-gray-600 mb-1">Model</label>
                     <select id="model" className="input-field bg-white">
-                      <option>gpt-4o</option>
-                      <option>gpt-4-turbo</option>
-                      <option>gpt-3.5-turbo</option>
+                      <option>claude-3-5-sonnet-20241022</option>
+                      <option>claude-3-5-haiku-20241022</option>
+                      <option>claude-3-opus-20240229</option>
                     </select>
                   </div>
                   <div className="flex items-center justify-between">

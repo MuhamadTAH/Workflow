@@ -419,7 +419,54 @@ router.post('/:id/test-ai-api', verifyToken, async (req, res) => {
         });
       }
     } 
-    // Add other providers (Claude, etc.) here in the future
+    else if (ai_provider === 'claude') {
+      try {
+        // Test Claude API with a simple request
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': ai_api_key,
+            'Content-Type': 'application/json',
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: ai_model || 'claude-3-5-sonnet-20241022',
+            max_tokens: 10,
+            messages: [
+              {
+                role: 'user',
+                content: 'Test connection - respond with OK'
+              }
+            ]
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          testResult = {
+            success: true,
+            provider: 'claude',
+            model_used: ai_model || 'claude-3-5-sonnet-20241022',
+            response: data.content?.[0]?.text || 'Connected successfully'
+          };
+        } else {
+          const errorData = await response.json();
+          return res.status(400).json({
+            success: false,
+            error: `Claude API error: ${errorData.error?.message || 'Invalid API key'}`,
+            provider: 'claude'
+          });
+        }
+
+      } catch (claudeError) {
+        return res.status(400).json({
+          success: false,
+          error: `Claude API error: ${claudeError.message}`,
+          provider: 'claude'
+        });
+      }
+    }
+    // Add other providers here in the future
     else {
       return res.status(400).json({
         success: false,
