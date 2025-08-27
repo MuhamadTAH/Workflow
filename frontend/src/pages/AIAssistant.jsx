@@ -53,10 +53,7 @@ function AIAssistant() {
     }
   };
 
-  const [uploadedFiles, setUploadedFiles] = useState([
-    { name: 'FAQ.pdf', size: 2.1 }, 
-    { name: 'Product_Guide.docx', size: 1.8 }
-  ]);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
 
   // Panel toggle
   const togglePanel = (panelId) => {
@@ -198,6 +195,31 @@ function AIAssistant() {
     }
   };
 
+  // Load existing files from backend
+  const loadExistingFiles = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}`, {
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.knowledge_files) {
+          const files = result.knowledge_files.map(file => ({
+            id: file.id,
+            name: file.original_filename,
+            size: (file.file_size / 1024 / 1024).toFixed(1) // Convert to MB
+          }));
+          setUploadedFiles(files);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading existing files:', error);
+    }
+  };
+
   // Initialize
   useEffect(() => {
     // Set default template
@@ -205,6 +227,9 @@ function AIAssistant() {
     
     // Set up authentication token
     localStorage.setItem('token', 'MOCK_TOKEN_FOR_TESTING_test-user-1');
+    
+    // Load existing files
+    loadExistingFiles();
     
     // Collapse panels by default
     setTimeout(() => {
@@ -228,8 +253,94 @@ function AIAssistant() {
     }
   };
 
-  const deleteFile = (index) => {
-    setUploadedFiles(files => files.filter((_, i) => i !== index));
+  // File upload functionality
+  const handleFileUpload = async (files) => {
+    if (!files || files.length === 0) return;
+    
+    const formData = new FormData();
+    Array.from(files).forEach(file => {
+      formData.append('documents', file);
+    });
+    
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/upload-documents`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+        },
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Add uploaded files to the list
+        const newFiles = result.processed_files.map(file => ({
+          id: file.id,
+          name: file.original_filename,
+          size: (file.file_size / 1024 / 1024).toFixed(1) // Convert to MB
+        }));
+        setUploadedFiles(prev => [...prev, ...newFiles]);
+        alert(`Successfully uploaded ${newFiles.length} file(s)!`);
+      } else {
+        alert(`Upload failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Upload failed: Network error');
+    }
+  };
+
+  const deleteFile = async (index) => {
+    const file = uploadedFiles[index];
+    
+    if (!file.id) {
+      // If it's a mock file without ID, just remove from state
+      setUploadedFiles(files => files.filter((_, i) => i !== index));
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/delete-document/${file.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+        }
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setUploadedFiles(files => files.filter((_, i) => i !== index));
+        alert('File deleted successfully!');
+      } else {
+        alert(`Delete failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Delete failed: Network error');
+    }
+  };
+
+  const handleDropZoneClick = () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.accept = '.pdf,.docx,.txt,.md';
+    fileInput.onchange = (e) => handleFileUpload(e.target.files);
+    fileInput.click();
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const files = e.dataTransfer.files;
+    handleFileUpload(files);
   };
 
   const handleAiActivation = async () => {
@@ -465,11 +576,16 @@ function AIAssistant() {
                   <i id="kb-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
                 </div>
                 <div id="kb-panel-content" className="panel-content mt-3">
-                  <div id="drop-zone" className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-indigo-500 transition-colors">
+                  <div 
+                    id="drop-zone" 
+                    className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-indigo-500 transition-colors"
+                    onClick={handleDropZoneClick}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                  >
                     <i data-lucide="upload-cloud" className="w-8 h-8 text-gray-400 mb-1"></i>
                     <p className="text-sm text-gray-500">Drop files or <span className="text-indigo-600 font-semibold">click</span></p>
                     <p className="text-xs text-gray-400 mt-1">PDF, DOCX, TXT, MD</p>
-                    <input type="file" className="hidden" multiple accept=".pdf,.docx,.txt,.md" />
                   </div>
                   <div className="mt-3">
                     <h3 className="font-medium text-gray-600 mb-2 text-sm">Uploaded Files:</h3>

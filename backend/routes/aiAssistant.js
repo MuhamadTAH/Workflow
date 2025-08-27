@@ -601,13 +601,78 @@ router.post('/:id/upload-documents', verifyToken, upload.array('documents', 5), 
 
     res.json({
       success: true,
-      uploaded_files: processedFiles,
+      processed_files: processedFiles,
       total_files: processedFiles.length,
       message: `${processedFiles.length} files processed`
     });
 
   } catch (error) {
     console.error('❌ Error uploading knowledge documents:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// 6b. DELETE KNOWLEDGE BASE DOCUMENT
+// Frontend: "Delete" button on uploaded files
+router.delete('/:id/delete-document/:fileId', verifyToken, async (req, res) => {
+  try {
+    const assistantId = req.params.id;
+    const fileId = req.params.fileId;
+    const userId = req.user.userId;
+
+    console.log('🗑️ Deleting knowledge document:', fileId);
+
+    // Verify the file belongs to this assistant and user
+    const file = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT kf.*, aa.user_id 
+        FROM knowledge_files kf
+        JOIN ai_assistants aa ON kf.assistant_id = aa.id
+        WHERE kf.id = ? AND kf.assistant_id = ? AND aa.user_id = ?
+      `, [fileId, assistantId, userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!file) {
+      return res.status(404).json({
+        success: false,
+        error: 'File not found or access denied'
+      });
+    }
+
+    // Delete the file from filesystem
+    try {
+      await fs.unlink(file.file_path);
+      console.log('✅ File deleted from filesystem:', file.file_path);
+    } catch (fsError) {
+      console.warn('⚠️ Could not delete file from filesystem:', fsError.message);
+      // Continue with database deletion even if file deletion fails
+    }
+
+    // Delete from database
+    await new Promise((resolve, reject) => {
+      db.run('DELETE FROM knowledge_files WHERE id = ?', [fileId], (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    res.json({
+      success: true,
+      message: 'File deleted successfully',
+      deleted_file: {
+        id: file.id,
+        filename: file.original_filename
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error deleting knowledge document:', error);
     res.status(500).json({
       success: false,
       error: error.message
