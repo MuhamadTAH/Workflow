@@ -11,8 +11,8 @@ function AIAssistant() {
   const API_BASE = 'https://workflow-lg9z.onrender.com/api';
   const WS_BASE = 'https://workflow-lg9z.onrender.com';
 
-  // Mock data
-  const users = {
+  // Mock data - now with state to allow updates
+  const [users, setUsers] = useState({
     'john': {
       name: 'John Doe',
       username: '@john_doe_123',
@@ -51,7 +51,7 @@ function AIAssistant() {
         { from: 'user', text: 'Do you ship internationally?' }
       ]
     }
-  };
+  });
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
@@ -247,9 +247,48 @@ function AIAssistant() {
 
   const sendManualMessage = () => {
     const input = document.getElementById('manual-message-input');
-    if (input && input.value.trim()) {
-      // Add message logic here
-      input.value = '';
+    const messageText = input?.value.trim();
+    
+    if (!messageText) return;
+    
+    // Add the message to the current active user's conversation
+    setUsers(prevUsers => {
+      const updatedUsers = { ...prevUsers };
+      const currentUser = updatedUsers[activeUserId];
+      
+      if (currentUser) {
+        // Add the new message from human agent
+        updatedUsers[activeUserId] = {
+          ...currentUser,
+          messages: [...currentUser.messages, { 
+            from: 'human', 
+            text: messageText,
+            timestamp: new Date().toISOString()
+          }],
+          lastMessage: messageText
+        };
+      }
+      
+      return updatedUsers;
+    });
+    
+    // Clear the input
+    input.value = '';
+    
+    // Scroll to bottom of conversation feed
+    setTimeout(() => {
+      const conversationFeed = document.getElementById('conversation-feed');
+      if (conversationFeed) {
+        conversationFeed.scrollTop = conversationFeed.scrollHeight;
+      }
+    }, 100);
+  };
+
+  // Handle Enter key press in message input
+  const handleMessageKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendManualMessage();
     }
   };
 
@@ -631,6 +670,10 @@ function AIAssistant() {
                           <p className="font-semibold text-gray-800 truncate">{user.name}</p>
                           <p className="text-sm text-gray-500 truncate">{user.lastMessage}</p>
                         </div>
+                        {/* Show unread indicator if this user has messages */}
+                        {user.messages.length > 0 && (
+                          <div className="w-2 h-2 bg-indigo-600 rounded-full ml-2"></div>
+                        )}
                       </div>
                     );
                   })}
@@ -681,7 +724,13 @@ function AIAssistant() {
                     <button className="btn btn-secondary px-3">
                       <i data-lucide="image" className="w-4 h-4"></i>
                     </button>
-                    <input id="manual-message-input" type="text" placeholder="Type a message to take over..." className="input-field flex-grow" />
+                    <input 
+                      id="manual-message-input" 
+                      type="text" 
+                      placeholder="Type a message to take over..." 
+                      className="input-field flex-grow"
+                      onKeyDown={handleMessageKeyDown}
+                    />
                     <button id="send-message-btn" className="btn btn-primary" onClick={sendManualMessage}>
                       <i data-lucide="send-horizontal" className="w-4 h-4"></i>
                     </button>
