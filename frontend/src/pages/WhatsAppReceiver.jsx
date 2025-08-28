@@ -699,7 +699,7 @@ const WhatsAppReceiver = () => {
               fontWeight: '500'
             }}
           >
-            📋 Reply to Selected ({selectedConversation ? selectedConversation.contactName : 'None'})
+            📋 Fill Template Message ({selectedConversation ? selectedConversation.contactName : 'None'})
           </button>
         </div>
 
@@ -712,8 +712,8 @@ const WhatsAppReceiver = () => {
           fontSize: '13px',
           color: '#6c757d'
         }}>
-          💡 <strong>Tip:</strong> Select a conversation from below to auto-fill the recipient phone number. 
-          Get your credentials from the Meta Developer Console for WhatsApp Business API.
+          💡 <strong>Tip:</strong> Click any conversation below to automatically fill the recipient phone number. 
+          Use "Fill Template Message" to add a pre-written reply. Get credentials from Meta Developer Console.
         </div>
       </div>
 
@@ -779,6 +779,10 @@ const WhatsAppReceiver = () => {
                     console.log('Previous selectedConversation:', selectedConversation);
                     setSelectedConversation(conversation);
                     console.log('Selected conversation set to:', conversation);
+                    
+                    // Auto-fill recipient phone number when conversation is selected
+                    console.log('Auto-filling phone number:', conversation.phoneNumber);
+                    setRecipientPhone(conversation.phoneNumber);
                   }}
                   style={{ 
                     padding: '16px',
