@@ -176,10 +176,26 @@ const TelegramListener = () => {
   const getMessagesForUser = (userId) => {
     if (!selectedUser) return [];
     
-    return messages.filter(message => 
+    console.log('🔍 Filtering messages for user:', {
+      userId: userId,
+      selectedUserChatId: selectedUser.chatId,
+      totalMessages: messages.length,
+      messagesWithChatIds: messages.map(m => ({
+        fromUserId: m.fromUserId,
+        chatId: m.chatId,
+        isBotMessage: m.isBotMessage,
+        text: m.text?.substring(0, 20) + '...'
+      }))
+    });
+    
+    const filtered = messages.filter(message => 
       message.fromUserId === userId || 
-      (message.isBotMessage && message.chatId === selectedUser.chatId)
+      (message.isBotMessage && String(message.chatId) === String(selectedUser.chatId))
     ).sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort chronologically (oldest first)
+    
+    console.log('🔍 Filtered messages:', filtered.length, filtered);
+    
+    return filtered;
   };
 
   const uniqueUsers = getUniqueUsers();
