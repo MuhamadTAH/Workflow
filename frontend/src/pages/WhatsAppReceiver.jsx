@@ -1388,6 +1388,47 @@ const WhatsAppReceiver = () => {
           ⚠️ WhatsApp system is inactive. Configure and activate to start receiving messages.
         </div>
       )}
+      
+      </div>
+      
+      {/* CONVERSATIONS PANEL - Middle */}
+      <div style={{
+        width: '350px',
+        backgroundColor: '#ffffff',
+        borderRight: '1px solid #e4e6ea',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        <div style={{
+          padding: '40px 20px',
+          textAlign: 'center',
+          color: '#6b7280'
+        }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px', opacity: '0.5' }}>💬</div>
+          <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }}>Configure WhatsApp first</div>
+          <div style={{ fontSize: '14px' }}>Activate the system to see conversations</div>
+        </div>
+      </div>
+
+      {/* CONVERSATION CHAT PANEL - Right */}
+      <div style={{
+        flex: 1,
+        backgroundColor: '#ffffff',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#6b7280',
+        textAlign: 'center'
+      }}>
+        <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>💬</div>
+        <h3 style={{ fontSize: '18px', margin: '0 0 8px 0', fontWeight: '500' }}>
+          Welcome to WhatsApp Receiver
+        </h3>
+        <p style={{ fontSize: '14px', margin: 0 }}>
+          Configure your WhatsApp settings on the left to start receiving messages
+        </p>
+      </div>
 
     </div>
   );
