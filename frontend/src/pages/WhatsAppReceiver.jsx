@@ -898,9 +898,9 @@ const WhatsAppReceiver = () => {
           display: 'flex',
           flexDirection: 'column'
         }}>
-          {console.log('🔍 Selected conversation check:', selectedConversation)}
           {selectedConversation ? (
             <>
+              {console.log('🚨 RENDERING SELECTED CONVERSATION:', selectedConversation.contactName)}
               {/* Chat Header */}
               <div style={{ 
                 padding: '20px 24px 16px',
@@ -1004,12 +1004,21 @@ const WhatsAppReceiver = () => {
               <div style={{ 
                 padding: '16px 24px',
                 borderTop: '1px solid #e9ecef',
-                background: '#f8f9fa',
+                background: '#ff0000', // RED BACKGROUND FOR DEBUGGING
                 display: 'flex',
                 gap: '12px',
-                alignItems: 'flex-end'
+                alignItems: 'flex-end',
+                minHeight: '80px' // ENSURE MINIMUM HEIGHT
               }}>
-                {console.log('🔍 Message bar rendering for:', selectedConversation?.contactName)}
+                {console.log('🚨🚨🚨 MESSAGE BAR IS RENDERING!!! 🚨🚨🚨')}
+                <div style={{ 
+                  color: 'white', 
+                  fontWeight: 'bold',
+                  padding: '10px',
+                  background: 'blue'
+                }}>
+                  DEBUG: Message bar is here!
+                </div>
                 <div style={{ flex: 1 }}>
                   <textarea
                     value={messageText}
