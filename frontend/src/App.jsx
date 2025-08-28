@@ -9,7 +9,7 @@ import Connections from './pages/Connections';
 import InstagramCallback from './pages/InstagramCallback';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import AIAssistant from './pages/AIAssistant';
-import WhatsAppChat from './pages/WhatsAppChat';
+import WhatsAppChatSimple from './pages/WhatsAppChatSimple';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import LeftSidebar from './components/LeftSidebar';
 // Initialize i18n
@@ -267,7 +267,7 @@ function App() {
         <Route path="/connections" element={<Connections />} />
         <Route path="/connections/callback/instagram" element={<InstagramCallback />} />
         <Route path="/ai-assistant" element={<AIAssistant />} />
-        <Route path="/whatsapp-chat" element={<WhatsAppChat />} />
+        <Route path="/whatsapp-chat" element={<WhatsAppChatSimple />} />
         <Route path="/workflow" element={<WorkflowBuilder />} />
         <Route path="/workflow-builder" element={<WorkflowBuilder />} />
         {/* <Route path="/workflownode" element={<WorkflowNode />} /> */}

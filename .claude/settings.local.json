@@ -58,7 +58,8 @@
       "Bash(timeout:*)",
       "WebFetch(domain:frontend-dpcg.onrender.com)",
       "WebFetch(domain:www.npmjs.com)",
-      "Bash(del data2.md)"
+      "Bash(del data2.md)",
+      "Bash(del nul frontendnul)"
     ],
     "deny": []
   }

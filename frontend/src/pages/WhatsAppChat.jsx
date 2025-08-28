@@ -627,92 +627,7 @@ function WhatsAppChat() {
 
   return (
     <>
-      {/* Load Tailwind and Lucide */}
-      <script src="https://cdn.tailwindcss.com"></script>
-      <script src="https://unpkg.com/lucide@latest"></script>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       
-      <style>{`
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-            overflow-x: hidden;
-        }
-        .card {
-            background-color: white;
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        }
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: all 0.2s ease-in-out;
-            cursor: pointer;
-            border: none;
-        }
-        .btn-primary {
-            background-color: #25D366;
-            color: white;
-        }
-        .btn-primary:hover {
-            background-color: #20B954;
-        }
-        .btn-secondary {
-            background-color: #e5e7eb;
-            color: #374151;
-        }
-        .btn-secondary:hover {
-            background-color: #d1d5db;
-        }
-        .input-field {
-            width: 100%;
-            padding: 0.5rem 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .input-field:focus {
-            outline: none;
-            border-color: #25D366;
-            box-shadow: 0 0 0 2px rgba(37, 211, 102, 0.2);
-        }
-        .status-dot {
-            width: 0.75rem;
-            height: 0.75rem;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 0.5rem;
-        }
-        .status-not-connected { background-color: #9ca3af; }
-        .status-connected { background-color: #22c55e; }
-        .status-inactive { background-color: #ef4444; }
-        .status-active { background-color: #25D366; }
-
-        #sidebar {
-            transition: transform 0.3s ease-in-out;
-        }
-        #main-content {
-            transition: margin-left 0.3s ease-in-out;
-        }
-        
-        .panel-content {
-            max-height: 1000px;
-            overflow: hidden;
-            transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, margin-top 0.4s ease-in-out;
-            opacity: 1;
-        }
-
-        .panel-content.collapsed {
-            max-height: 0;
-            opacity: 0;
-            margin-top: 0 !important;
-        }
-      `}</style>
 
       <div className="bg-gray-100 h-screen overflow-hidden">
         {/* Master Sidebar Toggle Button */}
@@ -721,7 +636,7 @@ function WhatsAppChat() {
           className={`fixed ${isSidebarOpen ? 'left-80' : 'left-4'} top-6 z-30 p-2 bg-white rounded-md shadow-md transition-all duration-300 ease-in-out`}
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         >
-          <i data-lucide={isSidebarOpen ? "chevrons-left" : "chevrons-right"} className="w-6 h-6 text-gray-700"></i>
+          <span className="w-6 h-6 text-gray-700 flex items-center justify-center">{isSidebarOpen ? '«' : '»'}</span>
         </button>
 
         <div className="relative h-full flex">
@@ -732,7 +647,7 @@ function WhatsAppChat() {
           >
             <div className="flex items-center justify-between pb-4 border-b border-gray-200 mb-4">
               <h2 className="text-xl font-bold text-gray-800 flex items-center">
-                <i data-lucide="message-circle" className="w-6 h-6 mr-2 text-green-600"></i>
+                <span className="w-6 h-6 mr-2 text-green-600">💬</span>
                 WhatsApp Business
               </h2>
             </div>
@@ -742,10 +657,10 @@ function WhatsAppChat() {
               <div className="card !p-4 !shadow-none border border-gray-200">
                 <div className="flex items-center justify-between cursor-pointer" onClick={() => togglePanel('whatsapp-panel')}>
                   <h2 className="text-md font-semibold text-gray-700 flex items-center">
-                    <i data-lucide="smartphone" className="w-5 h-5 mr-2 text-green-600"></i>
+                    <span className="w-5 h-5 mr-2 text-green-600">📱</span>
                     1. Business Account Setup
                   </h2>
-                  <i id="whatsapp-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
+                  <span id="whatsapp-panel-icon" className="w-5 h-5 text-gray-500 transition-transform">▼</span>
                 </div>
                 <div id="whatsapp-panel-content" className="panel-content space-y-3 mt-3">
                   <div>
@@ -1151,12 +1066,6 @@ function WhatsAppChat() {
           </main>
         </div>
 
-        <script>{`
-          // Initialize Lucide icons
-          if (window.lucide) {
-            lucide.createIcons();
-          }
-        `}</script>
       </div>
     </>
   );
