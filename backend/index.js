@@ -352,12 +352,10 @@ const PORT = process.env.PORT || 3001;
 const http = require('http');
 const server = http.createServer(app);
 
-// Initialize WebSocket server
-realtimeManager.initialize(server);
+// WebSocket server initialization removed with AI Assistant system
 
 server.listen(PORT, async () => {
-  console.log(`🚀 Backend server with AI Assistant system started on port ${PORT}`);
-  console.log(`🔌 WebSocket server ready for real-time connections`);
+  console.log(`🚀 Backend server started on port ${PORT}`);
   logger.info(`Backend server started on port ${PORT}`, { port: PORT });
   
   // Initialize scheduler and job queue with workflow executor

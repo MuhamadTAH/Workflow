@@ -1,69 +1,117 @@
-[2025-08-28T10:14:53.217Z] INFO: Incoming request {"method":"POST","url":"/api/ai-assistant/1/test-telegram","ip":"::1","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"}
-🌐 INCOMING REQUEST: {
-  method: 'POST',
-  url: '/api/ai-assistant/1/test-telegram',
-  origin: 'https://fixdai.com',
-  userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb',
-  contentType: 'application/json',
-  contentLength: '67',
-  authorization: 'present',
-  timestamp: '2025-08-28T10:14:53.218Z'
+==> Cloning from https://github.com/MuhamadTAH/Workflow
+==> Checking out commit 3eb2e57f8b87b1fa38ee84c080ab91008608a5c1 in branch mains
+==> Downloading cache...
+==> Transferred 103MB in 7s. Extraction took 3s.
+==> Using Node.js version 22.16.0 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Running build command 'npm install'...
+> backend@1.0.0 postinstall
+> npm rebuild sqlite3
+rebuilt dependencies successfully
+up to date, audited 314 packages in 2s
+38 packages are looking for funding
+  run `npm fund` for details
+5 vulnerabilities (3 low, 2 high)
+To address issues that do not require attention, run:
+  npm audit fix
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+Run `npm audit` for details.
+==> Uploading build...
+==> Uploaded in 4.2s. Compression took 1.9s
+==> Build successful 🎉
+==> Deploying...
+==> Running 'npm start'
+> backend@1.0.0 start
+> node index.js
+[dotenv@17.2.1] injecting env (3) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+✅ Active workflows table initialized
+🚀 Job Queue initialized with config: {
+  maxConcurrentJobs: 3,
+  maxRetries: 3,
+  retryDelay: 2000,
+  jobTimeout: 300000,
+  cleanupInterval: 600000
 }
-🔍 Testing Telegram connection for assistant: 1
-🔍 User ID: test-user-1
-🔍 Token provided: Yes
-✅ Assistant record ensured
-[2025-08-28T10:14:53.728Z] INFO: Request completed {"method":"POST","url":"/1/test-telegram","status":200,"duration":"511ms"}
-[2025-08-28T10:16:41.970Z] INFO: Incoming request {"method":"POST","url":"/api/webhooks/ai-assistant/1","ip":"::1"}
-🌐 INCOMING REQUEST: {
-  method: 'POST',
-  url: '/api/webhooks/ai-assistant/1',
-  origin: undefined,
-  userAgent: undefined,
-  contentType: 'application/json',
-  contentLength: '384',
-  authorization: 'missing',
-  timestamp: '2025-08-28T10:16:41.971Z'
+[2025-08-28T12:21:15.641Z] INFO: Workflow engine initialized
+✅ WorkflowExecutor singleton loaded successfully
+🚀 LOADING NODES ROUTES FILE
+✅ WhatsApp Trigger: webhookStateManager loaded successfully
+📝 REGISTERING /validate-telegram-token route
+📝 REGISTERING /verify-claude route (MOCK VERSION)
+📝 REGISTERING /telegram-get-updates route
+📝 REGISTERING /validate-whatsapp route
+✅ EXPORTING NODES ROUTER WITH ROUTES: [
+  '/run-node',
+  '/validate-telegram-token',
+  '/validate-telegram-token',
+  '/verify-claude',
+  '/telegram-get-updates',
+  '/telegram-get-updates',
+  '/find-instagram-account-id',
+  '/validate-instagram',
+  '/validate-whatsapp',
+  '/validate-whatsapp'
+]
+/opt/render/project/src/backend/index.js:356
+realtimeManager.initialize(server);
+^
+ReferenceError: realtimeManager is not defined
+    at Object.<anonymous> (/opt/render/project/src/backend/index.js:356:1)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14)
+    at Object..js (node:internal/modules/cjs/loader:1895:10)
+    at Module.load (node:internal/modules/cjs/loader:1465:32)
+    at Function._load (node:internal/modules/cjs/loader:1282:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+    at node:internal/main/run_main_module:36:49
+Node.js v22.16.0
+==> Exited with status 1
+==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+==> Running 'npm start'
+> backend@1.0.0 start
+> node index.js
+[dotenv@17.2.1] injecting env (3) from .env -- tip: 📡 observe env with Radar: https://dotenvx.com/radar
+✅ Active workflows table initialized
+🚀 Job Queue initialized with config: {
+  maxConcurrentJobs: 3,
+  maxRetries: 3,
+  retryDelay: 2000,
+  jobTimeout: 300000,
+  cleanupInterval: 600000
 }
-🤖 AI Assistant webhook received: 1
-📦 Update data: {
-  "update_id": 292397116,
-  "message": {
-    "message_id": 475,
-    "from": {
-      "id": 5483214193,
-      "is_bot": false,
-      "first_name": "Muhammad",
-      "last_name": "Tarq",
-      "username": "Muh0mmad",
-      "language_code": "en"
-    },
-    "chat": {
-      "id": 5483214193,
-      "first_name": "Muhammad",
-      "last_name": "Tarq",
-      "username": "Muh0mmad",
-      "type": "private"
-    },
-    "date": 1756376201,
-    "text": "1234567890",
-    "entities": [
-      {
-        "offset": 0,
-        "length": 10,
-        "type": "phone_number"
-      }
-    ]
-  }
-}
-🧠 Using Advanced AI Processing for assistant: 1
-👤 Customer: Muhammad (5483214193)
-💬 Message: 1234567890
-[2025-08-28T10:16:41.976Z] INFO: Request completed {"method":"POST","url":"/ai-assistant/1","status":200,"duration":"6ms"}
-📝 Skipping AI processing - saving message directly to database
-💾 Saving simple message to database...
-🔍 DEBUG: Saving with assistantId: 1, chatId: 5483214193, customerName: Muhammad, messageText: 1234567890
-📤 Sending acknowledgment to customer...
-✅ Message saved to database with ID: 1
-✅ DEBUG: Saved conversation - assistant_id: 1, customer_id: 5483214193, message: "1234567890"
-📤 Acknowledgment sent: true
+[2025-08-28T12:21:51.612Z] INFO: Workflow engine initialized
+✅ WorkflowExecutor singleton loaded successfully
+🚀 LOADING NODES ROUTES FILE
+✅ WhatsApp Trigger: webhookStateManager loaded successfully
+📝 REGISTERING /validate-telegram-token route
+📝 REGISTERING /verify-claude route (MOCK VERSION)
+📝 REGISTERING /telegram-get-updates route
+📝 REGISTERING /validate-whatsapp route
+✅ EXPORTING NODES ROUTER WITH ROUTES: [
+  '/run-node',
+  '/validate-telegram-token',
+  '/validate-telegram-token',
+  '/verify-claude',
+  '/telegram-get-updates',
+  '/telegram-get-updates',
+  '/find-instagram-account-id',
+  '/validate-instagram',
+  '/validate-whatsapp',
+  '/validate-whatsapp'
+]
+/opt/render/project/src/backend/index.js:356
+realtimeManager.initialize(server);
+^
+ReferenceError: realtimeManager is not defined
+    at Object.<anonymous> (/opt/render/project/src/backend/index.js:356:1)
+    at Module._compile (node:internal/modules/cjs/loader:1730:14)
+    at Object..js (node:internal/modules/cjs/loader:1895:10)
+    at Module.load (node:internal/modules/cjs/loader:1465:32)
+    at Function._load (node:internal/modules/cjs/loader:1282:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:171:5)
+    at node:internal/main/run_main_module:36:49
+Node.js v22.16.0
