@@ -9,6 +9,7 @@
 
 ### **Rule 2: Use Render Hosting (NO Local Server)**
 - 🌐 **Frontend URL**: https://frontend-dpcg.onrender.com
+- 🌐 **Custom Domain**: https://fixdai.com (production domain with custom hostname)
 - 🔧 **Backend URL**: https://workflow-lg9z.onrender.com
 - ❌ **NEVER use localhost URLs in code**
 - 🔄 **Always update code to use Render URLs**
@@ -34,14 +35,16 @@
 
 ### **Step 3: Testing**
 1. Test on Render frontend: https://frontend-dpcg.onrender.com
-2. Verify backend API: https://workflow-lg9z.onrender.com
-3. Check all features work in production
+2. Test on custom domain: https://fixdai.com
+3. Verify backend API: https://workflow-lg9z.onrender.com
+4. Check all features work in production
 
 ## 🌐 **URL Configuration**
 
 ### **Frontend URLs**
 ```
-Production: https://frontend-dpcg.onrender.com
+Render URL: https://frontend-dpcg.onrender.com
+Custom Domain: https://fixdai.com
 API Base: https://workflow-lg9z.onrender.com/api
 ```
 
@@ -144,6 +147,7 @@ A successful deployment means:
 - ✅ Code pushed to GitHub main branch
 - ✅ Render automatically deploys changes
 - ✅ Frontend works at https://frontend-dpcg.onrender.com
+- ✅ Custom domain works at https://fixdai.com
 - ✅ Backend API works at https://workflow-lg9z.onrender.com
 - ✅ All features functional in production
 - ✅ No localhost references in code
@@ -152,5 +156,6 @@ A successful deployment means:
 
 **Last Updated**: $(date)
 **Repository**: https://github.com/MuhamadTAH/Workflow.git
-**Frontend**: https://frontend-dpcg.onrender.com
+**Frontend (Render)**: https://frontend-dpcg.onrender.com
+**Frontend (Custom Domain)**: https://fixdai.com
 **Backend**: https://workflow-lg9z.onrender.com
