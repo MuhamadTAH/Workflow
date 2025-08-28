@@ -302,15 +302,23 @@ router.post('/send-message', asyncHandler(async (req, res) => {
 
       // Find the listener ID for this bot token
       let targetListenerId = null;
+      console.log('🔍 Looking for listener with bot token:', botToken.substring(0, 10) + '...');
+      console.log('🔍 Active bots:', Array.from(activeBots.entries()).map(([id, data]) => ({
+        listenerId: id,
+        botTokenPrefix: data.botToken.substring(0, 10) + '...'
+      })));
+      
       for (const [listenerId, botData] of activeBots.entries()) {
         if (botData.botToken === botToken) {
           targetListenerId = listenerId;
+          console.log('✅ Found matching listener:', listenerId);
           break;
         }
       }
 
       // Store the sent message as a bot message
       if (targetListenerId) {
+        console.log('💾 Storing sent message for listener:', targetListenerId);
         if (!listenerMessages.has(targetListenerId)) {
           listenerMessages.set(targetListenerId, []);
         }
@@ -338,6 +346,9 @@ router.post('/send-message', asyncHandler(async (req, res) => {
         }
         
         console.log('💾 Stored sent message as bot message for listener:', targetListenerId);
+        console.log('📊 Total messages for this listener:', messages.length);
+      } else {
+        console.log('❌ No matching listener found for bot token:', botToken.substring(0, 10) + '...');
       }
 
       logger.info(`Telegram message sent successfully`, {
