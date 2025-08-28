@@ -114,6 +114,12 @@ const WhatsAppReceiver = () => {
         const isConnected = data.connected || false;
         console.log('🔍 Setting isClaudeConnected to:', isConnected);
         setIsClaudeConnected(isConnected);
+        
+        // Debug: Check the state right after setting it with a delay
+        setTimeout(() => {
+          console.log('🔍 State after set attempt - isClaudeConnected should be:', isConnected);
+        }, 100);
+        
         if (isConnected) {
           setClaudeStatus('✅ Claude AI ready for WhatsApp integration');
           console.log('🔍 Claude is connected - hiding input field');
@@ -202,6 +208,11 @@ const WhatsAppReceiver = () => {
     }
   };
   
+  // Debug: Log Claude connection state changes
+  useEffect(() => {
+    console.log('🔍 REACT STATE CHANGE: isClaudeConnected =', isClaudeConnected);
+  }, [isClaudeConnected]);
+
   // Auto-clear Claude status after 5 seconds
   useEffect(() => {
     if (claudeStatus && !claudeStatus.includes('ready') && !claudeStatus.includes('Ready')) {
