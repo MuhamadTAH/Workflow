@@ -67,6 +67,34 @@ function AIAssistant() {
     }
   };
 
+  // Force reset webhook
+  const forceResetWebhook = async () => {
+    if (!confirm('Force reset webhook to AI Assistant? This will override any existing webhook.')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/force-webhook`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        console.log('✅ Webhook force reset successful');
+        alert(`Webhook successfully reset!\nNew URL: ${result.webhook_info.url}`);
+      } else {
+        alert('Error resetting webhook: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error forcing webhook reset:', error);
+      alert('Failed to reset webhook');
+    }
+  };
+
   const testTelegramToken = async () => {
     const tokenInput = document.getElementById('bot-token');
     const statusDiv = document.getElementById('telegram-status');
@@ -663,10 +691,11 @@ function AIAssistant() {
                     <input type="password" id="bot-token" className="input-field" placeholder="Enter your Telegram Bot Token" />
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="flex gap-2">
-                      <button onClick={testTelegramToken} className="btn btn-primary text-sm">Test</button>
-                      <button onClick={checkWebhook} className="btn btn-secondary text-sm">Check Webhook</button>
-                      <button className="btn btn-secondary text-sm">Guide</button>
+                    <div className="flex gap-1 flex-wrap">
+                      <button onClick={testTelegramToken} className="btn btn-primary text-xs px-2">Test</button>
+                      <button onClick={checkWebhook} className="btn btn-secondary text-xs px-2">Check</button>
+                      <button onClick={forceResetWebhook} className="btn btn-warning text-xs px-2">Force Reset</button>
+                      <button className="btn btn-secondary text-xs px-2">Guide</button>
                     </div>
                     <div id="telegram-status" className="flex items-center text-sm font-medium">
                       <span className="status-dot status-not-connected"></span>

@@ -934,31 +934,57 @@ router.post('/:id/activate', verifyToken, async (req, res) => {
       });
     });
 
-    // Set Telegram webhook
+    // Force reset Telegram webhook for AI Assistant
     try {
-      console.log(`🔧 Setting Telegram webhook to: ${webhookUrl}`);
+      console.log(`🔧 FORCE Setting Telegram webhook to: ${webhookUrl}`);
       console.log(`🤖 Using bot token: ${assistant.telegram_token.substring(0, 20)}...`);
       
+      // First, delete existing webhook to ensure clean state
+      console.log('🗑️ Deleting existing webhook...');
+      await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/deleteWebhook`);
+      
+      // Wait a moment for deletion to process
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Now set the new webhook
+      console.log('🔧 Setting new AI Assistant webhook...');
       const telegramResponse = await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/setWebhook`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           url: webhookUrl,
-          allowed_updates: ['message']
+          allowed_updates: ['message'],
+          drop_pending_updates: true // Clear any pending updates
         })
       });
 
       const telegramData = await telegramResponse.json();
-      console.log('📡 Telegram webhook response:', telegramData);
+      console.log('📡 Telegram webhook set response:', telegramData);
       
       if (telegramData.ok) {
-        console.log('✅ Webhook successfully set for AI Assistant');
+        console.log('✅ AI Assistant webhook successfully set!');
+        
+        // Verify the webhook was actually set
+        const verifyResponse = await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/getWebhookInfo`);
+        const verifyData = await verifyResponse.json();
+        console.log('🔍 Webhook verification:', verifyData.result);
+        
+        if (verifyData.result && verifyData.result.url === webhookUrl) {
+          console.log('✅ Webhook URL verified successfully');
+        } else {
+          console.error('❌ Webhook URL verification failed!');
+          console.error('Expected:', webhookUrl);
+          console.error('Actual:', verifyData.result?.url);
+        }
+        
       } else {
-        console.error('❌ Failed to set webhook:', telegramData.description);
+        console.error('❌ Failed to set AI Assistant webhook:', telegramData.description);
+        throw new Error(`Telegram webhook failed: ${telegramData.description}`);
       }
     } catch (webhookError) {
-      console.error('⚠️ Warning: Failed to set Telegram webhook:', webhookError);
-      // Continue anyway - webhook can be set manually
+      console.error('⚠️ CRITICAL: Failed to set Telegram webhook:', webhookError);
+      // Don't continue if webhook fails - this is critical for AI Assistant
+      throw new Error(`Webhook configuration failed: ${webhookError.message}`);
     }
 
     res.json({
@@ -1103,6 +1129,82 @@ router.get('/:id/webhook-info', verifyToken, async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error getting webhook info:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// MANUAL: Force reset webhook
+router.post('/:id/force-webhook', verifyToken, async (req, res) => {
+  try {
+    const assistantId = req.params.id;
+    const userId = req.user.userId;
+
+    // Get assistant info
+    const assistant = await new Promise((resolve, reject) => {
+      db.get('SELECT telegram_token FROM ai_assistants WHERE id = ? AND user_id = ?', 
+        [assistantId, userId], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+    });
+
+    if (!assistant) {
+      return res.status(404).json({
+        success: false,
+        error: 'AI assistant not found'
+      });
+    }
+
+    if (!assistant.telegram_token) {
+      return res.status(400).json({
+        success: false,
+        error: 'No Telegram token configured'
+      });
+    }
+
+    const webhookUrl = `https://workflow-lg9z.onrender.com/api/webhooks/ai-assistant/${assistantId}`;
+
+    // Force webhook reset
+    console.log(`🔧 MANUAL FORCE: Setting webhook to: ${webhookUrl}`);
+    
+    // Delete existing webhook
+    await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/deleteWebhook`);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Set new webhook
+    const telegramResponse = await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/setWebhook`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: webhookUrl,
+        allowed_updates: ['message'],
+        drop_pending_updates: true
+      })
+    });
+
+    const telegramData = await telegramResponse.json();
+    console.log('📡 Manual webhook set response:', telegramData);
+
+    if (telegramData.ok) {
+      // Verify
+      const verifyResponse = await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/getWebhookInfo`);
+      const verifyData = await verifyResponse.json();
+      
+      res.json({
+        success: true,
+        message: 'Webhook forcefully reset',
+        webhook_info: verifyData.result,
+        expected_url: webhookUrl
+      });
+    } else {
+      throw new Error(telegramData.description);
+    }
+
+  } catch (error) {
+    console.error('❌ Error forcing webhook reset:', error);
     res.status(500).json({
       success: false,
       error: error.message
