@@ -710,7 +710,7 @@ function AIAssistant() {
                         </div>
                       );
                     }
-                  }))
+                  })
                   )}
                 </div>
                 
