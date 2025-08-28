@@ -23,6 +23,13 @@ const TelegramListener = () => {
   const [systemPrompt, setSystemPrompt] = useState('You are a helpful and friendly AI assistant. Respond to users in a professional yet warm manner.');
   const [isSystemPromptLoading, setIsSystemPromptLoading] = useState(false);
   const [systemPromptStatus, setSystemPromptStatus] = useState('');
+  
+  // PDF Knowledge Base states
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
+  const [hasKnowledgeBase, setHasKnowledgeBase] = useState(false);
+  const [knowledgeBaseInfo, setKnowledgeBaseInfo] = useState(null);
 
   const handleSetupWebhook = async () => {
     if (!botToken.trim()) {
@@ -307,6 +314,133 @@ const TelegramListener = () => {
     setSystemPromptStatus('🔄 Reset to default prompt');
     setTimeout(() => setSystemPromptStatus(''), 2000);
   };
+
+  // PDF Knowledge Base functions
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        setUploadStatus('❌ Please select a PDF file only');
+        setTimeout(() => setUploadStatus(''), 3000);
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        setUploadStatus('❌ File size must be less than 10MB');
+        setTimeout(() => setUploadStatus(''), 3000);
+        return;
+      }
+      setSelectedFile(file);
+      setUploadStatus(`📄 Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+    }
+  };
+
+  const handleUploadPDF = async () => {
+    if (!selectedFile) {
+      setUploadStatus('❌ Please select a PDF file first');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadStatus('📤 Uploading and processing PDF...');
+
+    try {
+      const formData = new FormData();
+      formData.append('pdf', selectedFile);
+
+      const response = await fetch(`${API_BASE_URL}/api/claude/upload-knowledge`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setUploadStatus('✅ PDF processed successfully! Knowledge base updated.');
+        setHasKnowledgeBase(true);
+        setKnowledgeBaseInfo({
+          filename: selectedFile.name,
+          uploadedAt: new Date().toISOString(),
+          textLength: result.textLength || 0,
+          pageCount: result.pageCount || 0
+        });
+        setSelectedFile(null);
+        
+        // Clear the file input
+        const fileInput = document.getElementById('pdf-upload');
+        if (fileInput) fileInput.value = '';
+        
+        setTimeout(() => setUploadStatus(''), 5000);
+      } else {
+        setUploadStatus(`❌ Upload failed: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('PDF upload error:', error);
+      setUploadStatus(`❌ Network error: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const loadKnowledgeBaseInfo = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/knowledge-info`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success && result.hasKnowledge) {
+        setHasKnowledgeBase(true);
+        setKnowledgeBaseInfo(result.info);
+      }
+    } catch (error) {
+      console.error('Error loading knowledge base info:', error);
+    }
+  };
+
+  const handleDeleteKnowledge = async () => {
+    if (!confirm('Are you sure you want to delete the current knowledge base? This cannot be undone.')) {
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadStatus('🗑️ Deleting knowledge base...');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/delete-knowledge`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setUploadStatus('✅ Knowledge base deleted successfully');
+        setHasKnowledgeBase(false);
+        setKnowledgeBaseInfo(null);
+        setTimeout(() => setUploadStatus(''), 3000);
+      } else {
+        setUploadStatus(`❌ Delete failed: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Delete knowledge error:', error);
+      setUploadStatus(`❌ Network error: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Load knowledge base info on mount
+  useEffect(() => {
+    loadKnowledgeBaseInfo();
+  }, []);
 
   // Get unique users from messages (exclude bot messages)
   const getUniqueUsers = () => {
@@ -800,6 +934,167 @@ const TelegramListener = () => {
                   <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
                     💡 Click on any example to use it as your system prompt
                   </p>
+                </div>
+              </div>
+            )}
+
+            {/* PDF Knowledge Base Panel */}
+            {claudeConnectionStatus === 'connected' && (
+              <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>📄</span>
+                  PDF Knowledge Base
+                </h3>
+
+                {/* Knowledge Base Description */}
+                <div style={{
+                  backgroundColor: '#fef3c7',
+                  padding: '1rem',
+                  borderRadius: '6px',
+                  marginBottom: '1rem',
+                  fontSize: '0.875rem',
+                  border: '1px solid #fbbf24'
+                }}>
+                  <p style={{ color: '#92400e', lineHeight: '1.5', margin: 0 }}>
+                    <strong>📚 Knowledge Base:</strong> Upload a PDF with your business information, services, location details, etc. 
+                    Claude will use this information to answer specific questions about your business accurately.
+                  </p>
+                </div>
+
+                {/* Current Knowledge Base Status */}
+                {hasKnowledgeBase && knowledgeBaseInfo && (
+                  <div style={{
+                    backgroundColor: '#f0fdf4',
+                    padding: '1rem',
+                    borderRadius: '6px',
+                    marginBottom: '1rem',
+                    border: '1px solid #bbf7d0'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <h4 style={{ color: '#15803d', margin: 0, fontSize: '0.875rem', fontWeight: '600' }}>
+                          ✅ Active Knowledge Base
+                        </h4>
+                        <p style={{ color: '#166534', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+                          📄 {knowledgeBaseInfo.filename}
+                        </p>
+                        <p style={{ color: '#166534', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+                          📊 {knowledgeBaseInfo.pageCount} pages • {knowledgeBaseInfo.textLength} characters
+                        </p>
+                        <p style={{ color: '#166534', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+                          🕐 Uploaded: {new Date(knowledgeBaseInfo.uploadedAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleDeleteKnowledge}
+                        disabled={isUploading}
+                        style={{
+                          backgroundColor: isUploading ? '#9ca3af' : '#ef4444',
+                          color: 'white',
+                          padding: '0.5rem 0.75rem',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: isUploading ? 'not-allowed' : 'pointer',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        🗑️ Delete
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* File Upload Section */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    color: '#374151',
+                    marginBottom: '0.5rem'
+                  }}>
+                    {hasKnowledgeBase ? 'Replace Knowledge Base' : 'Upload PDF Knowledge Base'}
+                  </label>
+                  
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'end' }}>
+                    <div style={{ flex: 1 }}>
+                      <input
+                        id="pdf-upload"
+                        type="file"
+                        accept=".pdf"
+                        onChange={handleFileSelect}
+                        disabled={isUploading}
+                        style={{
+                          width: '100%',
+                          padding: '0.75rem',
+                          border: '2px dashed #d1d5db',
+                          borderRadius: '6px',
+                          backgroundColor: '#f9fafb',
+                          cursor: isUploading ? 'not-allowed' : 'pointer',
+                          opacity: isUploading ? '0.5' : '1'
+                        }}
+                      />
+                      <p style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: '#6b7280' }}>
+                        PDF files only • Max 10MB • Will be processed and text extracted
+                      </p>
+                    </div>
+                    
+                    <button
+                      onClick={handleUploadPDF}
+                      disabled={isUploading || !selectedFile}
+                      style={{
+                        backgroundColor: isUploading || !selectedFile ? '#9ca3af' : '#2563eb',
+                        color: 'white',
+                        padding: '0.75rem 1rem',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: isUploading || !selectedFile ? 'not-allowed' : 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {isUploading ? '⏳ Processing...' : '📤 Upload PDF'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Upload Status Message */}
+                {uploadStatus && (
+                  <div style={{
+                    padding: '1rem',
+                    borderRadius: '6px',
+                    backgroundColor: uploadStatus.includes('✅') ? '#f0fdf4' : uploadStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
+                    color: uploadStatus.includes('✅') ? '#15803d' : uploadStatus.includes('❌') ? '#dc2626' : '#1d4ed8',
+                    fontSize: '0.875rem',
+                    marginBottom: '1rem'
+                  }}>
+                    {uploadStatus}
+                  </div>
+                )}
+
+                {/* Instructions */}
+                <div style={{
+                  backgroundColor: '#f8fafc',
+                  padding: '1rem',
+                  borderRadius: '6px',
+                  fontSize: '0.875rem'
+                }}>
+                  <h4 style={{ fontWeight: '500', color: '#1e3a8a', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>
+                    💡 How Knowledge Base Works:
+                  </h4>
+                  <ul style={{ color: '#1e40af', lineHeight: '1.5', margin: '0', paddingLeft: '1.2rem' }}>
+                    <li><strong>Upload your PDF</strong> - Business info, menu, services, FAQ, etc.</li>
+                    <li><strong>Automatic processing</strong> - Text is extracted and stored</li>
+                    <li><strong>Smart responses</strong> - Claude references your PDF for accurate answers</li>
+                    <li><strong>Context-aware</strong> - Generic questions use normal AI, specific questions use your data</li>
+                  </ul>
+                  
+                  <div style={{ marginTop: '0.75rem', padding: '0.75rem', backgroundColor: '#e0f2fe', borderRadius: '4px' }}>
+                    <p style={{ color: '#0277bd', fontSize: '0.75rem', margin: 0 }}>
+                      <strong>Example:</strong> User asks "What are your opening hours?" → Claude checks your PDF → Responds with your actual hours!
+                    </p>
+                  </div>
                 </div>
               </div>
             )}

@@ -10,7 +10,7 @@ const activeBots = new Map();
 const listenerMessages = new Map();
 
 // Import Claude configs from claude.js
-const { claudeConfigs, systemPrompts } = require('./claude');
+const { claudeConfigs, systemPrompts, knowledgeBase } = require('./claude');
 
 // Function to send message to Claude and get response
 const sendMessageToClaude = async (messageText, userId = 'default_user') => {
@@ -28,15 +28,29 @@ const sendMessageToClaude = async (messageText, userId = 'default_user') => {
     const systemPromptData = systemPrompts.get(userId);
     const systemPrompt = systemPromptData?.prompt || 'You are a helpful and friendly AI assistant. Respond to users in a professional yet warm manner.';
     
-    console.log('🎭 Using system prompt:', systemPrompt.substring(0, 50) + '...');
+    // Get knowledge base for this user
+    const knowledge = knowledgeBase.get(userId);
     
-    // Build messages array with system prompt
+    console.log('🎭 Using system prompt:', systemPrompt.substring(0, 50) + '...');
+    if (knowledge) {
+      console.log('📚 Using knowledge base:', knowledge.filename, `(${knowledge.textLength} chars)`);
+    }
+    
+    // Build comprehensive prompt with system instructions, knowledge base, and user message
+    let fullPrompt = `System Instructions: ${systemPrompt}\n\n`;
+    
+    if (knowledge && knowledge.extractedText) {
+      fullPrompt += `Knowledge Base (Reference this information when relevant to answer questions about our business/services):\n${knowledge.extractedText}\n\n`;
+    }
+    
+    fullPrompt += `User Message: ${messageText}\n\n`;
+    fullPrompt += `Instructions: Use the knowledge base information when the user asks specific questions about our business, services, hours, location, policies, etc. For general conversation, respond normally according to your system instructions.`;
+    
+    // Build messages array
     const messages = [
       {
         role: 'user',
-        content: `System Instructions: ${systemPrompt}
-
-User Message: ${messageText}`
+        content: fullPrompt
       }
     ];
     

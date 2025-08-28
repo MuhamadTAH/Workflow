@@ -1,21 +1,44 @@
 # 📱 WhatsApp Receiver Page Documentation
 
 ## 🎯 **Overview**
-The WhatsApp Receiver page provides a unified interface combining WhatsApp Trigger Node and WhatsApp Send Message Node functionalities into one streamlined experience.
+The WhatsApp Receiver page provides a comprehensive unified interface that combines:
+- **WhatsApp Trigger Node**: Receiving messages from WhatsApp Business API
+- **WhatsApp Send Message Node**: Sending messages through WhatsApp Business API  
+- **Claude AI Integration**: AI-powered message responses and automation
+- **Real-time Conversation Management**: Live chat interface with message history
+- **Auto-fill Credential Management**: Persistent storage of WhatsApp credentials
 
-## 🔧 **Current System Architecture**
+This creates a complete WhatsApp business communication solution in a single interface.
 
-### **Unified Configuration**
+## 🔧 **System Architecture & Components**
+
+### **1. WhatsApp Configuration Panel**
 The system requires 5 fields for complete two-way WhatsApp communication:
 
 #### **📥 Receiving Messages (Trigger Functionality)**
 - **App ID**: WhatsApp Business App ID from Meta Developer Console
 - **Client Secret**: App Client Secret from Meta Developer Console
+- **Purpose**: Used for webhook verification and incoming message authentication
 
 #### **📤 Sending Messages (Action Functionality)**  
 - **Business ID**: WhatsApp Business Account ID (e.g., 1234567890123456)
 - **Access Token**: Graph API Access Token (e.g., EAAxxxxxxxx...)
 - **Phone Number Send ID**: WhatsApp Phone Number ID for sending (e.g., 628007790405551)
+- **Purpose**: Used for sending outbound messages through Graph API
+
+### **2. Claude AI Integration Panel**
+Integrated AI assistant for message automation and intelligent responses:
+
+#### **Configuration Fields**
+- **Claude API Key**: Anthropic API key (format: sk-ant-...)
+- **Connection Status**: Real-time status indicator (Connected/Disconnected)
+- **Model**: claude-3-5-sonnet-20241022 (automatically configured)
+
+#### **AI Features**
+- **Smart Responses**: AI-generated replies to customer messages
+- **Template Enhancement**: AI-powered message template generation
+- **Context Awareness**: Maintains conversation context for coherent responses
+- **Multi-language Support**: Responds in customer's language
 
 ### **Backend Storage**
 All credentials are stored in the `receiverState` object:

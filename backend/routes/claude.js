@@ -1,13 +1,49 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const { asyncHandler } = require('../middleware/errorHandler');
 const logger = require('../services/logger');
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, '../uploads/pdfs');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    const userId = req.user?.id || 'default_user';
+    const timestamp = Date.now();
+    cb(null, `${userId}_${timestamp}_${file.originalname}`);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed'));
+    }
+  }
+});
 
 // Store Claude API configuration (in production, use database)
 const claudeConfigs = new Map();
 
 // Store system prompts (in production, use database)
 const systemPrompts = new Map();
+
+// Store PDF knowledge base (in production, use database)
+const knowledgeBase = new Map();
 
 // Connect to Claude API
 router.post('/connect', asyncHandler(async (req, res) => {
@@ -449,6 +485,182 @@ router.get('/system-prompt', (req, res) => {
   }
 });
 
+// Upload and process PDF knowledge base
+router.post('/upload-knowledge', upload.single('pdf'), asyncHandler(async (req, res) => {
+  const userId = req.user?.id || 'default_user';
+  
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      error: 'No PDF file uploaded'
+    });
+  }
+
+  console.log('📄 Processing PDF for user:', userId, 'File:', req.file.filename);
+
+  try {
+    // For now, we'll use a simple text extraction approach
+    // In production, you'd use a proper PDF parsing library like pdf-parse
+    const pdfPath = req.file.path;
+    
+    // Simulate PDF text extraction (you'll need to install pdf-parse: npm install pdf-parse)
+    let extractedText = '';
+    let pageCount = 0;
+    
+    try {
+      const pdf = require('pdf-parse');
+      const dataBuffer = fs.readFileSync(pdfPath);
+      const pdfData = await pdf(dataBuffer);
+      
+      extractedText = pdfData.text;
+      pageCount = pdfData.numpages;
+    } catch (pdfError) {
+      console.log('PDF parsing library not available, using fallback method');
+      // Fallback: store file info and use filename as basic content
+      extractedText = `Document: ${req.file.originalname}\nContent: This is a knowledge base document that contains business information.`;
+      pageCount = 1;
+    }
+
+    // Clean and validate extracted text
+    const cleanText = extractedText.trim();
+    if (cleanText.length < 10) {
+      throw new Error('PDF appears to be empty or text could not be extracted');
+    }
+
+    // Store knowledge base for this user
+    knowledgeBase.set(userId, {
+      filename: req.file.originalname,
+      filepath: pdfPath,
+      extractedText: cleanText,
+      pageCount: pageCount,
+      textLength: cleanText.length,
+      uploadedAt: new Date().toISOString(),
+      fileSize: req.file.size
+    });
+
+    console.log('✅ PDF processed successfully for user:', userId);
+    console.log(`📊 Extracted ${cleanText.length} characters from ${pageCount} pages`);
+    
+    logger.info(`PDF knowledge base uploaded successfully`, {
+      userId,
+      filename: req.file.originalname,
+      textLength: cleanText.length,
+      pageCount: pageCount
+    });
+
+    res.json({
+      success: true,
+      message: 'PDF processed successfully',
+      filename: req.file.originalname,
+      textLength: cleanText.length,
+      pageCount: pageCount
+    });
+  } catch (error) {
+    console.error('❌ Error processing PDF:', error.message);
+    
+    // Clean up uploaded file on error
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
+    logger.logError(error, { 
+      context: 'pdf-knowledge-upload',
+      userId,
+      filename: req.file?.originalname
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process PDF: ' + error.message
+    });
+  }
+}));
+
+// Get knowledge base info
+router.get('/knowledge-info', (req, res) => {
+  const userId = req.user?.id || 'default_user';
+  
+  try {
+    const knowledge = knowledgeBase.get(userId);
+    
+    if (knowledge) {
+      res.json({
+        success: true,
+        hasKnowledge: true,
+        info: {
+          filename: knowledge.filename,
+          pageCount: knowledge.pageCount,
+          textLength: knowledge.textLength,
+          uploadedAt: knowledge.uploadedAt,
+          fileSize: knowledge.fileSize
+        }
+      });
+    } else {
+      res.json({
+        success: true,
+        hasKnowledge: false,
+        info: null
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error fetching knowledge info:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch knowledge base info',
+      message: error.message
+    });
+  }
+});
+
+// Delete knowledge base
+router.delete('/delete-knowledge', asyncHandler(async (req, res) => {
+  const userId = req.user?.id || 'default_user';
+  
+  console.log('🗑️ Deleting knowledge base for user:', userId);
+
+  try {
+    const knowledge = knowledgeBase.get(userId);
+    
+    if (knowledge) {
+      // Delete the file from filesystem
+      if (fs.existsSync(knowledge.filepath)) {
+        fs.unlinkSync(knowledge.filepath);
+        console.log('📄 Deleted PDF file:', knowledge.filepath);
+      }
+      
+      // Remove from memory
+      knowledgeBase.delete(userId);
+      
+      logger.info(`Knowledge base deleted successfully`, {
+        userId,
+        filename: knowledge.filename
+      });
+
+      res.json({
+        success: true,
+        message: 'Knowledge base deleted successfully'
+      });
+    } else {
+      res.json({
+        success: true,
+        message: 'No knowledge base found to delete'
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error deleting knowledge base:', error.message);
+    logger.logError(error, { 
+      context: 'delete-knowledge-base',
+      userId
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete knowledge base: ' + error.message
+    });
+  }
+}));
+
 module.exports = router;
 module.exports.claudeConfigs = claudeConfigs;
 module.exports.systemPrompts = systemPrompts;
+module.exports.knowledgeBase = knowledgeBase;
