@@ -9,6 +9,71 @@ const activeBots = new Map();
 // Store messages for each listener (in production, use database)
 const listenerMessages = new Map();
 
+// Import Claude configs from claude.js
+const { claudeConfigs } = require('./claude');
+
+// Function to send message to Claude and get response
+const sendMessageToClaude = async (messageText, userId = 'default_user') => {
+  try {
+    // Get Claude configuration for this user
+    const claudeConfig = claudeConfigs.get(userId);
+    if (!claudeConfig || !claudeConfig.apiKey) {
+      console.log('❌ No Claude API configuration found for user:', userId);
+      return null;
+    }
+
+    const axios = require('axios');
+    
+    // Direct call to Claude API
+    const response = await axios.post('https://api.anthropic.com/v1/messages', {
+      model: claudeConfig.model || 'claude-3-5-sonnet-20241022',
+      max_tokens: 1000,
+      messages: [
+        {
+          role: 'user',
+          content: messageText
+        }
+      ]
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': claudeConfig.apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      timeout: 30000
+    });
+
+    if (response.data && response.data.content && response.data.content[0]) {
+      // Update last used time
+      claudeConfig.lastUsed = new Date().toISOString();
+      return response.data.content[0].text;
+    } else {
+      throw new Error('Invalid response from Claude API');
+    }
+  } catch (error) {
+    console.error('❌ Error sending message to Claude:', error.message);
+    return null;
+  }
+};
+
+// Function to send message back to Telegram user
+const sendTelegramMessage = async (botToken, chatId, text) => {
+  try {
+    const axios = require('axios');
+    const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+    
+    const response = await axios.post(telegramApiUrl, {
+      chat_id: chatId,
+      text: text
+    });
+
+    return response.data.ok;
+  } catch (error) {
+    console.error('❌ Error sending Telegram message:', error.message);
+    return false;
+  }
+};
+
 // Setup webhook for a bot token
 router.post('/setup', asyncHandler(async (req, res) => {
   const { botToken } = req.body;
@@ -230,6 +295,57 @@ router.post('/webhook/:listenerId', asyncHandler(async (req, res) => {
     });
     
     console.log(`✅ Message stored and processed successfully for listener: ${listenerId}`);
+    
+    // 🤖 CLAUDE AI INTEGRATION - Process message with AI and auto-respond
+    if (messageText && messageText.trim()) {
+      console.log('🤖 Processing message with Claude AI...');
+      
+      // Send message to Claude AI
+      const claudeResponse = await sendMessageToClaude(messageText, 'default_user');
+      
+      if (claudeResponse) {
+        console.log('✅ Claude response received:', claudeResponse.substring(0, 100) + '...');
+        
+        // Send Claude's response back to user
+        const messageSent = await sendTelegramMessage(botConfig.botToken, chatId, claudeResponse);
+        
+        if (messageSent) {
+          console.log('✅ Auto-response sent to Telegram user');
+          
+          // Store Claude's response as a bot message in the conversation
+          const claudeMessageData = {
+            updateId: 'claude_' + Date.now(),
+            messageId: Date.now(),
+            chatId: chatId,
+            text: claudeResponse,
+            fromUserId: 'bot',
+            fromName: 'Claude AI',
+            fromUsername: 'claude_ai',
+            date: new Date().toISOString(),
+            timestamp: new Date().toISOString(),
+            type: 'bot_message',
+            isBotMessage: true
+          };
+          
+          // Add Claude's response to the messages list
+          const messages = listenerMessages.get(listenerId);
+          if (messages) {
+            messages.unshift(claudeMessageData); // Add to beginning (newest first)
+            
+            // Keep only last 100 messages per listener
+            if (messages.length > 100) {
+              messages.splice(100);
+            }
+          }
+          
+          console.log('✅ Claude response stored in conversation panel');
+        } else {
+          console.log('❌ Failed to send auto-response to Telegram');
+        }
+      } else {
+        console.log('❌ No response from Claude AI - user message processed without AI response');
+      }
+    }
     
   } catch (error) {
     console.error('❌ Error processing webhook message:', error.message);

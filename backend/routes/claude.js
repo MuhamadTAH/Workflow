@@ -352,3 +352,4 @@ router.get('/connections', (req, res) => {
 });
 
 module.exports = router;
+module.exports.claudeConfigs = claudeConfigs;
