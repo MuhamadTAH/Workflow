@@ -213,6 +213,13 @@ function AIAssistant() {
             size: (file.file_size / 1024 / 1024).toFixed(1) // Convert to MB
           }));
           setUploadedFiles(files);
+          
+          // Refresh Lucide icons after loading files
+          setTimeout(() => {
+            if (window.lucide) {
+              window.lucide.createIcons();
+            }
+          }, 100);
         }
       }
     } catch (error) {
@@ -244,6 +251,13 @@ function AIAssistant() {
       window.lucide.createIcons();
     }
   }, []);
+
+  // Refresh Lucide icons when uploadedFiles changes
+  useEffect(() => {
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+  }, [uploadedFiles]);
 
   const sendManualMessage = () => {
     const input = document.getElementById('manual-message-input');
@@ -320,6 +334,14 @@ function AIAssistant() {
           size: (file.file_size / 1024 / 1024).toFixed(1) // Convert to MB
         }));
         setUploadedFiles(prev => [...prev, ...newFiles]);
+        
+        // Refresh Lucide icons after state update
+        setTimeout(() => {
+          if (window.lucide) {
+            window.lucide.createIcons();
+          }
+        }, 100);
+        
         alert(`Successfully uploaded ${newFiles.length} file(s)!`);
       } else {
         alert(`Upload failed: ${result.error}`);
