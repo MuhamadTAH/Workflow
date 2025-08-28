@@ -44,6 +44,29 @@ function AIAssistant() {
   };
 
   // API Functions
+  // Debug function to check webhook
+  const checkWebhook = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/webhook-info`, {
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+        }
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        console.log('🔍 Current webhook info:', result.webhook_info);
+        console.log('🎯 Expected webhook URL:', result.expected_url);
+        alert(`Current webhook: ${result.webhook_info.url}\nExpected: ${result.expected_url}`);
+      } else {
+        alert('Error checking webhook: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error checking webhook:', error);
+      alert('Failed to check webhook');
+    }
+  };
+
   const testTelegramToken = async () => {
     const tokenInput = document.getElementById('bot-token');
     const statusDiv = document.getElementById('telegram-status');
@@ -642,6 +665,7 @@ function AIAssistant() {
                   <div className="flex items-center justify-between">
                     <div className="flex gap-2">
                       <button onClick={testTelegramToken} className="btn btn-primary text-sm">Test</button>
+                      <button onClick={checkWebhook} className="btn btn-secondary text-sm">Check Webhook</button>
                       <button className="btn btn-secondary text-sm">Guide</button>
                     </div>
                     <div id="telegram-status" className="flex items-center text-sm font-medium">

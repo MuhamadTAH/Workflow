@@ -936,6 +936,9 @@ router.post('/:id/activate', verifyToken, async (req, res) => {
 
     // Set Telegram webhook
     try {
+      console.log(`🔧 Setting Telegram webhook to: ${webhookUrl}`);
+      console.log(`🤖 Using bot token: ${assistant.telegram_token.substring(0, 20)}...`);
+      
       const telegramResponse = await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/setWebhook`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -946,7 +949,13 @@ router.post('/:id/activate', verifyToken, async (req, res) => {
       });
 
       const telegramData = await telegramResponse.json();
-      console.log('📡 Telegram webhook set:', telegramData.ok);
+      console.log('📡 Telegram webhook response:', telegramData);
+      
+      if (telegramData.ok) {
+        console.log('✅ Webhook successfully set for AI Assistant');
+      } else {
+        console.error('❌ Failed to set webhook:', telegramData.description);
+      }
     } catch (webhookError) {
       console.error('⚠️ Warning: Failed to set Telegram webhook:', webhookError);
       // Continue anyway - webhook can be set manually
@@ -1053,6 +1062,54 @@ router.post('/:id/deactivate', verifyToken, async (req, res) => {
 
 // 11. GET CONVERSATIONS
 // Frontend: "View Conversations" section or live chat monitor
+// DEBUG: Get webhook info
+router.get('/:id/webhook-info', verifyToken, async (req, res) => {
+  try {
+    const assistantId = req.params.id;
+    const userId = req.user.userId;
+
+    // Get assistant info
+    const assistant = await new Promise((resolve, reject) => {
+      db.get('SELECT telegram_token FROM ai_assistants WHERE id = ? AND user_id = ?', 
+        [assistantId, userId], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+    });
+
+    if (!assistant) {
+      return res.status(404).json({
+        success: false,
+        error: 'AI assistant not found'
+      });
+    }
+
+    if (!assistant.telegram_token) {
+      return res.status(400).json({
+        success: false,
+        error: 'No Telegram token configured'
+      });
+    }
+
+    // Get webhook info from Telegram
+    const webhookResponse = await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/getWebhookInfo`);
+    const webhookData = await webhookResponse.json();
+
+    res.json({
+      success: true,
+      webhook_info: webhookData.result,
+      expected_url: `https://workflow-lg9z.onrender.com/api/webhooks/ai-assistant/${assistantId}`
+    });
+
+  } catch (error) {
+    console.error('❌ Error getting webhook info:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 router.get('/:id/conversations', verifyToken, async (req, res) => {
   try {
     const assistantId = req.params.id;
