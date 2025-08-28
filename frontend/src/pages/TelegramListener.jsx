@@ -12,6 +12,12 @@ const TelegramListener = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [sendMessage, setSendMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  
+  // Claude API states
+  const [claudeApiKey, setClaudeApiKey] = useState('');
+  const [claudeStatus, setClaudeStatus] = useState('');
+  const [claudeConnectionStatus, setClaudeConnectionStatus] = useState('disconnected');
+  const [isClaudeLoading, setIsClaudeLoading] = useState(false);
 
   const handleSetupWebhook = async () => {
     if (!botToken.trim()) {
@@ -134,6 +140,101 @@ const TelegramListener = () => {
       }
     };
   }, [isPolling, listenerId]);
+
+  // Check Claude connection status on mount
+  useEffect(() => {
+    checkClaudeConnectionStatus();
+  }, []);
+
+  const checkClaudeConnectionStatus = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/status`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        setClaudeConnectionStatus(result.connected ? 'connected' : 'disconnected');
+        if (result.connected) {
+          setClaudeStatus('✅ Claude API is connected and ready');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking Claude status:', error);
+      setClaudeConnectionStatus('disconnected');
+    }
+  };
+
+  const handleClaudeConnect = async () => {
+    if (!claudeApiKey.trim()) {
+      setClaudeStatus('❌ Please enter your Claude API key');
+      return;
+    }
+
+    setIsClaudeLoading(true);
+    setClaudeStatus('🔗 Connecting to Claude API...');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/connect`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          apiKey: claudeApiKey.trim()
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setClaudeStatus('✅ Successfully connected to Claude API!');
+        setClaudeConnectionStatus('connected');
+        setClaudeApiKey(''); // Clear for security
+      } else {
+        setClaudeStatus(`❌ Connection failed: ${result.error || 'Unknown error'}`);
+        setClaudeConnectionStatus('disconnected');
+      }
+    } catch (error) {
+      console.error('Claude API connection error:', error);
+      setClaudeStatus(`❌ Network error: ${error.message}`);
+      setClaudeConnectionStatus('disconnected');
+    } finally {
+      setIsClaudeLoading(false);
+    }
+  };
+
+  const handleClaudeDisconnect = async () => {
+    setIsClaudeLoading(true);
+    setClaudeStatus('🔌 Disconnecting from Claude API...');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/disconnect`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setClaudeStatus('✅ Successfully disconnected from Claude API');
+        setClaudeConnectionStatus('disconnected');
+        setClaudeApiKey('');
+      } else {
+        setClaudeStatus(`❌ Disconnect failed: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Claude API disconnect error:', error);
+      setClaudeStatus(`❌ Network error: ${error.message}`);
+    } finally {
+      setIsClaudeLoading(false);
+    }
+  };
 
   // Get unique users from messages (exclude bot messages)
   const getUniqueUsers = () => {
@@ -339,6 +440,149 @@ const TelegramListener = () => {
                 <li>Send messages to your bot - they'll appear in the conversations panel below</li>
                 <li>Messages are updated automatically every 2 seconds</li>
               </ol>
+            </div>
+
+            {/* Claude AI Configuration Panel */}
+            <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+                <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🤖</span>
+                Claude AI Configuration
+              </h3>
+
+              {/* Claude Connection Status */}
+              <div style={{
+                padding: '1rem',
+                borderRadius: '8px',
+                backgroundColor: claudeConnectionStatus === 'connected' ? '#f0fdf4' : '#fef2f2',
+                border: `1px solid ${claudeConnectionStatus === 'connected' ? '#bbf7d0' : '#fecaca'}`,
+                marginBottom: '1rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '50%',
+                    backgroundColor: claudeConnectionStatus === 'connected' ? '#10b981' : '#ef4444',
+                    marginRight: '0.75rem'
+                  }}></div>
+                  <span style={{
+                    fontWeight: '500',
+                    color: claudeConnectionStatus === 'connected' ? '#065f46' : '#991b1b'
+                  }}>
+                    {claudeConnectionStatus === 'connected' ? 'Connected to Claude API' : 'Not Connected'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Claude API Key Input */}
+              {claudeConnectionStatus === 'disconnected' && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    color: '#374151',
+                    marginBottom: '0.5rem'
+                  }}>
+                    Claude API Key
+                  </label>
+                  <input
+                    type="password"
+                    value={claudeApiKey}
+                    onChange={(e) => setClaudeApiKey(e.target.value)}
+                    placeholder="Enter your Claude API key (sk-ant-...)"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      opacity: isClaudeLoading ? '0.5' : '1'
+                    }}
+                    disabled={isClaudeLoading}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !isClaudeLoading) {
+                        handleClaudeConnect();
+                      }
+                    }}
+                  />
+                  <p style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: '#6b7280' }}>
+                    Get your API key from <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6' }}>Anthropic Console</a>
+                  </p>
+                </div>
+              )}
+
+              {/* Claude Action Buttons */}
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                {claudeConnectionStatus === 'disconnected' ? (
+                  <button
+                    onClick={handleClaudeConnect}
+                    disabled={isClaudeLoading || !claudeApiKey.trim()}
+                    style={{
+                      flex: '1',
+                      backgroundColor: isClaudeLoading || !claudeApiKey.trim() ? '#9ca3af' : '#3b82f6',
+                      color: 'white',
+                      padding: '0.75rem 1rem',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: isClaudeLoading || !claudeApiKey.trim() ? 'not-allowed' : 'pointer',
+                      fontSize: '1rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {isClaudeLoading ? '⏳ Connecting...' : '🔗 Connect to Claude'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleClaudeDisconnect}
+                    disabled={isClaudeLoading}
+                    style={{
+                      flex: '1',
+                      backgroundColor: isClaudeLoading ? '#9ca3af' : '#ef4444',
+                      color: 'white',
+                      padding: '0.75rem 1rem',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: isClaudeLoading ? 'not-allowed' : 'pointer',
+                      fontSize: '1rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    {isClaudeLoading ? '⏳ Disconnecting...' : '🔌 Disconnect'}
+                  </button>
+                )}
+              </div>
+
+              {/* Claude Status Message */}
+              {claudeStatus && (
+                <div style={{
+                  padding: '1rem',
+                  borderRadius: '6px',
+                  backgroundColor: claudeStatus.includes('✅') ? '#f0fdf4' : claudeStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
+                  color: claudeStatus.includes('✅') ? '#15803d' : claudeStatus.includes('❌') ? '#dc2626' : '#1d4ed8',
+                  fontSize: '0.875rem',
+                  marginBottom: '1rem'
+                }}>
+                  {claudeStatus}
+                </div>
+              )}
+
+              {/* Claude Instructions */}
+              <div style={{
+                backgroundColor: '#f8fafc',
+                padding: '1rem',
+                borderRadius: '6px',
+                fontSize: '0.875rem'
+              }}>
+                <h4 style={{ fontWeight: '500', color: '#1e3a8a', marginBottom: '0.5rem', margin: 0 }}>
+                  🔧 Claude AI Integration:
+                </h4>
+                <p style={{ color: '#1e40af', lineHeight: '1.5', margin: '0.5rem 0 0 0' }}>
+                  Connect Claude AI to enable intelligent auto-responses to your Telegram messages. 
+                  Once connected, you can process messages with AI assistance and generate automated replies.
+                </p>
+              </div>
             </div>
 
             {/* Two Panel Layout */}

@@ -20,7 +20,6 @@ import PublicShop from './pages/PublicShop';
 import TelegramListener from './pages/TelegramListener';
 import WhatsAppReceiver from './pages/WhatsAppReceiver';
 import WhatsAppReceiverTest from './pages/WhatsAppReceiverTest';
-import ClaudeAPIModal from './components/ClaudeAPIModal';
 // Import shop components using the modular router
 import { 
   ShopDashboard, 
@@ -46,7 +45,6 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [testLoading, setTestLoading] = useState(false);
   const [gradientVariant, setGradientVariant] = useState(1);
-  const [isClaudeModalOpen, setIsClaudeModalOpen] = useState(false);
 
   // Rotate gradient variants for freshness
   useEffect(() => {
@@ -152,34 +150,6 @@ function Home() {
               Manage your automated marketing workflows and e-commerce operations
             </p>
             <div className="hero-actions" style={{ marginTop: '20px' }}>
-              <button
-                onClick={() => setIsClaudeModalOpen(true)}
-                style={{
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  padding: '0.75rem 1.5rem',
-                  border: 'none',
-                  borderRadius: '8px',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                  fontWeight: '500',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseOver={(e) => {
-                  e.target.style.backgroundColor = '#2563eb';
-                  e.target.style.transform = 'translateY(-1px)';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.backgroundColor = '#3b82f6';
-                  e.target.style.transform = 'translateY(0px)';
-                }}
-              >
-                🤖 Configure Claude AI
-              </button>
             </div>
           </div>
         </header>
@@ -283,11 +253,6 @@ function Home() {
       </div>
     </div>
 
-    {/* Claude API Modal */}
-    <ClaudeAPIModal 
-      isOpen={isClaudeModalOpen} 
-      onClose={() => setIsClaudeModalOpen(false)} 
-    />
     </>
   );
 }
