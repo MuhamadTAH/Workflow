@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api.js';
 
 const TelegramListener = () => {
@@ -6,6 +6,9 @@ const TelegramListener = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('');
+  const [listenerId, setListenerId] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [isPolling, setIsPolling] = useState(false);
 
   const handleSetupWebhook = async () => {
     if (!botToken.trim()) {
@@ -33,6 +36,8 @@ const TelegramListener = () => {
       if (response.ok && result.success) {
         setStatus(`✅ Webhook setup successful!`);
         setWebhookUrl(result.webhookUrl);
+        setListenerId(result.listenerId);
+        setIsPolling(true);
         console.log('Webhook setup result:', result);
       } else {
         setStatus(`❌ Setup failed: ${result.error || 'Unknown error'}`);
@@ -71,6 +76,9 @@ const TelegramListener = () => {
       if (response.ok && result.success) {
         setStatus('✅ Webhook deleted successfully!');
         setWebhookUrl('');
+        setListenerId('');
+        setIsPolling(false);
+        setMessages([]);
       } else {
         setStatus(`❌ Delete failed: ${result.error || 'Unknown error'}`);
       }
@@ -81,6 +89,47 @@ const TelegramListener = () => {
       setIsLoading(false);
     }
   };
+
+  // Fetch messages for the current listener
+  const fetchMessages = async () => {
+    if (!listenerId) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/messages/${listenerId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.messages) {
+          setMessages(result.messages);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+  // Polling for new messages
+  useEffect(() => {
+    let interval;
+    
+    if (isPolling && listenerId) {
+      // Initial fetch
+      fetchMessages();
+      
+      // Set up polling every 2 seconds
+      interval = setInterval(fetchMessages, 2000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isPolling, listenerId]);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '2rem 0' }}>
@@ -194,10 +243,113 @@ const TelegramListener = () => {
               <ol style={{ paddingLeft: '1.5rem', fontSize: '0.875rem', color: '#1e40af', lineHeight: '1.5' }}>
                 <li>Get a bot token from @BotFather on Telegram</li>
                 <li>Paste the token above and click "Setup Webhook"</li>
-                <li>Send messages to your bot - they'll be received by the backend</li>
-                <li>Check the browser console and backend logs to see incoming messages</li>
+                <li>Send messages to your bot - they'll appear in the conversations panel below</li>
+                <li>Messages are updated automatically every 2 seconds</li>
               </ol>
             </div>
+
+            {/* Conversations Panel */}
+            {isPolling && (
+              <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <h3 style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
+                    💬 Conversations 
+                    {isPolling && (
+                      <span style={{ 
+                        marginLeft: '0.5rem', 
+                        fontSize: '0.75rem', 
+                        color: '#10b981',
+                        backgroundColor: '#d1fae5',
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '4px'
+                      }}>
+                        🟢 Live
+                      </span>
+                    )}
+                  </h3>
+                  <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                    {messages.length} message{messages.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+
+                <div style={{ 
+                  maxHeight: '400px', 
+                  overflowY: 'auto', 
+                  backgroundColor: 'white', 
+                  borderRadius: '4px',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  {messages.length === 0 ? (
+                    <div style={{ 
+                      padding: '2rem', 
+                      textAlign: 'center', 
+                      color: '#9ca3af',
+                      fontSize: '0.875rem'
+                    }}>
+                      <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💭</div>
+                      <p>No messages yet. Send a message to your bot to see it here!</p>
+                    </div>
+                  ) : (
+                    <div style={{ padding: '0.5rem' }}>
+                      {messages.map((message, index) => (
+                        <div
+                          key={index}
+                          style={{
+                            padding: '0.75rem',
+                            marginBottom: '0.5rem',
+                            backgroundColor: '#f9fafb',
+                            borderRadius: '6px',
+                            border: '1px solid #f3f4f6'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <div style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '50%',
+                              backgroundColor: '#3b82f6',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginRight: '0.75rem',
+                              fontSize: '0.875rem',
+                              color: 'white',
+                              fontWeight: 'bold'
+                            }}>
+                              {message.fromName ? message.fromName[0].toUpperCase() : 'U'}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontWeight: '500', fontSize: '0.875rem', color: '#111827' }}>
+                                {message.fromName || 'Unknown User'}
+                                {message.fromUsername && (
+                                  <span style={{ color: '#6b7280', fontWeight: 'normal' }}>
+                                    {' '}@{message.fromUsername}
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                                Chat ID: {message.chatId} • {message.date}
+                              </div>
+                            </div>
+                          </div>
+                          <div style={{
+                            marginLeft: '2.5rem',
+                            padding: '0.75rem',
+                            backgroundColor: 'white',
+                            borderRadius: '4px',
+                            fontSize: '0.875rem',
+                            color: '#374151',
+                            wordWrap: 'break-word'
+                          }}>
+                            {message.text || '<No text>'}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
