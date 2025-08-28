@@ -99,21 +99,30 @@ const WhatsAppReceiver = () => {
   // Check Claude API connection status
   const checkClaudeStatus = async () => {
     try {
+      console.log('🔍 Checking Claude API status...');
       const response = await fetch(`${API_BASE_URL}/api/claude/status`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
       
+      console.log('🔍 Claude status response:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('🔍 Claude status data:', data);
         setIsClaudeConnected(data.connected || false);
         if (data.connected) {
           setClaudeStatus('✅ Claude AI ready for WhatsApp integration');
+        } else {
+          setClaudeStatus('');
         }
+      } else {
+        console.log('❌ Claude status check failed:', response.status);
+        setIsClaudeConnected(false);
       }
     } catch (error) {
-      console.error('Error checking Claude status:', error);
+      console.error('❌ Error checking Claude status:', error);
       setIsClaudeConnected(false);
     }
   };
@@ -565,9 +574,18 @@ const WhatsAppReceiver = () => {
             </span>
           </div>
 
-          {/* Claude API Key Input */}
+          {/* Claude API Key Input - Always show unless connected */}
           {!isClaudeConnected && (
             <div style={{ marginBottom: '16px' }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '6px',
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#374151'
+              }}>
+                Claude API Key:
+              </label>
               <input
                 type="password"
                 value={claudeApiKey}
@@ -580,10 +598,18 @@ const WhatsAppReceiver = () => {
                   border: '2px solid #e5e7eb',
                   borderRadius: '8px',
                   fontSize: '14px',
-                  backgroundColor: isConnectingClaude ? '#f9fafb' : 'white'
+                  backgroundColor: isConnectingClaude ? '#f9fafb' : 'white',
+                  outline: 'none',
+                  transition: 'border-color 0.2s'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#3b82f6';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#e5e7eb';
                 }}
                 onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !isConnectingClaude) {
+                  if (e.key === 'Enter' && !isConnectingClaude && claudeApiKey.trim()) {
                     handleClaudeConnect();
                   }
                 }}
@@ -598,13 +624,23 @@ const WhatsAppReceiver = () => {
                   href="https://console.anthropic.com/" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  style={{ color: '#3b82f6' }}
+                  style={{ color: '#3b82f6', textDecoration: 'underline' }}
                 >
                   Anthropic Console
                 </a>
               </p>
             </div>
           )}
+          
+          {/* Debug info - remove after testing */}
+          <div style={{
+            fontSize: '11px',
+            color: '#6b7280',
+            marginBottom: '8px',
+            fontFamily: 'monospace'
+          }}>
+            Debug: Connected={isClaudeConnected.toString()}, Connecting={isConnectingClaude.toString()}, HasKey={!!claudeApiKey}
+          </div>
 
           {/* Claude Status */}
           {claudeStatus && (
