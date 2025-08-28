@@ -1808,7 +1808,7 @@ router.post('/ai-assistant/:assistantId', asyncHandler(async (req, res) => {
     console.log('👤 Customer:', customerName, `(${chatId})`);
     console.log('💬 Message:', messageText);
 
-    // Get assistant info (needed for both success and error cases)
+    // Get assistant info
     const db = require('../db');
     const assistant = await new Promise((resolve, reject) => {
       db.get('SELECT telegram_token, user_id FROM ai_assistants WHERE id = ?', 
@@ -1818,7 +1818,51 @@ router.post('/ai-assistant/:assistantId', asyncHandler(async (req, res) => {
         });
     });
 
-    // Process conversation with advanced features
+    // SIMPLIFIED: Skip AI processing, just save message to database
+    console.log('📝 Skipping AI processing - saving message directly to database');
+    
+    // Save conversation to database without AI response
+    console.log('💾 Saving simple message to database...');
+    db.run(`
+      INSERT INTO ai_conversations 
+      (assistant_id, customer_id, customer_name, message_text, response_text, 
+       response_time_ms, success, created_at) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `, [
+      assistantId,
+      chatId.toString(),
+      customerName,
+      messageText,
+      'Message received (AI processing disabled)',
+      Date.now() - startTime,
+      1 // success = true
+    ], function(err) {
+      if (err) {
+        console.error('❌ Failed to save message to database:', err);
+      } else {
+        console.log('✅ Message saved to database with ID:', this.lastID);
+      }
+    });
+
+    // Send simple acknowledgment back to customer
+    if (assistant && assistant.telegram_token) {
+      console.log('📤 Sending acknowledgment to customer...');
+      const fetch = require('node-fetch');
+      const telegramResponse = await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: `✅ Message received: "${messageText}"`
+        })
+      });
+
+      const telegramData = await telegramResponse.json();
+      console.log('📤 Acknowledgment sent:', telegramData.ok);
+    }
+
+    // OLD AI PROCESSING CODE (commented out for now):
+    /*
     const result = await advancedAIProcessor.processAdvancedConversation(
       assistantId,
       customerMessage,
@@ -1829,7 +1873,6 @@ router.post('/ai-assistant/:assistantId', asyncHandler(async (req, res) => {
       // Send response back to Telegram
 
       if (assistant && assistant.telegram_token) {
-        const fetch = require('node-fetch');
         const telegramResponse = await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1935,6 +1978,7 @@ router.post('/ai-assistant/:assistantId', asyncHandler(async (req, res) => {
         }
       }
     }
+    */
 
   } catch (error) {
     console.error('❌ AI Assistant webhook processing failed:', error);
