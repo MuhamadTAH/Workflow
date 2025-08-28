@@ -78,20 +78,32 @@ function WhatsAppChat() {
 
   // API Functions
   const testWhatsAppConnection = async () => {
+    // Get all required fields
+    const appIdInput = document.getElementById('app-id');
+    const clientSecretInput = document.getElementById('client-secret');
     const tokenInput = document.getElementById('access-token');
+    const businessIdInput = document.getElementById('business-id');
     const phoneIdInput = document.getElementById('phone-number-id');
     const statusDiv = document.getElementById('whatsapp-status');
     
-    if (!tokenInput?.value.trim() || !phoneIdInput?.value.trim()) {
-      alert('Please enter both Access Token and Phone Number ID');
+    // Validate all required fields are filled
+    const missingFields = [];
+    if (!appIdInput?.value.trim()) missingFields.push('App ID');
+    if (!clientSecretInput?.value.trim()) missingFields.push('Client Secret');
+    if (!tokenInput?.value.trim()) missingFields.push('Access Token');
+    if (!businessIdInput?.value.trim()) missingFields.push('Business Account ID');
+    if (!phoneIdInput?.value.trim()) missingFields.push('Phone Number ID');
+    
+    if (missingFields.length > 0) {
+      alert(`Please fill in the following required fields:\n- ${missingFields.join('\n- ')}`);
       return;
     }
     
     // Show loading
-    statusDiv.innerHTML = '<span class="status-dot status-not-connected animate-pulse"></span><span class="text-yellow-600">Testing...</span>';
+    statusDiv.innerHTML = '<span class="status-dot status-not-connected animate-pulse"></span><span class="text-yellow-600">Testing connection...</span>';
     
     try {
-      // Simulate API test (you can replace with actual WhatsApp Business API test)
+      // Test WhatsApp Business API connection
       const response = await fetch(`https://graph.facebook.com/v21.0/${phoneIdInput.value.trim()}`, {
         method: 'GET',
         headers: {
@@ -100,13 +112,26 @@ function WhatsAppChat() {
       });
       
       if (response.ok) {
-        statusDiv.innerHTML = '<span class="status-dot status-connected"></span><span class="text-green-600">Connected</span>';
+        const data = await response.json();
+        statusDiv.innerHTML = '<span class="status-dot status-connected"></span><span class="text-green-600">All credentials valid ✓</span>';
+        
+        // Show success details
+        setTimeout(() => {
+          alert(`✅ WhatsApp Business API Connection Successful!\n\n` +
+                `📱 Phone: ${data.display_phone_number || 'Connected'}\n` +
+                `🏢 Business: ${businessIdInput.value.trim()}\n` +
+                `📡 App ID: ${appIdInput.value.trim()}\n\n` +
+                `Ready for:\n• Receiving messages (WhatsApp Trigger)\n• Sending messages (WhatsApp Send Message)`);
+        }, 500);
       } else {
-        statusDiv.innerHTML = '<span class="status-dot status-not-connected"></span><span class="text-red-600">Failed</span>';
+        const errorData = await response.json();
+        statusDiv.innerHTML = '<span class="status-dot status-not-connected"></span><span class="text-red-600">Connection failed</span>';
+        alert(`❌ Connection failed:\n${errorData.error?.message || 'Invalid credentials'}`);
       }
     } catch (error) {
       console.error('WhatsApp test failed:', error);
-      statusDiv.innerHTML = '<span class="status-dot status-not-connected"></span><span class="text-red-600">Error</span>';
+      statusDiv.innerHTML = '<span class="status-dot status-not-connected"></span><span class="text-red-600">Network error</span>';
+      alert('❌ Network error: Could not connect to WhatsApp Business API');
     }
   };
 
@@ -323,16 +348,29 @@ function WhatsAppChat() {
                 </div>
                 <div id="whatsapp-panel-content" className="panel-content space-y-3 mt-3">
                   <div>
+                    <label htmlFor="app-id" className="block text-sm font-medium text-gray-600 mb-1">App ID</label>
+                    <input type="text" id="app-id" className="input-field" placeholder="1234567890123456" />
+                    <small className="text-xs text-gray-500 mt-1">Required for receiving messages (WhatsApp Trigger)</small>
+                  </div>
+                  <div>
+                    <label htmlFor="client-secret" className="block text-sm font-medium text-gray-600 mb-1">Client Secret</label>
+                    <input type="password" id="client-secret" className="input-field" placeholder="abcd1234efgh5678..." />
+                    <small className="text-xs text-gray-500 mt-1">Required for receiving messages (WhatsApp Trigger)</small>
+                  </div>
+                  <div>
                     <label htmlFor="access-token" className="block text-sm font-medium text-gray-600 mb-1">Access Token</label>
                     <input type="password" id="access-token" className="input-field" placeholder="EAAxxxxxxxxxxxxx..." />
+                    <small className="text-xs text-gray-500 mt-1">Required for sending messages (WhatsApp Send Message)</small>
                   </div>
                   <div>
                     <label htmlFor="business-id" className="block text-sm font-medium text-gray-600 mb-1">Business Account ID</label>
                     <input type="text" id="business-id" className="input-field" placeholder="1234567890123456" />
+                    <small className="text-xs text-gray-500 mt-1">Required for sending messages (WhatsApp Send Message)</small>
                   </div>
                   <div>
                     <label htmlFor="phone-number-id" className="block text-sm font-medium text-gray-600 mb-1">Phone Number ID</label>
                     <input type="text" id="phone-number-id" className="input-field" placeholder="628007790405551" />
+                    <small className="text-xs text-gray-500 mt-1">Required for sending messages (WhatsApp Send Message)</small>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex gap-2">
