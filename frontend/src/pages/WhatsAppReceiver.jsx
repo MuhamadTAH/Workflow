@@ -144,7 +144,7 @@ const WhatsAppReceiver = () => {
           alignItems: 'center',
           gap: '10px'
         }}>
-          <i className="fab fa-whatsapp" style={{ fontSize: '28px' }}></i>
+          <span style={{ fontSize: '28px' }}>📱</span>
           WhatsApp Message Receiver
         </h1>
 
@@ -286,17 +286,7 @@ const WhatsAppReceiver = () => {
                 gap: '8px'
               }}
             >
-              {isLoading ? (
-                <>
-                  <i className="fas fa-spinner fa-spin"></i>
-                  Activating...
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-play"></i>
-                  Start Listening
-                </>
-              )}
+              {isLoading ? '⏳ Activating...' : '▶️ Start Listening'}
             </button>
           ) : (
             <button
@@ -317,17 +307,7 @@ const WhatsAppReceiver = () => {
                 gap: '8px'
               }}
             >
-              {isLoading ? (
-                <>
-                  <i className="fas fa-spinner fa-spin"></i>
-                  Stopping...
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-stop"></i>
-                  Stop Listening
-                </>
-              )}
+              {isLoading ? '⏳ Stopping...' : '⏹️ Stop Listening'}
             </button>
           )}
           
@@ -376,8 +356,7 @@ const WhatsAppReceiver = () => {
             alignItems: 'center',
             gap: '10px'
           }}>
-            <i className="fas fa-comments"></i>
-            Received Messages ({messages.length})
+            💬 Received Messages ({messages.length})
           </h3>
         </div>
         
@@ -396,7 +375,7 @@ const WhatsAppReceiver = () => {
               color: '#6c757d',
               textAlign: 'center'
             }}>
-              <i className="fas fa-inbox" style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}></i>
+              <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>📥</div>
               <p style={{ fontSize: '18px', margin: '0 0 8px 0' }}>No messages received yet</p>
               <p style={{ fontSize: '14px', margin: 0 }}>
                 {isActive ? 'Waiting for WhatsApp messages...' : 'Start listening to see messages here'}
