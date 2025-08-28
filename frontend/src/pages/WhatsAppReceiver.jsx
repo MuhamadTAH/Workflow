@@ -174,6 +174,58 @@ const WhatsAppReceiver = () => {
     alert('Webhook URL copied to clipboard!');
   };
 
+  const handleSendMessage = async () => {
+    if (!sendBusinessId.trim() || !sendAccessToken.trim() || !sendPhoneNumberId.trim() || 
+        !recipientPhone.trim() || !messageText.trim()) {
+      setSendStatus('❌ Please fill in all fields');
+      return;
+    }
+
+    setIsSending(true);
+    setSendStatus('⏳ Sending message...');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/whatsapp-receiver/send-message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          businessId: sendBusinessId.trim(),
+          accessToken: sendAccessToken.trim(),
+          phoneNumberId: sendPhoneNumberId.trim(),
+          recipientPhoneNumber: recipientPhone.trim(),
+          messageText: messageText.trim()
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setSendStatus(`✅ Message sent successfully! ID: ${data.data.messageId || 'N/A'}`);
+        setMessageText(''); // Clear message after sending
+      } else {
+        setSendStatus(`❌ Failed to send: ${data.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      setSendStatus(`❌ Network error: ${error.message}`);
+      console.error('Send message error:', error);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  // Auto-clear send status after 10 seconds
+  useEffect(() => {
+    if (sendStatus && !sendStatus.includes('⏳')) {
+      const timeout = setTimeout(() => {
+        setSendStatus('');
+      }, 10000);
+      return () => clearTimeout(timeout);
+    }
+  }, [sendStatus]);
+
   const formatTimestamp = (timestamp) => {
     return new Date(timestamp).toLocaleString();
   };
@@ -381,6 +433,248 @@ const WhatsAppReceiver = () => {
             }}></div>
             {isActive ? 'Listening for messages' : 'Inactive'}
           </div>
+        </div>
+      </div>
+
+      {/* Send Message Panel */}
+      <div style={{ 
+        background: 'white', 
+        borderRadius: '12px', 
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)', 
+        padding: '24px',
+        marginBottom: '20px'
+      }}>
+        <h2 style={{ 
+          color: '#25D366', 
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px'
+        }}>
+          <span style={{ fontSize: '24px' }}>📤</span>
+          WhatsApp Send Message
+        </h2>
+
+        {/* Send Message Form */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+          gap: '16px', 
+          marginBottom: '20px' 
+        }}>
+          {/* Business ID */}
+          <div>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '8px', 
+              fontWeight: '500',
+              color: '#495057'
+            }}>
+              Business ID:
+            </label>
+            <input
+              type="text"
+              value={sendBusinessId}
+              onChange={(e) => setSendBusinessId(e.target.value)}
+              placeholder="e.g., 1234567890123456"
+              disabled={isSending}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '2px solid #e9ecef',
+                borderRadius: '8px',
+                fontSize: '14px',
+                backgroundColor: isSending ? '#f8f9fa' : 'white'
+              }}
+            />
+          </div>
+
+          {/* Access Token */}
+          <div>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '8px', 
+              fontWeight: '500',
+              color: '#495057'
+            }}>
+              Access Token:
+            </label>
+            <input
+              type="password"
+              value={sendAccessToken}
+              onChange={(e) => setSendAccessToken(e.target.value)}
+              placeholder="EAAxxxxxxxx..."
+              disabled={isSending}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '2px solid #e9ecef',
+                borderRadius: '8px',
+                fontSize: '14px',
+                backgroundColor: isSending ? '#f8f9fa' : 'white'
+              }}
+            />
+          </div>
+
+          {/* Phone Number ID */}
+          <div>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '8px', 
+              fontWeight: '500',
+              color: '#495057'
+            }}>
+              Phone Number Send ID:
+            </label>
+            <input
+              type="text"
+              value={sendPhoneNumberId}
+              onChange={(e) => setSendPhoneNumberId(e.target.value)}
+              placeholder="e.g., 628007790405551"
+              disabled={isSending}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '2px solid #e9ecef',
+                borderRadius: '8px',
+                fontSize: '14px',
+                backgroundColor: isSending ? '#f8f9fa' : 'white'
+              }}
+            />
+          </div>
+
+          {/* Recipient Phone Number */}
+          <div>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '8px', 
+              fontWeight: '500',
+              color: '#495057'
+            }}>
+              Recipient Phone Number:
+            </label>
+            <input
+              type="text"
+              value={recipientPhone}
+              onChange={(e) => setRecipientPhone(e.target.value)}
+              placeholder="9647700716669 (no + sign)"
+              disabled={isSending}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '2px solid #e9ecef',
+                borderRadius: '8px',
+                fontSize: '14px',
+                backgroundColor: isSending ? '#f8f9fa' : 'white'
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Message Text */}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ 
+            display: 'block', 
+            marginBottom: '8px', 
+            fontWeight: '500',
+            color: '#495057'
+          }}>
+            Message Text:
+          </label>
+          <textarea
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            placeholder="Enter your message here..."
+            disabled={isSending}
+            rows={4}
+            style={{
+              width: '100%',
+              padding: '12px',
+              border: '2px solid #e9ecef',
+              borderRadius: '8px',
+              fontSize: '14px',
+              resize: 'vertical',
+              backgroundColor: isSending ? '#f8f9fa' : 'white'
+            }}
+          />
+        </div>
+
+        {/* Send Status */}
+        {sendStatus && (
+          <div style={{ 
+            color: sendStatus.includes('✅') ? '#28a745' : sendStatus.includes('❌') ? '#dc3545' : '#007bff', 
+            background: sendStatus.includes('✅') ? '#d4edda' : sendStatus.includes('❌') ? '#f8d7da' : '#d1ecf1', 
+            padding: '12px', 
+            borderRadius: '8px', 
+            marginBottom: '16px',
+            border: `1px solid ${sendStatus.includes('✅') ? '#c3e6cb' : sendStatus.includes('❌') ? '#f5c6cb' : '#bee5eb'}`
+          }}>
+            {sendStatus}
+          </div>
+        )}
+
+        {/* Send Button */}
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button
+            onClick={handleSendMessage}
+            disabled={isSending || !sendBusinessId.trim() || !sendAccessToken.trim() || 
+                     !sendPhoneNumberId.trim() || !recipientPhone.trim() || !messageText.trim()}
+            style={{
+              padding: '12px 24px',
+              background: (isSending || !sendBusinessId.trim() || !sendAccessToken.trim() || 
+                          !sendPhoneNumberId.trim() || !recipientPhone.trim() || !messageText.trim()) 
+                         ? '#6c757d' : '#25D366',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: (isSending || !sendBusinessId.trim() || !sendAccessToken.trim() || 
+                      !sendPhoneNumberId.trim() || !recipientPhone.trim() || !messageText.trim()) 
+                     ? 'not-allowed' : 'pointer',
+              fontSize: '16px',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            {isSending ? '⏳ Sending...' : '📤 Send Message'}
+          </button>
+
+          {/* Quick Fill Button */}
+          <button
+            onClick={() => {
+              if (selectedConversation) {
+                setRecipientPhone(selectedConversation.phoneNumber);
+                setMessageText(`Hello ${selectedConversation.contactName}, thanks for your message!`);
+              }
+            }}
+            disabled={!selectedConversation || isSending}
+            style={{
+              padding: '12px 16px',
+              background: (!selectedConversation || isSending) ? '#e9ecef' : '#007bff',
+              color: (!selectedConversation || isSending) ? '#6c757d' : 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: (!selectedConversation || isSending) ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              fontWeight: '500'
+            }}
+          >
+            📋 Reply to Selected
+          </button>
+        </div>
+
+        {/* Helper Text */}
+        <div style={{ 
+          marginTop: '16px',
+          padding: '12px',
+          background: '#f8f9fa',
+          borderRadius: '6px',
+          fontSize: '13px',
+          color: '#6c757d'
+        }}>
+          💡 <strong>Tip:</strong> Select a conversation from below to auto-fill the recipient phone number. 
+          Get your credentials from the Meta Developer Console for WhatsApp Business API.
         </div>
       </div>
 

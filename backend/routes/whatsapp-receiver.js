@@ -288,6 +288,98 @@ const storeWhatsAppMessage = (webhookData) => {
   });
 };
 
+// POST /api/whatsapp-receiver/send-message - Send WhatsApp message
+router.post('/send-message', verifyToken, async (req, res) => {
+  const { businessId, accessToken, phoneNumberId, recipientPhoneNumber, messageText } = req.body;
+  
+  console.log('📤 WhatsApp send message request:', {
+    businessId: businessId ? 'present' : 'missing',
+    accessToken: accessToken ? 'present' : 'missing',
+    phoneNumberId: phoneNumberId ? 'present' : 'missing',
+    recipientPhoneNumber: recipientPhoneNumber ? recipientPhoneNumber : 'missing',
+    messageLength: messageText ? messageText.length : 0
+  });
+  
+  try {
+    // Validate required parameters
+    if (!businessId || !accessToken || !phoneNumberId || !recipientPhoneNumber || !messageText) {
+      return res.status(400).json({
+        success: false,
+        error: 'All fields are required: businessId, accessToken, phoneNumberId, recipientPhoneNumber, messageText'
+      });
+    }
+
+    // Send message to WhatsApp Business API
+    const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
+    
+    const requestBody = {
+      messaging_product: 'whatsapp',
+      to: recipientPhoneNumber,
+      type: 'text',
+      text: {
+        body: messageText
+      }
+    };
+
+    console.log('📡 Sending to WhatsApp API:', { 
+      url: url.replace(/\/\d+\//, '/[PHONE_ID]/'), 
+      body: {
+        ...requestBody,
+        to: `***${requestBody.to.slice(-4)}` // Only show last 4 digits
+      }
+    });
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+        'User-Agent': 'WhatsApp-Receiver/1.0'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const errorMsg = data.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+      console.error('❌ WhatsApp API Error Response:', data);
+      return res.status(400).json({
+        success: false,
+        error: `WhatsApp API Error: ${errorMsg}`,
+        details: data
+      });
+    }
+
+    console.log('✅ WhatsApp API Response:', {
+      messageId: data.messages?.[0]?.id,
+      status: data.messages?.[0]?.message_status || 'sent',
+      success: true
+    });
+
+    res.json({
+      success: true,
+      message: `Message sent successfully to ${recipientPhoneNumber}`,
+      data: {
+        messageId: data.messages?.[0]?.id,
+        recipientPhoneNumber: recipientPhoneNumber,
+        messageText: messageText,
+        status: data.messages?.[0]?.message_status || 'sent',
+        sentAt: new Date().toISOString(),
+        whatsappResponse: data
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ WhatsApp send message error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: 'Failed to send WhatsApp message'
+    });
+  }
+});
+
 // GET /api/whatsapp-receiver/stats - Get receiver statistics
 router.get('/stats', verifyToken, (req, res) => {
   const statsQuery = `
