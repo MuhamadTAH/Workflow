@@ -6,6 +6,9 @@ const logger = require('../services/logger');
 // Store active bot listeners (in production, use database)
 const activeBots = new Map();
 
+// Store messages for each listener (in production, use database)
+const listenerMessages = new Map();
+
 // Setup webhook for a bot token
 router.post('/setup', asyncHandler(async (req, res) => {
   const { botToken } = req.body;
@@ -181,12 +184,39 @@ router.post('/webhook/:listenerId', asyncHandler(async (req, res) => {
     const chatId = message.chat.id;
     const messageText = message.text || '';
     const fromUser = message.from;
+    const fromName = `${fromUser.first_name || ''} ${fromUser.last_name || ''}`.trim() || 'Unknown';
     
     // Log message details
-    console.log('👤 From:', `${fromUser.first_name || ''} ${fromUser.last_name || ''}`.trim() || fromUser.username || `User ${fromUser.id}`);
+    console.log('👤 From:', fromName);
     console.log('💬 Chat ID:', chatId);
     console.log('📝 Message:', messageText);
     console.log('🕐 Date:', new Date(message.date * 1000).toISOString());
+    
+    // Store message for this listener
+    if (!listenerMessages.has(listenerId)) {
+      listenerMessages.set(listenerId, []);
+    }
+    
+    const messageData = {
+      updateId: update.update_id,
+      messageId: message.message_id,
+      chatId: chatId,
+      text: messageText,
+      fromUserId: fromUser.id,
+      fromName: fromName,
+      fromUsername: fromUser.username,
+      date: new Date(message.date * 1000).toISOString(),
+      timestamp: new Date().toISOString(),
+      type: message.text ? 'text' : 'other'
+    };
+    
+    const messages = listenerMessages.get(listenerId);
+    messages.unshift(messageData); // Add to beginning (newest first)
+    
+    // Keep only last 100 messages per listener
+    if (messages.length > 100) {
+      messages.splice(100);
+    }
     
     // Log to logger service
     logger.logTelegramEvent(`listener-${listenerId}`, 'message_received', {
@@ -199,9 +229,7 @@ router.post('/webhook/:listenerId', asyncHandler(async (req, res) => {
       messageCount: botConfig.messageCount
     });
     
-    // Here you can add more processing if needed
-    // For now, just log that we received the message
-    console.log(`✅ Message processed successfully for listener: ${listenerId}`);
+    console.log(`✅ Message stored and processed successfully for listener: ${listenerId}`);
     
   } catch (error) {
     console.error('❌ Error processing webhook message:', error.message);
@@ -212,6 +240,32 @@ router.post('/webhook/:listenerId', asyncHandler(async (req, res) => {
     });
   }
 }));
+
+// Get messages for a specific listener
+router.get('/messages/:listenerId', (req, res) => {
+  const { listenerId } = req.params;
+  
+  try {
+    const messages = listenerMessages.get(listenerId) || [];
+    const botConfig = activeBots.get(listenerId);
+    
+    res.json({
+      success: true,
+      listenerId: listenerId,
+      messages: messages,
+      totalMessages: messages.length,
+      botActive: !!botConfig,
+      lastActivity: botConfig?.lastActivity || null
+    });
+  } catch (error) {
+    console.error('❌ Error fetching messages:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch messages',
+      message: error.message
+    });
+  }
+});
 
 // Get status of all active bot listeners
 router.get('/status', (req, res) => {
