@@ -21,6 +21,7 @@ const WhatsAppReceiver = () => {
   const [isSending, setIsSending] = useState(false);
   const [sendStatus, setSendStatus] = useState('');
   const messagesEndRef = useRef(null);
+  const [hasAutoSelected, setHasAutoSelected] = useState(false);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -139,10 +140,22 @@ const WhatsAppReceiver = () => {
             const newConversations = groupMessagesIntoConversations(newMessages);
             setConversations(newConversations);
             
+            // Force debug output here
+            if (newConversations.length > 0 && newConversations[0].messages.length > 0) {
+              const conv = newConversations[0];
+              console.log('🚨 FORCED DEBUG - Message Order Check:');
+              console.log('Phone:', conv.phoneNumber);
+              console.log('Message count:', conv.messages.length);
+              conv.messages.forEach((msg, i) => {
+                console.log(`${i + 1}. "${msg.text}" (${msg.direction || 'unknown'}) - ${msg.timestamp || msg.createdAt}`);
+              });
+            }
+            
             // Auto-select first conversation if none selected (only once)
-            if (!selectedConversation && newConversations.length > 0) {
+            if (!selectedConversation && !hasAutoSelected && newConversations.length > 0) {
               console.log('Auto-selecting first conversation (one time):', newConversations[0]);
               setSelectedConversation(newConversations[0]);
+              setHasAutoSelected(true);
             }
             
             // Update selectedConversation with latest data if it exists in newConversations
