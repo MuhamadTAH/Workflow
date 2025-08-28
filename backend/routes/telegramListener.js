@@ -12,7 +12,7 @@ const listenerMessages = new Map();
 // Import Claude configs from claude.js
 const { claudeConfigs, systemPrompts, knowledgeBase } = require('./claude');
 
-// Function to send message to Claude and get response
+// Function to send message to Claude and get response using aiService for consistency
 const sendMessageToClaude = async (messageText, userId = 'default_user') => {
   try {
     // Get Claude configuration for this user
@@ -22,11 +22,9 @@ const sendMessageToClaude = async (messageText, userId = 'default_user') => {
       return null;
     }
 
-    const axios = require('axios');
-    
     // Get system prompt for this user
     const systemPromptData = systemPrompts.get(userId);
-    const systemPrompt = systemPromptData?.prompt || 'You are a helpful and friendly AI assistant. Respond to users in a professional yet warm manner.';
+    let systemPrompt = systemPromptData?.prompt || 'You are a helpful and friendly AI assistant. Respond to users in a professional yet warm manner.';
     
     // Get knowledge base for this user
     const knowledge = knowledgeBase.get(userId);
@@ -41,55 +39,35 @@ const sendMessageToClaude = async (messageText, userId = 'default_user') => {
     if (knowledge) {
       console.log('📚 Using knowledge base:', knowledge.filename, `(${knowledge.textLength} chars)`);
       console.log('📄 Knowledge preview:', knowledge.extractedText.substring(0, 200) + '...');
+      
+      // Add knowledge base to system prompt
+      systemPrompt += `\n\nIMPORTANT - You have access to this business knowledge base:\n\n`;
+      systemPrompt += `--- BUSINESS KNOWLEDGE BASE ---\n${knowledge.extractedText}\n--- END KNOWLEDGE BASE ---\n\n`;
+      systemPrompt += `INSTRUCTIONS: When users ask questions about the business (hours, services, location, contact info, policies, etc.), use the information from the knowledge base above. This is YOUR business information. Answer as if you represent this business and have full access to this information.`;
     } else {
       console.log('❌ No knowledge base found for user:', userId);
     }
     
-    // Build comprehensive prompt with system instructions, knowledge base, and user message
-    let fullPrompt = `System Instructions: ${systemPrompt}\n\n`;
+    console.log('🔤 Final system prompt length:', systemPrompt.length);
+    console.log('🔤 System prompt preview:', systemPrompt.substring(0, 300) + '...');
     
-    if (knowledge && knowledge.extractedText) {
-      fullPrompt += `IMPORTANT - You have access to this business knowledge base. Use this information to answer questions about the business:\n\n`;
-      fullPrompt += `--- BUSINESS KNOWLEDGE BASE ---\n${knowledge.extractedText}\n--- END KNOWLEDGE BASE ---\n\n`;
-      fullPrompt += `INSTRUCTIONS: When users ask questions about the business (hours, services, location, contact info, policies, etc.), use the information from the knowledge base above. This is YOUR business information. Answer as if you represent this business and have full access to this information.\n\n`;
-    } else {
-      fullPrompt += `Note: No business knowledge base is currently loaded.\n\n`;
-    }
+    // Use the aiService for consistency with workflow builder
+    const { callClaudeApi } = require('../services/aiService');
     
-    fullPrompt += `User Message: ${messageText}`;
-    
-    console.log('🔤 Full prompt length:', fullPrompt.length);
-    console.log('🔤 Full prompt preview:', fullPrompt.substring(0, 300) + '...');
-    
-    // Build messages array
-    const messages = [
-      {
-        role: 'user',
-        content: fullPrompt
-      }
-    ];
-    
-    // Direct call to Claude API
-    const response = await axios.post('https://api.anthropic.com/v1/messages', {
+    const aiRequest = {
       model: claudeConfig.model || 'claude-3-5-sonnet-20241022',
-      max_tokens: 1000,
-      messages: messages
-    }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': claudeConfig.apiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      timeout: 30000
-    });
+      apiKey: claudeConfig.apiKey,
+      systemPrompt: systemPrompt,
+      userMessage: messageText
+    };
 
-    if (response.data && response.data.content && response.data.content[0]) {
-      // Update last used time
-      claudeConfig.lastUsed = new Date().toISOString();
-      return response.data.content[0].text;
-    } else {
-      throw new Error('Invalid response from Claude API');
-    }
+    console.log('🚀 Using aiService.callClaudeApi for consistency with workflow builder');
+    const aiResponse = await callClaudeApi(aiRequest);
+    
+    // Update last used time
+    claudeConfig.lastUsed = new Date().toISOString();
+    
+    return aiResponse;
   } catch (error) {
     console.error('❌ Error sending message to Claude:', error.message);
     return null;

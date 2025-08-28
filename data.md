@@ -1,26 +1,5 @@
-🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
-index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
-index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
-index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
-index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
-index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
-index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
-index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
-index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
-index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
-index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
-index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
-index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
-index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
-index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
-index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
-index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
-index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
-index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
-index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
-index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
-index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
-index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
-index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]0: {updateId: 292397125, messageId: 489, chatId: 5483214193, text: '123456789', fromUserId: 5483214193, …}length: 1[[Prototype]]: Array(0)
-index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
-index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
+(index):64 cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
+(anonymous) @ (index):64
+(anonymous) @ (index):64
+index-CNwe0hFw.js:15 🌐 API Configuration: {baseUrl: 'https://workflow-lg9z.onrender.com', environment: 'production', hostname: 'fixdai.com', renderEnvVar: 'https://workflow-lg9z.onrender.com/api/v1', validateWhatsappEndpoint: 'https://workflow-lg9z.onrender.com/api/nodes/validate-whatsapp', …}allEndpoints: {VALIDATE_WHATSAPP: 'https://workflow-lg9z.onrender.com/api/nodes/validate-whatsapp'}baseUrl: "https://workflow-lg9z.onrender.com"environment: "production"hostname: "fixdai.com"renderEnvVar: "https://workflow-lg9z.onrender.com/api/v1"validateWhatsappEndpoint: "https://workflow-lg9z.onrender.com/api/nodes/validate-whatsapp"[[Prototype]]: Object
+index-CNwe0hFw.js:45 Webhook setup result: {success: true, message: 'Webhook setup successful', listenerId: 'listener_1756422485595_wtcj41x7', webhookUrl: 'https://workflow-lg9z.onrender.com/api/telegram-listener/webhook/listener_1756422485595_wtcj41x7', botToken: '7778920669...', …}
