@@ -19,27 +19,35 @@ function AIAssistant() {
 
   // Panel toggle
   const togglePanel = (panelId) => {
-    const content = document.getElementById(`${panelId}-content`);
-    const icon = document.getElementById(`${panelId}-icon`);
-    if (content && icon) {
-      content.classList.toggle('collapsed');
-      icon.classList.toggle('transform');
-      icon.classList.toggle('rotate-180');
+    try {
+      const content = document.getElementById(`${panelId}-content`);
+      const icon = document.getElementById(`${panelId}-icon`);
+      if (content && icon) {
+        content.classList.toggle('collapsed');
+        icon.classList.toggle('transform');
+        icon.classList.toggle('rotate-180');
+      }
+    } catch (error) {
+      console.warn('Error toggling panel:', error);
     }
   };
 
   // Template functions
   const applyTemplate = (templateName) => {
-    const templates = {
-      'customer-service': `You are a helpful customer service assistant for [Company Name].\n\nGuidelines:\n- Use the uploaded documents to answer questions accurately.\n- If you don't know something, say so politely.\n- Be professional and friendly.`,
-      'tech-support': `You are a technical support specialist for [Product Name].\n\nGuidelines:\n- Provide step-by-step instructions from the knowledge base.\n- If a solution isn't found, create a support ticket.\n- Maintain a patient and clear tone.`,
-      'sales': `You are a sales assistant for [Company Name].\n\nGuidelines:\n- Highlight product features and benefits.\n- Answer questions about pricing and availability.\n- Guide customers to the checkout page.`,
-      'custom': ''
-    };
-    const textarea = document.getElementById('system-prompt');
-    if (textarea) {
-      textarea.value = templates[templateName];
-      if (templateName === 'custom') textarea.focus();
+    try {
+      const templates = {
+        'customer-service': `You are a helpful customer service assistant for [Company Name].\n\nGuidelines:\n- Use the uploaded documents to answer questions accurately.\n- If you don't know something, say so politely.\n- Be professional and friendly.`,
+        'tech-support': `You are a technical support specialist for [Product Name].\n\nGuidelines:\n- Provide step-by-step instructions from the knowledge base.\n- If a solution isn't found, create a support ticket.\n- Maintain a patient and clear tone.`,
+        'sales': `You are a sales assistant for [Company Name].\n\nGuidelines:\n- Highlight product features and benefits.\n- Answer questions about pricing and availability.\n- Guide customers to the checkout page.`,
+        'custom': ''
+      };
+      const textarea = document.getElementById('system-prompt');
+      if (textarea) {
+        textarea.value = templates[templateName];
+        if (templateName === 'custom') textarea.focus();
+      }
+    } catch (error) {
+      console.warn('Error applying template:', error);
     }
   };
 
@@ -261,41 +269,48 @@ function AIAssistant() {
 
   // Initialize
   useEffect(() => {
-    // Set default template
-    applyTemplate('customer-service');
+    const initializeApp = async () => {
+      try {
+        // Set up authentication token
+        localStorage.setItem('token', 'MOCK_TOKEN_FOR_TESTING_test-user-1');
+        
+        // Wait for DOM to be ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Set default template (after DOM is ready)
+        applyTemplate('customer-service');
+        
+        // Load existing files
+        await loadExistingFiles();
+        
+        // Check if assistant is already active
+        await checkAssistantStatus();
+        
+        // Start fetching conversations immediately regardless of AI status
+        await fetchConversations();
+        
+        // Collapse panels by default (after DOM manipulation is complete)
+        setTimeout(() => {
+          togglePanel('telegram-panel');
+          togglePanel('model-panel');
+          togglePanel('prompt-panel');
+          togglePanel('kb-panel');
+        }, 200);
+        
+      } catch (error) {
+        console.error('Error initializing AI Assistant:', error);
+      }
+    };
     
-    // Set up authentication token
-    localStorage.setItem('token', 'MOCK_TOKEN_FOR_TESTING_test-user-1');
-    
-    // Load existing files
-    loadExistingFiles();
-    
-    // Check if assistant is already active
-    checkAssistantStatus();
-    
-    // Start fetching conversations immediately regardless of AI status
-    fetchConversations();
+    initializeApp();
     
     // Start polling for new conversations
     const pollInterval = setInterval(() => {
-      fetchConversations();
+      fetchConversations().catch(err => console.warn('Polling error:', err));
     }, 5000);
     
     // Cleanup interval on unmount
-    const cleanup = () => clearInterval(pollInterval);
-    
-    // Collapse panels by default
-    setTimeout(() => {
-      togglePanel('telegram-panel');
-      togglePanel('model-panel');
-      togglePanel('prompt-panel');
-      togglePanel('kb-panel');
-    }, 100);
-    
-    // Icons will be automatically created by Lucide from index.html
-    
-    // Return cleanup function
-    return cleanup;
+    return () => clearInterval(pollInterval);
   }, []);
 
   // Icons will refresh automatically from index.html
