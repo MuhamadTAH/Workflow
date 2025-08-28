@@ -358,8 +358,6 @@ async function restoreTelegramConnections() {
             console.log(`🚫 SKIPPING webhook restoration for user ${connection.user_id}, bot: ${connection.platform_username}`);
             console.log(`📝 Webhook control transferred to AI Assistant system`);
             
-            */
-            
           } catch (error) {
             console.warn(`⚠️ Failed to restore connection for user ${connection.user_id}: ${error.message}`);
           }
