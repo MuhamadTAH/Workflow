@@ -205,7 +205,7 @@ router.get('/messages', verifyToken, (req, res) => {
       direction,
       created_at
     FROM whatsapp_receiver_messages 
-    ORDER BY created_at DESC
+    ORDER BY created_at ASC
     LIMIT 100
   `;
 

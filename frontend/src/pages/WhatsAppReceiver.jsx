@@ -77,8 +77,14 @@ const WhatsAppReceiver = () => {
       conversationMap[phoneNumber].lastMessageTime = message.timestamp || message.createdAt;
     });
     
-    // Convert to array and sort by last message time
-    return Object.values(conversationMap).sort((a, b) => 
+    // Convert to array and sort conversations by last message time (newest first)
+    // Also sort messages within each conversation chronologically (oldest first)
+    return Object.values(conversationMap).map(conversation => ({
+      ...conversation,
+      messages: conversation.messages.sort((a, b) => 
+        new Date(a.timestamp || a.createdAt) - new Date(b.timestamp || b.createdAt)
+      )
+    })).sort((a, b) => 
       new Date(b.lastMessageTime) - new Date(a.lastMessageTime)
     );
   };
