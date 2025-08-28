@@ -122,6 +122,7 @@ const WhatsAppReceiver = () => {
 
   // Poll for new messages when active
   useEffect(() => {
+    console.log('📡 Polling effect triggered, isActive:', isActive);
     let interval;
     if (isActive) {
       interval = setInterval(async () => {
@@ -134,10 +135,12 @@ const WhatsAppReceiver = () => {
           if (response.ok) {
             const data = await response.json();
             const newMessages = data.messages || [];
+            console.log('📥 Raw messages received:', newMessages.length, newMessages);
             setMessages(newMessages);
             
             // Group messages into conversations
             const newConversations = groupMessagesIntoConversations(newMessages);
+            console.log('💬 Conversations created:', newConversations.length, newConversations);
             setConversations(newConversations);
             
             // Force debug output here
