@@ -61,7 +61,15 @@ router.get('/telegram', (req, res) => {
 });
 
 // POST: Live Chat specific Telegram webhook endpoint
+// DISABLED: Live chat webhook - routing all messages to AI Assistant instead
 router.post('/telegram-livechat/:userId', asyncHandler(async (req, res) => {
+  console.log('❌ LIVE CHAT DISABLED: Redirecting to AI Assistant webhook');
+  return res.status(410).json({ 
+    ok: false, 
+    error: 'Live chat system disabled. Messages should go to AI Assistant webhook.' 
+  });
+
+  /* ORIGINAL LIVE CHAT CODE (DISABLED):
   const { userId } = req.params;
   const update = req.body;
   
@@ -188,6 +196,7 @@ router.post('/telegram-livechat/:userId', asyncHandler(async (req, res) => {
     logger.logError(error, { context: 'telegram_livechat_webhook', userId });
     res.status(500).json({ ok: false, error: 'Failed to process telegram update' });
   }
+  */ // END DISABLED LIVE CHAT CODE
 }));
 
 // POST: General Telegram webhook endpoint (Legacy - redirects to active workflows)
@@ -1649,6 +1658,49 @@ async function processWhatsAppWebhookForWorkflow(webhookData, workflowId) {
     }
     
     console.log('📱 Extracted WhatsApp message data:', messageData);
+    
+    // Store WhatsApp message in database for WhatsApp Chat page
+    try {
+      console.log('💾 Storing WhatsApp message in database...');
+      const sqlite3 = require('sqlite3').verbose();
+      const path = require('path');
+      
+      const dbPath = path.join(__dirname, '..', 'database.sqlite');
+      const db = new sqlite3.Database(dbPath);
+      
+      const insertQuery = `
+        INSERT INTO whatsapp_conversations 
+        (phone_number, contact_name, message_text, message_id, timestamp, direction, processed, created_at)
+        VALUES (?, ?, ?, ?, ?, 'incoming', 0, ?)
+      `;
+      
+      const now = new Date().toISOString();
+      
+      await new Promise((resolve, reject) => {
+        db.run(insertQuery, [
+          messageData.phoneNumber,
+          messageData.fromName,
+          messageData.text,
+          messageData.messageId,
+          messageData.timestamp,
+          now
+        ], function(err) {
+          if (err) {
+            console.error('❌ Error storing WhatsApp message:', err);
+            reject(err);
+          } else {
+            console.log('✅ WhatsApp message stored with ID:', this.lastID);
+            resolve(this.lastID);
+          }
+        });
+      });
+      
+      db.close();
+      
+    } catch (storageError) {
+      console.error('❌ Failed to store WhatsApp message in database:', storageError);
+      // Continue processing even if storage fails
+    }
     
     // Trigger workflow execution
     if (workflowExecutor) {
