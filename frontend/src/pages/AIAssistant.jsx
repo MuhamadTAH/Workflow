@@ -189,6 +189,30 @@ function AIAssistant() {
     }
   };
 
+  // Check assistant status on load
+  const checkAssistantStatus = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}`, {
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.assistant) {
+          const assistant = result.assistant;
+          if (assistant.status === 'active') {
+            setIsAiActive(true);
+            startConversationPolling(); // Start polling if already active
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking assistant status:', error);
+    }
+  };
+
   // Initialize
   useEffect(() => {
     // Set default template
@@ -199,6 +223,9 @@ function AIAssistant() {
     
     // Load existing files
     loadExistingFiles();
+    
+    // Check if assistant is already active
+    checkAssistantStatus();
     
     // Collapse panels by default
     setTimeout(() => {
