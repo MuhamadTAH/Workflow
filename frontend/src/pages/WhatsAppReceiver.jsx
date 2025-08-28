@@ -85,9 +85,20 @@ const WhatsAppReceiver = () => {
             const newConversations = groupMessagesIntoConversations(newMessages);
             setConversations(newConversations);
             
-            // Auto-select first conversation if none selected
-            if (!selectedConversation && newConversations.length > 0) {
+            // Auto-select first conversation if none selected and this is the first time we have conversations
+            if (!selectedConversation && newConversations.length > 0 && conversations.length === 0) {
+              console.log('Auto-selecting first conversation:', newConversations[0]);
               setSelectedConversation(newConversations[0]);
+            }
+            
+            // Update selectedConversation with latest data if it exists in newConversations
+            if (selectedConversation && newConversations.length > 0) {
+              const updatedSelected = newConversations.find(conv => 
+                conv.phoneNumber === selectedConversation.phoneNumber
+              );
+              if (updatedSelected) {
+                setSelectedConversation(updatedSelected);
+              }
             }
           }
         } catch (error) {
@@ -99,7 +110,7 @@ const WhatsAppReceiver = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, selectedConversation]);
+  }, [isActive]);
 
   const handleActivate = async () => {
     if (!appId.trim() || !clientSecret.trim()) {
@@ -449,10 +460,24 @@ const WhatsAppReceiver = () => {
           marginBottom: '20px',
           display: 'flex',
           alignItems: 'center',
-          gap: '10px'
+          gap: '10px',
+          flexWrap: 'wrap'
         }}>
           <span style={{ fontSize: '24px' }}>📤</span>
           WhatsApp Send Message
+          {selectedConversation && (
+            <span style={{
+              fontSize: '14px',
+              background: '#e7f3ff',
+              color: '#0056b3',
+              padding: '4px 12px',
+              borderRadius: '12px',
+              border: '1px solid #b3d9ff',
+              fontWeight: 'normal'
+            }}>
+              Selected: {selectedConversation.contactName} ({selectedConversation.phoneNumber})
+            </span>
+          )}
         </h2>
 
         {/* Send Message Form */}
@@ -643,12 +668,26 @@ const WhatsAppReceiver = () => {
           {/* Quick Fill Button */}
           <button
             onClick={() => {
+              console.log('Reply to Selected clicked, selectedConversation:', selectedConversation);
               if (selectedConversation) {
-                setRecipientPhone(selectedConversation.phoneNumber);
-                setMessageText(`Hello ${selectedConversation.contactName}, thanks for your message!`);
+                const phoneNumber = selectedConversation.phoneNumber;
+                const contactName = selectedConversation.contactName;
+                console.log('Setting recipient phone:', phoneNumber);
+                console.log('Setting message for:', contactName);
+                
+                setRecipientPhone(phoneNumber);
+                setMessageText(`Hello ${contactName}, thanks for your message!`);
+                
+                // Show success message
+                setSendStatus(`✅ Auto-filled for ${contactName} (${phoneNumber})`);
+                setTimeout(() => setSendStatus(''), 3000);
+              } else {
+                console.log('No conversation selected');
+                setSendStatus('❌ Please select a conversation first');
+                setTimeout(() => setSendStatus(''), 3000);
               }
             }}
-            disabled={!selectedConversation || isSending}
+            disabled={isSending}
             style={{
               padding: '12px 16px',
               background: (!selectedConversation || isSending) ? '#e9ecef' : '#007bff',
@@ -660,7 +699,7 @@ const WhatsAppReceiver = () => {
               fontWeight: '500'
             }}
           >
-            📋 Reply to Selected
+            📋 Reply to Selected ({selectedConversation ? selectedConversation.contactName : 'None'})
           </button>
         </div>
 
@@ -733,22 +772,30 @@ const WhatsAppReceiver = () => {
               conversations.map((conversation, index) => (
                 <div 
                   key={conversation.phoneNumber} 
-                  onClick={() => setSelectedConversation(conversation)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Conversation clicked:', conversation);
+                    console.log('Previous selectedConversation:', selectedConversation);
+                    setSelectedConversation(conversation);
+                    console.log('Selected conversation set to:', conversation);
+                  }}
                   style={{ 
                     padding: '16px',
                     borderBottom: '1px solid #f1f3f4',
                     cursor: 'pointer',
                     background: selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e7f3ff' : 'white',
-                    transition: 'background-color 0.2s'
+                    transition: 'background-color 0.2s',
+                    borderLeft: selectedConversation?.phoneNumber === conversation.phoneNumber ? '4px solid #007bff' : '4px solid transparent'
                   }}
                   onMouseEnter={(e) => {
                     if (selectedConversation?.phoneNumber !== conversation.phoneNumber) {
-                      e.target.style.background = '#f8f9fa';
+                      e.currentTarget.style.background = '#f8f9fa';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (selectedConversation?.phoneNumber !== conversation.phoneNumber) {
-                      e.target.style.background = 'white';
+                      e.currentTarget.style.background = 'white';
                     }
                   }}
                 >
