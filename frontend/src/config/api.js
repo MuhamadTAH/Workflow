@@ -11,7 +11,8 @@ const getApiBaseUrl = () => {
   };
 
   // 1. Use Render backend URL for production
-  if (window.location.hostname === 'frontend-dpcg.onrender.com') {
+  if (window.location.hostname === 'frontend-dpcg.onrender.com' || 
+      window.location.hostname === 'fixdai.com') {
     return 'https://workflow-lg9z.onrender.com';
   }
   

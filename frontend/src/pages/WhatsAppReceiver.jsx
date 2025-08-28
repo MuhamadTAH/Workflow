@@ -31,9 +31,27 @@ const WhatsAppReceiver = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Set webhook URL on component mount
+  // Set webhook URL on component mount and check auth token
   useEffect(() => {
     setWebhookUrl(`${API_BASE_URL}/api/webhooks/whatsapp`);
+    
+    // Debug authentication token
+    const token = localStorage.getItem('token');
+    console.log('🔐 Authentication Debug:', {
+      hasToken: !!token,
+      tokenLength: token?.length,
+      tokenPrefix: token?.substring(0, 20),
+      apiBaseUrl: API_BASE_URL,
+      origin: window.location.origin,
+      hostname: window.location.hostname
+    });
+    
+    // If no token, create a mock token for testing
+    if (!token || token === 'null' || token === 'undefined') {
+      console.log('⚠️ No valid token found, creating mock token for testing');
+      const mockToken = `MOCK_TOKEN_FOR_TESTING_${Date.now()}`;
+      localStorage.setItem('token', mockToken);
+    }
   }, []);
 
   // Group messages into conversations
