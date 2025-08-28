@@ -61,15 +61,16 @@ function WhatsAppChat() {
     }
   };
 
-  // Template functions
+  // Template functions for system prompts
   const applyTemplate = (templateName) => {
     const templates = {
-      'welcome': `Welcome to [Business Name]! 👋\n\nHow can we help you today?\n\n• Check order status\n• Product information\n• Customer support\n• Business hours`,
-      'business-hours': `Our business hours:\n\n🕘 Monday-Friday: 9 AM - 6 PM\n🕘 Saturday: 10 AM - 4 PM\n🕘 Sunday: Closed\n\nFor urgent matters, please leave a message and we'll respond during business hours.`,
-      'order-help': `I'd be happy to help with your order! 📦\n\nPlease provide:\n• Your order number\n• Email used for the order\n\nI'll check the status for you right away.`,
+      'customer-service': `You are a helpful customer service assistant for [Company Name].\n\nGuidelines:\n- Be professional and friendly in all responses\n- Use the company's knowledge base to answer questions accurately\n- If you don't know something, say so politely and offer to connect with a human agent\n- Keep responses concise but informative\n- Always maintain a helpful and empathetic tone`,
+      'ecommerce': `You are an e-commerce support specialist for [Store Name].\n\nGuidelines:\n- Help customers with product information, orders, and shipping\n- Use order numbers and customer details when provided\n- Provide clear return and refund policy information\n- Guide customers through the purchasing process\n- Escalate complex issues to human agents when needed`,
+      'sales': `You are a sales assistant for [Business Name].\n\nGuidelines:\n- Highlight product features and benefits\n- Answer questions about pricing and availability\n- Guide customers through the sales process\n- Provide helpful recommendations based on customer needs\n- Close conversations with clear next steps`,
+      'tech-support': `You are a technical support specialist for [Product/Service Name].\n\nGuidelines:\n- Provide step-by-step troubleshooting instructions\n- Ask clarifying questions to understand the issue\n- Use simple, non-technical language when possible\n- Offer alternative solutions if the first doesn't work\n- Escalate complex technical issues to human experts`,
       'custom': ''
     };
-    const textarea = document.getElementById('auto-reply-template');
+    const textarea = document.getElementById('system-prompt');
     if (textarea) {
       textarea.value = templates[templateName];
       if (templateName === 'custom') textarea.focus();
@@ -138,8 +139,8 @@ function WhatsAppChat() {
 
   // Initialize
   useEffect(() => {
-    // Set default template
-    applyTemplate('welcome');
+    // Set default system prompt template
+    applyTemplate('customer-service');
     
     // Set up authentication token
     localStorage.setItem('token', 'MOCK_TOKEN_FOR_TESTING_test-user-1');
@@ -147,7 +148,7 @@ function WhatsAppChat() {
     // Collapse panels by default
     setTimeout(() => {
       togglePanel('whatsapp-panel');
-      togglePanel('template-panel');
+      togglePanel('prompt-panel');
     }, 100);
     
     // Create Lucide icons
@@ -357,24 +358,37 @@ function WhatsAppChat() {
               </div>
 
 
-              {/* 2. Message Templates */}
+              {/* 2. AI Behavior Instructions */}
               <div className="card !p-4 !shadow-none border border-gray-200">
-                <div className="flex items-center justify-between cursor-pointer" onClick={() => togglePanel('template-panel')}>
+                <div className="flex items-center justify-between cursor-pointer" onClick={() => togglePanel('prompt-panel')}>
                   <h2 className="text-md font-semibold text-gray-700 flex items-center">
-                    <i data-lucide="message-square-text" className="w-5 h-5 mr-2 text-green-600"></i>
-                    2. Auto-Reply Template
+                    <i data-lucide="brain" className="w-5 h-5 mr-2 text-green-600"></i>
+                    2. AI Behavior Instructions
                   </h2>
-                  <i id="template-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
+                  <i id="prompt-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
                 </div>
-                <div id="template-panel-content" className="panel-content space-y-3 mt-3">
-                  <textarea id="auto-reply-template" className="input-field min-h-[120px] resize-y" placeholder="Enter your auto-reply template..."></textarea>
+                <div id="prompt-panel-content" className="panel-content space-y-3 mt-3">
+                  <textarea 
+                    id="system-prompt" 
+                    className="input-field min-h-[120px] resize-y" 
+                    placeholder="Enter instructions for how the AI should behave and respond to customers..."
+                  ></textarea>
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">Quick Templates:</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-2">Role Templates:</label>
                     <div className="flex flex-wrap gap-2">
-                      <button className="btn btn-secondary text-xs" onClick={() => applyTemplate('welcome')}>Welcome</button>
-                      <button className="btn btn-secondary text-xs" onClick={() => applyTemplate('business-hours')}>Business Hours</button>
-                      <button className="btn btn-secondary text-xs" onClick={() => applyTemplate('order-help')}>Order Help</button>
+                      <button className="btn btn-secondary text-xs" onClick={() => applyTemplate('customer-service')}>Customer Service</button>
+                      <button className="btn btn-secondary text-xs" onClick={() => applyTemplate('ecommerce')}>E-commerce</button>
+                      <button className="btn btn-secondary text-xs" onClick={() => applyTemplate('sales')}>Sales</button>
+                      <button className="btn btn-secondary text-xs" onClick={() => applyTemplate('tech-support')}>Tech Support</button>
                       <button className="btn btn-secondary text-xs" onClick={() => applyTemplate('custom')}>Custom</button>
+                    </div>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                    <div className="flex items-start gap-2">
+                      <i data-lucide="lightbulb" className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"></i>
+                      <div className="text-blue-800">
+                        <strong>Tip:</strong> Write clear instructions about the AI's personality, knowledge, and how it should handle different types of customer questions. This acts as the "brain" of your WhatsApp assistant.
+                      </div>
                     </div>
                   </div>
                 </div>
