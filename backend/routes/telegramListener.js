@@ -32,19 +32,34 @@ const sendMessageToClaude = async (messageText, userId = 'default_user') => {
     const knowledge = knowledgeBase.get(userId);
     
     console.log('🎭 Using system prompt:', systemPrompt.substring(0, 50) + '...');
+    console.log('🔍 Debug - Knowledge Base Check:');
+    console.log('  - knowledgeBase size:', knowledgeBase.size);
+    console.log('  - Available keys:', Array.from(knowledgeBase.keys()));
+    console.log('  - Looking for userId:', userId);
+    console.log('  - Knowledge found:', !!knowledge);
+    
     if (knowledge) {
       console.log('📚 Using knowledge base:', knowledge.filename, `(${knowledge.textLength} chars)`);
+      console.log('📄 Knowledge preview:', knowledge.extractedText.substring(0, 200) + '...');
+    } else {
+      console.log('❌ No knowledge base found for user:', userId);
     }
     
     // Build comprehensive prompt with system instructions, knowledge base, and user message
     let fullPrompt = `System Instructions: ${systemPrompt}\n\n`;
     
     if (knowledge && knowledge.extractedText) {
-      fullPrompt += `Knowledge Base (Reference this information when relevant to answer questions about our business/services):\n${knowledge.extractedText}\n\n`;
+      fullPrompt += `IMPORTANT - You have access to this business knowledge base. Use this information to answer questions about the business:\n\n`;
+      fullPrompt += `--- BUSINESS KNOWLEDGE BASE ---\n${knowledge.extractedText}\n--- END KNOWLEDGE BASE ---\n\n`;
+      fullPrompt += `INSTRUCTIONS: When users ask questions about the business (hours, services, location, contact info, policies, etc.), use the information from the knowledge base above. This is YOUR business information. Answer as if you represent this business and have full access to this information.\n\n`;
+    } else {
+      fullPrompt += `Note: No business knowledge base is currently loaded.\n\n`;
     }
     
-    fullPrompt += `User Message: ${messageText}\n\n`;
-    fullPrompt += `Instructions: Use the knowledge base information when the user asks specific questions about our business, services, hours, location, policies, etc. For general conversation, respond normally according to your system instructions.`;
+    fullPrompt += `User Message: ${messageText}`;
+    
+    console.log('🔤 Full prompt length:', fullPrompt.length);
+    console.log('🔤 Full prompt preview:', fullPrompt.substring(0, 300) + '...');
     
     // Build messages array
     const messages = [
