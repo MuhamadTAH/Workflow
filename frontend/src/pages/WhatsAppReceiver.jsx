@@ -754,6 +754,7 @@ const WhatsAppReceiver = () => {
         display: 'flex',
         overflow: 'hidden'
       }}>
+        {console.log('🔍 Conversations panel rendering, selectedConversation exists:', !!selectedConversation)}
         {/* Conversations List */}
         <div style={{ 
           width: '320px',
@@ -897,6 +898,7 @@ const WhatsAppReceiver = () => {
           display: 'flex',
           flexDirection: 'column'
         }}>
+          {console.log('🔍 Selected conversation check:', selectedConversation)}
           {selectedConversation ? (
             <>
               {/* Chat Header */}
@@ -1007,6 +1009,7 @@ const WhatsAppReceiver = () => {
                 gap: '12px',
                 alignItems: 'flex-end'
               }}>
+                {console.log('🔍 Message bar rendering for:', selectedConversation?.contactName)}
                 <div style={{ flex: 1 }}>
                   <textarea
                     value={messageText}
