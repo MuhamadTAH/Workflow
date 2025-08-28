@@ -15,11 +15,12 @@ const languageRoutes = require('./routes/language');
 const debugRoutes = require('./routes/debug');
 const jobsRoutes = require('./routes/jobs');
 const chatRoutes = require('./routes/chat');
-const liveChatRoutes = require('./routes/livechat');
 const chatTriggerRoutes = require('./routes/chatTrigger');
 const chatbotRoutes = require('./routes/chatbot');
 // AI ASSISTANT SYSTEM - New Addition
 const aiAssistantRoutes = require('./routes/aiAssistant');
+// WHATSAPP ROUTES
+const whatsappRoutes = require('./routes/whatsapp');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
@@ -132,11 +133,12 @@ app.use('/api/public', publicRoutes);
 app.use('/api/uploads', uploadsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/chat-messages', chatRoutes);
-app.use('/api/live-chat', liveChatRoutes);
 app.use('/api/chat-trigger', chatTriggerRoutes);
 app.use('/api/v1/chatbot', chatbotRoutes);
 // AI ASSISTANT SYSTEM ROUTES
 app.use('/api/ai-assistant', aiAssistantRoutes);
+// WHATSAPP ROUTES
+app.use('/api/whatsapp', whatsappRoutes);
 // AI ASSISTANT ADVANCED FEATURES
 const aiAssistantAdvancedRoutes = require('./routes/aiAssistantAdvanced');
 app.use('/api/ai-assistant-advanced', aiAssistantAdvancedRoutes);
@@ -352,15 +354,11 @@ async function restoreTelegramConnections() {
               continue;
             }
             
-            // Re-establish webhook for live chat
-            const webhookUrl = `${process.env.API_BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram-livechat/${connection.user_id}`;
-            const webhookResult = await telegramAPI.setWebhook(webhookUrl);
+            // DISABLED: Live chat webhook restoration - let AI Assistant control webhooks instead
+            console.log(`🚫 SKIPPING webhook restoration for user ${connection.user_id}, bot: ${connection.platform_username}`);
+            console.log(`📝 Webhook control transferred to AI Assistant system`);
             
-            if (webhookResult.success) {
-              console.log(`✅ Restored webhook for user ${connection.user_id}, bot: ${connection.platform_username}`);
-            } else {
-              console.warn(`⚠️ Failed to restore webhook for user ${connection.user_id}: ${webhookResult.error.message}`);
-            }
+            */
             
           } catch (error) {
             console.warn(`⚠️ Failed to restore connection for user ${connection.user_id}: ${error.message}`);

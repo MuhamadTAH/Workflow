@@ -568,14 +568,40 @@ function WhatsAppChat() {
         alert('❌ Network error during deactivation');
       }
     } else {
-      // Activate auto-reply
+      // Activate auto-reply - first collect form data
+      const appIdInput = document.getElementById('app-id');
+      const clientSecretInput = document.getElementById('client-secret');
+      const tokenInput = document.getElementById('access-token');
+      const businessIdInput = document.getElementById('business-id');
+      const phoneIdInput = document.getElementById('phone-number-id');
+      
+      // Validate required fields for WhatsApp trigger (receiving messages)
+      const missingFields = [];
+      if (!appIdInput?.value.trim()) missingFields.push('App ID');
+      if (!clientSecretInput?.value.trim()) missingFields.push('Client Secret');
+      
+      if (missingFields.length > 0) {
+        alert(`Please fill in the following required fields for WhatsApp trigger:\n- ${missingFields.join('\n- ')}`);
+        return;
+      }
+      
       try {
+        // Prepare form data to send with activation request
+        const formData = {
+          appId: appIdInput.value.trim(),
+          clientSecret: clientSecretInput.value.trim(),
+          accessToken: tokenInput?.value.trim() || '',
+          businessId: businessIdInput?.value.trim() || '',
+          phoneNumberId: phoneIdInput?.value.trim() || ''
+        };
+        
         const response = await fetch(`${API_BASE}/whatsapp/${currentBusinessId}/activate`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`,
             'Content-Type': 'application/json'
-          }
+          },
+          body: JSON.stringify(formData)
         });
         
         const result = await response.json();

@@ -8,7 +8,6 @@ import WorkflowsOverview from './pages/WorkflowsOverview';
 import Connections from './pages/Connections';
 import InstagramCallback from './pages/InstagramCallback';
 import WorkflowBuilder from './pages/WorkflowBuilder';
-import LiveChat from './pages/LiveChat';
 import AIAssistant from './pages/AIAssistant';
 import WhatsAppChat from './pages/WhatsAppChat';
 import LanguageSwitcher from './components/LanguageSwitcher';
@@ -267,7 +266,6 @@ function App() {
         <Route path="/workflows" element={<WorkflowsOverview />} />
         <Route path="/connections" element={<Connections />} />
         <Route path="/connections/callback/instagram" element={<InstagramCallback />} />
-        <Route path="/live-chat" element={<LiveChat />} />
         <Route path="/ai-assistant" element={<AIAssistant />} />
         <Route path="/whatsapp-chat" element={<WhatsAppChat />} />
         <Route path="/workflow" element={<WorkflowBuilder />} />

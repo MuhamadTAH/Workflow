@@ -25,11 +25,6 @@ function LeftSidebar() {
       icon: 'fas fa-user-friends'
     },
     {
-      name: 'Live Chat',
-      path: '/live-chat',
-      icon: 'fas fa-comments'
-    },
-    {
       name: 'AI Assistant',
       path: '/ai-assistant',
       icon: 'fas fa-robot'

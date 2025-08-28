@@ -272,16 +272,9 @@ router.post('/:platform', verifyToken, async (req, res) => {
             return res.status(500).json({ message: 'Error creating connection' });
           }
 
-          // Set webhook for live chat integration
-          const webhookUrl = `${process.env.API_BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram-livechat/${userId}`;
+          // DISABLED: Live chat webhook setup - let AI Assistant control webhooks instead
+          console.log('🚫 SKIPPING live chat webhook setup - AI Assistant will control webhooks');
           
-          try {
-            const webhookResult = await telegramAPI.setWebhook(webhookUrl);
-            console.log('✅ Telegram webhook set for live chat:', webhookUrl);
-          } catch (webhookError) {
-            console.warn('⚠️ Failed to set webhook for live chat:', webhookError.message);
-            // Continue even if webhook setup fails
-          }
 
           res.json({
             message: 'Telegram bot connected successfully',
@@ -404,7 +397,7 @@ router.get('/health', verifyToken, async (req, res) => {
               const telegramAPI = new TelegramAPI(conn.access_token);
               const validation = await telegramAPI.validateToken();
               
-              const webhookUrl = `${process.env.API_BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/telegram-livechat/${req.user.userId}`;
+              // DISABLED: Live chat webhook checking - AI Assistant controls webhooks now
               const webhookInfo = await telegramAPI.getWebhookInfo();
               
               healthStatus[conn.platform] = {
@@ -412,9 +405,8 @@ router.get('/health', verifyToken, async (req, res) => {
                 username: conn.platform_username,
                 isActive: conn.is_active === 1,
                 tokenValid: validation.success,
-                webhookSet: webhookInfo.success && webhookInfo.data.url === webhookUrl,
+                webhookSet: webhookInfo.success && webhookInfo.data.url !== '', // Just check if any webhook is set
                 webhookUrl: webhookInfo.success ? webhookInfo.data.url : null,
-                expectedWebhookUrl: webhookUrl,
                 lastUpdated: conn.updated_at
               };
             } catch (error) {
