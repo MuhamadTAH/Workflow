@@ -79,14 +79,36 @@ const WhatsAppReceiver = () => {
     
     // Convert to array and sort conversations by last message time (newest first)
     // Also sort messages within each conversation chronologically (oldest first)
-    return Object.values(conversationMap).map(conversation => ({
+    const sortedConversations = Object.values(conversationMap).map(conversation => ({
       ...conversation,
-      messages: conversation.messages.sort((a, b) => 
-        new Date(a.timestamp || a.createdAt) - new Date(b.timestamp || b.createdAt)
-      )
+      messages: conversation.messages.sort((a, b) => {
+        const timeA = new Date(a.timestamp || a.createdAt);
+        const timeB = new Date(b.timestamp || b.createdAt);
+        return timeA - timeB; // oldest first (ascending)
+      })
     })).sort((a, b) => 
       new Date(b.lastMessageTime) - new Date(a.lastMessageTime)
     );
+    
+    // Debug message ordering
+    if (sortedConversations.length > 0) {
+      const firstConv = sortedConversations[0];
+      console.log('📱 Message Ordering Debug:', {
+        conversationPhone: firstConv.phoneNumber,
+        messageCount: firstConv.messages.length,
+        firstMessage: firstConv.messages[0]?.text?.substring(0, 30),
+        firstMessageTime: firstConv.messages[0]?.timestamp || firstConv.messages[0]?.createdAt,
+        lastMessage: firstConv.messages[firstConv.messages.length - 1]?.text?.substring(0, 30),
+        lastMessageTime: firstConv.messages[firstConv.messages.length - 1]?.timestamp || firstConv.messages[firstConv.messages.length - 1]?.createdAt,
+        allMessageTimes: firstConv.messages.map(m => ({ 
+          text: m.text?.substring(0, 20), 
+          time: m.timestamp || m.createdAt,
+          direction: m.direction 
+        }))
+      });
+    }
+    
+    return sortedConversations;
   };
 
   // Poll for new messages when active
