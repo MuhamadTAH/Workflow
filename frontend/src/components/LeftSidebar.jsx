@@ -33,6 +33,11 @@ function LeftSidebar() {
       name: 'WhatsApp Receiver',
       path: '/whatsapp-receiver',
       icon: 'fab fa-whatsapp'
+    },
+    {
+      name: 'Telegram Listener',
+      path: '/telegram-listener',
+      icon: 'fab fa-telegram'
     }
   ];
 

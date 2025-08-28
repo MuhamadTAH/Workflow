@@ -59,7 +59,8 @@
       "WebFetch(domain:frontend-dpcg.onrender.com)",
       "WebFetch(domain:www.npmjs.com)",
       "Bash(del data2.md)",
-      "Bash(del nul frontendnul)"
+      "Bash(del nul frontendnul)",
+      "Bash(start http://localhost:5173)"
     ],
     "deny": []
   }
