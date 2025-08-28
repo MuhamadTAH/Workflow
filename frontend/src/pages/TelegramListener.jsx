@@ -531,8 +531,8 @@ const TelegramListener = () => {
                                 maxWidth: '75%',
                                 padding: '0.75rem 1rem',
                                 borderRadius: message.isBotMessage ? '1rem 1rem 1rem 0.25rem' : '1rem 1rem 0.25rem 1rem',
-                                backgroundColor: message.isBotMessage ? '#e5e7eb' : '#3b82f6',
-                                color: message.isBotMessage ? '#111827' : 'white',
+                                backgroundColor: message.isBotMessage ? '#3b82f6' : '#e5e7eb',
+                                color: message.isBotMessage ? 'white' : '#111827',
                                 wordWrap: 'break-word',
                                 position: 'relative'
                               }}
