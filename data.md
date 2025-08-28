@@ -1,5 +1,7 @@
-(index):64 cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
-(anonymous) @ (index):64
-(anonymous) @ (index):64
-index-CNwe0hFw.js:15 🌐 API Configuration: {baseUrl: 'https://workflow-lg9z.onrender.com', environment: 'production', hostname: 'fixdai.com', renderEnvVar: 'https://workflow-lg9z.onrender.com/api/v1', validateWhatsappEndpoint: 'https://workflow-lg9z.onrender.com/api/nodes/validate-whatsapp', …}allEndpoints: {VALIDATE_WHATSAPP: 'https://workflow-lg9z.onrender.com/api/nodes/validate-whatsapp'}baseUrl: "https://workflow-lg9z.onrender.com"environment: "production"hostname: "fixdai.com"renderEnvVar: "https://workflow-lg9z.onrender.com/api/v1"validateWhatsappEndpoint: "https://workflow-lg9z.onrender.com/api/nodes/validate-whatsapp"[[Prototype]]: Object
-index-CNwe0hFw.js:45 Webhook setup result: {success: true, message: 'Webhook setup successful', listenerId: 'listener_1756422485595_wtcj41x7', webhookUrl: 'https://workflow-lg9z.onrender.com/api/telegram-listener/webhook/listener_1756422485595_wtcj41x7', botToken: '7778920669...', …}
+I apologize, but I notice that while I have access to a business knowledge base, I'm currently unable to extract the specific text from the PDF file due to technical limitations. Without being able to read the actual content, I cannot definitively state what name I should be using.
+
+To provide accurate information, I would need either:
+1. The PDF to be properly parsed, or
+2. The business information to be manually provided
+
+Could you please provide the correct business name that I should be using? This will help me give you more accurate and appropriate responses while representing the business.

@@ -30,6 +30,12 @@ const TelegramListener = () => {
   const [uploadStatus, setUploadStatus] = useState('');
   const [hasKnowledgeBase, setHasKnowledgeBase] = useState(false);
   const [knowledgeBaseInfo, setKnowledgeBaseInfo] = useState(null);
+  
+  // Manual text input states
+  const [showManualInput, setShowManualInput] = useState(false);
+  const [manualBusinessInfo, setManualBusinessInfo] = useState('');
+  const [isManualSaving, setIsManualSaving] = useState(false);
+  const [manualInputStatus, setManualInputStatus] = useState('');
 
   const handleSetupWebhook = async () => {
     if (!botToken.trim()) {
@@ -441,6 +447,90 @@ const TelegramListener = () => {
   useEffect(() => {
     loadKnowledgeBaseInfo();
   }, []);
+
+  // Manual business info functions
+  const handleSaveManualInfo = async () => {
+    if (!manualBusinessInfo.trim()) {
+      setManualInputStatus('❌ Please enter your business information');
+      return;
+    }
+
+    setIsManualSaving(true);
+    setManualInputStatus('💾 Saving business information...');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/manual-knowledge`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          businessInfo: manualBusinessInfo.trim()
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setManualInputStatus('✅ Business information saved successfully!');
+        setHasKnowledgeBase(true);
+        setKnowledgeBaseInfo({
+          filename: 'Manual Input',
+          uploadedAt: new Date().toISOString(),
+          textLength: manualBusinessInfo.trim().length,
+          pageCount: 1,
+          method: 'manual-input'
+        });
+        setShowManualInput(false);
+        setTimeout(() => setManualInputStatus(''), 3000);
+      } else {
+        setManualInputStatus(`❌ Save failed: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Manual info save error:', error);
+      setManualInputStatus(`❌ Network error: ${error.message}`);
+    } finally {
+      setIsManualSaving(false);
+    }
+  };
+
+  const loadBusinessTemplate = () => {
+    const template = `BUSINESS DETAILS:
+- Business Name: [Your business name]
+- Business Type: [Restaurant, Store, Service, etc.]
+- Address: [Your address]
+- Phone: [Your phone number]
+- Email: [Your email]
+
+OPERATING HOURS:
+- Monday: [Hours]
+- Tuesday: [Hours]
+- Wednesday: [Hours]
+- Thursday: [Hours]
+- Friday: [Hours]
+- Saturday: [Hours]
+- Sunday: [Hours]
+
+SERVICES/PRODUCTS:
+- [List your main services or products]
+- [Include prices if relevant]
+- [Special offers or features]
+
+POLICIES:
+- [Return/refund policy]
+- [Payment methods accepted]
+- [Special terms or conditions]
+
+CONTACT & SOCIAL:
+- Website: [Your website]
+- Social Media: [Your social accounts]
+- Additional Contact Methods: [Any other ways to reach you]`;
+
+    setManualBusinessInfo(template);
+    setManualInputStatus('📋 Template loaded! Please fill in your information.');
+    setTimeout(() => setManualInputStatus(''), 3000);
+  };
 
   // Get unique users from messages (exclude bot messages)
   const getUniqueUsers = () => {
@@ -1070,6 +1160,148 @@ const TelegramListener = () => {
                     marginBottom: '1rem'
                   }}>
                     {uploadStatus}
+                  </div>
+                )}
+
+                {/* Manual Input Alternative */}
+                <div style={{
+                  backgroundColor: '#fff7ed',
+                  padding: '1rem',
+                  borderRadius: '6px',
+                  marginBottom: '1rem',
+                  border: '1px solid #fed7aa'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <h4 style={{ color: '#c2410c', margin: 0, fontSize: '0.875rem', fontWeight: '600' }}>
+                      ✏️ Alternative: Manual Input
+                    </h4>
+                    <button
+                      onClick={() => setShowManualInput(!showManualInput)}
+                      style={{
+                        backgroundColor: '#ea580c',
+                        color: 'white',
+                        padding: '0.25rem 0.5rem',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.75rem'
+                      }}
+                    >
+                      {showManualInput ? '📁 Hide Manual Input' : '✏️ Enter Business Info Manually'}
+                    </button>
+                  </div>
+                  <p style={{ color: '#c2410c', fontSize: '0.75rem', margin: 0 }}>
+                    If PDF upload fails or you prefer to enter information directly, use manual input below.
+                  </p>
+                </div>
+
+                {/* Manual Input Section */}
+                {showManualInput && (
+                  <div style={{
+                    backgroundColor: '#fefefe',
+                    padding: '1.5rem',
+                    borderRadius: '6px',
+                    marginBottom: '1rem',
+                    border: '2px solid #e5e7eb'
+                  }}>
+                    <h4 style={{ color: '#1f2937', margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: '600' }}>
+                      ✏️ Manual Business Information Entry
+                    </h4>
+
+                    {/* Manual Input Buttons */}
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                      <button
+                        onClick={loadBusinessTemplate}
+                        disabled={isManualSaving}
+                        style={{
+                          backgroundColor: '#10b981',
+                          color: 'white',
+                          padding: '0.5rem 0.75rem',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        📋 Load Template
+                      </button>
+                      
+                      <button
+                        onClick={() => setManualBusinessInfo('')}
+                        disabled={isManualSaving}
+                        style={{
+                          backgroundColor: '#6b7280',
+                          color: 'white',
+                          padding: '0.5rem 0.75rem',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        🗑️ Clear
+                      </button>
+                    </div>
+
+                    {/* Manual Input Textarea */}
+                    <textarea
+                      value={manualBusinessInfo}
+                      onChange={(e) => setManualBusinessInfo(e.target.value)}
+                      placeholder="Enter your business information here... (business name, hours, services, contact info, etc.)"
+                      rows={12}
+                      style={{
+                        width: '100%',
+                        padding: '1rem',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '6px',
+                        fontSize: '0.875rem',
+                        fontFamily: 'monospace',
+                        resize: 'vertical',
+                        minHeight: '200px',
+                        maxHeight: '400px',
+                        opacity: isManualSaving ? '0.5' : '1'
+                      }}
+                      disabled={isManualSaving}
+                    />
+                    
+                    <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#6b7280' }}>
+                      Character count: {manualBusinessInfo.length} • Enter detailed information about your business
+                    </p>
+
+                    {/* Manual Input Actions */}
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                      <button
+                        onClick={handleSaveManualInfo}
+                        disabled={isManualSaving || !manualBusinessInfo.trim()}
+                        style={{
+                          flex: '1',
+                          backgroundColor: isManualSaving || !manualBusinessInfo.trim() ? '#9ca3af' : '#2563eb',
+                          color: 'white',
+                          padding: '0.75rem 1rem',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: isManualSaving || !manualBusinessInfo.trim() ? 'not-allowed' : 'pointer',
+                          fontSize: '1rem',
+                          fontWeight: '500'
+                        }}
+                      >
+                        {isManualSaving ? '⏳ Saving...' : '💾 Save Business Information'}
+                      </button>
+                    </div>
+
+                    {/* Manual Input Status */}
+                    {manualInputStatus && (
+                      <div style={{
+                        padding: '1rem',
+                        borderRadius: '6px',
+                        backgroundColor: manualInputStatus.includes('✅') ? '#f0fdf4' : manualInputStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
+                        color: manualInputStatus.includes('✅') ? '#15803d' : manualInputStatus.includes('❌') ? '#dc2626' : '#1d4ed8',
+                        fontSize: '0.875rem',
+                        marginTop: '1rem'
+                      }}>
+                        {manualInputStatus}
+                      </div>
+                    )}
                   </div>
                 )}
 

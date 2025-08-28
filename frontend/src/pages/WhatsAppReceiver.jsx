@@ -503,7 +503,12 @@ const WhatsAppReceiver = () => {
   };
 
   return (
-    <div className="whatsapp-receiver-page" style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+    <div className="whatsapp-receiver-page" style={{ 
+      height: '100vh', 
+      display: 'flex', 
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      backgroundColor: '#f0f2f5'
+    }}>
       <div style={{ 
         background: 'white', 
         borderRadius: '12px', 

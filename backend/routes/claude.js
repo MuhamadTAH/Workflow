@@ -45,6 +45,243 @@ const systemPrompts = new Map();
 // Store PDF knowledge base (in production, use database)
 const knowledgeBase = new Map();
 
+// ULTIMATE PDF PROCESSING SYSTEM
+async function processUltimatePDF(pdfPath, filename) {
+  console.log('🚀 ULTIMATE PDF PROCESSOR - Starting comprehensive extraction...');
+  
+  const methods = [
+    { name: 'pdf-parse', func: tryPdfParse },
+    { name: 'pdf2pic + OCR', func: tryOCRExtraction },
+    { name: 'pdfjs-dist', func: tryPdfJsDist },
+    { name: 'manual-fallback', func: createIntelligentFallback }
+  ];
+  
+  for (const method of methods) {
+    try {
+      console.log(`🔧 Attempting ${method.name}...`);
+      const result = await method.func(pdfPath, filename);
+      
+      if (result && result.text && result.text.length > 50) {
+        console.log(`✅ SUCCESS with ${method.name}! Extracted ${result.text.length} characters`);
+        return {
+          text: result.text,
+          pages: result.pages || 1,
+          method: method.name,
+          success: true
+        };
+      }
+    } catch (error) {
+      console.log(`❌ ${method.name} failed:`, error.message);
+    }
+  }
+  
+  // If all methods fail, return intelligent fallback
+  console.log('🆘 All methods failed, using intelligent fallback');
+  return createIntelligentFallback(pdfPath, filename);
+}
+
+// Method 1: pdf-parse (best for text PDFs)
+async function tryPdfParse(pdfPath, filename) {
+  const pdf = require('pdf-parse');
+  const dataBuffer = fs.readFileSync(pdfPath);
+  const pdfData = await pdf(dataBuffer);
+  
+  return {
+    text: pdfData.text,
+    pages: pdfData.numpages
+  };
+}
+
+// Method 2: OCR for scanned/image PDFs  
+async function tryOCRExtraction(pdfPath, filename) {
+  try {
+    // Convert PDF to images first
+    const pdf2pic = require('pdf2pic');
+    const tesseract = require('tesseract.js');
+    
+    console.log('📷 Converting PDF to images for OCR...');
+    
+    const convert = pdf2pic.fromPath(pdfPath, {
+      density: 300,           // High resolution
+      saveFilename: "page",
+      savePath: path.dirname(pdfPath),
+      format: "png",
+      width: 2048,
+      height: 2048
+    });
+    
+    const results = await convert.bulk(-1); // Convert all pages
+    let allText = '';
+    
+    console.log(`🔍 OCR processing ${results.length} pages...`);
+    
+    for (const result of results) {
+      const { data: { text } } = await tesseract.recognize(result.path, 'eng', {
+        logger: m => console.log('📖 OCR:', m)
+      });
+      allText += text + '\n';
+      
+      // Clean up image file
+      if (fs.existsSync(result.path)) {
+        fs.unlinkSync(result.path);
+      }
+    }
+    
+    return {
+      text: allText.trim(),
+      pages: results.length
+    };
+    
+  } catch (ocrError) {
+    console.log('❌ OCR method failed:', ocrError.message);
+    throw ocrError;
+  }
+}
+
+// Method 3: pdfjs-dist (alternative parser)
+async function tryPdfJsDist(pdfPath, filename) {
+  const pdfjsLib = require('pdfjs-dist');
+  
+  const dataBuffer = fs.readFileSync(pdfPath);
+  const loadingTask = pdfjsLib.getDocument({ data: dataBuffer });
+  const pdfDoc = await loadingTask.promise;
+  
+  let allText = '';
+  const numPages = pdfDoc.numPages;
+  
+  console.log(`📄 Processing ${numPages} pages with pdfjs-dist...`);
+  
+  for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+    const page = await pdfDoc.getPage(pageNum);
+    const textContent = await page.getTextContent();
+    
+    const pageText = textContent.items.map(item => item.str).join(' ');
+    allText += pageText + '\n';
+  }
+  
+  return {
+    text: allText.trim(),
+    pages: numPages
+  };
+}
+
+// Method 4: Intelligent fallback with user guidance
+async function createIntelligentFallback(pdfPath, filename) {
+  const fileStat = fs.statSync(pdfPath);
+  const fileSizeKB = (fileStat.size / 1024).toFixed(2);
+  const uploadDate = new Date().toISOString();
+  
+  console.log('🧠 Creating intelligent fallback content...');
+  
+  // Analyze filename for business context
+  const filenameAnalysis = analyzeFilename(filename);
+  
+  const intelligentContent = `BUSINESS KNOWLEDGE BASE - MANUAL INPUT REQUIRED
+
+📄 PDF File Information:
+- Filename: ${filename}
+- File Size: ${fileSizeKB} KB  
+- Upload Date: ${uploadDate}
+- Status: Text extraction failed - manual input needed
+
+${filenameAnalysis}
+
+🔧 IMPORTANT INSTRUCTIONS FOR USER:
+Your PDF was uploaded successfully but automatic text extraction failed. 
+To enable Claude to answer questions about your business accurately, please:
+
+1. OPTION A: Re-upload PDF (different format may work)
+2. OPTION B: Use the manual text input option below  
+3. OPTION C: Copy/paste your business information directly
+
+📋 BUSINESS INFORMATION TEMPLATE:
+Please provide the following information manually:
+
+BUSINESS DETAILS:
+- Business Name: [Your business name]
+- Business Type: [Restaurant, Store, Service, etc.]
+- Address: [Your address]  
+- Phone: [Your phone number]
+- Email: [Your email]
+
+OPERATING HOURS:
+- Monday: [Hours]
+- Tuesday: [Hours] 
+- Wednesday: [Hours]
+- Thursday: [Hours]
+- Friday: [Hours]
+- Saturday: [Hours]
+- Sunday: [Hours]
+
+SERVICES/PRODUCTS:
+- [List your main services or products]
+- [Include prices if relevant]
+- [Special offers or features]
+
+POLICIES:
+- [Return/refund policy]
+- [Payment methods accepted]
+- [Special terms or conditions]
+
+CONTACT & SOCIAL:
+- Website: [Your website]
+- Social Media: [Your social accounts]
+- Additional Contact Methods: [Any other ways to reach you]
+
+Once you provide this information, Claude will be able to answer customer questions accurately about your business!`;
+
+  return {
+    text: intelligentContent,
+    pages: 1,
+    method: 'intelligent-fallback',
+    requiresManualInput: true
+  };
+}
+
+// Analyze filename for business context clues
+function analyzeFilename(filename) {
+  const nameLower = filename.toLowerCase();
+  let analysis = '\n📊 FILENAME ANALYSIS:\n';
+  
+  // Detect business type
+  const businessTypes = {
+    'menu': 'Restaurant/Food Service',
+    'brochure': 'Marketing/Services',
+    'catalog': 'Product Catalog',
+    'price': 'Pricing Information',
+    'service': 'Service Information',
+    'info': 'General Information',
+    'about': 'About Us/Company Info',
+    'contact': 'Contact Information',
+    'hours': 'Operating Hours',
+    'policy': 'Policies/Terms'
+  };
+  
+  for (const [keyword, type] of Object.entries(businessTypes)) {
+    if (nameLower.includes(keyword)) {
+      analysis += `- Detected: ${type}\n`;
+    }
+  }
+  
+  // Detect language
+  if (nameLower.includes('spanish') || nameLower.includes('es')) {
+    analysis += '- Language: Spanish content detected\n';
+  }
+  if (nameLower.includes('french') || nameLower.includes('fr')) {
+    analysis += '- Language: French content detected\n';
+  }
+  
+  // Detect format clues
+  if (nameLower.includes('scan')) {
+    analysis += '- Format: Likely scanned document (OCR needed)\n';
+  }
+  if (nameLower.includes('image')) {
+    analysis += '- Format: Image-based PDF (OCR needed)\n';
+  }
+  
+  return analysis;
+}
+
 // Connect to Claude API
 router.post('/connect', asyncHandler(async (req, res) => {
   const { apiKey } = req.body;
@@ -507,38 +744,10 @@ router.post('/upload-knowledge', upload.single('pdf'), asyncHandler(async (req, 
     let extractedText = '';
     let pageCount = 0;
     
-    try {
-      // Try to use pdf-parse library
-      const pdf = require('pdf-parse');
-      const dataBuffer = fs.readFileSync(pdfPath);
-      const pdfData = await pdf(dataBuffer);
-      
-      extractedText = pdfData.text;
-      pageCount = pdfData.numpages;
-      console.log('✅ PDF parsed successfully with pdf-parse library');
-    } catch (pdfError) {
-      console.log('⚠️ PDF parsing library error:', pdfError.message);
-      console.log('📝 Using enhanced fallback method with file content analysis...');
-      
-      // Enhanced fallback: Create a more comprehensive sample content
-      const fileStat = fs.statSync(pdfPath);
-      extractedText = `Business Information Document
-Filename: ${req.file.originalname}
-File Size: ${(fileStat.size / 1024).toFixed(2)} KB
-Upload Date: ${new Date().toISOString()}
-
-IMPORTANT: This PDF contains business information including:
-- Business hours and contact information
-- Services and products offered  
-- Location and address details
-- Policies and procedures
-- FAQ and customer information
-
-Note: PDF text extraction library not available. To get full text content, install pdf-parse: npm install pdf-parse
-
-For testing purposes, you can manually add your business information here or upload a new PDF after installing the parsing library.`;
-      pageCount = 1;
-    }
+    // ULTIMATE PDF PROCESSING SYSTEM - Multiple parsing methods
+    const pdfProcessingResult = await processUltimatePDF(pdfPath, req.file.originalname);
+    extractedText = pdfProcessingResult.text;
+    pageCount = pdfProcessingResult.pages;
 
     // Clean and validate extracted text
     const cleanText = extractedText.trim();
@@ -678,6 +887,39 @@ router.delete('/delete-knowledge', asyncHandler(async (req, res) => {
     });
   }
 }));
+
+// Manual knowledge base entry endpoint
+router.post('/manual-knowledge', async (req, res) => {
+  try {
+    console.log('📝 Manual knowledge entry request received');
+    
+    const { businessInfo } = req.body;
+    
+    if (!businessInfo || typeof businessInfo !== 'string' || businessInfo.trim() === '') {
+      console.log('❌ No business information provided');
+      return res.status(400).json({ error: 'Business information is required' });
+    }
+
+    // Store in knowledge base (replaces PDF content if any)
+    knowledgeBase.set('pdf_content', businessInfo.trim());
+    console.log('✅ Manual business information stored successfully');
+    console.log(`📊 Knowledge base contains: ${businessInfo.length} characters`);
+
+    res.json({ 
+      success: true, 
+      message: 'Business information saved successfully',
+      textLength: businessInfo.length,
+      preview: businessInfo.substring(0, 200) + (businessInfo.length > 200 ? '...' : '')
+    });
+
+  } catch (error) {
+    console.error('❌ Manual knowledge entry error:', error);
+    res.status(500).json({ 
+      error: 'Failed to save business information',
+      details: error.message
+    });
+  }
+});
 
 module.exports = router;
 module.exports.claudeConfigs = claudeConfigs;
