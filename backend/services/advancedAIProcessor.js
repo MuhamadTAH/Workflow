@@ -390,7 +390,7 @@ Instructions: Respond appropriately considering the customer's language, sentime
             'anthropic-version': '2023-06-01'
           },
           body: JSON.stringify({
-            model: assistant.ai_model || 'claude-3-sonnet-20240229',
+            model: assistant.ai_model || 'claude-3-5-sonnet-20241022',
             max_tokens: 500,
             messages: [
               {

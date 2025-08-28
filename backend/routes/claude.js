@@ -37,7 +37,7 @@ router.post('/connect', asyncHandler(async (req, res) => {
     const testResponse = await axios.post(
       'https://api.anthropic.com/v1/messages',
       {
-        model: 'claude-3-sonnet-20240229',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 50,
         messages: [
           {
@@ -62,7 +62,7 @@ router.post('/connect', asyncHandler(async (req, res) => {
         apiKey: cleanApiKey,
         connectedAt: new Date().toISOString(),
         lastUsed: null,
-        model: 'claude-3-sonnet-20240229'
+        model: 'claude-3-5-sonnet-20241022'
       });
 
       console.log('✅ Claude API connection successful for user:', userId);
@@ -70,13 +70,13 @@ router.post('/connect', asyncHandler(async (req, res) => {
       logger.info(`Claude API connected successfully`, {
         userId,
         apiKeyPrefix: cleanApiKey.substring(0, 15) + '...',
-        model: 'claude-3-sonnet-20240229'
+        model: 'claude-3-5-sonnet-20241022'
       });
 
       res.json({
         success: true,
         message: 'Successfully connected to Claude API',
-        model: 'claude-3-sonnet-20240229',
+        model: 'claude-3-5-sonnet-20241022',
         testResponse: testResponse.data.content[0]?.text || 'Connected'
       });
     } else {
