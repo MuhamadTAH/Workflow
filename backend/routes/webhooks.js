@@ -1846,6 +1846,29 @@ router.post('/ai-assistant/:assistantId', asyncHandler(async (req, res) => {
           console.log('✅ Enhanced AI response sent successfully');
           result.metadata.processing_time = Date.now() - startTime;
           
+          // Save conversation to database for frontend display
+          console.log('💾 Saving conversation to database...');
+          db.run(`
+            INSERT INTO ai_conversations 
+            (assistant_id, customer_id, customer_name, message_text, response_text, 
+             response_time_ms, success, created_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+          `, [
+            assistantId,
+            chatId.toString(),
+            customerName,
+            messageText,
+            result.response,
+            result.metadata.processing_time,
+            1
+          ], function(err) {
+            if (err) {
+              console.error('❌ Failed to save conversation to database:', err);
+            } else {
+              console.log('✅ Conversation saved to database with ID:', this.lastID);
+            }
+          });
+          
           // Broadcast to real-time monitors
           try {
             const { realtimeManager } = require('./aiAssistantRealtime');
@@ -1870,6 +1893,30 @@ router.post('/ai-assistant/:assistantId', asyncHandler(async (req, res) => {
       }
     } else {
       console.error('❌ Advanced AI processing failed:', result.error);
+      
+      // Save failed conversation to database
+      console.log('💾 Saving failed conversation to database...');
+      db.run(`
+        INSERT INTO ai_conversations 
+        (assistant_id, customer_id, customer_name, message_text, response_text, 
+         response_time_ms, success, error_message, created_at) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `, [
+        assistantId,
+        chatId.toString(),
+        customerName,
+        messageText,
+        result.fallback_response || 'Error processing request',
+        Date.now() - startTime,
+        0, // success = false
+        result.error
+      ], function(err) {
+        if (err) {
+          console.error('❌ Failed to save failed conversation to database:', err);
+        } else {
+          console.log('✅ Failed conversation saved to database with ID:', this.lastID);
+        }
+      });
       
       // Send fallback response
       if (result.fallback_response && assistant && assistant.telegram_token) {
