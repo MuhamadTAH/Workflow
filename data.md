@@ -1,4 +1,23 @@
-🌐 API Configuration: Object
-index-CZFDnDRT.js:149 Fetching user profile...
-index-CZFDnDRT.js:149 Profile loaded (mock): Object
-workflow-lg9z.onrender.com/api/ai-assistant/1/test-telegram:1  Failed to load resource: the server responded with a status of 500 ()
+🌐 API Configuration: 
+Object
+allEndpoints
+: 
+{VALIDATE_WHATSAPP: 'https://workflow-lg9z.onrender.com/api/nodes/validate-whatsapp'}
+baseUrl
+: 
+"https://workflow-lg9z.onrender.com"
+environment
+: 
+"production"
+hostname
+: 
+"fixdai.com"
+renderEnvVar
+: 
+"https://workflow-lg9z.onrender.com/api/v1"
+validateWhatsappEndpoint
+: 
+"https://workflow-lg9z.onrender.com/api/nodes/validate-whatsapp"
+[[Prototype]]
+: 
+Object
