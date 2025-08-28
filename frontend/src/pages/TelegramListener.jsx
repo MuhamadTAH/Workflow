@@ -10,6 +10,8 @@ const TelegramListener = () => {
   const [messages, setMessages] = useState([]);
   const [isPolling, setIsPolling] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [sendMessage, setSendMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
 
   const handleSetupWebhook = async () => {
     if (!botToken.trim()) {
@@ -173,9 +175,50 @@ const TelegramListener = () => {
   const uniqueUsers = getUniqueUsers();
   const selectedUserMessages = selectedUser ? getMessagesForUser(selectedUser.userId) : [];
 
+  // Handle sending message
+  const handleSendMessage = async () => {
+    if (!selectedUser || !sendMessage.trim() || !botToken.trim()) {
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/send-message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          botToken: botToken,
+          chatId: selectedUser.chatId,
+          text: sendMessage
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setSendMessage(''); // Clear the input
+        // Refresh messages to show the sent message
+        setTimeout(() => {
+          fetchMessages();
+        }, 1000);
+      } else {
+        alert(`❌ Failed to send message: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Send message error:', error);
+      alert(`❌ Network error: ${error.message}`);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '2rem 0' }}>
-      <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '0 1rem' }}>
+      <div style={{ maxWidth: '80rem', margin: '0 auto', padding: '0 1rem' }}>
         <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem' }}>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '1.5rem' }}>
             <i className="fab fa-telegram" style={{ color: '#0088cc', marginRight: '0.5rem' }}></i>
@@ -290,13 +333,13 @@ const TelegramListener = () => {
               </ol>
             </div>
 
-            {/* Two Panel Layout */}
+            {/* Three Panel Layout */}
             {isPolling && (
               <div style={{ display: 'flex', gap: '1rem', height: '500px' }}>
                 
                 {/* Users Panel */}
                 <div style={{ 
-                  flex: '1', 
+                  flex: '0 0 300px', 
                   backgroundColor: '#f8fafc', 
                   padding: '1rem', 
                   borderRadius: '6px', 
@@ -489,6 +532,155 @@ const TelegramListener = () => {
                             </div>
                           </div>
                         ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Send Message Panel */}
+                <div style={{ 
+                  flex: '0 0 300px', 
+                  backgroundColor: '#f8fafc', 
+                  padding: '1rem', 
+                  borderRadius: '6px', 
+                  border: '1px solid #e2e8f0',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <h3 style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
+                      📤 Send Message
+                      {selectedUser && (
+                        <span style={{ 
+                          marginLeft: '0.5rem', 
+                          fontSize: '0.75rem', 
+                          color: '#059669',
+                          backgroundColor: '#d1fae5',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px'
+                        }}>
+                          to {selectedUser.fromName}
+                        </span>
+                      )}
+                    </h3>
+                  </div>
+
+                  <div style={{ 
+                    flex: 1,
+                    backgroundColor: 'white', 
+                    borderRadius: '4px',
+                    border: '1px solid #e5e7eb',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '1rem'
+                  }}>
+                    {!selectedUser ? (
+                      <div style={{ 
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center', 
+                        color: '#9ca3af',
+                        fontSize: '0.875rem'
+                      }}>
+                        <div>
+                          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👈</div>
+                          <p>Select a user to send them a message</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                        {/* Bot Token Display */}
+                        <div style={{ marginBottom: '1rem' }}>
+                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                            Bot Token (Auto-filled)
+                          </label>
+                          <div style={{
+                            padding: '0.5rem',
+                            backgroundColor: '#f3f4f6',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            color: '#6b7280',
+                            fontFamily: 'monospace',
+                            wordBreak: 'break-all'
+                          }}>
+                            {botToken ? `${botToken.substring(0, 15)}...` : 'No token'}
+                          </div>
+                        </div>
+
+                        {/* Chat ID Display */}
+                        <div style={{ marginBottom: '1rem' }}>
+                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                            Chat ID (Auto-filled)
+                          </label>
+                          <div style={{
+                            padding: '0.5rem',
+                            backgroundColor: '#f3f4f6',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            color: '#6b7280',
+                            fontFamily: 'monospace'
+                          }}>
+                            {selectedUser.chatId}
+                          </div>
+                        </div>
+
+                        {/* Message Input */}
+                        <div style={{ marginBottom: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                            Message Text
+                          </label>
+                          <textarea
+                            value={sendMessage}
+                            onChange={(e) => setSendMessage(e.target.value)}
+                            placeholder="Type your message here..."
+                            style={{
+                              flex: 1,
+                              minHeight: '100px',
+                              padding: '0.75rem',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '6px',
+                              fontSize: '0.875rem',
+                              resize: 'vertical',
+                              outline: 'none',
+                              fontFamily: 'inherit'
+                            }}
+                            disabled={isSending}
+                          />
+                        </div>
+
+                        {/* Send Button */}
+                        <button
+                          onClick={handleSendMessage}
+                          disabled={isSending || !sendMessage.trim()}
+                          style={{
+                            backgroundColor: isSending || !sendMessage.trim() ? '#9ca3af' : '#059669',
+                            color: 'white',
+                            padding: '0.75rem 1rem',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '0.875rem',
+                            fontWeight: '500',
+                            cursor: isSending || !sendMessage.trim() ? 'not-allowed' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem'
+                          }}
+                        >
+                          {isSending ? (
+                            <>
+                              <span>⏳</span>
+                              Sending...
+                            </>
+                          ) : (
+                            <>
+                              <span>📤</span>
+                              Send Message
+                            </>
+                          )}
+                        </button>
                       </div>
                     )}
                   </div>

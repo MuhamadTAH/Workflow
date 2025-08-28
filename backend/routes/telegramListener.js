@@ -267,6 +267,69 @@ router.get('/messages/:listenerId', (req, res) => {
   }
 });
 
+// Send message endpoint
+router.post('/send-message', asyncHandler(async (req, res) => {
+  const { botToken, chatId, text } = req.body;
+  
+  if (!botToken || !chatId || !text) {
+    return res.status(400).json({
+      success: false,
+      error: 'botToken, chatId, and text are required'
+    });
+  }
+
+  console.log('📤 Sending message via Telegram API:', {
+    botTokenPrefix: botToken.substring(0, 10) + '...',
+    chatId: chatId,
+    textLength: text.length
+  });
+
+  try {
+    // Send message using Telegram Bot API
+    const axios = require('axios');
+    const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+    
+    const response = await axios.post(telegramApiUrl, {
+      chat_id: chatId,
+      text: text
+    });
+
+    if (response.data.ok) {
+      console.log('✅ Message sent successfully:', {
+        messageId: response.data.result.message_id,
+        chatId: response.data.result.chat.id
+      });
+
+      logger.info(`Telegram message sent successfully`, {
+        chatId: chatId,
+        messageId: response.data.result.message_id,
+        botTokenPrefix: botToken.substring(0, 10) + '...'
+      });
+
+      res.json({
+        success: true,
+        message: 'Message sent successfully',
+        telegramResponse: response.data.result
+      });
+    } else {
+      console.error('❌ Telegram API error:', response.data);
+      res.status(400).json({
+        success: false,
+        error: 'Failed to send message via Telegram API',
+        telegramError: response.data
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error sending message:', error.message);
+    logger.logError(error, { context: 'telegram-send-message' });
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to send message: ' + error.message
+    });
+  }
+}));
+
 // Get status of all active bot listeners
 router.get('/status', (req, res) => {
   const listeners = Array.from(activeBots.entries()).map(([listenerId, botData]) => ({
