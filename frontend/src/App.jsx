@@ -20,6 +20,7 @@ import PublicShop from './pages/PublicShop';
 import TelegramListener from './pages/TelegramListener';
 import WhatsAppReceiver from './pages/WhatsAppReceiver';
 import WhatsAppReceiverTest from './pages/WhatsAppReceiverTest';
+import ClaudeAPIModal from './components/ClaudeAPIModal';
 // Import shop components using the modular router
 import { 
   ShopDashboard, 
@@ -45,6 +46,7 @@ function Home() {
   const [loading, setLoading] = useState(true);
   const [testLoading, setTestLoading] = useState(false);
   const [gradientVariant, setGradientVariant] = useState(1);
+  const [isClaudeModalOpen, setIsClaudeModalOpen] = useState(false);
 
   // Rotate gradient variants for freshness
   useEffect(() => {

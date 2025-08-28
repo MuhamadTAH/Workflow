@@ -2,8 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { API_BASE_URL } from '../config/api';
 
 const WhatsAppReceiver = () => {
+  // Unified WhatsApp Configuration State
   const [appId, setAppId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
+  const [businessId, setBusinessId] = useState('');
+  const [accessToken, setAccessToken] = useState('');
+  const [phoneNumberSendId, setPhoneNumberSendId] = useState('');
+  
+  // UI State
   const [isActive, setIsActive] = useState(false);
   const [messages, setMessages] = useState([]);
   const [conversations, setConversations] = useState([]);
@@ -12,10 +18,7 @@ const WhatsAppReceiver = () => {
   const [error, setError] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('');
   
-  // Send Message Panel State
-  const [sendBusinessId, setSendBusinessId] = useState('');
-  const [sendAccessToken, setSendAccessToken] = useState('');
-  const [sendPhoneNumberId, setSendPhoneNumberId] = useState('');
+  // Messaging State
   const [recipientPhone, setRecipientPhone] = useState('');
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -183,8 +186,9 @@ const WhatsAppReceiver = () => {
   }, [isActive]);
 
   const handleActivate = async () => {
-    if (!appId.trim() || !clientSecret.trim()) {
-      setError('Please enter both App ID and Client Secret');
+    // Validate all required fields
+    if (!appId.trim() || !clientSecret.trim() || !businessId.trim() || !accessToken.trim() || !phoneNumberSendId.trim()) {
+      setError('Please fill in all WhatsApp configuration fields (App ID, Client Secret, Business ID, Access Token, and Phone Number Send ID)');
       return;
     }
 
@@ -199,8 +203,13 @@ const WhatsAppReceiver = () => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
+          // WhatsApp Trigger Node credentials
           appId: appId.trim(),
-          clientSecret: clientSecret.trim()
+          clientSecret: clientSecret.trim(),
+          // WhatsApp Send Message Node credentials
+          businessId: businessId.trim(),
+          accessToken: accessToken.trim(),
+          phoneNumberSendId: phoneNumberSendId.trim()
         })
       });
 
@@ -256,14 +265,13 @@ const WhatsAppReceiver = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!sendBusinessId.trim() || !sendAccessToken.trim() || !sendPhoneNumberId.trim() || 
-        !recipientPhone.trim() || !messageText.trim()) {
-      setSendStatus('❌ Please fill in all fields');
+    if (!isActive || !recipientPhone.trim() || !messageText.trim()) {
+      setSendStatus('❌ System not active or missing message data');
       return;
     }
 
     setIsSending(true);
-    setSendStatus('⏳ Sending message...');
+    setSendStatus('⏳ Sending message via unified system...');
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/whatsapp-receiver/send-message`, {
@@ -273,9 +281,6 @@ const WhatsAppReceiver = () => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          businessId: sendBusinessId.trim(),
-          accessToken: sendAccessToken.trim(),
-          phoneNumberId: sendPhoneNumberId.trim(),
           recipientPhoneNumber: recipientPhone.trim(),
           messageText: messageText.trim()
         })
@@ -284,7 +289,7 @@ const WhatsAppReceiver = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        setSendStatus(`✅ Message sent successfully! ID: ${data.data.messageId || 'N/A'}`);
+        setSendStatus(`✅ Message sent via unified system! ID: ${data.data.messageId || 'N/A'}`);
         setMessageText(''); // Clear message after sending
       } else {
         setSendStatus(`❌ Failed to send: ${data.error || 'Unknown error'}`);
@@ -372,65 +377,182 @@ const WhatsAppReceiver = () => {
           </small>
         </div>
 
-        {/* Configuration Form */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: '1fr 1fr', 
-          gap: '16px', 
-          marginBottom: '20px' 
+        {/* Unified WhatsApp Configuration Form */}
+        <div style={{
+          marginBottom: '24px'
         }}>
-          <div>
-            <label style={{ 
-              display: 'block', 
-              marginBottom: '8px', 
-              fontWeight: '500',
-              color: '#495057'
-            }}>
-              WhatsApp App ID:
-            </label>
-            <input
-              type="text"
-              value={appId}
-              onChange={(e) => setAppId(e.target.value)}
-              placeholder="Enter your WhatsApp App ID"
-              disabled={isActive}
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '2px solid #e9ecef',
-                borderRadius: '8px',
-                fontSize: '14px',
-                transition: 'border-color 0.3s',
-                backgroundColor: isActive ? '#f8f9fa' : 'white'
-              }}
-            />
-          </div>
+          <h3 style={{
+            color: '#25D366',
+            marginBottom: '16px',
+            fontSize: '18px',
+            fontWeight: '600',
+            borderBottom: '2px solid #e9ecef',
+            paddingBottom: '8px'
+          }}>
+            📱 WhatsApp Configuration (Complete Setup)
+          </h3>
           
-          <div>
-            <label style={{ 
-              display: 'block', 
-              marginBottom: '8px', 
-              fontWeight: '500',
-              color: '#495057'
+          {/* Receiving Configuration (WhatsApp Trigger Node) */}
+          <div style={{
+            background: '#f8f9fa',
+            padding: '16px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            border: '1px solid #e9ecef'
+          }}>
+            <h4 style={{ margin: '0 0 12px 0', color: '#495057', fontSize: '16px' }}>🔔 Receiving Messages (Trigger)</h4>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr 1fr', 
+              gap: '16px'
             }}>
-              Client Secret:
-            </label>
-            <input
-              type="password"
-              value={clientSecret}
-              onChange={(e) => setClientSecret(e.target.value)}
-              placeholder="Enter your Client Secret"
-              disabled={isActive}
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '2px solid #e9ecef',
-                borderRadius: '8px',
-                fontSize: '14px',
-                transition: 'border-color 0.3s',
-                backgroundColor: isActive ? '#f8f9fa' : 'white'
-              }}
-            />
+              <div>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '8px', 
+                  fontWeight: '500',
+                  color: '#495057'
+                }}>
+                  WhatsApp App ID:
+                </label>
+                <input
+                  type="text"
+                  value={appId}
+                  onChange={(e) => setAppId(e.target.value)}
+                  placeholder="Enter your WhatsApp App ID"
+                  disabled={isActive}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '2px solid #e9ecef',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    transition: 'border-color 0.3s',
+                    backgroundColor: isActive ? '#f8f9fa' : 'white'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '8px', 
+                  fontWeight: '500',
+                  color: '#495057'
+                }}>
+                  Client Secret:
+                </label>
+                <input
+                  type="password"
+                  value={clientSecret}
+                  onChange={(e) => setClientSecret(e.target.value)}
+                  placeholder="Enter your Client Secret"
+                  disabled={isActive}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '2px solid #e9ecef',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    transition: 'border-color 0.3s',
+                    backgroundColor: isActive ? '#f8f9fa' : 'white'
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Sending Configuration (WhatsApp Send Message Node) */}
+          <div style={{
+            background: '#e7f3ff',
+            padding: '16px',
+            borderRadius: '8px',
+            border: '1px solid #b3d9ff'
+          }}>
+            <h4 style={{ margin: '0 0 12px 0', color: '#0056b3', fontSize: '16px' }}>📤 Sending Messages (Action)</h4>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+              gap: '16px'
+            }}>
+              <div>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '8px', 
+                  fontWeight: '500',
+                  color: '#495057'
+                }}>
+                  Business ID:
+                </label>
+                <input
+                  type="text"
+                  value={businessId}
+                  onChange={(e) => setBusinessId(e.target.value)}
+                  placeholder="e.g., 1234567890123456"
+                  disabled={isActive}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '2px solid #e9ecef',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    backgroundColor: isActive ? '#f8f9fa' : 'white'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '8px', 
+                  fontWeight: '500',
+                  color: '#495057'
+                }}>
+                  Access Token:
+                </label>
+                <input
+                  type="password"
+                  value={accessToken}
+                  onChange={(e) => setAccessToken(e.target.value)}
+                  placeholder="EAAxxxxxxxx..."
+                  disabled={isActive}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '2px solid #e9ecef',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    backgroundColor: isActive ? '#f8f9fa' : 'white'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ 
+                  display: 'block', 
+                  marginBottom: '8px', 
+                  fontWeight: '500',
+                  color: '#495057'
+                }}>
+                  Phone Number Send ID:
+                </label>
+                <input
+                  type="text"
+                  value={phoneNumberSendId}
+                  onChange={(e) => setPhoneNumberSendId(e.target.value)}
+                  placeholder="e.g., 628007790405551"
+                  disabled={isActive}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '2px solid #e9ecef',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    backgroundColor: isActive ? '#f8f9fa' : 'white'
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -453,23 +575,23 @@ const WhatsAppReceiver = () => {
           {!isActive ? (
             <button
               onClick={handleActivate}
-              disabled={isLoading || !appId.trim() || !clientSecret.trim()}
+              disabled={isLoading || !appId.trim() || !clientSecret.trim() || !businessId.trim() || !accessToken.trim() || !phoneNumberSendId.trim()}
               style={{
                 padding: '12px 24px',
                 background: '#25D366',
                 color: 'white',
                 border: 'none',
                 borderRadius: '8px',
-                cursor: isLoading || !appId.trim() || !clientSecret.trim() ? 'not-allowed' : 'pointer',
+                cursor: isLoading || !appId.trim() || !clientSecret.trim() || !businessId.trim() || !accessToken.trim() || !phoneNumberSendId.trim() ? 'not-allowed' : 'pointer',
                 fontSize: '16px',
                 fontWeight: '500',
-                opacity: isLoading || !appId.trim() || !clientSecret.trim() ? 0.6 : 1,
+                opacity: isLoading || !appId.trim() || !clientSecret.trim() || !businessId.trim() || !accessToken.trim() || !phoneNumberSendId.trim() ? 0.6 : 1,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
               }}
             >
-              {isLoading ? '⏳ Activating...' : '▶️ Start Listening'}
+              {isLoading ? '⏳ Activating Complete Setup...' : '🚀 Start WhatsApp (Receive + Send)'}
             </button>
           ) : (
             <button
@@ -517,7 +639,7 @@ const WhatsAppReceiver = () => {
         </div>
       </div>
 
-      {/* Send Message Panel */}
+      {/* Unified System Status Panel */}
       <div style={{ 
         background: 'white', 
         borderRadius: '12px', 
@@ -533,8 +655,8 @@ const WhatsAppReceiver = () => {
           gap: '10px',
           flexWrap: 'wrap'
         }}>
-          <span style={{ fontSize: '24px' }}>📤</span>
-          WhatsApp Send Message
+          <span style={{ fontSize: '24px' }}>🚀</span>
+          WhatsApp Unified System Status
           {selectedConversation && (
             <span style={{
               fontSize: '14px',
@@ -550,123 +672,6 @@ const WhatsAppReceiver = () => {
           )}
         </h2>
 
-        {/* Send Message Form */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-          gap: '16px', 
-          marginBottom: '20px' 
-        }}>
-          {/* Business ID */}
-          <div>
-            <label style={{ 
-              display: 'block', 
-              marginBottom: '8px', 
-              fontWeight: '500',
-              color: '#495057'
-            }}>
-              Business ID:
-            </label>
-            <input
-              type="text"
-              value={sendBusinessId}
-              onChange={(e) => setSendBusinessId(e.target.value)}
-              placeholder="e.g., 1234567890123456"
-              disabled={isSending}
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '2px solid #e9ecef',
-                borderRadius: '8px',
-                fontSize: '14px',
-                backgroundColor: isSending ? '#f8f9fa' : 'white'
-              }}
-            />
-          </div>
-
-          {/* Access Token */}
-          <div>
-            <label style={{ 
-              display: 'block', 
-              marginBottom: '8px', 
-              fontWeight: '500',
-              color: '#495057'
-            }}>
-              Access Token:
-            </label>
-            <input
-              type="password"
-              value={sendAccessToken}
-              onChange={(e) => setSendAccessToken(e.target.value)}
-              placeholder="EAAxxxxxxxx..."
-              disabled={isSending}
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '2px solid #e9ecef',
-                borderRadius: '8px',
-                fontSize: '14px',
-                backgroundColor: isSending ? '#f8f9fa' : 'white'
-              }}
-            />
-          </div>
-
-          {/* Phone Number ID */}
-          <div>
-            <label style={{ 
-              display: 'block', 
-              marginBottom: '8px', 
-              fontWeight: '500',
-              color: '#495057'
-            }}>
-              Phone Number Send ID:
-            </label>
-            <input
-              type="text"
-              value={sendPhoneNumberId}
-              onChange={(e) => setSendPhoneNumberId(e.target.value)}
-              placeholder="e.g., 628007790405551"
-              disabled={isSending}
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '2px solid #e9ecef',
-                borderRadius: '8px',
-                fontSize: '14px',
-                backgroundColor: isSending ? '#f8f9fa' : 'white'
-              }}
-            />
-          </div>
-
-          {/* Recipient Phone Number */}
-          <div>
-            <label style={{ 
-              display: 'block', 
-              marginBottom: '8px', 
-              fontWeight: '500',
-              color: '#495057'
-            }}>
-              Recipient Phone Number:
-            </label>
-            <input
-              type="text"
-              value={recipientPhone}
-              onChange={(e) => setRecipientPhone(e.target.value)}
-              placeholder="9647700716669 (no + sign)"
-              disabled={isSending}
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '2px solid #e9ecef',
-                borderRadius: '8px',
-                fontSize: '14px',
-                backgroundColor: isSending ? '#f8f9fa' : 'white'
-              }}
-            />
-          </div>
-        </div>
-
-
         {/* Send Status */}
         {sendStatus && (
           <div style={{ 
@@ -681,58 +686,60 @@ const WhatsAppReceiver = () => {
           </div>
         )}
 
-        {/* Send Button */}
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        {/* System Status and Quick Actions */}
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{
             padding: '12px 24px',
-            background: '#e7f3ff',
-            color: '#0056b3',
-            border: '2px solid #b3d9ff',
+            background: isActive ? '#d4edda' : '#f8d7da',
+            color: isActive ? '#155724' : '#721c24',
+            border: `2px solid ${isActive ? '#c3e6cb' : '#f5c6cb'}`,
             borderRadius: '8px',
             fontSize: '14px',
             fontWeight: '500',
             textAlign: 'center'
           }}>
-            ✅ Send Settings Configured
+            {isActive ? '✅ Unified System Active' : '❌ System Inactive'}
             <br />
             <small style={{ fontSize: '12px', opacity: 0.8 }}>
-              Use the message bar in conversations to send messages
+              {isActive ? 'Ready to receive AND send messages' : 'Complete configuration above to activate'}
             </small>
           </div>
 
-          {/* Quick Fill Button */}
-          <button
-            onClick={() => {
-              console.log('Fill Template Message clicked, selectedConversation:', selectedConversation);
-              if (selectedConversation) {
-                const contactName = selectedConversation.contactName;
-                console.log('Setting template message for:', contactName);
-                
-                setMessageText(`Hello ${contactName}, thanks for your message!`);
-                
-                // Show success message
-                setSendStatus(`✅ Template message filled for ${contactName}`);
-                setTimeout(() => setSendStatus(''), 3000);
-              } else {
-                console.log('No conversation selected');
-                setSendStatus('❌ Please select a conversation first');
-                setTimeout(() => setSendStatus(''), 3000);
-              }
-            }}
-            disabled={isSending}
-            style={{
-              padding: '12px 16px',
-              background: (!selectedConversation || isSending) ? '#e9ecef' : '#007bff',
-              color: (!selectedConversation || isSending) ? '#6c757d' : 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: (!selectedConversation || isSending) ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
-          >
-            📋 Fill Template Message ({selectedConversation ? selectedConversation.contactName : 'None'})
-          </button>
+          {/* Quick Fill Template Button */}
+          {isActive && (
+            <button
+              onClick={() => {
+                console.log('Fill Template Message clicked, selectedConversation:', selectedConversation);
+                if (selectedConversation) {
+                  const contactName = selectedConversation.contactName;
+                  console.log('Setting template message for:', contactName);
+                  
+                  setMessageText(`Hello ${contactName}, thanks for your message!`);
+                  
+                  // Show success message
+                  setSendStatus(`✅ Template message filled for ${contactName}`);
+                  setTimeout(() => setSendStatus(''), 3000);
+                } else {
+                  console.log('No conversation selected');
+                  setSendStatus('❌ Please select a conversation first');
+                  setTimeout(() => setSendStatus(''), 3000);
+                }
+              }}
+              disabled={isSending || !selectedConversation}
+              style={{
+                padding: '12px 16px',
+                background: (!selectedConversation || isSending) ? '#e9ecef' : '#007bff',
+                color: (!selectedConversation || isSending) ? '#6c757d' : 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: (!selectedConversation || isSending) ? 'not-allowed' : 'pointer',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+            >
+              📋 Fill Template ({selectedConversation ? selectedConversation.contactName : 'Select Chat'})
+            </button>
+          )}
         </div>
 
         {/* Helper Text */}
@@ -744,7 +751,11 @@ const WhatsAppReceiver = () => {
           fontSize: '13px',
           color: '#6c757d'
         }}>
-          💡 <strong>Tip:</strong> Click any conversation below to start chatting. Configure your WhatsApp Business API credentials above, then use the message bar at the bottom of each conversation to send messages directly.
+          💡 <strong>How it works:</strong> 
+          {isActive 
+            ? 'Your unified WhatsApp system is active! Messages will appear in conversations below. Click any conversation and use the message bar to reply.' 
+            : 'Fill in ALL configuration fields above (both receiving and sending), then click "Start WhatsApp" to activate the unified system.'
+          }
         </div>
       </div>
 
@@ -1027,7 +1038,7 @@ const WhatsAppReceiver = () => {
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
                     placeholder={`Message ${selectedConversation.contactName}...`}
-                    disabled={isSending}
+                    disabled={isSending || !isActive}
                     rows={1}
                     style={{
                       width: '100%',
@@ -1036,7 +1047,7 @@ const WhatsAppReceiver = () => {
                       borderRadius: '20px',
                       fontSize: '14px',
                       resize: 'none',
-                      backgroundColor: isSending ? '#f8f9fa' : 'white',
+                      backgroundColor: (isSending || !isActive) ? '#f8f9fa' : 'white',
                       fontFamily: 'inherit',
                       outline: 'none',
                       minHeight: '44px',
@@ -1045,7 +1056,7 @@ const WhatsAppReceiver = () => {
                     onKeyPress={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
-                        if (messageText.trim() && sendBusinessId.trim() && sendAccessToken.trim() && sendPhoneNumberId.trim()) {
+                        if (messageText.trim() && isActive) {
                           handleSendMessage();
                         }
                       }
@@ -1054,20 +1065,16 @@ const WhatsAppReceiver = () => {
                 </div>
                 <button
                   onClick={handleSendMessage}
-                  disabled={isSending || !messageText.trim() || !sendBusinessId.trim() || 
-                           !sendAccessToken.trim() || !sendPhoneNumberId.trim()}
+                  disabled={isSending || !messageText.trim() || !isActive}
                   style={{
                     padding: '12px',
-                    background: (isSending || !messageText.trim() || !sendBusinessId.trim() || 
-                                !sendAccessToken.trim() || !sendPhoneNumberId.trim()) 
+                    background: (isSending || !messageText.trim() || !isActive) 
                                ? '#e9ecef' : '#25D366',
-                    color: (isSending || !messageText.trim() || !sendBusinessId.trim() || 
-                           !sendAccessToken.trim() || !sendPhoneNumberId.trim()) 
+                    color: (isSending || !messageText.trim() || !isActive) 
                            ? '#6c757d' : 'white',
                     border: 'none',
                     borderRadius: '50%',
-                    cursor: (isSending || !messageText.trim() || !sendBusinessId.trim() || 
-                            !sendAccessToken.trim() || !sendPhoneNumberId.trim()) 
+                    cursor: (isSending || !messageText.trim() || !isActive) 
                            ? 'not-allowed' : 'pointer',
                     fontSize: '18px',
                     width: '44px',
@@ -1078,8 +1085,8 @@ const WhatsAppReceiver = () => {
                     flexShrink: 0,
                     transition: 'background-color 0.2s'
                   }}
-                  title={!sendBusinessId.trim() || !sendAccessToken.trim() || !sendPhoneNumberId.trim() 
-                         ? 'Please configure send settings in the panel above' 
+                  title={!isActive 
+                         ? 'Activate the unified system first' 
                          : 'Send message'}
                 >
                   {isSending ? '⏳' : '📤'}

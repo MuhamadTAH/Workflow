@@ -55,11 +55,16 @@ db.serialize(() => {
   });
 });
 
-// Global state for WhatsApp receiver
+// Global state for WhatsApp receiver (unified configuration)
 let receiverState = {
   isActive: false,
+  // WhatsApp Trigger Node credentials
   appId: null,
   clientSecret: null,
+  // WhatsApp Send Message Node credentials  
+  businessId: null,
+  accessToken: null,
+  phoneNumberSendId: null,
   activatedAt: null
 };
 
@@ -99,22 +104,25 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// POST /api/whatsapp-receiver/activate - Activate WhatsApp message receiver
+// POST /api/whatsapp-receiver/activate - Activate WhatsApp message receiver (unified config)
 router.post('/activate', verifyToken, async (req, res) => {
-  const { appId, clientSecret } = req.body;
+  const { appId, clientSecret, businessId, accessToken, phoneNumberSendId } = req.body;
   
-  console.log('🚀 Activating WhatsApp message receiver...');
-  console.log('📋 Credentials:', { 
+  console.log('🚀 Activating WhatsApp unified system (receive + send)...');
+  console.log('📋 Unified Configuration:', { 
     appId: appId ? 'present' : 'missing', 
-    clientSecret: clientSecret ? 'present' : 'missing' 
+    clientSecret: clientSecret ? 'present' : 'missing',
+    businessId: businessId ? 'present' : 'missing',
+    accessToken: accessToken ? 'present' : 'missing',
+    phoneNumberSendId: phoneNumberSendId ? 'present' : 'missing'
   });
   
   try {
-    // Validate input
-    if (!appId || !clientSecret) {
+    // Validate all required unified inputs
+    if (!appId || !clientSecret || !businessId || !accessToken || !phoneNumberSendId) {
       return res.status(400).json({
         success: false,
-        error: 'App ID and Client Secret are required'
+        error: 'All fields are required: App ID, Client Secret, Business ID, Access Token, and Phone Number Send ID'
       });
     }
 
@@ -127,24 +135,32 @@ router.post('/activate', verifyToken, async (req, res) => {
       }
     });
 
-    // Update receiver state
+    // Update receiver state with unified configuration
     receiverState = {
       isActive: true,
+      // WhatsApp Trigger Node credentials
       appId: appId.trim(),
       clientSecret: clientSecret.trim(),
+      // WhatsApp Send Message Node credentials
+      businessId: businessId.trim(),
+      accessToken: accessToken.trim(),
+      phoneNumberSendId: phoneNumberSendId.trim(),
       activatedAt: new Date().toISOString()
     };
     
-    console.log('✅ WhatsApp receiver activated successfully');
+    console.log('✅ WhatsApp unified system activated successfully (receive + send)');
     console.log('📡 Webhook URL:', `${req.protocol}://${req.get('host')}/api/webhooks/whatsapp`);
+    console.log('📤 Send Message capability ready with Business ID:', businessId.substring(0, 4) + '...');
     
     res.json({
       success: true,
-      message: 'WhatsApp receiver activated successfully! Ready to receive messages.',
+      message: 'WhatsApp unified system activated! Ready to receive AND send messages.',
       webhookUrl: `${req.protocol}://${req.get('host')}/api/webhooks/whatsapp`,
       status: {
         isActive: true,
-        activatedAt: receiverState.activatedAt
+        activatedAt: receiverState.activatedAt,
+        capabilities: ['receive_messages', 'send_messages'],
+        sendingReady: true
       }
     });
     
@@ -162,11 +178,14 @@ router.post('/deactivate', verifyToken, (req, res) => {
   console.log('🛑 Deactivating WhatsApp message receiver...');
   
   try {
-    // Update receiver state
+    // Clear unified receiver state
     receiverState = {
       isActive: false,
       appId: null,
       clientSecret: null,
+      businessId: null,
+      accessToken: null,
+      phoneNumberSendId: null,
       activatedAt: null
     };
     
@@ -327,29 +346,41 @@ const storeWhatsAppMessage = (webhookData) => {
   });
 };
 
-// POST /api/whatsapp-receiver/send-message - Send WhatsApp message
+// POST /api/whatsapp-receiver/send-message - Send WhatsApp message (using unified config)
 router.post('/send-message', verifyToken, async (req, res) => {
-  const { businessId, accessToken, phoneNumberId, recipientPhoneNumber, messageText } = req.body;
+  const { recipientPhoneNumber, messageText } = req.body;
   
-  console.log('📤 WhatsApp send message request:', {
+  // Use unified configuration from receiver state
+  const { businessId, accessToken, phoneNumberSendId } = receiverState;
+  
+  console.log('📤 WhatsApp unified send message request:', {
+    fromUnifiedConfig: true,
     businessId: businessId ? 'present' : 'missing',
     accessToken: accessToken ? 'present' : 'missing',
-    phoneNumberId: phoneNumberId ? 'present' : 'missing',
+    phoneNumberSendId: phoneNumberSendId ? 'present' : 'missing',
     recipientPhoneNumber: recipientPhoneNumber ? recipientPhoneNumber : 'missing',
-    messageLength: messageText ? messageText.length : 0
+    messageLength: messageText ? messageText.length : 0,
+    receiverActive: receiverState.isActive
   });
   
   try {
-    // Validate required parameters
-    if (!businessId || !accessToken || !phoneNumberId || !recipientPhoneNumber || !messageText) {
+    // Validate unified configuration and message parameters
+    if (!receiverState.isActive) {
       return res.status(400).json({
         success: false,
-        error: 'All fields are required: businessId, accessToken, phoneNumberId, recipientPhoneNumber, messageText'
+        error: 'WhatsApp system is not activated. Please activate first with complete configuration.'
+      });
+    }
+    
+    if (!businessId || !accessToken || !phoneNumberSendId || !recipientPhoneNumber || !messageText) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing unified configuration or message data. Please check your setup.'
       });
     }
 
-    // Send message to WhatsApp Business API
-    const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
+    // Send message to WhatsApp Business API using unified configuration
+    const url = `https://graph.facebook.com/v21.0/${phoneNumberSendId}/messages`;
     
     const requestBody = {
       messaging_product: 'whatsapp',
@@ -418,8 +449,9 @@ router.post('/send-message', verifyToken, async (req, res) => {
           JSON.stringify({ 
             sent: true, 
             whatsappResponse: data,
-            phoneNumberId: phoneNumberId,
-            businessId: businessId 
+            phoneNumberSendId: phoneNumberSendId,
+            businessId: businessId,
+            sentViaUnifiedConfig: true
           }),
           'outgoing',
           now

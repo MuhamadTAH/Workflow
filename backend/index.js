@@ -25,6 +25,8 @@ const whatsappRoutes = require('./routes/whatsapp');
 const whatsappReceiverRoutes = require('./routes/whatsapp-receiver');
 // TELEGRAM LISTENER ROUTES
 const telegramListenerRoutes = require('./routes/telegramListener');
+// CLAUDE API ROUTES
+const claudeRoutes = require('./routes/claude');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
@@ -144,6 +146,8 @@ app.use('/api/whatsapp', whatsappRoutes);
 app.use('/api/whatsapp-receiver', whatsappReceiverRoutes);
 // TELEGRAM LISTENER ROUTES
 app.use('/api/telegram-listener', telegramListenerRoutes);
+// CLAUDE API ROUTES
+app.use('/api/claude', claudeRoutes);
 
 // Chat trigger alias route for frontend compatibility
 app.get('/api/chat/:nodeId', (req, res) => {
