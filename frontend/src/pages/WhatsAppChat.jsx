@@ -6,6 +6,7 @@ function WhatsAppChat() {
   const [isHumanTakeoverActive, setIsHumanTakeoverActive] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentBusinessId] = useState(1);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
   
   // API Configuration - Using production URLs from rules.md
   const API_BASE = 'https://workflow-lg9z.onrender.com/api';
@@ -185,6 +186,136 @@ function WhatsAppChat() {
     }
   };
 
+  // Load existing files from backend
+  const loadExistingFiles = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}`, {
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.knowledge_files) {
+          const files = result.knowledge_files.map(file => ({
+            id: file.id,
+            name: file.original_filename,
+            size: (file.file_size / 1024 / 1024).toFixed(1) // Convert to MB
+          }));
+          setUploadedFiles(files);
+          
+          // Refresh Lucide icons after loading files
+          setTimeout(() => {
+            if (window.lucide) {
+              window.lucide.createIcons();
+            }
+          }, 100);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading existing files:', error);
+    }
+  };
+
+  // File upload functionality
+  const handleFileUpload = async (files) => {
+    if (!files || files.length === 0) return;
+    
+    const formData = new FormData();
+    Array.from(files).forEach(file => {
+      formData.append('documents', file);
+    });
+    
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}/upload-documents`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+        },
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Add uploaded files to the list
+        const newFiles = result.processed_files.map(file => ({
+          id: file.id,
+          name: file.original_filename,
+          size: (file.file_size / 1024 / 1024).toFixed(1) // Convert to MB
+        }));
+        setUploadedFiles(prev => [...prev, ...newFiles]);
+        
+        // Refresh Lucide icons after state update
+        setTimeout(() => {
+          if (window.lucide) {
+            window.lucide.createIcons();
+          }
+        }, 100);
+        
+        alert(`Successfully uploaded ${newFiles.length} file(s)!`);
+      } else {
+        alert(`Upload failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Upload failed: Network error');
+    }
+  };
+
+  const deleteFile = async (index) => {
+    const file = uploadedFiles[index];
+    
+    if (!file.id) {
+      // If it's a mock file without ID, just remove from state
+      setUploadedFiles(files => files.filter((_, i) => i !== index));
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}/delete-document/${file.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+        }
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setUploadedFiles(files => files.filter((_, i) => i !== index));
+        alert('File deleted successfully!');
+      } else {
+        alert(`Delete failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Delete failed: Network error');
+    }
+  };
+
+  const handleDropZoneClick = () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.accept = '.pdf,.docx,.txt,.md';
+    fileInput.onchange = (e) => handleFileUpload(e.target.files);
+    fileInput.click();
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const files = e.dataTransfer.files;
+    handleFileUpload(files);
+  };
+
   // Initialize
   useEffect(() => {
     // Set default system prompt template
@@ -193,11 +324,15 @@ function WhatsAppChat() {
     // Set up authentication token
     localStorage.setItem('token', 'MOCK_TOKEN_FOR_TESTING_test-user-1');
     
+    // Load existing files
+    loadExistingFiles();
+    
     // Collapse panels by default
     setTimeout(() => {
       togglePanel('whatsapp-panel');
       togglePanel('model-panel');
       togglePanel('prompt-panel');
+      togglePanel('kb-panel');
     }, 100);
     
     // Create Lucide icons
@@ -205,6 +340,13 @@ function WhatsAppChat() {
       window.lucide.createIcons();
     }
   }, []);
+
+  // Refresh Lucide icons when uploadedFiles changes
+  useEffect(() => {
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+  }, [uploadedFiles]);
 
   const sendManualMessage = () => {
     const input = document.getElementById('manual-message-input');
@@ -475,6 +617,58 @@ function WhatsAppChat() {
                       <i data-lucide="lightbulb" className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"></i>
                       <div className="text-blue-800">
                         <strong>Tip:</strong> Write clear instructions about the AI's personality, knowledge, and how it should handle different types of customer questions. This acts as the "brain" of your WhatsApp assistant.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Knowledge Base Documents */}
+              <div className="card !p-4 !shadow-none border border-gray-200">
+                <div className="flex items-center justify-between cursor-pointer" onClick={() => togglePanel('kb-panel')}>
+                  <h2 className="text-md font-semibold text-gray-700 flex items-center">
+                    <i data-lucide="folder-up" className="w-5 h-5 mr-2 text-green-600"></i>
+                    4. Knowledge Base
+                  </h2>
+                  <i id="kb-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
+                </div>
+                <div id="kb-panel-content" className="panel-content mt-3">
+                  <div 
+                    id="drop-zone" 
+                    className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 text-center cursor-pointer hover:border-green-500 transition-colors"
+                    onClick={handleDropZoneClick}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                  >
+                    <i data-lucide="upload-cloud" className="w-8 h-8 text-gray-400 mb-1"></i>
+                    <p className="text-sm text-gray-500">Drop files or <span className="text-green-600 font-semibold">click</span></p>
+                    <p className="text-xs text-gray-400 mt-1">PDF, DOCX, TXT, MD</p>
+                  </div>
+                  <div className="mt-3">
+                    <h3 className="font-medium text-gray-600 mb-2 text-sm">Uploaded Files:</h3>
+                    <ul id="file-list" className="space-y-2 max-h-24 overflow-y-auto">
+                      {uploadedFiles.map((file, index) => (
+                        <li key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md text-sm">
+                          <div className="flex items-center overflow-hidden">
+                            <i data-lucide="file-text" className="w-4 h-4 mr-2 text-gray-500 flex-shrink-0"></i>
+                            <span className="font-medium text-gray-700 truncate" title={file.name}>{file.name}</span>
+                            <span className="text-gray-500 ml-1">({file.size} MB)</span>
+                          </div>
+                          <button onClick={() => deleteFile(index)} className="text-red-500 hover:text-red-700 ml-2">
+                            <i data-lucide="trash-2" className="w-4 h-4"></i>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                    {uploadedFiles.length === 0 && (
+                      <p className="text-sm text-gray-500 text-center py-2">No files uploaded yet</p>
+                    )}
+                  </div>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm mt-3">
+                    <div className="flex items-start gap-2">
+                      <i data-lucide="info" className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0"></i>
+                      <div className="text-green-800">
+                        <strong>Knowledge Base:</strong> Upload documents like FAQs, product manuals, or company policies. The AI will use this information to provide accurate answers to WhatsApp customers.
                       </div>
                     </div>
                   </div>

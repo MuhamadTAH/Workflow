@@ -15,6 +15,7 @@ function AIAssistant() {
   const [users, setUsers] = useState({});
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [isPolling, setIsPolling] = useState(false);
 
   // Panel toggle
   const togglePanel = (panelId) => {
@@ -267,6 +268,101 @@ function AIAssistant() {
     }
   };
 
+  // Fetch conversations from API
+  const fetchConversations = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentAssistantId}/conversations`, {
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.conversations) {
+          const processedUsers = {};
+          
+          // Group conversations by customer
+          result.conversations.forEach(conv => {
+            const customerId = conv.customer_id;
+            
+            if (!processedUsers[customerId]) {
+              processedUsers[customerId] = {
+                name: conv.customer_name || 'Unknown User',
+                username: `@${conv.customer_name?.toLowerCase().replace(' ', '_') || 'unknown'}`,
+                avatar: `https://placehold.co/64x64/e0e7ff/4f46e5?text=${(conv.customer_name || 'U')[0]}`,
+                chatId: conv.customer_id,
+                userId: conv.customer_id,
+                language: 'en-US',
+                lastMessage: conv.message_text,
+                messages: []
+              };
+            }
+
+            // Add user message
+            processedUsers[customerId].messages.push({
+              from: 'user',
+              text: conv.message_text,
+              timestamp: conv.created_at
+            });
+
+            // Add AI response if exists
+            if (conv.response_text) {
+              processedUsers[customerId].messages.push({
+                from: 'ai',
+                text: conv.response_text,
+                timestamp: conv.created_at
+              });
+            }
+
+            // Update last message
+            processedUsers[customerId].lastMessage = conv.message_text;
+          });
+
+          setUsers(processedUsers);
+          
+          // Set first user as active if none selected
+          const userIds = Object.keys(processedUsers);
+          if (userIds.length > 0 && !activeUserId) {
+            setActiveUserId(userIds[0]);
+          }
+
+          // Refresh icons after updating conversations
+          setTimeout(() => {
+            if (window.lucide) {
+              window.lucide.createIcons();
+            }
+          }, 100);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+    }
+  };
+
+  // Start polling for conversations
+  const startConversationPolling = () => {
+    if (isPolling) return; // Prevent multiple polling
+    
+    setIsPolling(true);
+    fetchConversations(); // Initial fetch
+    
+    // Poll every 5 seconds
+    const pollInterval = setInterval(() => {
+      if (isAiActive) {
+        fetchConversations();
+      } else {
+        clearInterval(pollInterval);
+        setIsPolling(false);
+      }
+    }, 5000);
+  };
+
+  // Stop polling for conversations
+  const stopConversationPolling = () => {
+    setIsPolling(false);
+  };
+
   // File upload functionality
   const handleFileUpload = async (files) => {
     if (!files || files.length === 0) return;
@@ -370,6 +466,7 @@ function AIAssistant() {
       const success = await deactivateAI();
       if (success) {
         setIsAiActive(false);
+        stopConversationPolling();
         if (!isHumanTakeoverActive) {
           // Update status to inactive
         }
@@ -379,6 +476,7 @@ function AIAssistant() {
       if (success) {
         setIsAiActive(true);
         setIsHumanTakeoverActive(false);
+        startConversationPolling();
       }
     }
   };
