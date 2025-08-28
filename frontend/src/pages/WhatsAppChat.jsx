@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 function WhatsAppChat() {
-  const [activeUserId, setActiveUserId] = useState('customer1');
+  const [activeUserId, setActiveUserId] = useState(null);
   const [isAutoReplyActive, setIsAutoReplyActive] = useState(false);
   const [isHumanTakeoverActive, setIsHumanTakeoverActive] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -119,7 +119,7 @@ function WhatsAppChat() {
       const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}/test-ai-api`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`,
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
@@ -156,7 +156,7 @@ function WhatsAppChat() {
     try {
       const response = await fetch(`${API_BASE}/whatsapp/${currentBusinessId}`, {
         headers: {
-          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
         }
       });
       
@@ -196,7 +196,7 @@ function WhatsAppChat() {
       const response = await fetch(`${API_BASE}/whatsapp/${currentBusinessId}/upload-documents`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
         },
         body: formData
       });
@@ -233,7 +233,7 @@ function WhatsAppChat() {
     const file = uploadedFiles[index];
     
     if (!file.id) {
-      // If it's a mock file without ID, just remove from state
+      // If it's a file without ID, just remove from state
       setUploadedFiles(files => files.filter((_, i) => i !== index));
       return;
     }
@@ -242,7 +242,7 @@ function WhatsAppChat() {
       const response = await fetch(`${API_BASE}/whatsapp/${currentBusinessId}/delete-document/${file.id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
         }
       });
       
@@ -287,7 +287,7 @@ function WhatsAppChat() {
       // First try the dedicated WhatsApp conversations endpoint
       let response = await fetch(`${API_BASE}/whatsapp/conversations`, {
         headers: {
-          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
         }
       });
 
@@ -295,7 +295,7 @@ function WhatsAppChat() {
       if (!response.ok) {
         response = await fetch(`${API_BASE}/webhooks/whatsapp/messages`, {
           headers: {
-            'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
           }
         });
       }
@@ -403,7 +403,7 @@ function WhatsAppChat() {
     try {
       const response = await fetch(`${API_BASE}/whatsapp/${currentBusinessId}`, {
         headers: {
-          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
         }
       });
       
@@ -427,8 +427,6 @@ function WhatsAppChat() {
     // Set default system prompt template
     applyTemplate('customer-service');
     
-    // Set up authentication token
-    localStorage.setItem('token', 'MOCK_TOKEN_FOR_TESTING_test-user-1');
     
     // Load existing files
     loadExistingFiles();
@@ -550,7 +548,7 @@ function WhatsAppChat() {
         const response = await fetch(`${API_BASE}/whatsapp/${currentBusinessId}/deactivate`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`,
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
             'Content-Type': 'application/json'
           }
         });
@@ -598,7 +596,7 @@ function WhatsAppChat() {
         const response = await fetch(`${API_BASE}/whatsapp/${currentBusinessId}/activate`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`,
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(formData)

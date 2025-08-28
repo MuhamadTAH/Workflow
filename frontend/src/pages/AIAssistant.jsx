@@ -273,6 +273,17 @@ function AIAssistant() {
     // Check if assistant is already active
     checkAssistantStatus();
     
+    // Start fetching conversations immediately regardless of AI status
+    fetchConversations();
+    
+    // Start polling for new conversations
+    const pollInterval = setInterval(() => {
+      fetchConversations();
+    }, 5000);
+    
+    // Cleanup interval on unmount
+    const cleanup = () => clearInterval(pollInterval);
+    
     // Collapse panels by default
     setTimeout(() => {
       togglePanel('telegram-panel');
@@ -282,6 +293,9 @@ function AIAssistant() {
     }, 100);
     
     // Icons will be automatically created by Lucide from index.html
+    
+    // Return cleanup function
+    return cleanup;
   }, []);
 
   // Icons will refresh automatically from index.html
