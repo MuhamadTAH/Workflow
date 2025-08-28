@@ -180,10 +180,12 @@ const TelegramListener = () => {
       userId: userId,
       selectedUserChatId: selectedUser.chatId,
       totalMessages: messages.length,
+      allMessages: messages,
       messagesWithChatIds: messages.map(m => ({
         fromUserId: m.fromUserId,
         chatId: m.chatId,
         isBotMessage: m.isBotMessage,
+        type: m.type,
         text: m.text?.substring(0, 20) + '...'
       }))
     });

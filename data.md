@@ -1,14 +1,26 @@
-index-D083KAXz.js:45 
- POST https://workflow-lg9z.onrender.com/api/telegram-listener/send-message 404 (Not Found)
-Y	@	index-D083KAXz.js:45
-Pa	@	vendor-CsChfltt.js:29
-za	@	vendor-CsChfltt.js:29
-Ta	@	vendor-CsChfltt.js:29
-Do	@	vendor-CsChfltt.js:29
-Oo	@	vendor-CsChfltt.js:29
-(anonymous)	@	vendor-CsChfltt.js:29
-ai	@	vendor-CsChfltt.js:32
-Vi	@	vendor-CsChfltt.js:29
-au	@	vendor-CsChfltt.js:29
-Ql	@	vendor-CsChfltt.js:29
-Qa	@	vendor-CsChfltt.js:29
+🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
+index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
+index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
+index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
+index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
+index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
+index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
+index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
+index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
+index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
+index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
+index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
+index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
+index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
+index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
+index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
+index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
+index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
+index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
+index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
+index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
+index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
+index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
+index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]0: {updateId: 292397125, messageId: 489, chatId: 5483214193, text: '123456789', fromUserId: 5483214193, …}length: 1[[Prototype]]: Array(0)
+index-ytzRtNwJ.js:45 🔍 Filtering messages for user: {userId: 5483214193, selectedUserChatId: 5483214193, totalMessages: 1, messagesWithChatIds: Array(1)}
+index-ytzRtNwJ.js:45 🔍 Filtered messages: 1 [{…}]
