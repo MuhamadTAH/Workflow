@@ -154,7 +154,7 @@ function WhatsAppChat() {
   // Load existing files from backend
   const loadExistingFiles = async () => {
     try {
-      const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}`, {
+      const response = await fetch(`${API_BASE}/whatsapp/${currentBusinessId}`, {
         headers: {
           'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
         }
@@ -193,7 +193,7 @@ function WhatsAppChat() {
     });
     
     try {
-      const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}/upload-documents`, {
+      const response = await fetch(`${API_BASE}/whatsapp/${currentBusinessId}/upload-documents`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
@@ -239,7 +239,7 @@ function WhatsAppChat() {
     }
     
     try {
-      const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}/delete-document/${file.id}`, {
+      const response = await fetch(`${API_BASE}/whatsapp/${currentBusinessId}/delete-document/${file.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
@@ -284,14 +284,26 @@ function WhatsAppChat() {
   // Fetch WhatsApp conversations from API
   const fetchConversations = async () => {
     try {
-      const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}/conversations`, {
+      // First try the dedicated WhatsApp conversations endpoint
+      let response = await fetch(`${API_BASE}/whatsapp/conversations`, {
         headers: {
           'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
         }
       });
 
+      // If that fails, try the webhook messages endpoint as fallback
+      if (!response.ok) {
+        response = await fetch(`${API_BASE}/webhooks/whatsapp/messages`, {
+          headers: {
+            'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+          }
+        });
+      }
+
       if (response.ok) {
         const result = await response.json();
+        console.log('WhatsApp conversations API response:', result);
+        
         if (result.success && result.conversations) {
           const processedUsers = {};
           
@@ -340,12 +352,14 @@ function WhatsAppChat() {
             processedUsers[phoneNumber].lastMessage = conv.message_text;
           });
 
+          console.log('Processed WhatsApp users:', processedUsers);
           setUsers(processedUsers);
           
           // Set first user as active if none selected and we have users
           const userIds = Object.keys(processedUsers);
           if (userIds.length > 0 && (!activeUserId || !processedUsers[activeUserId])) {
             setActiveUserId(userIds[0]);
+            console.log('Set active user ID:', userIds[0]);
           }
 
           // Refresh icons after updating conversations
@@ -387,7 +401,7 @@ function WhatsAppChat() {
   // Check WhatsApp assistant status on load
   const checkAssistantStatus = async () => {
     try {
-      const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}`, {
+      const response = await fetch(`${API_BASE}/whatsapp/${currentBusinessId}`, {
         headers: {
           'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
         }
@@ -422,6 +436,14 @@ function WhatsAppChat() {
     // Check if WhatsApp assistant is already active
     checkAssistantStatus();
     
+    // Start fetching WhatsApp conversations
+    fetchConversations();
+    
+    // Set up polling for real-time updates
+    const pollInterval = setInterval(() => {
+      fetchConversations();
+    }, 5000); // Poll every 5 seconds
+    
     // Collapse panels by default
     setTimeout(() => {
       togglePanel('whatsapp-panel');
@@ -434,6 +456,11 @@ function WhatsAppChat() {
     if (window.lucide) {
       window.lucide.createIcons();
     }
+    
+    // Cleanup polling on unmount
+    return () => {
+      clearInterval(pollInterval);
+    };
   }, []);
 
   // Refresh Lucide icons when uploadedFiles changes
@@ -520,7 +547,7 @@ function WhatsAppChat() {
     if (isAutoReplyActive) {
       // Deactivate auto-reply
       try {
-        const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}/deactivate`, {
+        const response = await fetch(`${API_BASE}/whatsapp/${currentBusinessId}/deactivate`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`,
@@ -543,7 +570,7 @@ function WhatsAppChat() {
     } else {
       // Activate auto-reply
       try {
-        const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}/activate`, {
+        const response = await fetch(`${API_BASE}/whatsapp/${currentBusinessId}/activate`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`,

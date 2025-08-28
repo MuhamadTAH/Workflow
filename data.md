@@ -1,51 +1,54 @@
-[2025-08-28T02:39:40.410Z] INFO: Incoming request {"method":"POST","url":"/api/webhooks/telegram-livechat/2","ip":"::1"}
+[2025-08-28T02:55:29.360Z] INFO: Incoming request {"method":"POST","url":"/api/webhooks/whatsapp","ip":"::1","userAgent":"facebookexternalua"}
 🌐 INCOMING REQUEST: {
   method: 'POST',
-  url: '/api/webhooks/telegram-livechat/2',
+  url: '/api/webhooks/whatsapp',
   origin: undefined,
-  userAgent: undefined,
+  userAgent: 'facebookexternalua',
   contentType: 'application/json',
-  contentLength: '385',
+  contentLength: '481',
   authorization: 'missing',
-  timestamp: '2025-08-28T02:39:40.410Z'
+  timestamp: '2025-08-28T02:55:29.361Z'
 }
-📞 LIVE CHAT: Message received for user: 2
-📦 Update data: {
-  "update_id": 292397100,
-  "message": {
-    "message_id": 459,
-    "from": {
-      "id": 5483214193,
-      "is_bot": false,
-      "first_name": "Muhammad",
-      "last_name": "Tarq",
-      "username": "Muh0mmad",
-      "language_code": "en"
-    },
-    "chat": {
-      "id": 5483214193,
-      "first_name": "Muhammad",
-      "last_name": "Tarq",
-      "username": "Muh0mmad",
-      "type": "private"
-    },
-    "date": 1756348780,
-    "text": "1234567890-",
-    "entities": [
-      {
-        "offset": 0,
-        "length": 10,
-        "type": "phone_number"
-      }
-    ]
-  }
+📱 WhatsApp webhook received: {
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "1411124906823702",
+      "changes": [
+        {
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "15556646119",
+              "phone_number_id": "628007790405551"
+            },
+            "contacts": [
+              {
+                "profile": {
+                  "name": "Muhammad Tarq"
+                },
+                "wa_id": "9647700716669"
+              }
+            ],
+            "messages": [
+              {
+                "from": "9647700716669",
+                "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBQkJBMDQxNEY2MjI0OUQ4RUVEAA==",
+                "timestamp": "1756349727",
+                "text": {
+                  "body": "jDh"
+                },
+                "type": "text"
+              }
+            ]
+          },
+          "field": "messages"
+        }
+      ]
+    }
+  ]
 }
-🔍 Webhook called at: 2025-08-28T02:39:40.411Z
-💾 Attempting to create/update conversation for user: 2 chat: 5483214193
-✅ Conversation created/updated successfully. LastID: 2 Changes: 1
-🔍 Looking up conversation ID for user: 2 chat: 5483214193
-📋 Conversation lookup result: { id: 1 }
-💬 Saving message to conversation: 1
-✅ Message saved successfully. LastID: 2
-✅ LIVE CHAT: Message stored successfully
-[2025-08-28T02:39:40.422Z] INFO: Request completed {"method":"POST","url":"/telegram-livechat/2","status":200,"duration":"12ms"}
+🔄 Processing WhatsApp webhook...
+🔍 Checking 0 active workflows for WhatsApp triggers
+📱 No WhatsApp trigger workflows found
+[2025-08-28T02:55:29.363Z] INFO: Request completed {"method":"POST","url":"/whatsapp","status":200,"duration":"3ms"}
