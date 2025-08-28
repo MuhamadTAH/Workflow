@@ -663,33 +663,6 @@ const WhatsAppReceiver = () => {
           </div>
         </div>
 
-        {/* Message Text */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ 
-            display: 'block', 
-            marginBottom: '8px', 
-            fontWeight: '500',
-            color: '#495057'
-          }}>
-            Message Text:
-          </label>
-          <textarea
-            value={messageText}
-            onChange={(e) => setMessageText(e.target.value)}
-            placeholder="Enter your message here..."
-            disabled={isSending}
-            rows={4}
-            style={{
-              width: '100%',
-              padding: '12px',
-              border: '2px solid #e9ecef',
-              borderRadius: '8px',
-              fontSize: '14px',
-              resize: 'vertical',
-              backgroundColor: isSending ? '#f8f9fa' : 'white'
-            }}
-          />
-        </div>
 
         {/* Send Status */}
         {sendStatus && (
@@ -707,30 +680,22 @@ const WhatsAppReceiver = () => {
 
         {/* Send Button */}
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <button
-            onClick={handleSendMessage}
-            disabled={isSending || !sendBusinessId.trim() || !sendAccessToken.trim() || 
-                     !sendPhoneNumberId.trim() || !recipientPhone.trim() || !messageText.trim()}
-            style={{
-              padding: '12px 24px',
-              background: (isSending || !sendBusinessId.trim() || !sendAccessToken.trim() || 
-                          !sendPhoneNumberId.trim() || !recipientPhone.trim() || !messageText.trim()) 
-                         ? '#6c757d' : '#25D366',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: (isSending || !sendBusinessId.trim() || !sendAccessToken.trim() || 
-                      !sendPhoneNumberId.trim() || !recipientPhone.trim() || !messageText.trim()) 
-                     ? 'not-allowed' : 'pointer',
-              fontSize: '16px',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            {isSending ? '⏳ Sending...' : '📤 Send Message'}
-          </button>
+          <div style={{
+            padding: '12px 24px',
+            background: '#e7f3ff',
+            color: '#0056b3',
+            border: '2px solid #b3d9ff',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '500',
+            textAlign: 'center'
+          }}>
+            ✅ Send Settings Configured
+            <br />
+            <small style={{ fontSize: '12px', opacity: 0.8 }}>
+              Use the message bar in conversations to send messages
+            </small>
+          </div>
 
           {/* Quick Fill Button */}
           <button
@@ -776,8 +741,7 @@ const WhatsAppReceiver = () => {
           fontSize: '13px',
           color: '#6c757d'
         }}>
-          💡 <strong>Tip:</strong> Click any conversation below to automatically fill the recipient phone number. 
-          Use "Fill Template Message" to add a pre-written reply. Get credentials from Meta Developer Console.
+          💡 <strong>Tip:</strong> Click any conversation below to start chatting. Configure your WhatsApp Business API credentials above, then use the message bar at the bottom of each conversation to send messages directly.
         </div>
       </div>
 
@@ -1032,6 +996,79 @@ const WhatsAppReceiver = () => {
                   );
                 })}
                 <div ref={messagesEndRef} />
+              </div>
+              
+              {/* Message Input Bar */}
+              <div style={{ 
+                padding: '16px 24px',
+                borderTop: '1px solid #e9ecef',
+                background: '#f8f9fa',
+                display: 'flex',
+                gap: '12px',
+                alignItems: 'flex-end'
+              }}>
+                <div style={{ flex: 1 }}>
+                  <textarea
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    placeholder={`Message ${selectedConversation.contactName}...`}
+                    disabled={isSending}
+                    rows={1}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      border: '2px solid #e9ecef',
+                      borderRadius: '20px',
+                      fontSize: '14px',
+                      resize: 'none',
+                      backgroundColor: isSending ? '#f8f9fa' : 'white',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      minHeight: '44px',
+                      maxHeight: '120px'
+                    }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (messageText.trim() && sendBusinessId.trim() && sendAccessToken.trim() && sendPhoneNumberId.trim()) {
+                          handleSendMessage();
+                        }
+                      }
+                    }}
+                  />
+                </div>
+                <button
+                  onClick={handleSendMessage}
+                  disabled={isSending || !messageText.trim() || !sendBusinessId.trim() || 
+                           !sendAccessToken.trim() || !sendPhoneNumberId.trim()}
+                  style={{
+                    padding: '12px',
+                    background: (isSending || !messageText.trim() || !sendBusinessId.trim() || 
+                                !sendAccessToken.trim() || !sendPhoneNumberId.trim()) 
+                               ? '#e9ecef' : '#25D366',
+                    color: (isSending || !messageText.trim() || !sendBusinessId.trim() || 
+                           !sendAccessToken.trim() || !sendPhoneNumberId.trim()) 
+                           ? '#6c757d' : 'white',
+                    border: 'none',
+                    borderRadius: '50%',
+                    cursor: (isSending || !messageText.trim() || !sendBusinessId.trim() || 
+                            !sendAccessToken.trim() || !sendPhoneNumberId.trim()) 
+                           ? 'not-allowed' : 'pointer',
+                    fontSize: '18px',
+                    width: '44px',
+                    height: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    transition: 'background-color 0.2s'
+                  }}
+                  title={!sendBusinessId.trim() || !sendAccessToken.trim() || !sendPhoneNumberId.trim() 
+                         ? 'Please configure send settings in the panel above' 
+                         : 'Send message'}
+                >
+                  {isSending ? '⏳' : '📤'}
+                </button>
               </div>
             </>
           ) : (
