@@ -21,6 +21,10 @@ const chatbotRoutes = require('./routes/chatbot');
 // AI Assistant routes removed
 // WHATSAPP ROUTES
 const whatsappRoutes = require('./routes/whatsapp');
+// WHATSAPP RECEIVER ROUTES  
+const whatsappReceiverRoutes = require('./routes/whatsapp-receiver');
+// TELEGRAM LISTENER ROUTES
+const telegramListenerRoutes = require('./routes/telegramListener');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
@@ -137,6 +141,9 @@ app.use('/api/v1/chatbot', chatbotRoutes);
 // AI ASSISTANT SYSTEM ROUTES - REMOVED
 // WHATSAPP ROUTES
 app.use('/api/whatsapp', whatsappRoutes);
+app.use('/api/whatsapp-receiver', whatsappReceiverRoutes);
+// TELEGRAM LISTENER ROUTES
+app.use('/api/telegram-listener', telegramListenerRoutes);
 
 // Chat trigger alias route for frontend compatibility
 app.get('/api/chat/:nodeId', (req, res) => {

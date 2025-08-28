@@ -18,6 +18,9 @@ try {
 } catch (error) {
   console.warn('⚠️ WorkflowExecutor not available:', error.message);
 }
+
+// Import WhatsApp receiver functions
+const { storeWhatsAppMessage, getReceiverState } = require('./whatsapp-receiver');
 const fs = require('fs');
 const path = require('path');
 
@@ -1150,6 +1153,125 @@ router.post('/delete-telegram-webhook', async (req, res) => {
   }
 });
 
+
+// WhatsApp webhook endpoint
+router.post('/whatsapp', asyncHandler(async (req, res) => {
+  const webhookData = req.body;
+  const query = req.query;
+
+  console.log('📱 WhatsApp webhook received:', JSON.stringify(webhookData, null, 2));
+  console.log('📱 WhatsApp query params:', JSON.stringify(query, null, 2));
+
+  try {
+    // Handle webhook verification (GET request simulation via query params)
+    if (query['hub.mode'] === 'subscribe' && query['hub.verify_token'] && query['hub.challenge']) {
+      console.log('📱 WhatsApp webhook verification request');
+      
+      // For now, accept all verification requests (in production, verify the token)
+      const challenge = query['hub.challenge'];
+      console.log('✅ WhatsApp webhook verification successful, returning challenge:', challenge);
+      
+      return res.status(200).send(challenge);
+    }
+
+    // Handle webhook verification via POST body (alternative method)
+    if (webhookData && webhookData['hub.challenge']) {
+      console.log('📱 WhatsApp webhook verification via POST body');
+      const challenge = webhookData['hub.challenge'];
+      return res.status(200).send(challenge);
+    }
+
+    // Store message in WhatsApp receiver if active
+    try {
+      const storeResult = await storeWhatsAppMessage(webhookData);
+      console.log('💾 WhatsApp message storage result:', storeResult);
+    } catch (storeError) {
+      console.error('❌ Failed to store WhatsApp message:', storeError);
+      // Continue processing even if storage fails
+    }
+
+    // Process regular webhook data for active workflows
+    if (workflowExecutor && webhookData.object === 'whatsapp_business_account') {
+      console.log('🔍 Checking for active WhatsApp workflows...');
+      
+      // Find workflows with WhatsApp triggers
+      const whatsappWorkflows = [];
+      for (const [workflowId, workflow] of workflowExecutor.activeWorkflows.entries()) {
+        if (workflow && workflow.nodes) {
+          const hasWhatsAppTrigger = workflow.nodes.some(node => 
+            node.data && node.data.type === 'whatsappTrigger'
+          );
+          
+          if (hasWhatsAppTrigger) {
+            whatsappWorkflows.push({ workflowId, workflow });
+          }
+        }
+      }
+
+      console.log(`📊 Found ${whatsappWorkflows.length} active WhatsApp workflows`);
+
+      // Process each matching workflow
+      if (whatsappWorkflows.length > 0) {
+        for (const { workflowId, workflow } of whatsappWorkflows) {
+          try {
+            console.log(`🚀 Triggering WhatsApp workflow: ${workflowId}`);
+            
+            // Standardize trigger data
+            const standardizedData = TriggerDataProcessor.standardizeTriggerData(
+              'whatsappTrigger', 
+              webhookData, 
+              `whatsapp-trigger-${workflowId}`
+            );
+            
+            // Log the workflow trigger event
+            const summary = TriggerDataProcessor.getSummary(standardizedData);
+            logWorkflowTriggered(workflowId, 'whatsappTrigger', summary);
+            
+            // Prepare trigger data for workflow execution
+            const triggerData = TriggerDataProcessor.toExecutionFormat(standardizedData);
+            
+            // Add job to queue
+            const jobResult = await jobQueue.addJob({
+              workflowId,
+              triggerData: triggerData,
+              triggerType: 'whatsappTrigger',
+              priority: 'normal',
+              metadata: {
+                source: 'whatsapp_webhook',
+                messageFrom: webhookData.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.from,
+                messageType: webhookData.entry?.[0]?.changes?.[0]?.value?.messages?.[0]?.type,
+                ip: req.ip
+              }
+            });
+            
+            console.log(`✅ WhatsApp workflow job queued: ${jobResult.jobId}`);
+            
+          } catch (workflowError) {
+            console.error(`❌ Error processing WhatsApp workflow ${workflowId}:`, workflowError);
+          }
+        }
+      }
+    }
+
+    // Always return success to WhatsApp
+    res.status(200).json({
+      success: true,
+      message: 'WhatsApp webhook processed',
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('❌ WhatsApp webhook error:', error);
+    
+    // Still return 200 to WhatsApp to avoid retries
+    res.status(200).json({
+      success: false,
+      error: 'Internal processing error',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+}));
 
 // Instagram webhook endpoints
 router.post('/instagram/:workflowId', asyncHandler(async (req, res) => {

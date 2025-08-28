@@ -28,6 +28,11 @@ function LeftSidebar() {
       name: 'Shop',
       path: '/shop',
       icon: 'fas fa-store'
+    },
+    {
+      name: 'WhatsApp Receiver',
+      path: '/whatsapp-receiver',
+      icon: 'fab fa-whatsapp'
     }
   ];
 

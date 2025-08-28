@@ -17,6 +17,8 @@ import './i18n/rtl.css';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import PublicShop from './pages/PublicShop';
+import TelegramListener from './pages/TelegramListener';
+import WhatsAppReceiver from './pages/WhatsAppReceiver';
 // Import shop components using the modular router
 import { 
   ShopDashboard, 
@@ -278,6 +280,8 @@ function App() {
         <Route path="/shop/terms" element={<Suspense fallback={<div>Loading...</div>}><ShopTerms /></Suspense>} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/telegram-listener" element={<TelegramListener />} />
+        <Route path="/whatsapp-receiver" element={<WhatsAppReceiver />} />
         <Route path="/shop/:shopName" element={<PublicShop />} />
       </Routes>
     </Router>
