@@ -845,50 +845,73 @@ const WhatsAppReceiver = () => {
                 overflowY: 'auto', 
                 padding: '16px 24px'
               }}>
-                {selectedConversation.messages.map((message, index) => (
-                  <div key={index} style={{ 
-                    marginBottom: '16px',
-                    display: 'flex',
-                    justifyContent: 'flex-start'
-                  }}>
-                    <div style={{ 
-                      background: '#e7f3ff', 
-                      padding: '12px 16px', 
-                      borderRadius: '18px 18px 18px 4px', 
-                      maxWidth: '70%',
-                      border: '1px solid #b3d9ff'
+                {selectedConversation.messages.map((message, index) => {
+                  const isOutgoing = message.isOutgoing || message.direction === 'outgoing';
+                  return (
+                    <div key={index} style={{ 
+                      marginBottom: '16px',
+                      display: 'flex',
+                      justifyContent: isOutgoing ? 'flex-end' : 'flex-start'
                     }}>
                       <div style={{ 
-                        color: '#212529', 
-                        fontSize: '14px',
-                        lineHeight: '1.4',
-                        marginBottom: '6px'
+                        background: isOutgoing ? '#25D366' : '#e7f3ff', 
+                        color: isOutgoing ? 'white' : '#212529',
+                        padding: '12px 16px', 
+                        borderRadius: isOutgoing 
+                          ? '18px 18px 4px 18px'  // Outgoing: rounded except bottom-right
+                          : '18px 18px 18px 4px', // Incoming: rounded except bottom-left
+                        maxWidth: '70%',
+                        border: isOutgoing ? 'none' : '1px solid #b3d9ff',
+                        position: 'relative'
                       }}>
-                        {message.text || message.message || 'No message content'}
-                      </div>
-                      <div style={{ 
-                        color: '#6c757d', 
-                        fontSize: '11px',
-                        textAlign: 'right'
-                      }}>
-                        {formatTimestamp(message.timestamp)}
-                      </div>
-                      {message.messageType && message.messageType !== 'text' && (
+                        {/* Message status indicator for outgoing messages */}
+                        {isOutgoing && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '-8px',
+                            right: '12px',
+                            fontSize: '10px',
+                            color: '#25D366',
+                            background: 'white',
+                            padding: '2px 6px',
+                            borderRadius: '10px',
+                            border: '1px solid #25D366'
+                          }}>
+                            📤 Sent
+                          </div>
+                        )}
+                        
                         <div style={{ 
-                          marginTop: '6px',
-                          padding: '2px 6px',
-                          background: '#fff3cd',
-                          color: '#856404',
-                          fontSize: '10px',
-                          borderRadius: '3px',
-                          display: 'inline-block'
+                          fontSize: '14px',
+                          lineHeight: '1.4',
+                          marginBottom: '6px'
                         }}>
-                          {message.messageType}
+                          {message.text || message.message || 'No message content'}
                         </div>
-                      )}
+                        <div style={{ 
+                          color: isOutgoing ? 'rgba(255,255,255,0.8)' : '#6c757d', 
+                          fontSize: '11px',
+                          textAlign: 'right'
+                        }}>
+                          {formatTimestamp(message.timestamp)}
+                        </div>
+                        {message.messageType && message.messageType !== 'text' && (
+                          <div style={{ 
+                            marginTop: '6px',
+                            padding: '2px 6px',
+                            background: isOutgoing ? 'rgba(255,255,255,0.2)' : '#fff3cd',
+                            color: isOutgoing ? 'white' : '#856404',
+                            fontSize: '10px',
+                            borderRadius: '3px',
+                            display: 'inline-block'
+                          }}>
+                            {message.messageType}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 <div ref={messagesEndRef} />
               </div>
             </>

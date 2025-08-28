@@ -26,8 +26,16 @@ db.serialize(() => {
     message_type TEXT DEFAULT 'text',
     timestamp TEXT,
     raw_data TEXT,
+    direction TEXT DEFAULT 'incoming',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
+  
+  // Add direction column if it doesn't exist (for existing databases)
+  db.run(`ALTER TABLE whatsapp_receiver_messages ADD COLUMN direction TEXT DEFAULT 'incoming'`, (err) => {
+    if (err && !err.message.includes('duplicate column')) {
+      console.error('Error adding direction column:', err);
+    }
+  });
 });
 
 // Global state for WhatsApp receiver
@@ -166,6 +174,7 @@ router.get('/messages', verifyToken, (req, res) => {
       message_id,
       message_type,
       timestamp,
+      direction,
       created_at
     FROM whatsapp_receiver_messages 
     ORDER BY created_at DESC
@@ -191,7 +200,9 @@ router.get('/messages', verifyToken, (req, res) => {
       messageId: msg.message_id,
       messageType: msg.message_type || 'text',
       timestamp: msg.timestamp || msg.created_at,
-      createdAt: msg.created_at
+      createdAt: msg.created_at,
+      direction: msg.direction || 'incoming',
+      isOutgoing: msg.direction === 'outgoing'
     }));
 
     res.json({
@@ -356,6 +367,46 @@ router.post('/send-message', verifyToken, async (req, res) => {
       status: data.messages?.[0]?.message_status || 'sent',
       success: true
     });
+
+    // Store the sent message in the database as an outgoing message
+    try {
+      const insertQuery = `
+        INSERT INTO whatsapp_receiver_messages 
+        (phone_number, contact_name, message_text, message_id, message_type, timestamp, raw_data, direction, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+      
+      const now = new Date().toISOString();
+      const messageId = data.messages?.[0]?.id || `sent_${Date.now()}`;
+      
+      const insertResult = await new Promise((resolve, reject) => {
+        db.run(insertQuery, [
+          recipientPhoneNumber,
+          'Unknown Contact', // We don't know the contact name for outgoing
+          messageText,
+          messageId,
+          'text',
+          now,
+          JSON.stringify({ 
+            sent: true, 
+            whatsappResponse: data,
+            phoneNumberId: phoneNumberId,
+            businessId: businessId 
+          }),
+          'outgoing',
+          now
+        ], function(err) {
+          if (err) reject(err);
+          else resolve(this.lastID);
+        });
+      });
+      
+      console.log('💾 Stored outgoing message with ID:', insertResult);
+      
+    } catch (dbError) {
+      console.error('⚠️ Failed to store outgoing message in database:', dbError);
+      // Continue even if database storage fails
+    }
 
     res.json({
       success: true,
