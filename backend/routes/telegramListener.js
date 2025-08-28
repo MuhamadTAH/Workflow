@@ -10,7 +10,7 @@ const activeBots = new Map();
 const listenerMessages = new Map();
 
 // Import Claude configs from claude.js
-const { claudeConfigs } = require('./claude');
+const { claudeConfigs, systemPrompts } = require('./claude');
 
 // Function to send message to Claude and get response
 const sendMessageToClaude = async (messageText, userId = 'default_user') => {
@@ -24,16 +24,27 @@ const sendMessageToClaude = async (messageText, userId = 'default_user') => {
 
     const axios = require('axios');
     
+    // Get system prompt for this user
+    const systemPromptData = systemPrompts.get(userId);
+    const systemPrompt = systemPromptData?.prompt || 'You are a helpful and friendly AI assistant. Respond to users in a professional yet warm manner.';
+    
+    console.log('🎭 Using system prompt:', systemPrompt.substring(0, 50) + '...');
+    
+    // Build messages array with system prompt
+    const messages = [
+      {
+        role: 'user',
+        content: `System Instructions: ${systemPrompt}
+
+User Message: ${messageText}`
+      }
+    ];
+    
     // Direct call to Claude API
     const response = await axios.post('https://api.anthropic.com/v1/messages', {
       model: claudeConfig.model || 'claude-3-5-sonnet-20241022',
       max_tokens: 1000,
-      messages: [
-        {
-          role: 'user',
-          content: messageText
-        }
-      ]
+      messages: messages
     }, {
       headers: {
         'Content-Type': 'application/json',

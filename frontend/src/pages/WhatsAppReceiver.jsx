@@ -111,11 +111,15 @@ const WhatsAppReceiver = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('🔍 Claude status data:', data);
-        setIsClaudeConnected(data.connected || false);
-        if (data.connected) {
+        const isConnected = data.connected || false;
+        console.log('🔍 Setting isClaudeConnected to:', isConnected);
+        setIsClaudeConnected(isConnected);
+        if (isConnected) {
           setClaudeStatus('✅ Claude AI ready for WhatsApp integration');
+          console.log('🔍 Claude is connected - hiding input field');
         } else {
           setClaudeStatus('');
+          console.log('🔍 Claude is not connected - showing input field');
         }
       } else {
         console.log('❌ Claude status check failed:', response.status);

@@ -6,6 +6,9 @@ const logger = require('../services/logger');
 // Store Claude API configuration (in production, use database)
 const claudeConfigs = new Map();
 
+// Store system prompts (in production, use database)
+const systemPrompts = new Map();
+
 // Connect to Claude API
 router.post('/connect', asyncHandler(async (req, res) => {
   const { apiKey } = req.body;
@@ -351,5 +354,101 @@ router.get('/connections', (req, res) => {
   });
 });
 
+// Save system prompt
+router.post('/system-prompt', asyncHandler(async (req, res) => {
+  const { systemPrompt } = req.body;
+  const userId = req.user?.id || 'default_user';
+
+  if (!systemPrompt || !systemPrompt.trim()) {
+    return res.status(400).json({
+      success: false,
+      error: 'System prompt is required'
+    });
+  }
+
+  const cleanPrompt = systemPrompt.trim();
+  
+  if (cleanPrompt.length > 2000) {
+    return res.status(400).json({
+      success: false,
+      error: 'System prompt must be less than 2000 characters'
+    });
+  }
+
+  console.log('💾 Saving system prompt for user:', userId);
+
+  try {
+    // Store the system prompt for this user
+    systemPrompts.set(userId, {
+      prompt: cleanPrompt,
+      updatedAt: new Date().toISOString(),
+      characterCount: cleanPrompt.length
+    });
+
+    console.log('✅ System prompt saved successfully for user:', userId);
+    
+    logger.info(`System prompt saved successfully`, {
+      userId,
+      promptLength: cleanPrompt.length,
+      promptPreview: cleanPrompt.substring(0, 50) + '...'
+    });
+
+    res.json({
+      success: true,
+      message: 'System prompt saved successfully',
+      characterCount: cleanPrompt.length,
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Error saving system prompt:', error.message);
+    logger.logError(error, { 
+      context: 'claude-system-prompt-save',
+      userId,
+      promptLength: cleanPrompt.length
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save system prompt: ' + error.message
+    });
+  }
+}));
+
+// Get system prompt
+router.get('/system-prompt', (req, res) => {
+  const userId = req.user?.id || 'default_user';
+  
+  try {
+    const promptData = systemPrompts.get(userId);
+    
+    if (promptData) {
+      res.json({
+        success: true,
+        systemPrompt: promptData.prompt,
+        characterCount: promptData.characterCount,
+        updatedAt: promptData.updatedAt
+      });
+    } else {
+      // Return default system prompt if none is set
+      const defaultPrompt = 'You are a helpful and friendly AI assistant. Respond to users in a professional yet warm manner.';
+      res.json({
+        success: true,
+        systemPrompt: defaultPrompt,
+        characterCount: defaultPrompt.length,
+        updatedAt: null,
+        isDefault: true
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error fetching system prompt:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch system prompt',
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;
 module.exports.claudeConfigs = claudeConfigs;
+module.exports.systemPrompts = systemPrompts;
