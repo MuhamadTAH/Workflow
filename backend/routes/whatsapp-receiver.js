@@ -7,6 +7,23 @@ WhatsApp Receiver API routes for standalone message receiving
 
 const express = require('express');
 const router = express.Router();
+
+// Add CORS headers specifically for this route
+router.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    console.log('🔧 WhatsApp Receiver OPTIONS preflight:', {
+      origin: req.headers.origin,
+      method: req.headers['access-control-request-method']
+    });
+    return res.status(200).end();
+  }
+  next();
+});
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const logger = require('../services/logger');
@@ -48,15 +65,24 @@ let receiverState = {
 
 // Middleware to verify JWT token
 const verifyToken = (req, res, next) => {
+  console.log('🔐 WhatsApp Receiver Token Verification:', {
+    origin: req.headers.origin,
+    hasAuth: !!req.headers.authorization,
+    method: req.method,
+    path: req.path
+  });
+  
   const token = req.headers.authorization?.replace('Bearer ', '');
   
   if (!token) {
+    console.log('❌ No token provided');
     return res.status(401).json({ error: 'No token provided' });
   }
 
   try {
     // Allow mock token for testing/development
     if (token.startsWith('MOCK_TOKEN_FOR_TESTING_')) {
+      console.log('✅ Using mock token for development');
       req.user = { userId: 'test-user-1', email: 'mhamadtah548@gmail.com', mock: true };
       return next();
     }
@@ -64,9 +90,11 @@ const verifyToken = (req, res, next) => {
     // Regular JWT validation for production
     const jwt = require('jsonwebtoken');
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    console.log('✅ Token verified successfully');
     req.user = decoded;
     next();
   } catch (error) {
+    console.log('❌ Token verification failed:', error.message);
     return res.status(401).json({ error: 'Invalid token' });
   }
 };
