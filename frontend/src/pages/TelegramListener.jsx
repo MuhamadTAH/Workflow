@@ -135,11 +135,16 @@ const TelegramListener = () => {
     };
   }, [isPolling, listenerId]);
 
-  // Get unique users from messages
+  // Get unique users from messages (exclude bot messages)
   const getUniqueUsers = () => {
     const usersMap = new Map();
     
     messages.forEach(message => {
+      // Skip bot messages - don't show bot as a user
+      if (message.isBotMessage || message.fromUserId === 'bot') {
+        return;
+      }
+      
       const userId = message.fromUserId;
       if (!usersMap.has(userId)) {
         usersMap.set(userId, {
@@ -152,7 +157,7 @@ const TelegramListener = () => {
           messageCount: 1
         });
       } else {
-        // Update message count and last message
+        // Update message count and last message (only for user messages)
         const user = usersMap.get(userId);
         user.messageCount++;
         if (message.date > user.lastMessageTime) {
@@ -167,9 +172,14 @@ const TelegramListener = () => {
     );
   };
 
-  // Get messages for selected user
+  // Get messages for selected user (include both user messages and bot replies to that user)
   const getMessagesForUser = (userId) => {
-    return messages.filter(message => message.fromUserId === userId);
+    if (!selectedUser) return [];
+    
+    return messages.filter(message => 
+      message.fromUserId === userId || 
+      (message.isBotMessage && message.chatId === selectedUser.chatId)
+    ).sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort chronologically (oldest first)
   };
 
   const uniqueUsers = getUniqueUsers();
@@ -504,48 +514,41 @@ const TelegramListener = () => {
                         <p>No messages from this user yet</p>
                       </div>
                     ) : (
-                      <div style={{ padding: '0.5rem' }}>
+                      <div style={{ padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         {selectedUserMessages.map((message, index) => (
                           <div
                             key={index}
                             style={{
-                              padding: '0.75rem',
-                              marginBottom: '0.5rem',
-                              backgroundColor: message.isBotMessage ? '#f0fdf4' : '#f0f9ff',
-                              borderRadius: '6px',
-                              border: message.isBotMessage ? '1px solid #bbf7d0' : '1px solid #e0f2fe',
-                              marginLeft: message.isBotMessage ? '0rem' : '1rem',
-                              marginRight: message.isBotMessage ? '1rem' : '0rem',
-                              position: 'relative'
+                              display: 'flex',
+                              justifyContent: message.isBotMessage ? 'flex-start' : 'flex-end',
+                              marginBottom: '0.25rem'
                             }}
                           >
-                            {message.isBotMessage && (
+                            <div
+                              style={{
+                                maxWidth: '75%',
+                                padding: '0.75rem 1rem',
+                                borderRadius: message.isBotMessage ? '1rem 1rem 1rem 0.25rem' : '1rem 1rem 0.25rem 1rem',
+                                backgroundColor: message.isBotMessage ? '#e5e7eb' : '#3b82f6',
+                                color: message.isBotMessage ? '#111827' : 'white',
+                                wordWrap: 'break-word',
+                                position: 'relative'
+                              }}
+                            >
                               <div style={{
-                                position: 'absolute',
-                                top: '0.5rem',
-                                left: '0.75rem',
-                                fontSize: '0.75rem',
-                                color: '#059669',
-                                fontWeight: '500'
+                                fontSize: '0.875rem',
+                                lineHeight: '1.4'
                               }}>
-                                🤖 Bot
+                                {message.text || '<No text>'}
                               </div>
-                            )}
-                            <div style={{ 
-                              fontSize: '0.75rem', 
-                              color: message.isBotMessage ? '#059669' : '#0369a1', 
-                              marginBottom: '0.5rem',
-                              marginTop: message.isBotMessage ? '1rem' : '0'
-                            }}>
-                              {new Date(message.date).toLocaleString()}
-                            </div>
-                            <div style={{
-                              fontSize: '0.875rem',
-                              color: '#374151',
-                              wordWrap: 'break-word',
-                              lineHeight: '1.4'
-                            }}>
-                              {message.text || '<No text>'}
+                              <div style={{ 
+                                fontSize: '0.65rem', 
+                                opacity: 0.7,
+                                marginTop: '0.25rem',
+                                textAlign: message.isBotMessage ? 'left' : 'right'
+                              }}>
+                                {new Date(message.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
                             </div>
                           </div>
                         ))}
