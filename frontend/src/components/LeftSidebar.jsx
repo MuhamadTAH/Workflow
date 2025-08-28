@@ -25,11 +25,6 @@ function LeftSidebar() {
       icon: 'fas fa-user-friends'
     },
     {
-      name: 'AI Assistant',
-      path: '/ai-assistant',
-      icon: 'fas fa-robot'
-    },
-    {
       name: 'WhatsApp Chat',
       path: '/whatsapp-chat',
       icon: 'fab fa-whatsapp'
