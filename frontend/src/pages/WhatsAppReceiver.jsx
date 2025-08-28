@@ -668,18 +668,15 @@ const WhatsAppReceiver = () => {
           {/* Quick Fill Button */}
           <button
             onClick={() => {
-              console.log('Reply to Selected clicked, selectedConversation:', selectedConversation);
+              console.log('Fill Template Message clicked, selectedConversation:', selectedConversation);
               if (selectedConversation) {
-                const phoneNumber = selectedConversation.phoneNumber;
                 const contactName = selectedConversation.contactName;
-                console.log('Setting recipient phone:', phoneNumber);
-                console.log('Setting message for:', contactName);
+                console.log('Setting template message for:', contactName);
                 
-                setRecipientPhone(phoneNumber);
                 setMessageText(`Hello ${contactName}, thanks for your message!`);
                 
                 // Show success message
-                setSendStatus(`✅ Auto-filled for ${contactName} (${phoneNumber})`);
+                setSendStatus(`✅ Template message filled for ${contactName}`);
                 setTimeout(() => setSendStatus(''), 3000);
               } else {
                 console.log('No conversation selected');
@@ -783,6 +780,10 @@ const WhatsAppReceiver = () => {
                     // Auto-fill recipient phone number when conversation is selected
                     console.log('Auto-filling phone number:', conversation.phoneNumber);
                     setRecipientPhone(conversation.phoneNumber);
+                    
+                    // Show feedback that phone was filled
+                    setSendStatus(`✅ Phone number auto-filled: ${conversation.phoneNumber}`);
+                    setTimeout(() => setSendStatus(''), 2000);
                   }}
                   style={{ 
                     padding: '16px',
