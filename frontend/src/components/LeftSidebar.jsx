@@ -25,11 +25,6 @@ function LeftSidebar() {
       icon: 'fas fa-user-friends'
     },
     {
-      name: 'WhatsApp Chat',
-      path: '/whatsapp-chat',
-      icon: 'fab fa-whatsapp'
-    },
-    {
       name: 'Shop',
       path: '/shop',
       icon: 'fas fa-store'
