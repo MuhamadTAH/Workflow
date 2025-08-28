@@ -1808,6 +1808,16 @@ router.post('/ai-assistant/:assistantId', asyncHandler(async (req, res) => {
     console.log('👤 Customer:', customerName, `(${chatId})`);
     console.log('💬 Message:', messageText);
 
+    // Get assistant info (needed for both success and error cases)
+    const db = require('../db');
+    const assistant = await new Promise((resolve, reject) => {
+      db.get('SELECT telegram_token, user_id FROM ai_assistants WHERE id = ?', 
+        [assistantId], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+    });
+
     // Process conversation with advanced features
     const result = await advancedAIProcessor.processAdvancedConversation(
       assistantId,
@@ -1817,14 +1827,6 @@ router.post('/ai-assistant/:assistantId', asyncHandler(async (req, res) => {
 
     if (result.success) {
       // Send response back to Telegram
-      const db = require('../db');
-      const assistant = await new Promise((resolve, reject) => {
-        db.get('SELECT telegram_token, user_id FROM ai_assistants WHERE id = ?', 
-          [assistantId], (err, row) => {
-            if (err) reject(err);
-            else resolve(row);
-          });
-      });
 
       if (assistant && assistant.telegram_token) {
         const fetch = require('node-fetch');

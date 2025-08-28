@@ -379,7 +379,40 @@ ${context.knowledge_base}
 Instructions: Respond appropriately considering the customer's language, sentiment, and conversation history. Be consistent with previous responses while providing helpful, accurate information.`;
 
       // Call AI API
-      if (assistant.ai_provider === 'openai') {
+      if (assistant.ai_provider === 'claude') {
+        console.log('🧠 Using Claude AI for response generation');
+        
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': assistant.ai_api_key,
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify({
+            model: assistant.ai_model || 'claude-3-sonnet-20240229',
+            max_tokens: 500,
+            messages: [
+              {
+                role: 'user',
+                content: `${enhancedPrompt}\n\nCustomer: ${userMessage}`
+              }
+            ]
+          })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+          console.error('❌ Claude API error:', data);
+          throw new Error(`Claude API error: ${data.error?.message || response.statusText}`);
+        }
+        
+        console.log('✅ Claude response generated successfully');
+        return data.content[0].text;
+        
+      } else if (assistant.ai_provider === 'openai') {
+        // Fallback OpenAI support (deprecated)
         const { Configuration, OpenAIApi } = require('openai');
         
         const configuration = new Configuration({
@@ -402,7 +435,7 @@ Instructions: Respond appropriately considering the customer's language, sentime
         return response.data.choices[0].message.content;
       }
 
-      throw new Error(`AI provider '${assistant.ai_provider}' not supported`);
+      throw new Error(`AI provider '${assistant.ai_provider}' not supported. Use 'claude' or 'openai'.`);
 
     } catch (error) {
       console.error('❌ Enhanced AI response failed:', error);
