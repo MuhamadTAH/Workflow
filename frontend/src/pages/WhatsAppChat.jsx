@@ -7,49 +7,14 @@ function WhatsAppChat() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentBusinessId] = useState(1);
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [isPolling, setIsPolling] = useState(false);
   
   // API Configuration - Using production URLs from rules.md
   const API_BASE = 'https://workflow-lg9z.onrender.com/api';
   const WS_BASE = 'https://workflow-lg9z.onrender.com';
 
-  // Mock WhatsApp conversations
-  const users = {
-    'customer1': {
-      name: 'Ahmed Hassan',
-      phoneNumber: '+201234567890',
-      avatar: 'https://placehold.co/64x64/e0e7ff/4f46e5?text=AH',
-      lastSeen: '2 minutes ago',
-      status: 'online',
-      lastMessage: 'Hello, I need help with my order',
-      messages: [
-        { from: 'user', text: 'Hello, I need help with my order', timestamp: '10:30 AM' },
-        { from: 'business', text: 'Hi Ahmed! I\'d be happy to help you with your order. Could you please provide your order number?', timestamp: '10:32 AM' }
-      ]
-    },
-    'customer2': {
-      name: 'Sarah Johnson',
-      phoneNumber: '+14155551234',
-      avatar: 'https://placehold.co/64x64/fce7f3/db2777?text=SJ',
-      lastSeen: '5 minutes ago',
-      status: 'online',
-      lastMessage: 'What are your business hours?',
-      messages: [
-        { from: 'user', text: 'What are your business hours?', timestamp: '10:25 AM' },
-        { from: 'auto', text: 'Our business hours are Monday-Friday 9 AM to 6 PM, Saturday 10 AM to 4 PM. We\'re closed on Sundays.', timestamp: '10:25 AM' }
-      ]
-    },
-    'customer3': {
-      name: 'Carlos Rodriguez',
-      phoneNumber: '+34612345678',
-      avatar: 'https://placehold.co/64x64/d1fae5/059669?text=CR',
-      lastSeen: '1 hour ago',
-      status: 'away',
-      lastMessage: 'Do you ship to Spain?',
-      messages: [
-        { from: 'user', text: 'Do you ship to Spain?', timestamp: '9:30 AM' }
-      ]
-    }
-  };
+  // WhatsApp conversations data from API
+  const [users, setUsers] = useState({});
 
   // Panel toggle
   const togglePanel = (panelId) => {
@@ -316,6 +281,133 @@ function WhatsAppChat() {
     handleFileUpload(files);
   };
 
+  // Fetch WhatsApp conversations from API
+  const fetchConversations = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}/conversations`, {
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.conversations) {
+          const processedUsers = {};
+          
+          // Group conversations by WhatsApp phone number
+          result.conversations.forEach(conv => {
+            const phoneNumber = conv.customer_id || conv.phone_number;
+            
+            if (!processedUsers[phoneNumber]) {
+              const firstName = (conv.customer_name || 'Unknown').split(' ')[0];
+              processedUsers[phoneNumber] = {
+                name: conv.customer_name || 'Unknown Customer',
+                phoneNumber: phoneNumber,
+                avatar: `https://placehold.co/64x64/e0e7ff/25d366?text=${firstName[0]?.toUpperCase() || 'U'}`,
+                lastSeen: 'recently',
+                status: 'online',
+                lastMessage: conv.message_text,
+                messages: []
+              };
+            }
+
+            // Add user message
+            processedUsers[phoneNumber].messages.push({
+              from: 'user',
+              text: conv.message_text,
+              timestamp: new Date(conv.created_at).toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit', 
+                hour12: true 
+              })
+            });
+
+            // Add AI/business response if exists
+            if (conv.response_text) {
+              processedUsers[phoneNumber].messages.push({
+                from: 'business',
+                text: conv.response_text,
+                timestamp: new Date(conv.created_at).toLocaleTimeString('en-US', { 
+                  hour: 'numeric', 
+                  minute: '2-digit', 
+                  hour12: true 
+                })
+              });
+            }
+
+            // Update last message to most recent
+            processedUsers[phoneNumber].lastMessage = conv.message_text;
+          });
+
+          setUsers(processedUsers);
+          
+          // Set first user as active if none selected and we have users
+          const userIds = Object.keys(processedUsers);
+          if (userIds.length > 0 && (!activeUserId || !processedUsers[activeUserId])) {
+            setActiveUserId(userIds[0]);
+          }
+
+          // Refresh icons after updating conversations
+          setTimeout(() => {
+            if (window.lucide) {
+              window.lucide.createIcons();
+            }
+          }, 100);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching WhatsApp conversations:', error);
+    }
+  };
+
+  // Start polling for conversations
+  const startConversationPolling = () => {
+    if (isPolling) return; // Prevent multiple polling
+    
+    setIsPolling(true);
+    fetchConversations(); // Initial fetch
+    
+    // Poll every 10 seconds for WhatsApp messages
+    const pollInterval = setInterval(() => {
+      if (isAutoReplyActive) {
+        fetchConversations();
+      } else {
+        clearInterval(pollInterval);
+        setIsPolling(false);
+      }
+    }, 10000);
+  };
+
+  // Stop polling for conversations
+  const stopConversationPolling = () => {
+    setIsPolling(false);
+  };
+
+  // Check WhatsApp assistant status on load
+  const checkAssistantStatus = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}`, {
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.assistant) {
+          const assistant = result.assistant;
+          if (assistant.status === 'active') {
+            setIsAutoReplyActive(true);
+            startConversationPolling(); // Start polling if already active
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking WhatsApp assistant status:', error);
+    }
+  };
+
   // Initialize
   useEffect(() => {
     // Set default system prompt template
@@ -326,6 +418,9 @@ function WhatsAppChat() {
     
     // Load existing files
     loadExistingFiles();
+    
+    // Check if WhatsApp assistant is already active
+    checkAssistantStatus();
     
     // Collapse panels by default
     setTimeout(() => {
@@ -348,35 +443,127 @@ function WhatsAppChat() {
     }
   }, [uploadedFiles]);
 
-  const sendManualMessage = () => {
+  const sendManualMessage = async () => {
     const input = document.getElementById('manual-message-input');
-    if (input && input.value.trim()) {
-      // Add message logic here
-      const newMessage = {
-        from: 'business',
-        text: input.value.trim(),
-        timestamp: new Date().toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit', 
-          hour12: true 
+    if (!input || !input.value.trim() || !activeUserId) {
+      return;
+    }
+
+    const message = input.value.trim();
+
+    try {
+      // Send message via API
+      const response = await fetch('https://workflow-lg9z.onrender.com/api/whatsapp/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: users[activeUserId].phoneNumber,
+          message: message,
+          userId: activeUserId
         })
-      };
-      
-      // Update the messages for active user (this is just for demo)
-      users[activeUserId].messages.push(newMessage);
-      users[activeUserId].lastMessage = newMessage.text;
-      
-      input.value = '';
-      
-      // Force re-render (in real app, you'd use proper state management)
-      window.location.reload = window.location.reload;
+      });
+
+      if (response.ok) {
+        // Add message to local state immediately for better UX
+        const newMessage = {
+          text: message,
+          from: 'business',
+          timestamp: new Date().toLocaleTimeString('en-US', { 
+            hour: 'numeric', 
+            minute: '2-digit', 
+            hour12: true 
+          })
+        };
+        
+        setUsers(prevUsers => ({
+          ...prevUsers,
+          [activeUserId]: {
+            ...prevUsers[activeUserId],
+            messages: [...prevUsers[activeUserId].messages, newMessage],
+            lastMessage: message,
+            lastSeen: 'now'
+          }
+        }));
+
+        input.value = '';
+        
+        // Scroll to bottom of conversation
+        setTimeout(() => {
+          const conversationFeed = document.getElementById('conversation-feed');
+          if (conversationFeed) {
+            conversationFeed.scrollTop = conversationFeed.scrollHeight;
+          }
+        }, 100);
+      } else {
+        console.error('Failed to send message');
+        // Show error feedback to user
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+        errorDiv.textContent = 'Failed to send message. Please try again.';
+        document.body.appendChild(errorDiv);
+        setTimeout(() => errorDiv.remove(), 3000);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // Show error feedback to user
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-50';
+      errorDiv.textContent = 'Network error. Please check your connection.';
+      document.body.appendChild(errorDiv);
+      setTimeout(() => errorDiv.remove(), 3000);
     }
   };
 
   const handleAutoReplyToggle = async () => {
-    setIsAutoReplyActive(!isAutoReplyActive);
     if (isAutoReplyActive) {
-      setIsHumanTakeoverActive(false);
+      // Deactivate auto-reply
+      try {
+        const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}/deactivate`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          setIsAutoReplyActive(false);
+          stopConversationPolling();
+          alert('✅ WhatsApp auto-reply deactivated successfully!');
+        } else {
+          alert(`❌ Failed to deactivate: ${result.error}`);
+        }
+      } catch (error) {
+        console.error('Deactivation failed:', error);
+        alert('❌ Network error during deactivation');
+      }
+    } else {
+      // Activate auto-reply
+      try {
+        const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}/activate`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          setIsAutoReplyActive(true);
+          setIsHumanTakeoverActive(false);
+          startConversationPolling();
+          alert('✅ WhatsApp auto-reply activated successfully! Now monitoring for messages...');
+        } else {
+          alert(`❌ Failed to activate: ${result.error}`);
+        }
+      } catch (error) {
+        console.error('Activation failed:', error);
+        alert('❌ Network error during activation');
+      }
     }
   };
 
@@ -687,84 +874,109 @@ function WhatsAppChat() {
                   WhatsApp Chats
                 </h2>
                 <div id="conversation-list" className="space-y-2 overflow-y-auto">
-                  {Object.keys(users).map((userId) => {
-                    const user = users[userId];
-                    return (
-                      <div 
-                        key={userId}
-                        className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors ${userId === activeUserId ? 'bg-green-100' : 'hover:bg-gray-50'}`}
-                        onClick={() => setActiveUserId(userId)}
-                      >
-                        <div className="relative">
-                          <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full mr-3" />
-                          <span className={`absolute bottom-0 right-3 w-3 h-3 rounded-full border-2 border-white ${user.status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                        </div>
-                        <div className="flex-grow overflow-hidden">
-                          <div className="flex justify-between items-center">
-                            <p className="font-semibold text-gray-800 truncate">{user.name}</p>
-                            <span className="text-xs text-gray-500">{user.lastSeen}</span>
+                  {Object.keys(users).length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <i data-lucide="message-circle" className="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
+                      <p className="text-sm">No WhatsApp conversations yet</p>
+                      <p className="text-xs text-gray-400 mt-1">Enable auto-reply to start receiving WhatsApp messages</p>
+                    </div>
+                  ) : (
+                    Object.keys(users).map((userId) => {
+                      const user = users[userId];
+                      return (
+                        <div 
+                          key={userId}
+                          className={`flex items-center p-3 rounded-lg cursor-pointer transition-colors ${userId === activeUserId ? 'bg-green-100' : 'hover:bg-gray-50'}`}
+                          onClick={() => setActiveUserId(userId)}
+                        >
+                          <div className="relative">
+                            <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full mr-3" />
+                            <span className={`absolute bottom-0 right-3 w-3 h-3 rounded-full border-2 border-white ${user.status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}></span>
                           </div>
-                          <p className="text-sm text-gray-600 truncate">{user.phoneNumber}</p>
-                          <p className="text-sm text-gray-500 truncate mt-1">{user.lastMessage}</p>
+                          <div className="flex-grow overflow-hidden">
+                            <div className="flex justify-between items-center">
+                              <p className="font-semibold text-gray-800 truncate">{user.name}</p>
+                              <span className="text-xs text-gray-500">{user.lastSeen}</span>
+                            </div>
+                            <p className="text-sm text-gray-600 truncate">{user.phoneNumber}</p>
+                            <p className="text-sm text-gray-500 truncate mt-1">{user.lastMessage}</p>
+                          </div>
+                          {/* Show unread indicator if this user has messages */}
+                          {user.messages.length > 0 && (
+                            <div className="w-2 h-2 bg-green-600 rounded-full ml-2"></div>
+                          )}
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
               {/* Live Conversation Feed */}
               <div className="card xl:col-span-5 flex flex-col">
-                <div className="flex items-center justify-between mb-4 flex-shrink-0 border-b border-gray-200 pb-4">
-                  <div className="flex items-center">
-                    <img src={users[activeUserId].avatar} alt={users[activeUserId].name} className="w-10 h-10 rounded-full mr-3" />
-                    <div>
-                      <h2 className="text-lg font-semibold text-gray-700">{users[activeUserId].name}</h2>
-                      <p className="text-sm text-gray-500">{users[activeUserId].phoneNumber} • {users[activeUserId].status}</p>
+                {activeUserId && users[activeUserId] && (
+                  <div className="flex items-center justify-between mb-4 flex-shrink-0 border-b border-gray-200 pb-4">
+                    <div className="flex items-center">
+                      <img src={users[activeUserId].avatar} alt={users[activeUserId].name} className="w-10 h-10 rounded-full mr-3" />
+                      <div>
+                        <h2 className="text-lg font-semibold text-gray-700">{users[activeUserId].name}</h2>
+                        <p className="text-sm text-gray-500">{users[activeUserId].phoneNumber} • {users[activeUserId].status}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <i data-lucide="phone" className="w-5 h-5 text-gray-500 cursor-pointer hover:text-green-600"></i>
+                      <i data-lucide="video" className="w-5 h-5 text-gray-500 cursor-pointer hover:text-green-600"></i>
+                      <i data-lucide="more-vertical" className="w-5 h-5 text-gray-500 cursor-pointer hover:text-green-600"></i>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <i data-lucide="phone" className="w-5 h-5 text-gray-500 cursor-pointer hover:text-green-600"></i>
-                    <i data-lucide="video" className="w-5 h-5 text-gray-500 cursor-pointer hover:text-green-600"></i>
-                    <i data-lucide="more-vertical" className="w-5 h-5 text-gray-500 cursor-pointer hover:text-green-600"></i>
-                  </div>
-                </div>
+                )}
                 
                 <div id="conversation-feed" className="bg-gray-50 p-4 rounded-lg overflow-y-auto space-y-4 flex-grow">
-                  {users[activeUserId].messages.map((msg, index) => {
-                    const user = users[activeUserId];
-                    if (msg.from === 'user') {
-                      return (
-                        <div key={index} className="flex items-start">
-                          <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full mr-3 mt-1" />
-                          <div className="flex flex-col">
-                            <p className="text-xs font-semibold text-gray-600 mb-1">{user.name}</p>
-                            <div className="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-xs">
-                              <p className="text-sm text-gray-800">{msg.text}</p>
-                            </div>
-                            <span className="text-xs text-gray-500 mt-1">{msg.timestamp}</span>
-                          </div>
-                        </div>
-                      );
-                    } else {
-                      return (
-                        <div key={index} className="flex items-start justify-end">
-                          <div className="flex flex-col items-end">
-                            <p className="text-xs font-semibold text-gray-600 mb-1">
-                              {msg.from === 'auto' ? '🤖 Auto-Reply' : '👤 You'}
-                            </p>
-                            <div className={`p-3 rounded-lg rounded-tr-none shadow-sm max-w-xs ${msg.from === 'auto' ? 'bg-blue-100' : 'bg-green-100'}`}>
-                              <p className="text-sm text-gray-800">{msg.text}</p>
-                            </div>
-                            <div className="flex items-center mt-1">
-                              <span className="text-xs text-gray-500 mr-2">{msg.timestamp}</span>
-                              <i data-lucide="check-check" className="w-3 h-3 text-blue-500"></i>
+                  {!activeUserId || Object.keys(users).length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <i data-lucide="message-square" className="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
+                      <p className="text-lg font-medium mb-2">Select a WhatsApp conversation</p>
+                      <p className="text-sm text-gray-400">Choose a customer from the list to view messages</p>
+                    </div>
+                  ) : (
+                    activeUserId && users[activeUserId] && users[activeUserId].messages ? users[activeUserId].messages.map((msg, index) => {
+                      const user = users[activeUserId];
+                      if (msg.from === 'user') {
+                        return (
+                          <div key={index} className="flex items-start">
+                            <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full mr-3 mt-1" />
+                            <div className="flex flex-col">
+                              <p className="text-xs font-semibold text-gray-600 mb-1">{user.name}</p>
+                              <div className="bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-xs">
+                                <p className="text-sm text-gray-800">{msg.text}</p>
+                              </div>
+                              <span className="text-xs text-gray-500 mt-1">{msg.timestamp}</span>
                             </div>
                           </div>
-                        </div>
-                      );
-                    }
-                  })}
+                        );
+                      } else {
+                        return (
+                          <div key={index} className="flex items-start justify-end">
+                            <div className="flex flex-col items-end">
+                              <p className="text-xs font-semibold text-gray-600 mb-1">
+                                {msg.from === 'auto' ? '🤖 Auto-Reply' : msg.from === 'business' ? '🏢 Business' : '👤 You'}
+                              </p>
+                              <div className={`p-3 rounded-lg rounded-tr-none shadow-sm max-w-xs ${
+                                msg.from === 'auto' ? 'bg-blue-100' : 
+                                msg.from === 'business' ? 'bg-green-100' : 'bg-gray-100'
+                              }`}>
+                                <p className="text-sm text-gray-800">{msg.text}</p>
+                              </div>
+                              <div className="flex items-center mt-1">
+                                <span className="text-xs text-gray-500 mr-2">{msg.timestamp}</span>
+                                <i data-lucide="check-check" className="w-3 h-3 text-green-500"></i>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+                    }) : null
+                  )}
                 </div>
                 
                 {/* Message Input */}
@@ -813,19 +1025,27 @@ function WhatsAppChat() {
                     <i id="customer-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
                   </div>
                   <div id="customer-panel-content" className="panel-content space-y-3 mt-3">
-                    <div className="flex items-center gap-3">
-                      <img src={users[activeUserId].avatar} alt="Customer Profile" className="w-12 h-12 rounded-full" />
-                      <div className="text-sm">
-                        <p className="font-bold text-gray-800">{users[activeUserId].name}</p>
-                        <p className="text-gray-500">{users[activeUserId].phoneNumber}</p>
-                        <p className="text-green-600 text-xs">{users[activeUserId].status}</p>
+                    {activeUserId && users[activeUserId] ? (
+                      <>
+                        <div className="flex items-center gap-3">
+                          <img src={users[activeUserId].avatar} alt="Customer Profile" className="w-12 h-12 rounded-full" />
+                          <div className="text-sm">
+                            <p className="font-bold text-gray-800">{users[activeUserId].name}</p>
+                            <p className="text-gray-500">{users[activeUserId].phoneNumber}</p>
+                            <p className="text-green-600 text-xs">{users[activeUserId].status}</p>
+                          </div>
+                        </div>
+                        <div className="text-xs space-y-1 pt-2 border-t border-gray-200">
+                          <p><strong className="font-medium text-gray-600">Last Seen:</strong> <span className="text-gray-800">{users[activeUserId].lastSeen}</span></p>
+                          <p><strong className="font-medium text-gray-600">Messages:</strong> <span className="text-gray-800">{users[activeUserId].messages.length}</span></p>
+                          <p><strong className="font-medium text-gray-600">Customer Since:</strong> <span className="text-gray-800">Jan 2024</span></p>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-4 text-gray-500">
+                        <p className="text-sm">Select a customer to view information</p>
                       </div>
-                    </div>
-                    <div className="text-xs space-y-1 pt-2 border-t border-gray-200">
-                      <p><strong className="font-medium text-gray-600">Last Seen:</strong> <span className="text-gray-800">{users[activeUserId].lastSeen}</span></p>
-                      <p><strong className="font-medium text-gray-600">Messages:</strong> <span className="text-gray-800">{users[activeUserId].messages.length}</span></p>
-                      <p><strong className="font-medium text-gray-600">Customer Since:</strong> <span className="text-gray-800">Jan 2024</span></p>
-                    </div>
+                    )}
                   </div>
                 </div>
 
