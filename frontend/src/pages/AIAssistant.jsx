@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 function AIAssistant() {
-  const [activeUserId, setActiveUserId] = useState(null);
+  const [activeUserId, setActiveUserId] = useState('');
   const [isAiActive, setIsAiActive] = useState(false);
   const [isHumanTakeoverActive, setIsHumanTakeoverActive] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);

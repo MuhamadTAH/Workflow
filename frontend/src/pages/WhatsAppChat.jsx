@@ -136,6 +136,54 @@ function WhatsAppChat() {
     }
   };
 
+  const testAiApi = async () => {
+    const keyInput = document.getElementById('ai-api-key');
+    const modelSelect = document.getElementById('ai-model');
+    const statusDiv = document.getElementById('ai-api-status');
+    
+    if (!keyInput || !keyInput.value.trim()) {
+      alert('Please enter an API key');
+      return;
+    }
+    
+    // Show loading
+    statusDiv.innerHTML = '<span class="status-dot status-not-connected animate-pulse"></span><span class="text-yellow-600">Testing...</span>';
+    
+    try {
+      const response = await fetch(`${API_BASE}/ai-assistant/${currentBusinessId}/test-ai-api`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer MOCK_TOKEN_FOR_TESTING_test-user-1`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          ai_provider: 'claude',
+          ai_api_key: keyInput.value.trim(),
+          ai_model: modelSelect.value
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        statusDiv.innerHTML = '<span class="status-dot status-connected"></span><span class="text-green-600">Connected</span>';
+        setTimeout(() => {
+          alert(`✅ Claude API Connection Successful!\n\n` +
+                `🤖 Provider: Claude AI\n` +
+                `📊 Model: ${modelSelect.value}\n` +
+                `🔗 Status: Ready for WhatsApp responses\n\n` +
+                `Your WhatsApp assistant can now use Claude AI to respond intelligently to customer messages!`);
+        }, 500);
+      } else {
+        statusDiv.innerHTML = '<span class="status-dot status-not-connected"></span><span class="text-red-600">Failed</span>';
+        alert(`❌ Claude API Connection Failed:\n${result.error}`);
+      }
+    } catch (error) {
+      console.error('AI API test failed:', error);
+      statusDiv.innerHTML = '<span class="status-dot status-not-connected"></span><span class="text-red-600">Error</span>';
+      alert('❌ Network error: Could not connect to Claude API');
+    }
+  };
 
   // Initialize
   useEffect(() => {
@@ -148,6 +196,7 @@ function WhatsAppChat() {
     // Collapse panels by default
     setTimeout(() => {
       togglePanel('whatsapp-panel');
+      togglePanel('model-panel');
       togglePanel('prompt-panel');
     }, 100);
     
@@ -358,7 +407,45 @@ function WhatsAppChat() {
               </div>
 
 
-              {/* 2. AI Behavior Instructions */}
+              {/* 2. AI Model Settings */}
+              <div className="card !p-4 !shadow-none border border-gray-200">
+                <div className="flex items-center justify-between cursor-pointer" onClick={() => togglePanel('model-panel')}>
+                  <h2 className="text-md font-semibold text-gray-700 flex items-center">
+                    <i data-lucide="cpu" className="w-5 h-5 mr-2 text-green-600"></i>
+                    2. AI Model Settings
+                  </h2>
+                  <i id="model-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
+                </div>
+                <div id="model-panel-content" className="panel-content space-y-3 mt-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">Provider</label>
+                    <div className="flex gap-2">
+                      <button className="btn btn-primary text-sm">Claude</button>
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="ai-api-key" className="block text-sm font-medium text-gray-600 mb-1">API Key</label>
+                    <input type="password" id="ai-api-key" className="input-field" placeholder="sk-ant-api03-..." />
+                  </div>
+                  <div>
+                    <label htmlFor="ai-model" className="block text-sm font-medium text-gray-600 mb-1">Model</label>
+                    <select id="ai-model" className="input-field bg-white">
+                      <option>claude-3-5-sonnet-20241022</option>
+                      <option>claude-3-5-haiku-20241022</option>
+                      <option>claude-3-opus-20240229</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <button onClick={testAiApi} className="btn btn-primary text-sm">Test API</button>
+                    <div id="ai-api-status" className="flex items-center text-sm font-medium">
+                      <span className="status-dot status-not-connected"></span>
+                      <span className="text-gray-500">Offline</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. AI Behavior Instructions */}
               <div className="card !p-4 !shadow-none border border-gray-200">
                 <div className="flex items-center justify-between cursor-pointer" onClick={() => togglePanel('prompt-panel')}>
                   <h2 className="text-md font-semibold text-gray-700 flex items-center">
