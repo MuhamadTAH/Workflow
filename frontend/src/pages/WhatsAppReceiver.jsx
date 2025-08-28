@@ -35,7 +35,7 @@ const WhatsAppReceiver = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Set webhook URL on component mount and check auth token
+  // Set webhook URL on component mount, check auth token, and sync status
   useEffect(() => {
     setWebhookUrl(`${API_BASE_URL}/api/webhooks/whatsapp`);
     
@@ -56,6 +56,35 @@ const WhatsAppReceiver = () => {
       const mockToken = `MOCK_TOKEN_FOR_TESTING_${Date.now()}`;
       localStorage.setItem('token', mockToken);
     }
+    
+    // Check backend status on component mount to sync isActive state
+    const checkBackendStatus = async () => {
+      try {
+        console.log('🔄 Checking backend WhatsApp receiver status on mount...');
+        const response = await fetch(`${API_BASE_URL}/api/whatsapp-receiver/status`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('🔄 Backend status on mount:', data.status);
+          
+          if (data.status && data.status.isActive) {
+            console.log('🚨 MOUNT SYNC: Backend shows active, setting frontend to active');
+            setIsActive(true);
+          } else {
+            console.log('🔄 Backend shows inactive, keeping frontend inactive');
+            setIsActive(false);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error checking backend status on mount:', error);
+      }
+    };
+    
+    checkBackendStatus();
   }, []);
 
   // Group messages into conversations
@@ -140,6 +169,15 @@ const WhatsAppReceiver = () => {
             const newMessages = data.messages || [];
             console.log('📥 Raw messages received:', newMessages.length, newMessages);
             setMessages(newMessages);
+            
+            // Update isActive state based on backend status
+            if (data.status && data.status.isActive !== undefined) {
+              console.log('🔄 Backend status check:', data.status.isActive, 'Current frontend isActive:', isActive);
+              if (data.status.isActive !== isActive) {
+                console.log('🚨 SYNC FIX: Updating isActive from backend:', data.status.isActive);
+                setIsActive(data.status.isActive);
+              }
+            }
             
             // Group messages into conversations
             const newConversations = groupMessagesIntoConversations(newMessages);
@@ -265,8 +303,20 @@ const WhatsAppReceiver = () => {
   };
 
   const handleSendMessage = async () => {
+    console.log('📤 Send message attempt:', {
+      isActive,
+      hasRecipientPhone: !!recipientPhone.trim(),
+      hasMessageText: !!messageText.trim(),
+      recipientPhone: recipientPhone,
+      messageTextLength: messageText.length
+    });
+    
     if (!isActive || !recipientPhone.trim() || !messageText.trim()) {
-      setSendStatus('❌ System not active or missing message data');
+      const error = !isActive ? 'System not active' : 
+                   !recipientPhone.trim() ? 'Missing recipient phone' :
+                   'Missing message text';
+      console.log('❌ Send failed:', error);
+      setSendStatus(`❌ ${error}`);
       return;
     }
 
