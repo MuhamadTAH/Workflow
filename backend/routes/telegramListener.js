@@ -300,6 +300,46 @@ router.post('/send-message', asyncHandler(async (req, res) => {
         chatId: response.data.result.chat.id
       });
 
+      // Find the listener ID for this bot token
+      let targetListenerId = null;
+      for (const [listenerId, botData] of activeBots.entries()) {
+        if (botData.botToken === botToken) {
+          targetListenerId = listenerId;
+          break;
+        }
+      }
+
+      // Store the sent message as a bot message
+      if (targetListenerId) {
+        if (!listenerMessages.has(targetListenerId)) {
+          listenerMessages.set(targetListenerId, []);
+        }
+        
+        const sentMessageData = {
+          updateId: 'sent_' + Date.now(),
+          messageId: response.data.result.message_id,
+          chatId: response.data.result.chat.id,
+          text: text,
+          fromUserId: 'bot',
+          fromName: 'Bot',
+          fromUsername: 'workflow_bot',
+          date: new Date().toISOString(),
+          timestamp: new Date().toISOString(),
+          type: 'bot_message',
+          isBotMessage: true
+        };
+        
+        const messages = listenerMessages.get(targetListenerId);
+        messages.unshift(sentMessageData); // Add to beginning (newest first)
+        
+        // Keep only last 100 messages per listener
+        if (messages.length > 100) {
+          messages.splice(100);
+        }
+        
+        console.log('💾 Stored sent message as bot message for listener:', targetListenerId);
+      }
+
       logger.info(`Telegram message sent successfully`, {
         chatId: chatId,
         messageId: response.data.result.message_id,

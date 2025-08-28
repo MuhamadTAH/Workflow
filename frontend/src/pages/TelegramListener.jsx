@@ -201,10 +201,8 @@ const TelegramListener = () => {
 
       if (response.ok && result.success) {
         setSendMessage(''); // Clear the input
-        // Refresh messages to show the sent message
-        setTimeout(() => {
-          fetchMessages();
-        }, 1000);
+        // Refresh messages immediately to show the sent message
+        fetchMessages();
       } else {
         alert(`❌ Failed to send message: ${result.error || 'Unknown error'}`);
       }
@@ -513,13 +511,32 @@ const TelegramListener = () => {
                             style={{
                               padding: '0.75rem',
                               marginBottom: '0.5rem',
-                              backgroundColor: '#f0f9ff',
+                              backgroundColor: message.isBotMessage ? '#f0fdf4' : '#f0f9ff',
                               borderRadius: '6px',
-                              border: '1px solid #e0f2fe',
-                              marginLeft: '1rem'
+                              border: message.isBotMessage ? '1px solid #bbf7d0' : '1px solid #e0f2fe',
+                              marginLeft: message.isBotMessage ? '0rem' : '1rem',
+                              marginRight: message.isBotMessage ? '1rem' : '0rem',
+                              position: 'relative'
                             }}
                           >
-                            <div style={{ fontSize: '0.75rem', color: '#0369a1', marginBottom: '0.5rem' }}>
+                            {message.isBotMessage && (
+                              <div style={{
+                                position: 'absolute',
+                                top: '0.5rem',
+                                left: '0.75rem',
+                                fontSize: '0.75rem',
+                                color: '#059669',
+                                fontWeight: '500'
+                              }}>
+                                🤖 Bot
+                              </div>
+                            )}
+                            <div style={{ 
+                              fontSize: '0.75rem', 
+                              color: message.isBotMessage ? '#059669' : '#0369a1', 
+                              marginBottom: '0.5rem',
+                              marginTop: message.isBotMessage ? '1rem' : '0'
+                            }}>
                               {new Date(message.date).toLocaleString()}
                             </div>
                             <div style={{
