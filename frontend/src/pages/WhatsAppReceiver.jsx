@@ -25,6 +25,12 @@ const WhatsAppReceiver = () => {
   const [sendStatus, setSendStatus] = useState('');
   const messagesEndRef = useRef(null);
   const [hasAutoSelected, setHasAutoSelected] = useState(false);
+  
+  // Claude AI State
+  const [claudeApiKey, setClaudeApiKey] = useState('');
+  const [isClaudeConnected, setIsClaudeConnected] = useState(false);
+  const [isConnectingClaude, setIsConnectingClaude] = useState(false);
+  const [claudeStatus, setClaudeStatus] = useState('');
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -85,7 +91,113 @@ const WhatsAppReceiver = () => {
     };
     
     checkBackendStatus();
+    
+    // Check Claude API status on mount
+    checkClaudeStatus();
   }, []);
+  
+  // Check Claude API connection status
+  const checkClaudeStatus = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/status`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setIsClaudeConnected(data.connected || false);
+        if (data.connected) {
+          setClaudeStatus('✅ Claude AI ready for WhatsApp integration');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking Claude status:', error);
+      setIsClaudeConnected(false);
+    }
+  };
+  
+  // Connect to Claude API
+  const handleClaudeConnect = async () => {
+    if (!claudeApiKey.trim()) {
+      setClaudeStatus('❌ Please enter your Claude API key');
+      return;
+    }
+
+    setIsConnectingClaude(true);
+    setClaudeStatus('🔗 Connecting to Claude AI...');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/connect`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          apiKey: claudeApiKey.trim()
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setClaudeStatus('✅ Claude AI connected! Ready for WhatsApp integration');
+        setIsClaudeConnected(true);
+        setClaudeApiKey(''); // Clear for security
+      } else {
+        setClaudeStatus(`❌ Connection failed: ${result.error || 'Unknown error'}`);
+        setIsClaudeConnected(false);
+      }
+    } catch (error) {
+      console.error('Claude API connection error:', error);
+      setClaudeStatus(`❌ Network error: ${error.message}`);
+      setIsClaudeConnected(false);
+    } finally {
+      setIsConnectingClaude(false);
+    }
+  };
+  
+  // Disconnect Claude API
+  const handleClaudeDisconnect = async () => {
+    setIsConnectingClaude(true);
+    setClaudeStatus('🔌 Disconnecting Claude AI...');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/disconnect`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setClaudeStatus('✅ Claude AI disconnected');
+        setIsClaudeConnected(false);
+        setClaudeApiKey('');
+      } else {
+        setClaudeStatus(`❌ Disconnect failed: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Claude API disconnect error:', error);
+      setClaudeStatus(`❌ Network error: ${error.message}`);
+    } finally {
+      setIsConnectingClaude(false);
+    }
+  };
+  
+  // Auto-clear Claude status after 5 seconds
+  useEffect(() => {
+    if (claudeStatus && !claudeStatus.includes('ready') && !claudeStatus.includes('Ready')) {
+      const timeout = setTimeout(() => {
+        setClaudeStatus('');
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [claudeStatus]);
 
   // Group messages into conversations
   const groupMessagesIntoConversations = (messages) => {
@@ -385,6 +497,211 @@ const WhatsAppReceiver = () => {
           <span style={{ fontSize: '28px' }}>📱</span>
           WhatsApp Message Receiver
         </h1>
+
+        {/* Claude AI Integration Panel */}
+        <div style={{
+          background: '#f0f9ff',
+          border: '2px solid #bfdbfe',
+          borderRadius: '12px',
+          padding: '20px',
+          marginBottom: '24px'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            marginBottom: '16px'
+          }}>
+            <span style={{ fontSize: '24px' }}>🤖</span>
+            <h3 style={{
+              color: '#1e40af',
+              margin: 0,
+              fontSize: '18px',
+              fontWeight: '600'
+            }}>
+              Claude AI Integration
+            </h3>
+            {isClaudeConnected && (
+              <span style={{
+                background: '#dcfce7',
+                color: '#166534',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '12px',
+                fontWeight: '500',
+                border: '1px solid #bbf7d0'
+              }}>
+                ✅ Connected
+              </span>
+            )}
+          </div>
+
+          {/* Connection Status */}
+          <div style={{
+            background: isClaudeConnected ? '#f0fdf4' : '#fef2f2',
+            border: `1px solid ${isClaudeConnected ? '#bbf7d0' : '#fecaca'}`,
+            borderRadius: '8px',
+            padding: '12px',
+            marginBottom: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            <div style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: isClaudeConnected ? '#22c55e' : '#ef4444'
+            }}></div>
+            <span style={{
+              fontSize: '14px',
+              color: isClaudeConnected ? '#166534' : '#991b1b',
+              fontWeight: '500'
+            }}>
+              {isClaudeConnected 
+                ? 'Claude AI ready for intelligent WhatsApp processing' 
+                : 'Connect Claude AI for smart message analysis and responses'
+              }
+            </span>
+          </div>
+
+          {/* Claude API Key Input */}
+          {!isClaudeConnected && (
+            <div style={{ marginBottom: '16px' }}>
+              <input
+                type="password"
+                value={claudeApiKey}
+                onChange={(e) => setClaudeApiKey(e.target.value)}
+                placeholder="Enter Claude API key (sk-ant-...)" 
+                disabled={isConnectingClaude}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  backgroundColor: isConnectingClaude ? '#f9fafb' : 'white'
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !isConnectingClaude) {
+                    handleClaudeConnect();
+                  }
+                }}
+              />
+              <p style={{ 
+                margin: '4px 0 0 0', 
+                fontSize: '12px', 
+                color: '#6b7280' 
+              }}>
+                Get your API key from{' '}
+                <a 
+                  href="https://console.anthropic.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ color: '#3b82f6' }}
+                >
+                  Anthropic Console
+                </a>
+              </p>
+            </div>
+          )}
+
+          {/* Claude Status */}
+          {claudeStatus && (
+            <div style={{
+              padding: '10px 12px',
+              borderRadius: '6px',
+              marginBottom: '12px',
+              fontSize: '14px',
+              fontWeight: '500',
+              backgroundColor: claudeStatus.includes('✅') ? '#f0fdf4' : claudeStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
+              color: claudeStatus.includes('✅') ? '#166534' : claudeStatus.includes('❌') ? '#991b1b' : '#1e40af',
+              border: `1px solid ${claudeStatus.includes('✅') ? '#bbf7d0' : claudeStatus.includes('❌') ? '#fecaca' : '#bfdbfe'}`
+            }}>
+              {claudeStatus}
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            {!isClaudeConnected ? (
+              <button
+                onClick={handleClaudeConnect}
+                disabled={isConnectingClaude || !claudeApiKey.trim()}
+                style={{
+                  padding: '10px 16px',
+                  backgroundColor: (isConnectingClaude || !claudeApiKey.trim()) ? '#d1d5db' : '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: (isConnectingClaude || !claudeApiKey.trim()) ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                {isConnectingClaude ? '⏳ Connecting...' : '🔗 Connect Claude AI'}
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => alert('Claude AI chat coming soon! 🚀')}
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: '#10b981',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  💬 Chat with Claude
+                </button>
+                <button
+                  onClick={handleClaudeDisconnect}
+                  disabled={isConnectingClaude}
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: isConnectingClaude ? '#d1d5db' : '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: isConnectingClaude ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  {isConnectingClaude ? '⏳ Disconnecting...' : '🔌 Disconnect'}
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Integration Features */}
+          <div style={{
+            marginTop: '16px',
+            padding: '12px',
+            backgroundColor: '#fef3c7',
+            border: '1px solid #fbbf24',
+            borderRadius: '6px',
+            fontSize: '12px',
+            color: '#92400e'
+          }}>
+            <strong>🎯 Claude AI + WhatsApp Features:</strong>
+            <br />• Smart message analysis • Automated responses • Language translation
+            <br />• Sentiment analysis • Customer support • Content moderation
+          </div>
+        </div>
 
         {/* Webhook URL Display */}
         <div style={{ 
