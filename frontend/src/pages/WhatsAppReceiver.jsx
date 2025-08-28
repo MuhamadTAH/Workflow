@@ -11,6 +11,15 @@ const WhatsAppReceiver = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('');
+  
+  // Send Message Panel State
+  const [sendBusinessId, setSendBusinessId] = useState('');
+  const [sendAccessToken, setSendAccessToken] = useState('');
+  const [sendPhoneNumberId, setSendPhoneNumberId] = useState('');
+  const [recipientPhone, setRecipientPhone] = useState('');
+  const [messageText, setMessageText] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [sendStatus, setSendStatus] = useState('');
   const messagesEndRef = useRef(null);
 
   // Auto-scroll to bottom when new messages arrive

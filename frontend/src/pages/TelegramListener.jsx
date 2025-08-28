@@ -9,6 +9,7 @@ const TelegramListener = () => {
   const [listenerId, setListenerId] = useState('');
   const [messages, setMessages] = useState([]);
   const [isPolling, setIsPolling] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const handleSetupWebhook = async () => {
     if (!botToken.trim()) {
@@ -79,6 +80,7 @@ const TelegramListener = () => {
         setListenerId('');
         setIsPolling(false);
         setMessages([]);
+        setSelectedUser(null);
       } else {
         setStatus(`❌ Delete failed: ${result.error || 'Unknown error'}`);
       }
@@ -130,6 +132,46 @@ const TelegramListener = () => {
       }
     };
   }, [isPolling, listenerId]);
+
+  // Get unique users from messages
+  const getUniqueUsers = () => {
+    const usersMap = new Map();
+    
+    messages.forEach(message => {
+      const userId = message.fromUserId;
+      if (!usersMap.has(userId)) {
+        usersMap.set(userId, {
+          userId: userId,
+          chatId: message.chatId,
+          fromName: message.fromName,
+          fromUsername: message.fromUsername,
+          lastMessage: message.text,
+          lastMessageTime: message.date,
+          messageCount: 1
+        });
+      } else {
+        // Update message count and last message
+        const user = usersMap.get(userId);
+        user.messageCount++;
+        if (message.date > user.lastMessageTime) {
+          user.lastMessage = message.text;
+          user.lastMessageTime = message.date;
+        }
+      }
+    });
+    
+    return Array.from(usersMap.values()).sort((a, b) => 
+      new Date(b.lastMessageTime) - new Date(a.lastMessageTime)
+    );
+  };
+
+  // Get messages for selected user
+  const getMessagesForUser = (userId) => {
+    return messages.filter(message => message.fromUserId === userId);
+  };
+
+  const uniqueUsers = getUniqueUsers();
+  const selectedUserMessages = selectedUser ? getMessagesForUser(selectedUser.userId) : [];
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '2rem 0' }}>
@@ -248,106 +290,210 @@ const TelegramListener = () => {
               </ol>
             </div>
 
-            {/* Conversations Panel */}
+            {/* Two Panel Layout */}
             {isPolling && (
-              <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <h3 style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
-                    💬 Conversations 
-                    {isPolling && (
-                      <span style={{ 
-                        marginLeft: '0.5rem', 
-                        fontSize: '0.75rem', 
-                        color: '#10b981',
-                        backgroundColor: '#d1fae5',
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '4px'
+              <div style={{ display: 'flex', gap: '1rem', height: '500px' }}>
+                
+                {/* Users Panel */}
+                <div style={{ 
+                  flex: '1', 
+                  backgroundColor: '#f8fafc', 
+                  padding: '1rem', 
+                  borderRadius: '6px', 
+                  border: '1px solid #e2e8f0',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <h3 style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
+                      👥 Users
+                      {isPolling && (
+                        <span style={{ 
+                          marginLeft: '0.5rem', 
+                          fontSize: '0.75rem', 
+                          color: '#10b981',
+                          backgroundColor: '#d1fae5',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px'
+                        }}>
+                          🟢 Live
+                        </span>
+                      )}
+                    </h3>
+                    <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                      {uniqueUsers.length} user{uniqueUsers.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  <div style={{ 
+                    flex: 1,
+                    overflowY: 'auto', 
+                    backgroundColor: 'white', 
+                    borderRadius: '4px',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    {uniqueUsers.length === 0 ? (
+                      <div style={{ 
+                        padding: '2rem', 
+                        textAlign: 'center', 
+                        color: '#9ca3af',
+                        fontSize: '0.875rem'
                       }}>
-                        🟢 Live
-                      </span>
+                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👤</div>
+                        <p>No users yet. Send a message to your bot!</p>
+                      </div>
+                    ) : (
+                      <div style={{ padding: '0.5rem' }}>
+                        {uniqueUsers.map((user, index) => (
+                          <div
+                            key={user.userId}
+                            onClick={() => setSelectedUser(user)}
+                            style={{
+                              padding: '0.75rem',
+                              marginBottom: '0.5rem',
+                              backgroundColor: selectedUser?.userId === user.userId ? '#eff6ff' : '#f9fafb',
+                              borderRadius: '6px',
+                              border: selectedUser?.userId === user.userId ? '2px solid #3b82f6' : '1px solid #f3f4f6',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                backgroundColor: '#3b82f6',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginRight: '0.75rem',
+                                fontSize: '1rem',
+                                color: 'white',
+                                fontWeight: 'bold'
+                              }}>
+                                {user.fromName ? user.fromName[0].toUpperCase() : 'U'}
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: '500', fontSize: '0.875rem', color: '#111827' }}>
+                                  {user.fromName || 'Unknown User'}
+                                  {user.fromUsername && (
+                                    <span style={{ color: '#6b7280', fontWeight: 'normal', fontSize: '0.75rem' }}>
+                                      {' '}@{user.fromUsername}
+                                    </span>
+                                  )}
+                                </div>
+                                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+                                  {user.messageCount} message{user.messageCount !== 1 ? 's' : ''}
+                                </div>
+                                <div style={{ 
+                                  fontSize: '0.75rem', 
+                                  color: '#9ca3af',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}>
+                                  {user.lastMessage || 'No text'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
-                  </h3>
-                  <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                    {messages.length} message{messages.length !== 1 ? 's' : ''}
-                  </span>
+                  </div>
                 </div>
 
+                {/* Messages Panel */}
                 <div style={{ 
-                  maxHeight: '400px', 
-                  overflowY: 'auto', 
-                  backgroundColor: 'white', 
-                  borderRadius: '4px',
-                  border: '1px solid #e5e7eb'
+                  flex: '1', 
+                  backgroundColor: '#f8fafc', 
+                  padding: '1rem', 
+                  borderRadius: '6px', 
+                  border: '1px solid #e2e8f0',
+                  display: 'flex',
+                  flexDirection: 'column'
                 }}>
-                  {messages.length === 0 ? (
-                    <div style={{ 
-                      padding: '2rem', 
-                      textAlign: 'center', 
-                      color: '#9ca3af',
-                      fontSize: '0.875rem'
-                    }}>
-                      <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💭</div>
-                      <p>No messages yet. Send a message to your bot to see it here!</p>
-                    </div>
-                  ) : (
-                    <div style={{ padding: '0.5rem' }}>
-                      {messages.map((message, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            padding: '0.75rem',
-                            marginBottom: '0.5rem',
-                            backgroundColor: '#f9fafb',
-                            borderRadius: '6px',
-                            border: '1px solid #f3f4f6'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <h3 style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
+                      💬 Messages
+                      {selectedUser && (
+                        <span style={{ 
+                          marginLeft: '0.5rem', 
+                          fontSize: '0.75rem', 
+                          color: '#3b82f6',
+                          backgroundColor: '#eff6ff',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px'
+                        }}>
+                          {selectedUser.fromName}
+                        </span>
+                      )}
+                    </h3>
+                    <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                      {selectedUser ? selectedUserMessages.length : 0} message{(selectedUser ? selectedUserMessages.length : 0) !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  <div style={{ 
+                    flex: 1,
+                    overflowY: 'auto', 
+                    backgroundColor: 'white', 
+                    borderRadius: '4px',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    {!selectedUser ? (
+                      <div style={{ 
+                        padding: '2rem', 
+                        textAlign: 'center', 
+                        color: '#9ca3af',
+                        fontSize: '0.875rem'
+                      }}>
+                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👈</div>
+                        <p>Select a user to view their messages</p>
+                      </div>
+                    ) : selectedUserMessages.length === 0 ? (
+                      <div style={{ 
+                        padding: '2rem', 
+                        textAlign: 'center', 
+                        color: '#9ca3af',
+                        fontSize: '0.875rem'
+                      }}>
+                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💬</div>
+                        <p>No messages from this user yet</p>
+                      </div>
+                    ) : (
+                      <div style={{ padding: '0.5rem' }}>
+                        {selectedUserMessages.map((message, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              padding: '0.75rem',
+                              marginBottom: '0.5rem',
+                              backgroundColor: '#f0f9ff',
+                              borderRadius: '6px',
+                              border: '1px solid #e0f2fe',
+                              marginLeft: '1rem'
+                            }}
+                          >
+                            <div style={{ fontSize: '0.75rem', color: '#0369a1', marginBottom: '0.5rem' }}>
+                              {new Date(message.date).toLocaleString()}
+                            </div>
                             <div style={{
-                              width: '32px',
-                              height: '32px',
-                              borderRadius: '50%',
-                              backgroundColor: '#3b82f6',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              marginRight: '0.75rem',
                               fontSize: '0.875rem',
-                              color: 'white',
-                              fontWeight: 'bold'
+                              color: '#374151',
+                              wordWrap: 'break-word',
+                              lineHeight: '1.4'
                             }}>
-                              {message.fromName ? message.fromName[0].toUpperCase() : 'U'}
-                            </div>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: '500', fontSize: '0.875rem', color: '#111827' }}>
-                                {message.fromName || 'Unknown User'}
-                                {message.fromUsername && (
-                                  <span style={{ color: '#6b7280', fontWeight: 'normal' }}>
-                                    {' '}@{message.fromUsername}
-                                  </span>
-                                )}
-                              </div>
-                              <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                                Chat ID: {message.chatId} • {message.date}
-                              </div>
+                              {message.text || '<No text>'}
                             </div>
                           </div>
-                          <div style={{
-                            marginLeft: '2.5rem',
-                            padding: '0.75rem',
-                            backgroundColor: 'white',
-                            borderRadius: '4px',
-                            fontSize: '0.875rem',
-                            color: '#374151',
-                            wordWrap: 'break-word'
-                          }}>
-                            {message.text || '<No text>'}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
+
               </div>
             )}
           </div>
