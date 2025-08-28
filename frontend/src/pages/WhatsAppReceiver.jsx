@@ -764,10 +764,14 @@ const WhatsAppReceiver = () => {
                   const contactName = selectedConversation.contactName;
                   console.log('Setting template message for:', contactName);
                   
-                  setMessageText(`Hello ${contactName}, thanks for your message!`);
-                  
-                  // Show success message
-                  setSendStatus(`✅ Template message filled for ${contactName}`);
+                  // Check if Claude is connected for AI-powered response
+                  if (isClaudeConnected) {
+                    setMessageText(`Hello ${contactName}! 👋 Thanks for reaching out. How can I assist you today? (AI-powered response available)`);
+                    setSendStatus(`✅ AI-enhanced template filled for ${contactName}`);
+                  } else {
+                    setMessageText(`Hello ${contactName}, thanks for your message!`);
+                    setSendStatus(`✅ Template message filled for ${contactName}`);
+                  }
                   setTimeout(() => setSendStatus(''), 3000);
                 } else {
                   console.log('No conversation selected');
