@@ -685,7 +685,7 @@ function AIAssistant() {
                       <p className="text-sm text-gray-400">Choose a conversation from the list to view messages</p>
                     </div>
                   ) : (
-                    users[activeUserId].messages.map((msg, index) => {
+                    activeUserId && users[activeUserId] && users[activeUserId].messages ? users[activeUserId].messages.map((msg, index) => {
                     const user = users[activeUserId];
                     if (msg.from === 'user') {
                       return (
@@ -710,7 +710,7 @@ function AIAssistant() {
                         </div>
                       );
                     }
-                  })
+                  }) : null
                   )}
                 </div>
                 
@@ -755,18 +755,28 @@ function AIAssistant() {
                     <i id="user-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
                   </div>
                   <div id="user-panel-content" className="panel-content space-y-2 mt-3">
-                    <div className="flex items-center gap-3">
-                      <img src={users[activeUserId].avatar} alt="User Profile Picture" className="w-12 h-12 rounded-full" />
-                      <div className="text-sm">
-                        <p className="font-bold text-gray-800">{users[activeUserId].name}</p>
-                        <p className="text-gray-500">{users[activeUserId].username}</p>
+                    {activeUserId && users[activeUserId] ? (
+                      <>
+                        <div className="flex items-center gap-3">
+                          <img src={users[activeUserId].avatar} alt="User Profile Picture" className="w-12 h-12 rounded-full" />
+                          <div className="text-sm">
+                            <p className="font-bold text-gray-800">{users[activeUserId].name}</p>
+                            <p className="text-gray-500">{users[activeUserId].username}</p>
+                          </div>
+                        </div>
+                        <div className="text-xs space-y-1 pt-2">
+                          <p><strong className="font-medium text-gray-600">Chat ID:</strong> <span className="text-gray-800">{users[activeUserId].chatId}</span></p>
+                          <p><strong className="font-medium text-gray-600">User ID:</strong> <span className="text-gray-800">{users[activeUserId].userId}</span></p>
+                          <p><strong className="font-medium text-gray-600">Language:</strong> <span className="text-gray-800">{users[activeUserId].language}</span></p>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-4 text-gray-500">
+                        <i data-lucide="user-circle" className="w-8 h-8 mx-auto mb-2 text-gray-300"></i>
+                        <p className="text-sm">No user selected</p>
+                        <p className="text-xs text-gray-400 mt-1">Select a conversation to view user details</p>
                       </div>
-                    </div>
-                    <div className="text-xs space-y-1 pt-2">
-                      <p><strong className="font-medium text-gray-600">Chat ID:</strong> <span className="text-gray-800">{users[activeUserId].chatId}</span></p>
-                      <p><strong className="font-medium text-gray-600">User ID:</strong> <span className="text-gray-800">{users[activeUserId].userId}</span></p>
-                      <p><strong className="font-medium text-gray-600">Language:</strong> <span className="text-gray-800">{users[activeUserId].language}</span></p>
-                    </div>
+                    )}
                   </div>
                 </div>
 
