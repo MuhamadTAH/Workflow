@@ -18,7 +18,7 @@ const chatRoutes = require('./routes/chat');
 const chatTriggerRoutes = require('./routes/chatTrigger');
 const chatbotRoutes = require('./routes/chatbot');
 // AI ASSISTANT SYSTEM - New Addition
-const aiAssistantRoutes = require('./routes/aiAssistant');
+// AI Assistant routes removed
 // WHATSAPP ROUTES
 const whatsappRoutes = require('./routes/whatsapp');
 // NEW ROUTES FROM WORKFLOWNODE
@@ -117,8 +117,7 @@ app.use('/uploads', express.static('uploads'));
 // Serve static public files (including hosted chat page)
 app.use('/public', express.static('public'));
 
-// Serve AI Assistant Dashboard
-app.use('/dashboard', express.static('../ai-assistant-dashboard'));
+// AI Assistant Dashboard - REMOVED
 
 
 // Routes
@@ -135,16 +134,9 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/chat-messages', chatRoutes);
 app.use('/api/chat-trigger', chatTriggerRoutes);
 app.use('/api/v1/chatbot', chatbotRoutes);
-// AI ASSISTANT SYSTEM ROUTES
-app.use('/api/ai-assistant', aiAssistantRoutes);
+// AI ASSISTANT SYSTEM ROUTES - REMOVED
 // WHATSAPP ROUTES
 app.use('/api/whatsapp', whatsappRoutes);
-// AI ASSISTANT ADVANCED FEATURES
-const aiAssistantAdvancedRoutes = require('./routes/aiAssistantAdvanced');
-app.use('/api/ai-assistant-advanced', aiAssistantAdvancedRoutes);
-// AI ASSISTANT REALTIME FEATURES
-const { router: aiAssistantRealtimeRoutes, realtimeManager } = require('./routes/aiAssistantRealtime');
-app.use('/api/ai-assistant-realtime', aiAssistantRealtimeRoutes);
 
 // Chat trigger alias route for frontend compatibility
 app.get('/api/chat/:nodeId', (req, res) => {
@@ -179,28 +171,12 @@ app.get('/', (req, res) => {
     message: '✅ Workflow Backend API is running!',
     timestamp: new Date().toISOString(),
     version: '1.0.0',
-    dashboard_url: '/ai-assistant',
-    launcher_url: '/ai-assistant/start'
+    dashboard_url: '/dashboard-removed',
+    launcher_url: '/dashboard-removed'
   });
 });
 
-// AI Assistant Dashboard Routes
-app.get('/ai-assistant', (req, res) => {
-  res.sendFile(require('path').join(__dirname, '../ai-assistant-dashboard/index.html'));
-});
-
-app.get('/ai-assistant/start', (req, res) => {
-  res.sendFile(require('path').join(__dirname, '../ai-assistant-dashboard/start.html'));
-});
-
-// Easy access redirects
-app.get('/dashboard', (req, res) => {
-  res.redirect('/ai-assistant');
-});
-
-app.get('/start', (req, res) => {
-  res.redirect('/ai-assistant/start');
-});
+// AI Assistant Dashboard Routes - REMOVED
 
 // Test route
 app.get('/api/hello', (req, res) => {
