@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 function AIAssistant() {
-  const [activeUserId, setActiveUserId] = useState('john');
+  const [activeUserId, setActiveUserId] = useState(null);
   const [isAiActive, setIsAiActive] = useState(false);
   const [isHumanTakeoverActive, setIsHumanTakeoverActive] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -11,47 +11,8 @@ function AIAssistant() {
   const API_BASE = 'https://workflow-lg9z.onrender.com/api';
   const WS_BASE = 'https://workflow-lg9z.onrender.com';
 
-  // Mock data - now with state to allow updates
-  const [users, setUsers] = useState({
-    'john': {
-      name: 'John Doe',
-      username: '@john_doe_123',
-      avatar: 'https://placehold.co/64x64/e0e7ff/4f46e5?text=John',
-      chatId: '123456789',
-      userId: '987654321',
-      language: 'en-US',
-      lastMessage: 'How do I reset my password?',
-      messages: [
-        { from: 'user', text: 'How do I reset my password?' },
-        { from: 'ai', text: 'To reset your password, please go to the login page and click on the "Forgot Password" link. We\'ll send you an email with instructions.' }
-      ]
-    },
-    'sarah': {
-      name: 'Sarah Miller',
-      username: '@sarahm',
-      avatar: 'https://placehold.co/64x64/fce7f3/db2777?text=Sarah',
-      chatId: '112233445',
-      userId: '554433221',
-      language: 'en-GB',
-      lastMessage: 'What are your support hours?',
-      messages: [
-        { from: 'user', text: 'What are your support hours?' },
-        { from: 'ai', text: 'Our support hours are 9 AM to 5 PM, Monday to Friday.' }
-      ]
-    },
-    'mike': {
-      name: 'Mike Chen',
-      username: '@mikechen',
-      avatar: 'https://placehold.co/64x64/d1fae5/059669?text=Mike',
-      chatId: '667788990',
-      userId: '998877665',
-      language: 'en-US',
-      lastMessage: 'Do you ship internationally?',
-      messages: [
-        { from: 'user', text: 'Do you ship internationally?' }
-      ]
-    }
-  });
+  // Users data from live conversations
+  const [users, setUsers] = useState({});
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
 
@@ -679,26 +640,34 @@ function AIAssistant() {
                   Conversations
                 </h2>
                 <div id="conversation-list" className="space-y-2 overflow-y-auto">
-                  {Object.keys(users).map((userId) => {
-                    const user = users[userId];
-                    return (
-                      <div 
-                        key={userId}
-                        className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${userId === activeUserId ? 'bg-indigo-100' : 'hover:bg-gray-50'}`}
-                        onClick={() => setActiveUserId(userId)}
-                      >
-                        <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full mr-3" />
-                        <div className="flex-grow overflow-hidden">
-                          <p className="font-semibold text-gray-800 truncate">{user.name}</p>
-                          <p className="text-sm text-gray-500 truncate">{user.lastMessage}</p>
+                  {Object.keys(users).length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <i data-lucide="message-circle" className="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
+                      <p className="text-sm">No conversations yet</p>
+                      <p className="text-xs text-gray-400 mt-1">Activate your AI assistant to start receiving messages</p>
+                    </div>
+                  ) : (
+                    Object.keys(users).map((userId) => {
+                      const user = users[userId];
+                      return (
+                        <div 
+                          key={userId}
+                          className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${userId === activeUserId ? 'bg-indigo-100' : 'hover:bg-gray-50'}`}
+                          onClick={() => setActiveUserId(userId)}
+                        >
+                          <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full mr-3" />
+                          <div className="flex-grow overflow-hidden">
+                            <p className="font-semibold text-gray-800 truncate">{user.name}</p>
+                            <p className="text-sm text-gray-500 truncate">{user.lastMessage}</p>
+                          </div>
+                          {/* Show unread indicator if this user has messages */}
+                          {user.messages.length > 0 && (
+                            <div className="w-2 h-2 bg-indigo-600 rounded-full ml-2"></div>
+                          )}
                         </div>
-                        {/* Show unread indicator if this user has messages */}
-                        {user.messages.length > 0 && (
-                          <div className="w-2 h-2 bg-indigo-600 rounded-full ml-2"></div>
-                        )}
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
@@ -709,7 +678,14 @@ function AIAssistant() {
                   Live Feed
                 </h2>
                 <div id="conversation-feed" className="bg-gray-50 p-4 rounded-lg overflow-y-auto space-y-4 flex-grow">
-                  {users[activeUserId].messages.map((msg, index) => {
+                  {!activeUserId || Object.keys(users).length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <i data-lucide="message-square" className="w-16 h-16 mx-auto mb-4 text-gray-300"></i>
+                      <p className="text-lg font-medium mb-2">Select a conversation</p>
+                      <p className="text-sm text-gray-400">Choose a conversation from the list to view messages</p>
+                    </div>
+                  ) : (
+                    users[activeUserId].messages.map((msg, index) => {
                     const user = users[activeUserId];
                     if (msg.from === 'user') {
                       return (
@@ -734,7 +710,8 @@ function AIAssistant() {
                         </div>
                       );
                     }
-                  })}
+                  }))
+                  )}
                 </div>
                 
                 {/* Manual message input */}
@@ -835,7 +812,7 @@ function AIAssistant() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="font-medium">Success Rate:</span>
-                      <span className="font-semibold text-gray-800">89%</span>
+                      <span className="font-semibold text-gray-800">{Object.keys(users).length > 0 ? '100%' : '--'}</span>
                     </div>
                   </div>
                 </div>
