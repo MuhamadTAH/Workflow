@@ -135,34 +135,6 @@ function WhatsAppChat() {
     }
   };
 
-  const testWebhook = async () => {
-    const webhookInput = document.getElementById('webhook-url');
-    const verifyTokenInput = document.getElementById('verify-token');
-    const statusDiv = document.getElementById('webhook-status');
-    
-    if (!webhookInput?.value.trim() || !verifyTokenInput?.value.trim()) {
-      alert('Please enter both Webhook URL and Verify Token');
-      return;
-    }
-    
-    // Show loading
-    statusDiv.innerHTML = '<span class="status-dot status-not-connected animate-pulse"></span><span class="text-yellow-600">Testing...</span>';
-    
-    try {
-      // Test webhook endpoint
-      const webhookUrl = `${webhookInput.value.trim()}?hub.mode=subscribe&hub.challenge=test&hub.verify_token=${verifyTokenInput.value.trim()}`;
-      const response = await fetch(webhookUrl);
-      
-      if (response.ok) {
-        statusDiv.innerHTML = '<span class="status-dot status-connected"></span><span class="text-green-600">Webhook OK</span>';
-      } else {
-        statusDiv.innerHTML = '<span class="status-dot status-not-connected"></span><span class="text-red-600">Failed</span>';
-      }
-    } catch (error) {
-      console.error('Webhook test failed:', error);
-      statusDiv.innerHTML = '<span class="status-dot status-not-connected"></span><span class="text-red-600">Error</span>';
-    }
-  };
 
   // Initialize
   useEffect(() => {
@@ -175,7 +147,6 @@ function WhatsAppChat() {
     // Collapse panels by default
     setTimeout(() => {
       togglePanel('whatsapp-panel');
-      togglePanel('webhook-panel');
       togglePanel('template-panel');
     }, 100);
     
@@ -385,46 +356,13 @@ function WhatsAppChat() {
                 </div>
               </div>
 
-              {/* 2. Webhook Configuration */}
-              <div className="card !p-4 !shadow-none border border-gray-200">
-                <div className="flex items-center justify-between cursor-pointer" onClick={() => togglePanel('webhook-panel')}>
-                  <h2 className="text-md font-semibold text-gray-700 flex items-center">
-                    <i data-lucide="webhook" className="w-5 h-5 mr-2 text-green-600"></i>
-                    2. Webhook Configuration
-                  </h2>
-                  <i id="webhook-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
-                </div>
-                <div id="webhook-panel-content" className="panel-content space-y-3 mt-3">
-                  <div>
-                    <label htmlFor="webhook-url" className="block text-sm font-medium text-gray-600 mb-1">Webhook URL</label>
-                    <input 
-                      type="text" 
-                      id="webhook-url" 
-                      className="input-field" 
-                      value="https://workflow-lg9z.onrender.com/api/webhooks/whatsapp"
-                      readOnly
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="verify-token" className="block text-sm font-medium text-gray-600 mb-1">Verify Token</label>
-                    <input type="text" id="verify-token" className="input-field" placeholder="whatsapp_verify_token_12345" />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <button onClick={testWebhook} className="btn btn-primary text-sm">Test Webhook</button>
-                    <div id="webhook-status" className="flex items-center text-sm font-medium">
-                      <span className="status-dot status-not-connected"></span>
-                      <span className="text-gray-500">Not Set</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* 3. Message Templates */}
+              {/* 2. Message Templates */}
               <div className="card !p-4 !shadow-none border border-gray-200">
                 <div className="flex items-center justify-between cursor-pointer" onClick={() => togglePanel('template-panel')}>
                   <h2 className="text-md font-semibold text-gray-700 flex items-center">
                     <i data-lucide="message-square-text" className="w-5 h-5 mr-2 text-green-600"></i>
-                    3. Auto-Reply Template
+                    2. Auto-Reply Template
                   </h2>
                   <i id="template-panel-icon" data-lucide="chevron-down" className="w-5 h-5 text-gray-500 transition-transform"></i>
                 </div>
