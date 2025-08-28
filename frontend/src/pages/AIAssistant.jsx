@@ -227,12 +227,7 @@ function AIAssistant() {
           }));
           setUploadedFiles(files);
           
-          // Refresh Lucide icons after loading files
-          setTimeout(() => {
-            if (window.lucide) {
-              window.lucide.createIcons();
-            }
-          }, 100);
+          // Icons will be automatically created by Lucide from index.html
         }
       }
     } catch (error) {
@@ -286,18 +281,10 @@ function AIAssistant() {
       togglePanel('kb-panel');
     }, 100);
     
-    // Create Lucide icons
-    if (window.lucide) {
-      window.lucide.createIcons();
-    }
+    // Icons will be automatically created by Lucide from index.html
   }, []);
 
-  // Refresh Lucide icons when uploadedFiles changes
-  useEffect(() => {
-    if (window.lucide) {
-      window.lucide.createIcons();
-    }
-  }, [uploadedFiles]);
+  // Icons will refresh automatically from index.html
 
   const sendManualMessage = () => {
     const input = document.getElementById('manual-message-input');
@@ -405,12 +392,7 @@ function AIAssistant() {
             setActiveUserId(userIds[0]);
           }
 
-          // Refresh icons after updating conversations
-          setTimeout(() => {
-            if (window.lucide) {
-              window.lucide.createIcons();
-            }
-          }, 100);
+          // Icons will refresh automatically from index.html
         }
       }
     } catch (error) {
@@ -470,12 +452,7 @@ function AIAssistant() {
         }));
         setUploadedFiles(prev => [...prev, ...newFiles]);
         
-        // Refresh Lucide icons after state update
-        setTimeout(() => {
-          if (window.lucide) {
-            window.lucide.createIcons();
-          }
-        }, 100);
+        // Icons will refresh automatically from index.html
         
         alert(`Successfully uploaded ${newFiles.length} file(s)!`);
       } else {
@@ -567,12 +544,7 @@ function AIAssistant() {
   };
 
   return (
-    <>
-      {/* Load Tailwind and Lucide */}
-      <script src="https://cdn.tailwindcss.com"></script>
-      <script src="https://unpkg.com/lucide@latest"></script>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      
+    <>      
       <style>{`
         body {
             font-family: 'Inter', sans-serif;
@@ -1008,13 +980,6 @@ function AIAssistant() {
             </div>
           </main>
         </div>
-
-        <script>{`
-          // Initialize Lucide icons
-          if (window.lucide) {
-            lucide.createIcons();
-          }
-        `}</script>
       </div>
     </>
   );

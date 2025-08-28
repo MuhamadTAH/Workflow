@@ -1823,6 +1823,7 @@ router.post('/ai-assistant/:assistantId', asyncHandler(async (req, res) => {
     
     // Save conversation to database without AI response
     console.log('💾 Saving simple message to database...');
+    console.log(`🔍 DEBUG: Saving with assistantId: ${assistantId}, chatId: ${chatId}, customerName: ${customerName}, messageText: ${messageText}`);
     db.run(`
       INSERT INTO ai_conversations 
       (assistant_id, customer_id, customer_name, message_text, response_text, 
@@ -1839,26 +1840,23 @@ router.post('/ai-assistant/:assistantId', asyncHandler(async (req, res) => {
     ], function(err) {
       if (err) {
         console.error('❌ Failed to save message to database:', err);
+        console.error('❌ Database error details:', err.message);
       } else {
         console.log('✅ Message saved to database with ID:', this.lastID);
+        console.log(`✅ DEBUG: Saved conversation - assistant_id: ${assistantId}, customer_id: ${chatId}, message: "${messageText}"`);
       }
     });
 
     // Send simple acknowledgment back to customer
     if (assistant && assistant.telegram_token) {
       console.log('📤 Sending acknowledgment to customer...');
-      const fetch = require('node-fetch');
-      const telegramResponse = await fetch(`https://api.telegram.org/bot${assistant.telegram_token}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: `✅ Message received: "${messageText}"`
-        })
+      const axios = require('axios');
+      const telegramResponse = await axios.post(`https://api.telegram.org/bot${assistant.telegram_token}/sendMessage`, {
+        chat_id: chatId,
+        text: `✅ Message received: "${messageText}"`
       });
 
-      const telegramData = await telegramResponse.json();
-      console.log('📤 Acknowledgment sent:', telegramData.ok);
+      console.log('📤 Acknowledgment sent:', telegramResponse.data.ok);
     }
 
     // OLD AI PROCESSING CODE (commented out for now):

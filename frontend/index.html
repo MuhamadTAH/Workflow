@@ -11,9 +11,45 @@
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" as="style">
     <!-- Lucide Icons for AI Assistant page -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <!-- Tailwind CSS for AI Assistant page -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Initialize Lucide icons once on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        if (window.lucide) {
+          lucide.createIcons();
+        }
+      });
+      
+      // Observer to auto-create icons when new DOM elements are added
+      if (window.MutationObserver && window.lucide) {
+        const observer = new MutationObserver(function(mutations) {
+          let shouldUpdate = false;
+          mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+              for (let node of mutation.addedNodes) {
+                if (node.nodeType === 1 && (node.hasAttribute('data-lucide') || node.querySelector('[data-lucide]'))) {
+                  shouldUpdate = true;
+                  break;
+                }
+              }
+            }
+          });
+          if (shouldUpdate) {
+            lucide.createIcons();
+          }
+        });
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
+      }
+    </script>
   </body>
 </html>

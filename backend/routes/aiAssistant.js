@@ -1218,6 +1218,8 @@ router.get('/:id/conversations', verifyToken, async (req, res) => {
     const userId = req.user.userId;
     const { limit = 50, offset = 0 } = req.query;
 
+    console.log(`🔍 DEBUG: Looking for conversations - assistantId: ${assistantId}, userId: ${userId}`);
+
     // Verify assistant belongs to user
     const assistant = await new Promise((resolve, reject) => {
       db.get('SELECT id FROM ai_assistants WHERE id = ? AND user_id = ?', 
@@ -1228,10 +1230,25 @@ router.get('/:id/conversations', verifyToken, async (req, res) => {
     });
 
     if (!assistant) {
+      console.log(`❌ DEBUG: Assistant ${assistantId} not found for user ${userId}`);
       return res.status(404).json({
         success: false,
         error: 'AI assistant not found'
       });
+    }
+
+    console.log(`✅ DEBUG: Assistant found - ${assistantId}`);
+
+    // DEBUG: Check all conversations in database first
+    const allConversations = await new Promise((resolve, reject) => {
+      db.all('SELECT * FROM ai_conversations LIMIT 10', (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+    console.log(`🔍 DEBUG: Total conversations in database:`, allConversations.length);
+    if (allConversations.length > 0) {
+      console.log(`🔍 DEBUG: Sample conversation:`, allConversations[0]);
     }
 
     const conversations = await new Promise((resolve, reject) => {
