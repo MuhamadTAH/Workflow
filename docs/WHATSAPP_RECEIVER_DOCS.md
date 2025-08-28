@@ -296,8 +296,60 @@ Page Load → Click "Clear All Fields" → Fields Empty → User Fills New → C
 - Add optional toggle for users who need manual control
 - Preserve speed advantage while adding flexibility
 
+## 📚 **Developer Resources**
+
+### **Key Files & Locations**
+```
+frontend/src/pages/WhatsAppReceiver.jsx     - Main component (1000+ lines)
+backend/routes/whatsappTriggerNode.js       - WhatsApp API integration
+backend/routes/claude.js                    - Claude AI API integration
+docs/WHATSAPP_RECEIVER_DOCS.md             - This documentation
+frontend/src/config/api.js                  - API configuration
+```
+
+### **Environment Configuration**
+```javascript
+// Development
+API_BASE_URL: 'http://localhost:5000'
+
+// Production  
+API_BASE_URL: 'https://workflow-lg9z.onrender.com'
+```
+
+### **Testing Endpoints**
+```bash
+# Check WhatsApp status
+GET /api/whatsapp-receiver/status
+
+# Check Claude status  
+GET /api/claude/status
+
+# Test message sending
+POST /api/whatsapp-receiver/send-message
+```
+
+### **Debug Commands**
+```javascript
+// Browser Console Debug
+console.log('WhatsApp Active:', isActive);
+console.log('Claude Connected:', isClaudeConnected);
+console.log('Messages Count:', messages.length);
+
+// Check stored credentials (safely)
+fetch('/api/whatsapp-receiver/status')
+  .then(r => r.json())
+  .then(d => console.log('Backend Status:', d));
+```
+
 ---
 
+**Technical Support**: Check console logs for debugging information  
+**API Documentation**: All endpoints documented in respective route files  
+**Deployment**: Auto-deployment via GitHub to Render on push to `mains` branch
+
 **Last Updated**: August 28, 2025  
-**Status**: Auto-fill implemented ✅ | Toggle feature planned 📋  
-**Priority**: Medium (Enhancement, not critical)
+**Version**: 2.1 (Claude AI Integration Added)  
+**Status**: Production Ready with Active Development  
+**Priority**: High (Core Business Communication Tool)  
+**File**: `frontend/src/pages/WhatsAppReceiver.jsx` (1000+ lines)  
+**Backend**: `backend/routes/whatsappTriggerNode.js` + `backend/routes/claude.js`
