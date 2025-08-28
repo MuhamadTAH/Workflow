@@ -1,16 +1,92 @@
-Access to fetch at 'https://workflow-lg9z.onrender.com/api/whatsapp-receiver/messages' from origin 'https://fixdai.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-workflow-lg9z.onrender.com/api/whatsapp-receiver/messages:1  Failed to load resource: net::ERR_FAILED
-index-CWHZEwP6.js:45 Error polling messages: TypeError: Failed to fetch
-    at index-CWHZEwP6.js:45:94859
-(anonymous) @ index-CWHZEwP6.js:45
-whatsapp-receiver:1 Access to fetch at 'https://workflow-lg9z.onrender.com/api/whatsapp-receiver/messages' from origin 'https://fixdai.com' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-workflow-lg9z.onrender.com/api/whatsapp-receiver/messages:1  Failed to load resource: net::ERR_FAILED
-index-CWHZEwP6.js:45 Error polling messages: TypeError: Failed to fetch
-    at index-CWHZEwP6.js:45:94859
-(anonymous) @ index-CWHZEwP6.js:45
-index-CWHZEwP6.js:45 Auto-selecting first conversation: Object
-workflow-lg9z.onrender.com/api/whatsapp-receiver/send-message:1  Failed to load resource: the server responded with a status of 400 ()
-whatsapp-receiver:1 Access to fetch at 'https://workflow-lg9z.onrender.com/api/whatsapp-receiver/messages' from origin 'https://fixdai.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-workflow-lg9z.onrender.com/api/whatsapp-receiver/messages:1  Failed to load resource: net::ERR_FAILED
-index-CWHZEwP6.js:45 Error polling messages: TypeError: Failed to fetch
-    at index-CWHZEwP6.js:45:94859
+(index):64 cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
+index-CWHZEwP6.js:15 🌐 API Configuration: 
+Object
+index-CWHZEwP6.js:45 WhatsApp receiver activated successfully
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+Object
+index-CWHZEwP6.js:45 Conversation clicked: 
+Object
+index-CWHZEwP6.js:45 Previous selectedConversation: 
+Object
+index-CWHZEwP6.js:45 Selected conversation set to: 
+Object
+index-CWHZEwP6.js:45 Auto-filling phone number: 9647700716669
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+{phoneNumber: '9647700716669', contactName: 'Unknown Contact', messages: Array(2), lastMessage: 'Ruth', lastMessageTime: '2025-08-28T17:41:00.000Z', …}
+contactName
+: 
+"Unknown Contact"
+lastMessage
+: 
+"Ruth"
+lastMessageTime
+: 
+"2025-08-28T17:41:00.000Z"
+messages
+: 
+(2) [{…}, {…}]
+phoneNumber
+: 
+"9647700716669"
+unreadCount
+: 
+0
+[[Prototype]]
+: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+{phoneNumber: '9647700716669', contactName: 'Unknown Contact', messages: Array(2), lastMessage: 'Ruth', lastMessageTime: '2025-08-28T17:41:00.000Z', …}
+contactName
+: 
+"Unknown Contact"
+lastMessage
+: 
+"Ruth"
+lastMessageTime
+: 
+"2025-08-28T17:41:00.000Z"
+messages
+: 
+(2) [{…}, {…}]
+phoneNumber
+: 
+"9647700716669"
+unreadCount
+: 
+0
+[[Prototype]]
+: 
+Object
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+{phoneNumber: '9647700716669', contactName: 'Unknown Contact', messages: Array(2), lastMessage: 'Ruth', lastMessageTime: '2025-08-28T17:41:00.000Z', …}
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+{phoneNumber: '9647700716669', contactName: 'Unknown Contact', messages: Array(2), lastMessage: 'Ruth', lastMessageTime: '2025-08-28T17:41:00.000Z', …}
+index-CWHZEwP6.js:45 Auto-selecting first conversation: 
+{phoneNumber: '9647700716669', contactName: 'Unknown Contact', messages: Array(2), lastMessage: 'Ruth', lastMessageTime: '2025-08-28T17:41:00.000Z', …}
+﻿

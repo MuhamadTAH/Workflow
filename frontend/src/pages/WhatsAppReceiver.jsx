@@ -93,19 +93,27 @@ const WhatsAppReceiver = () => {
     // Debug message ordering
     if (sortedConversations.length > 0) {
       const firstConv = sortedConversations[0];
-      console.log('📱 Message Ordering Debug:', {
-        conversationPhone: firstConv.phoneNumber,
-        messageCount: firstConv.messages.length,
-        firstMessage: firstConv.messages[0]?.text?.substring(0, 30),
-        firstMessageTime: firstConv.messages[0]?.timestamp || firstConv.messages[0]?.createdAt,
-        lastMessage: firstConv.messages[firstConv.messages.length - 1]?.text?.substring(0, 30),
-        lastMessageTime: firstConv.messages[firstConv.messages.length - 1]?.timestamp || firstConv.messages[firstConv.messages.length - 1]?.createdAt,
-        allMessageTimes: firstConv.messages.map(m => ({ 
-          text: m.text?.substring(0, 20), 
-          time: m.timestamp || m.createdAt,
-          direction: m.direction 
-        }))
-      });
+      console.log('📱 MESSAGE ORDERING DEBUG for phone:', firstConv.phoneNumber);
+      console.log('📊 Total messages:', firstConv.messages.length);
+      
+      if (firstConv.messages.length > 0) {
+        console.log('🔼 FIRST message (should be oldest):', {
+          text: firstConv.messages[0]?.text,
+          time: firstConv.messages[0]?.timestamp || firstConv.messages[0]?.createdAt,
+          direction: firstConv.messages[0]?.direction
+        });
+        
+        console.log('🔽 LAST message (should be newest):', {
+          text: firstConv.messages[firstConv.messages.length - 1]?.text,
+          time: firstConv.messages[firstConv.messages.length - 1]?.timestamp || firstConv.messages[firstConv.messages.length - 1]?.createdAt,
+          direction: firstConv.messages[firstConv.messages.length - 1]?.direction
+        });
+        
+        console.log('📋 ALL MESSAGES IN ORDER (oldest → newest):');
+        firstConv.messages.forEach((msg, index) => {
+          console.log(`  ${index + 1}. "${msg.text}" (${msg.direction}) at ${msg.timestamp || msg.createdAt}`);
+        });
+      }
     }
     
     return sortedConversations;
@@ -131,9 +139,9 @@ const WhatsAppReceiver = () => {
             const newConversations = groupMessagesIntoConversations(newMessages);
             setConversations(newConversations);
             
-            // Auto-select first conversation if none selected and this is the first time we have conversations
-            if (!selectedConversation && newConversations.length > 0 && conversations.length === 0) {
-              console.log('Auto-selecting first conversation:', newConversations[0]);
+            // Auto-select first conversation if none selected (only once)
+            if (!selectedConversation && newConversations.length > 0) {
+              console.log('Auto-selecting first conversation (one time):', newConversations[0]);
               setSelectedConversation(newConversations[0]);
             }
             
