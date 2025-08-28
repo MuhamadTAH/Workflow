@@ -83,18 +83,18 @@ const TelegramListener = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">
-            <i className="fab fa-telegram text-blue-500 mr-2"></i>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '2rem 0' }}>
+      <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '0 1rem' }}>
+        <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '1.5rem' }}>
+            <i className="fab fa-telegram" style={{ color: '#0088cc', marginRight: '0.5rem' }}></i>
             Telegram Bot Listener
           </h1>
           
-          <div className="space-y-6">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {/* Token Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
                 Bot Token
               </label>
               <input
@@ -102,20 +102,37 @@ const TelegramListener = () => {
                 value={botToken}
                 onChange={(e) => setBotToken(e.target.value)}
                 placeholder="Enter your Telegram bot token (e.g., 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11)"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                style={{ 
+                  width: '100%', 
+                  padding: '0.75rem', 
+                  border: '1px solid #d1d5db', 
+                  borderRadius: '6px', 
+                  fontSize: '1rem',
+                  outline: 'none',
+                  opacity: isLoading ? '0.5' : '1'
+                }}
                 disabled={isLoading}
               />
-              <p className="mt-1 text-sm text-gray-500">
+              <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', color: '#6b7280' }}>
                 Get your bot token from @BotFather on Telegram
               </p>
             </div>
 
             {/* Actions */}
-            <div className="flex space-x-4">
+            <div style={{ display: 'flex', gap: '1rem' }}>
               <button
                 onClick={handleSetupWebhook}
                 disabled={isLoading || !botToken.trim()}
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                style={{ 
+                  flex: '1',
+                  backgroundColor: isLoading || !botToken.trim() ? '#9ca3af' : '#2563eb', 
+                  color: 'white', 
+                  padding: '0.75rem 1rem', 
+                  border: 'none',
+                  borderRadius: '6px', 
+                  cursor: isLoading || !botToken.trim() ? 'not-allowed' : 'pointer',
+                  fontSize: '1rem'
+                }}
               >
                 {isLoading ? '⏳ Setting up...' : '🚀 Setup Webhook'}
               </button>
@@ -123,7 +140,16 @@ const TelegramListener = () => {
               <button
                 onClick={handleDeleteWebhook}
                 disabled={isLoading || !botToken.trim()}
-                className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                style={{ 
+                  flex: '1',
+                  backgroundColor: isLoading || !botToken.trim() ? '#9ca3af' : '#dc2626', 
+                  color: 'white', 
+                  padding: '0.75rem 1rem', 
+                  border: 'none',
+                  borderRadius: '6px', 
+                  cursor: isLoading || !botToken.trim() ? 'not-allowed' : 'pointer',
+                  fontSize: '1rem'
+                }}
               >
                 {isLoading ? '⏳ Deleting...' : '🗑️ Delete Webhook'}
               </button>
@@ -131,31 +157,41 @@ const TelegramListener = () => {
 
             {/* Status */}
             {status && (
-              <div className={`p-4 rounded-md ${
-                status.includes('✅') ? 'bg-green-50 text-green-700' : 
-                status.includes('❌') ? 'bg-red-50 text-red-700' : 
-                'bg-blue-50 text-blue-700'
-              }`}>
+              <div style={{ 
+                padding: '1rem', 
+                borderRadius: '6px', 
+                backgroundColor: status.includes('✅') ? '#f0fdf4' : status.includes('❌') ? '#fef2f2' : '#eff6ff',
+                color: status.includes('✅') ? '#15803d' : status.includes('❌') ? '#dc2626' : '#1d4ed8'
+              }}>
                 {status}
               </div>
             )}
 
             {/* Webhook URL Display */}
             {webhookUrl && (
-              <div className="bg-gray-50 p-4 rounded-md">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div style={{ backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
                   Webhook URL
                 </label>
-                <code className="block w-full p-2 bg-gray-100 rounded text-sm break-all">
+                <code style={{ 
+                  display: 'block', 
+                  width: '100%', 
+                  padding: '0.5rem', 
+                  backgroundColor: '#f3f4f6', 
+                  borderRadius: '4px', 
+                  fontSize: '0.875rem', 
+                  wordBreak: 'break-all',
+                  fontFamily: 'monospace'
+                }}>
                   {webhookUrl}
                 </code>
               </div>
             )}
 
             {/* Instructions */}
-            <div className="bg-blue-50 p-4 rounded-md">
-              <h3 className="font-medium text-blue-900 mb-2">📋 Instructions:</h3>
-              <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800">
+            <div style={{ backgroundColor: '#eff6ff', padding: '1rem', borderRadius: '6px' }}>
+              <h3 style={{ fontWeight: '500', color: '#1e3a8a', marginBottom: '0.5rem' }}>📋 Instructions:</h3>
+              <ol style={{ paddingLeft: '1.5rem', fontSize: '0.875rem', color: '#1e40af', lineHeight: '1.5' }}>
                 <li>Get a bot token from @BotFather on Telegram</li>
                 <li>Paste the token above and click "Setup Webhook"</li>
                 <li>Send messages to your bot - they'll be received by the backend</li>
