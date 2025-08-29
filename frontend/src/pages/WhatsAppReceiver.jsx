@@ -1339,6 +1339,18 @@ const WhatsAppReceiver = () => {
                     {isSending ? '⏳' : '📤'}
                   </button>
                 </div>
+                
+                {/* Send Status */}
+                {sendStatus && (
+                  <div style={{
+                    marginTop: '8px',
+                    fontSize: '12px',
+                    color: sendStatus.includes('✅') ? '#16a34a' : sendStatus.includes('❌') ? '#dc2626' : '#6b7280',
+                    textAlign: 'center'
+                  }}>
+                    {sendStatus}
+                  </div>
+                )}
               </div>
             </>
           ) : (
@@ -1362,6 +1374,26 @@ const WhatsAppReceiver = () => {
           )}
         </div>
       </div>
+
+      {/* Status indicator for WhatsApp system */}
+      {!isActive && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: '#fef2f2',
+          border: '1px solid #fecaca',
+          borderRadius: '8px',
+          padding: '12px 16px',
+          color: '#991b1b',
+          fontSize: '14px',
+          fontWeight: '500',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          zIndex: 1000
+        }}>
+          ⚠️ WhatsApp system is inactive. Configure and activate to start receiving messages.
+        </div>
+      )}
 
     </div>
   );
