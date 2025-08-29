@@ -1374,6 +1374,8 @@ const WhatsAppReceiver = () => {
           )}
         </div>
       </div>
+        </div>
+      </div>
 
       {/* Status indicator for WhatsApp system */}
       {!isActive && (
