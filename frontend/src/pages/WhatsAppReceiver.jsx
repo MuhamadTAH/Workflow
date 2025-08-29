@@ -31,6 +31,7 @@ const WhatsAppReceiver = () => {
   const [isClaudeConnected, setIsClaudeConnected] = useState(false);
   const [isConnectingClaude, setIsConnectingClaude] = useState(false);
   const [claudeStatus, setClaudeStatus] = useState('');
+  const [isActivating, setIsActivating] = useState(false);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -1152,8 +1153,8 @@ const WhatsAppReceiver = () => {
             </label>
             <input
               type="text"
-              value={phoneNumberId}
-              onChange={(e) => setPhoneNumberId(e.target.value)}
+              value={phoneNumberSendId}
+              onChange={(e) => setPhoneNumberSendId(e.target.value)}
               placeholder="Enter your phone number ID"
               style={{
                 width: '100%',
@@ -1191,7 +1192,7 @@ const WhatsAppReceiver = () => {
           </div>
 
           <button
-            onClick={handleActivateWhatsApp}
+            onClick={handleActivate}
             disabled={isActivating}
             style={{
               background: isActive ? '#10b981' : '#25D366',
@@ -1212,7 +1213,7 @@ const WhatsAppReceiver = () => {
 
           {isActive && (
             <button
-              onClick={handleDeactivateWhatsApp}
+              onClick={handleDeactivate}
               style={{
                 background: '#ef4444',
                 color: 'white',
