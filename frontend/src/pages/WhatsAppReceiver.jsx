@@ -504,20 +504,35 @@ const WhatsAppReceiver = () => {
 
   return (
     <div className="whatsapp-receiver-page" style={{ 
-      height: '100vh', 
-      display: 'flex', 
+      minHeight: '100vh',
       fontFamily: 'system-ui, -apple-system, sans-serif',
-      backgroundColor: '#f0f2f5'
+      backgroundColor: '#f0f2f5',
+      padding: '20px'
     }}>
-      {/* LEFT SIDEBAR - Configuration Panels */}
+      {/* CLAUDE AI INTEGRATION SECTION */}
       <div style={{
-        width: '350px',
         backgroundColor: '#ffffff',
-        borderRight: '1px solid #e4e6ea',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'auto'
+        borderRadius: '8px',
+        marginBottom: '20px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }}>
+        <div style={{
+          padding: '20px',
+          borderBottom: '1px solid #e4e6ea'
+        }}>
+          <h2 style={{ 
+            color: '#7C3AED',
+            fontSize: '20px',
+            fontWeight: '600',
+            margin: '0 0 10px 0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            🤖 Claude AI Integration
+          </h2>
+        </div>
+        <div style={{ padding: '20px', flex: 1, overflowY: 'auto' }}>
         
         {/* Sidebar Header */}
         <div style={{
@@ -1075,13 +1090,173 @@ const WhatsAppReceiver = () => {
           </div>
         </div>
       </div>
-      
-      {/* MAIN CONVERSATIONS PANEL - Right Side */}
+
+      {/* WHATSAPP CONFIGURATION SECTION */}
       <div style={{
-        flex: 1,
         backgroundColor: '#ffffff',
-        display: 'flex',
-        flexDirection: 'column'
+        borderRadius: '8px',
+        marginBottom: '20px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{
+          padding: '20px',
+          borderBottom: '1px solid #e4e6ea'
+        }}>
+          <h2 style={{ 
+            color: '#25D366',
+            fontSize: '20px',
+            fontWeight: '600',
+            margin: '0 0 10px 0',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            📱 WhatsApp Configuration
+          </h2>
+        </div>
+        <div style={{ padding: '20px' }}>
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '5px',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#374151'
+            }}>
+              Webhook URL:
+            </label>
+            <input
+              type="text"
+              value={webhookUrl}
+              onChange={(e) => setWebhookUrl(e.target.value)}
+              placeholder="Enter your webhook URL"
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '5px',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#374151'
+            }}>
+              Phone Number ID:
+            </label>
+            <input
+              type="text"
+              value={phoneNumberId}
+              onChange={(e) => setPhoneNumberId(e.target.value)}
+              placeholder="Enter your phone number ID"
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '5px',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#374151'
+            }}>
+              Access Token:
+            </label>
+            <input
+              type="password"
+              value={accessToken}
+              onChange={(e) => setAccessToken(e.target.value)}
+              placeholder="Enter your access token"
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '14px'
+              }}
+            />
+          </div>
+
+          <button
+            onClick={handleActivateWhatsApp}
+            disabled={isActivating}
+            style={{
+              background: isActive ? '#10b981' : '#25D366',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '6px',
+              cursor: isActivating ? 'not-allowed' : 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              marginRight: '10px',
+              opacity: isActivating ? 0.7 : 1
+            }}
+          >
+            {isActivating ? '⏳ Activating...' : 
+             isActive ? '✅ Active' : '🚀 Activate WhatsApp'}
+          </button>
+
+          {isActive && (
+            <button
+              onClick={handleDeactivateWhatsApp}
+              style={{
+                background: '#ef4444',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+            >
+              🛑 Deactivate
+            </button>
+          )}
+
+          <div style={{
+            marginTop: '15px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 16px',
+            borderRadius: '20px',
+            background: isActive ? '#d4edda' : '#f8d7da',
+            color: isActive ? '#155724' : '#721c24',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}>
+            <div style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              background: isActive ? '#28a745' : '#dc3545'
+            }}></div>
+            {isActive ? 'Listening for messages' : 'Inactive'}
+          </div>
+        </div>
+      </div>
+
+      {/* CONVERSATIONS SECTION */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        borderRadius: '8px',
+        marginBottom: '20px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }}>
           {/* Conversations Header */}
           <div style={{
@@ -1177,6 +1352,7 @@ const WhatsAppReceiver = () => {
                 <div style={{ fontSize: '14px' }}>Messages will appear here when received</div>
               </div>
             )}
+          </div>
           </div>
         </div>
       </div>
