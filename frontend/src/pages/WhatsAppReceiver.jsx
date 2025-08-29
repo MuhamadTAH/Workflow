@@ -1076,358 +1076,291 @@ const WhatsAppReceiver = () => {
         </div>
       </div>
       
-      {/* CONVERSATIONS PANEL - Middle */}
-      <div style={{
-        width: '350px',
-        backgroundColor: '#ffffff',
-        borderRight: '1px solid #e4e6ea',
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
-        {/* Conversations Header */}
-        <div style={{
-          padding: '20px',
-          borderBottom: '1px solid #e4e6ea',
-          backgroundColor: '#f8f9fa'
-        }}>
-          <h2 style={{
-            margin: '0',
-            fontSize: '18px',
-            fontWeight: '600',
-            color: '#1f2937',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            💬 Conversations ({conversations.length})
-          </h2>
-        </div>
-        
-        {/* Conversations List */}
-        <div style={{ flex: 1, overflowY: 'auto' }}>
-          {conversations.length > 0 ? (
-            conversations.map((conversation, index) => (
-              <div
-                key={conversation.phoneNumber}
-                onClick={() => setSelectedConversation(conversation)}
-                style={{
-                  padding: '16px 20px',
-                  borderBottom: '1px solid #f0f0f0',
-                  cursor: 'pointer',
-                  backgroundColor: selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : 'transparent',
-                  transition: 'background-color 0.2s',
-                  ':hover': { backgroundColor: '#f5f5f5' }
-                }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : '#f5f5f5'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : 'transparent'}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    backgroundColor: '#25D366',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: '16px',
-                    fontWeight: '600'
-                  }}>
-                    {conversation.contactName?.charAt(0) || '👤'}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontWeight: '600',
-                      fontSize: '14px',
-                      color: '#1f2937',
-                      marginBottom: '4px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      {conversation.contactName || conversation.phoneNumber}
-                    </div>
-                    <div style={{
-                      fontSize: '13px',
-                      color: '#6b7280',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}>
-                      {conversation.lastMessage}
-                    </div>
-                    <div style={{
-                      fontSize: '12px',
-                      color: '#9ca3af',
-                      marginTop: '2px'
-                    }}>
-                      {formatTimestamp(conversation.lastMessageTime)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div style={{
-              padding: '40px 20px',
-              textAlign: 'center',
-              color: '#6b7280'
-            }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px', opacity: '0.5' }}>💬</div>
-              <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }}>No conversations yet</div>
-              <div style={{ fontSize: '14px' }}>Messages will appear here when received</div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* CONVERSATION CHAT PANEL - Right */}
+      {/* MAIN CONVERSATIONS PANEL - Right Side */}
       <div style={{
         flex: 1,
         backgroundColor: '#ffffff',
         display: 'flex',
-        flexDirection: 'column'
+        height: '100vh'
       }}>
-        {selectedConversation ? (
-          <>
-            {/* Chat Header */}
-            <div style={{
-              padding: '20px',
-              borderBottom: '1px solid #e4e6ea',
-              backgroundColor: '#f8f9fa',
+        {/* Conversations List */}
+        <div style={{
+          width: '350px',
+          borderRight: '1px solid #e4e6ea',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          {/* Conversations Header */}
+          <div style={{
+            padding: '20px',
+            borderBottom: '1px solid #e4e6ea',
+            backgroundColor: '#f8f9fa'
+          }}>
+            <h2 style={{
+              margin: '0',
+              fontSize: '18px',
+              fontWeight: '600',
+              color: '#1f2937',
               display: 'flex',
               alignItems: 'center',
-              gap: '12px'
+              gap: '8px'
             }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '50%',
-                backgroundColor: '#25D366',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontSize: '16px',
-                fontWeight: '600'
-              }}>
-                {selectedConversation.contactName?.charAt(0) || '👤'}
-              </div>
-              <div>
-                <div style={{
-                  fontWeight: '600',
-                  fontSize: '16px',
-                  color: '#1f2937'
-                }}>
-                  {selectedConversation.contactName || selectedConversation.phoneNumber}
-                </div>
-                <div style={{
-                  fontSize: '14px',
-                  color: '#6b7280'
-                }}>
-                  {selectedConversation.phoneNumber}
-                </div>
-              </div>
-            </div>
-
-            {/* Messages Area */}
-            <div style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '20px',
-              backgroundColor: '#fafafa'
-            }}>
-              {selectedConversation.messages.map((message, index) => {
-                const isOutgoing = message.direction === 'outbound' || message.type === 'sent';
-                
-                return (
-                  <div key={index} style={{
-                    marginBottom: '16px',
-                    display: 'flex',
-                    justifyContent: isOutgoing ? 'flex-end' : 'flex-start'
-                  }}>
+              💬 Conversations ({conversations.length})
+            </h2>
+          </div>
+          
+          {/* Conversations List */}
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {conversations.length > 0 ? (
+              conversations.map((conversation, index) => (
+                <div
+                  key={conversation.phoneNumber}
+                  onClick={() => setSelectedConversation(conversation)}
+                  style={{
+                    padding: '16px 20px',
+                    borderBottom: '1px solid #f0f0f0',
+                    cursor: 'pointer',
+                    backgroundColor: selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : 'transparent',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : '#f5f5f5'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : 'transparent'}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{
-                      maxWidth: '70%',
-                      padding: '12px 16px',
-                      borderRadius: isOutgoing ? '18px 18px 6px 18px' : '18px 18px 18px 6px',
-                      backgroundColor: isOutgoing ? '#25D366' : '#ffffff',
-                      color: isOutgoing ? 'white' : '#1f2937',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                      wordBreak: 'break-word'
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      backgroundColor: '#25D366',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'white',
+                      fontSize: '16px',
+                      fontWeight: '600'
                     }}>
-                      <div style={{ fontSize: '14px', lineHeight: '1.4' }}>
-                        {message.text || message.message}
+                      {conversation.contactName?.charAt(0) || '👤'}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontWeight: '600',
+                        fontSize: '14px',
+                        color: '#1f2937',
+                        marginBottom: '4px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {conversation.contactName || conversation.phoneNumber}
+                      </div>
+                      <div style={{
+                        fontSize: '13px',
+                        color: '#6b7280',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {conversation.lastMessage}
                       </div>
                       <div style={{
                         fontSize: '12px',
-                        marginTop: '4px',
-                        opacity: '0.7',
-                        textAlign: 'right'
+                        color: '#9ca3af',
+                        marginTop: '2px'
                       }}>
-                        {formatTimestamp(message.timestamp || message.createdAt)}
+                        {formatTimestamp(conversation.lastMessageTime)}
                       </div>
                     </div>
                   </div>
-                );
-              })}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Message Input Area */}
-            <div style={{
-              padding: '20px',
-              borderTop: '1px solid #e4e6ea',
-              backgroundColor: '#ffffff'
-            }}>
+                </div>
+              ))
+            ) : (
               <div style={{
+                padding: '40px 20px',
+                textAlign: 'center',
+                color: '#6b7280'
+              }}>
+                <div style={{ fontSize: '48px', marginBottom: '16px', opacity: '0.5' }}>💬</div>
+                <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }}>No conversations yet</div>
+                <div style={{ fontSize: '14px' }}>Messages will appear here when received</div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Chat Panel */}
+        <div style={{
+          flex: 1,
+          backgroundColor: '#ffffff',
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          {selectedConversation ? (
+            <>
+              {/* Chat Header */}
+              <div style={{
+                padding: '20px',
+                borderBottom: '1px solid #e4e6ea',
+                backgroundColor: '#f8f9fa',
                 display: 'flex',
-                alignItems: 'flex-end',
+                alignItems: 'center',
                 gap: '12px'
               }}>
-                <textarea
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  placeholder="Type a message..."
-                  disabled={!isActive}
-                  style={{
-                    flex: 1,
-                    minHeight: '44px',
-                    maxHeight: '120px',
-                    padding: '12px 16px',
-                    border: '1px solid #e4e6ea',
-                    borderRadius: '22px',
-                    resize: 'none',
-                    fontSize: '14px',
-                    fontFamily: 'inherit',
-                    outline: 'none',
-                    backgroundColor: isActive ? 'white' : '#f5f5f5'
-                  }}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      if (!isSending && messageText.trim() && isActive) {
-                        handleSendMessage();
-                      }
-                    }
-                  }}
-                />
-                <button
-                  onClick={handleSendMessage}
-                  disabled={isSending || !messageText.trim() || !isActive}
-                  style={{
-                    padding: '12px',
-                    background: (isSending || !messageText.trim() || !isActive) ? '#e9ecef' : '#25D366',
-                    color: (isSending || !messageText.trim() || !isActive) ? '#6c757d' : 'white',
-                    border: 'none',
-                    borderRadius: '50%',
-                    cursor: (isSending || !messageText.trim() || !isActive) ? 'not-allowed' : 'pointer',
-                    fontSize: '18px',
-                    width: '44px',
-                    height: '44px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'background-color 0.2s'
-                  }}
-                >
-                  {isSending ? '⏳' : '📤'}
-                </button>
-              </div>
-              
-              {/* Send Status */}
-              {sendStatus && (
                 <div style={{
-                  marginTop: '8px',
-                  fontSize: '12px',
-                  color: sendStatus.includes('✅') ? '#16a34a' : sendStatus.includes('❌') ? '#dc2626' : '#6b7280',
-                  textAlign: 'center'
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  backgroundColor: '#25D366',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white',
+                  fontSize: '16px',
+                  fontWeight: '600'
                 }}>
-                  {sendStatus}
+                  {selectedConversation.contactName?.charAt(0) || '👤'}
                 </div>
-              )}
+                <div>
+                  <div style={{
+                    fontWeight: '600',
+                    fontSize: '16px',
+                    color: '#1f2937'
+                  }}>
+                    {selectedConversation.contactName || selectedConversation.phoneNumber}
+                  </div>
+                  <div style={{
+                    fontSize: '14px',
+                    color: '#6b7280'
+                  }}>
+                    {selectedConversation.phoneNumber}
+                  </div>
+                </div>
+              </div>
+
+              {/* Messages Area */}
+              <div style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '20px',
+                backgroundColor: '#fafafa'
+              }}>
+                {selectedConversation.messages.map((message, index) => {
+                  const isOutgoing = message.direction === 'outbound' || message.type === 'sent';
+                  
+                  return (
+                    <div key={index} style={{
+                      marginBottom: '16px',
+                      display: 'flex',
+                      justifyContent: isOutgoing ? 'flex-end' : 'flex-start'
+                    }}>
+                      <div style={{
+                        maxWidth: '70%',
+                        padding: '12px 16px',
+                        borderRadius: isOutgoing ? '18px 18px 6px 18px' : '18px 18px 18px 6px',
+                        backgroundColor: isOutgoing ? '#25D366' : '#ffffff',
+                        color: isOutgoing ? 'white' : '#1f2937',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                        wordBreak: 'break-word'
+                      }}>
+                        <div style={{ fontSize: '14px', lineHeight: '1.4' }}>
+                          {message.text || message.message}
+                        </div>
+                        <div style={{
+                          fontSize: '12px',
+                          marginTop: '4px',
+                          opacity: '0.7',
+                          textAlign: 'right'
+                        }}>
+                          {formatTimestamp(message.timestamp || message.createdAt)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Message Input Area */}
+              <div style={{
+                padding: '20px',
+                borderTop: '1px solid #e4e6ea',
+                backgroundColor: '#ffffff'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  gap: '12px'
+                }}>
+                  <textarea
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    placeholder="Type a message..."
+                    disabled={!isActive}
+                    style={{
+                      flex: 1,
+                      minHeight: '44px',
+                      maxHeight: '120px',
+                      padding: '12px 16px',
+                      border: '1px solid #e4e6ea',
+                      borderRadius: '22px',
+                      resize: 'none',
+                      fontSize: '14px',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      backgroundColor: isActive ? 'white' : '#f5f5f5'
+                    }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (!isSending && messageText.trim() && isActive) {
+                          handleSendMessage();
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={isSending || !messageText.trim() || !isActive}
+                    style={{
+                      padding: '12px',
+                      background: (isSending || !messageText.trim() || !isActive) ? '#e9ecef' : '#25D366',
+                      color: (isSending || !messageText.trim() || !isActive) ? '#6c757d' : 'white',
+                      border: 'none',
+                      borderRadius: '50%',
+                      cursor: (isSending || !messageText.trim() || !isActive) ? 'not-allowed' : 'pointer',
+                      fontSize: '18px',
+                      width: '44px',
+                      height: '44px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'background-color 0.2s'
+                    }}
+                  >
+                    {isSending ? '⏳' : '📤'}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#6b7280',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>💬</div>
+              <h3 style={{ fontSize: '18px', margin: '0 0 8px 0', fontWeight: '500' }}>
+                Select a conversation
+              </h3>
+              <p style={{ fontSize: '14px', margin: 0 }}>
+                Choose a conversation from the left to view messages
+              </p>
             </div>
-          </>
-        ) : (
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#6b7280',
-            textAlign: 'center'
-          }}>
-            <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>💬</div>
-            <h3 style={{ fontSize: '18px', margin: '0 0 8px 0', fontWeight: '500' }}>
-              Select a conversation
-            </h3>
-            <p style={{ fontSize: '14px', margin: 0 }}>
-              Choose a conversation from the left to view messages
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Status indicator for WhatsApp system */}
-      {!isActive && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          background: '#fef2f2',
-          border: '1px solid #fecaca',
-          borderRadius: '8px',
-          padding: '12px 16px',
-          color: '#991b1b',
-          fontSize: '14px',
-          fontWeight: '500',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          zIndex: 1000
-        }}>
-          ⚠️ WhatsApp system is inactive. Configure and activate to start receiving messages.
+          )}
         </div>
-      )}
-      
-      </div>
-      
-      {/* CONVERSATIONS PANEL - Middle */}
-      <div style={{
-        width: '350px',
-        backgroundColor: '#ffffff',
-        borderRight: '1px solid #e4e6ea',
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
-        <div style={{
-          padding: '40px 20px',
-          textAlign: 'center',
-          color: '#6b7280'
-        }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px', opacity: '0.5' }}>💬</div>
-          <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }}>Configure WhatsApp first</div>
-          <div style={{ fontSize: '14px' }}>Activate the system to see conversations</div>
-        </div>
-      </div>
-
-      {/* CONVERSATION CHAT PANEL - Right */}
-      <div style={{
-        flex: 1,
-        backgroundColor: '#ffffff',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#6b7280',
-        textAlign: 'center'
-      }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>💬</div>
-        <h3 style={{ fontSize: '18px', margin: '0 0 8px 0', fontWeight: '500' }}>
-          Welcome to WhatsApp Receiver
-        </h3>
-        <p style={{ fontSize: '14px', margin: 0 }}>
-          Configure your WhatsApp settings on the left to start receiving messages
-        </p>
       </div>
 
     </div>
