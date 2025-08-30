@@ -1299,14 +1299,59 @@ Key guidelines:
 
           console.log('🔄 Processing WhatsApp message with Claude AI...');
           
-          // Get AI response using the same system as Telegram
-          const result = await advancedAIProcessor.processAdvancedConversation(
-            mockWhatsAppAssistant.id,
-            customerMessage,
-            customerInfo
-          );
+          // Use direct Claude API call instead of AdvancedAIProcessor to avoid database dependency
+          let result = null;
+          try {
+            console.log('📞 Making direct Claude API call for WhatsApp...');
+            
+            const response = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': mockWhatsAppAssistant.ai_api_key,
+                'anthropic-version': '2023-06-01'
+              },
+              body: JSON.stringify({
+                model: mockWhatsAppAssistant.ai_model,
+                max_tokens: 500,
+                messages: [
+                  {
+                    role: 'user',
+                    content: `${mockWhatsAppAssistant.system_prompt}\n\nCustomer: ${messageText}`
+                  }
+                ]
+              })
+            });
 
-          if (result.success) {
+            const data = await response.json();
+            
+            if (!response.ok) {
+              console.error('❌ Claude API error:', data);
+              throw new Error(`Claude API error: ${data.error?.message || response.statusText}`);
+            }
+            
+            const aiResponseText = data.content[0].text;
+            console.log('✅ Claude API response generated:', aiResponseText?.substring(0, 100));
+            
+            result = {
+              success: true,
+              response: aiResponseText,
+              metadata: {
+                processing_time: Date.now() - startTime,
+                ai_model: mockWhatsAppAssistant.ai_model
+              }
+            };
+          
+          } catch (claudeError) {
+            console.error('❌ Claude API call failed:', claudeError);
+            result = {
+              success: false,
+              error: claudeError.message,
+              fallback_response: "I apologize, but I'm experiencing technical difficulties. Please try again in a moment."
+            };
+          }
+
+          if (result && result.success) {
             console.log('✅ Claude AI generated response for WhatsApp:', result.response?.substring(0, 100));
             
             // Send response back via WhatsApp using the unified configuration
@@ -1392,11 +1437,11 @@ Key guidelines:
               console.log('⚠️ WhatsApp sending credentials not available - AI response not sent');
             }
             
-          } else {
-            console.error('❌ Advanced AI processing failed for WhatsApp:', result.error);
+          } else if (result) {
+            console.error('❌ WhatsApp AI processing failed:', result.error);
           }
         }
-        }
+        } // End of Claude configuration check
       } else {
         console.log('📴 WhatsApp AI processing skipped - receiver inactive or no stored message');
       }
