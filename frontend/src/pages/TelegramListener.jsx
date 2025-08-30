@@ -628,54 +628,56 @@ CONTACT & SOCIAL:
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '2rem 0' }}>
       <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0 1rem' }}>
+        {/* Fixed Toggle Buttons */}
+        <button
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          style={{
+            position: 'fixed',
+            top: '20px',
+            left: isSidebarCollapsed ? '20px' : '420px',
+            backgroundColor: '#3b82f6',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '0.75rem 1rem',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            zIndex: 1001
+          }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+        >
+          {isSidebarCollapsed ? '☰' : '✕'}
+        </button>
+        
+        <button
+          onClick={() => setIsRightSidebarCollapsed(!isRightSidebarCollapsed)}
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: isRightSidebarCollapsed ? '20px' : '320px',
+            backgroundColor: '#10b981',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '0.75rem 1rem',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            zIndex: 1001
+          }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
+        >
+          {isRightSidebarCollapsed ? '☰' : '✕'}
+        </button>
+
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', position: 'relative' }}>
-          {/* Sidebar Toggle Button */}
-          <button
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            style={{
-              position: 'absolute',
-              left: '0',
-              backgroundColor: '#3b82f6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '0.75rem 1rem',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-              transition: 'all 0.2s ease',
-              zIndex: 10
-            }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
-          >
-            {isSidebarCollapsed ? '☰ Show Left' : '✕ Hide Left'}
-          </button>
-          
-          {/* Right Sidebar Toggle Button */}
-          <button
-            onClick={() => setIsRightSidebarCollapsed(!isRightSidebarCollapsed)}
-            style={{
-              position: 'absolute',
-              right: '0',
-              backgroundColor: '#10b981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '0.75rem 1rem',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-              transition: 'all 0.2s ease',
-              zIndex: 10
-            }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
-          >
-            {isRightSidebarCollapsed ? 'Show Right ☰' : 'Hide Right ✕'}
-          </button>
           
           <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827' }}>
             <i className="fab fa-telegram" style={{ color: '#0088cc', marginRight: '0.5rem' }}></i>
@@ -1463,7 +1465,8 @@ CONTACT & SOCIAL:
             gap: '1.5rem',
             minWidth: '500px',
             marginLeft: isSidebarCollapsed ? '0' : '420px',
-            transition: 'margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+            marginRight: isRightSidebarCollapsed ? '0' : '320px',
+            transition: 'margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), margin-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
           }}>
 
             {/* Two Panel Layout */}
@@ -1773,18 +1776,19 @@ CONTACT & SOCIAL:
           <div style={{ 
             width: '300px',
             backgroundColor: '#f8fafc', 
-            borderRadius: '8px', 
+            borderRadius: '8px 0 0 8px', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
             padding: '0',
-            height: 'fit-content',
-            position: 'sticky',
-            top: '2rem',
+            height: '100vh',
+            position: 'fixed',
+            top: '0',
+            right: '0',
             border: '1px solid #e2e8f0',
             overflow: 'hidden',
             transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
             transform: isRightSidebarCollapsed ? 'translateX(320px)' : 'translateX(0)',
             opacity: isRightSidebarCollapsed ? 0 : 1,
-            zIndex: 10
+            zIndex: 1000
           }}>
             {/* Right Sidebar Header */}
             <div style={{ 
@@ -1799,7 +1803,7 @@ CONTACT & SOCIAL:
             </div>
             
             {/* Right Sidebar Content */}
-            <div style={{ padding: '1.5rem', maxHeight: '80vh', overflowY: 'auto' }}>
+            <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
               
               {/* Selected User Info Section */}
               <div style={{ marginBottom: '2rem' }}>
