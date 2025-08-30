@@ -531,7 +531,7 @@ const WhatsAppReceiver = () => {
           </h1>
         </div>
         
-        <div style={{ display: 'flex', gap: '0', alignItems: 'flex-start', position: 'relative' }}>
+        <div style={{ position: 'relative' }}>
           
           {/* LEFT SIDEBAR - Configuration Panel */}
           <div style={{ 
@@ -1028,18 +1028,21 @@ const WhatsAppReceiver = () => {
           
           {/* MIDDLE COLUMN - Chat Interface */}
           <div style={{ 
-            flex: '1',
+            position: 'fixed',
+            top: '0',
+            left: isSidebarCollapsed ? '0' : '400px',
+            right: isRightSidebarCollapsed ? '0' : '300px',
+            height: '100vh',
             display: 'flex', 
             flexDirection: 'column', 
             gap: '0',
-            minWidth: 'calc(100vw - 700px)',
-            marginLeft: isSidebarCollapsed ? '0' : '400px',
-            marginRight: isRightSidebarCollapsed ? '0' : '300px',
-            transition: 'margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), margin-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            transition: 'left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             padding: '2rem 1rem',
             backgroundColor: '#fafafa',
             borderTop: '1px solid #e2e8f0',
-            borderBottom: '1px solid #e2e8f0'
+            borderBottom: '1px solid #e2e8f0',
+            zIndex: 999,
+            overflowY: 'auto'
           }}>
 
             {/* WhatsApp Status Warning */}
