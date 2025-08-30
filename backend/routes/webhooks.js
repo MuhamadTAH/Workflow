@@ -1304,28 +1304,28 @@ Key guidelines:
           try {
             console.log('📞 Making direct Claude API call for WhatsApp...');
             
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
-              method: 'POST',
+            // Use axios instead of fetch for better compatibility
+            const axios = require('axios');
+            const response = await axios.post('https://api.anthropic.com/v1/messages', {
+              model: mockWhatsAppAssistant.ai_model,
+              max_tokens: 500,
+              messages: [
+                {
+                  role: 'user',
+                  content: `${mockWhatsAppAssistant.system_prompt}\n\nCustomer: ${messageText}`
+                }
+              ]
+            }, {
               headers: {
                 'Content-Type': 'application/json',
                 'x-api-key': mockWhatsAppAssistant.ai_api_key,
                 'anthropic-version': '2023-06-01'
-              },
-              body: JSON.stringify({
-                model: mockWhatsAppAssistant.ai_model,
-                max_tokens: 500,
-                messages: [
-                  {
-                    role: 'user',
-                    content: `${mockWhatsAppAssistant.system_prompt}\n\nCustomer: ${messageText}`
-                  }
-                ]
-              })
+              }
             });
 
-            const data = await response.json();
+            const data = response.data;
             
-            if (!response.ok) {
+            if (!response || response.status !== 200) {
               console.error('❌ Claude API error:', data);
               throw new Error(`Claude API error: ${data.error?.message || response.statusText}`);
             }
@@ -1370,19 +1370,17 @@ Key guidelines:
                 }
               };
 
-              const response = await fetch(url, {
-                method: 'POST',
+              const response = await axios.post(url, requestBody, {
                 headers: {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${receiverState.accessToken}`,
                   'User-Agent': 'WhatsApp-AI-Bot/1.0'
-                },
-                body: JSON.stringify(requestBody)
+                }
               });
 
-              const data = await response.json();
+              const data = response.data;
 
-              if (!response.ok) {
+              if (response.status !== 200) {
                 const errorMsg = data.error?.message || `HTTP ${response.status}: ${response.statusText}`;
                 console.error('❌ WhatsApp AI Response Send Error:', data);
               } else {
