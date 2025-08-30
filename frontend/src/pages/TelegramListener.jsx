@@ -13,6 +13,9 @@ const TelegramListener = () => {
   const [sendMessage, setSendMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   
+  // Sidebar state
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  
   // Claude API states
   const [claudeApiKey, setClaudeApiKey] = useState('');
   const [claudeStatus, setClaudeStatus] = useState('');
@@ -624,28 +627,74 @@ CONTACT & SOCIAL:
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '2rem 0' }}>
       <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0 1rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '1.5rem', textAlign: 'center' }}>
-          <i className="fab fa-telegram" style={{ color: '#0088cc', marginRight: '0.5rem' }}></i>
-          Telegram Bot Listener
-        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', position: 'relative' }}>
+          {/* Sidebar Toggle Button */}
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            style={{
+              position: 'absolute',
+              left: '0',
+              backgroundColor: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '0.75rem 1rem',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+              transition: 'all 0.2s ease',
+              zIndex: 10
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+          >
+            {isSidebarCollapsed ? '☰ Show Sidebar' : '✕ Hide Sidebar'}
+          </button>
+          
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827' }}>
+            <i className="fab fa-telegram" style={{ color: '#0088cc', marginRight: '0.5rem' }}></i>
+            Telegram Bot Listener
+          </h1>
+        </div>
         
         <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
           
-          {/* LEFT SIDEBAR - Main Configuration Panel */}
-          <div style={{ 
-            flex: '0 0 400px',
-            backgroundColor: 'white', 
-            borderRadius: '8px', 
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-            padding: '1.5rem',
-            height: 'fit-content',
-            position: 'sticky',
-            top: '2rem'
-          }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1.5rem' }}>
-              ⚙️ Configuration Panel
-            </h2>
-            {/* Token Input */}
+          {/* LEFT SIDEBAR - Collapsible Configuration Panel */}
+          {!isSidebarCollapsed && (
+            <div style={{ 
+              flex: '0 0 400px',
+              backgroundColor: '#f8fafc', 
+              borderRadius: '8px', 
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
+              padding: '0',
+              height: 'fit-content',
+              position: 'sticky',
+              top: '2rem',
+              border: '1px solid #e2e8f0',
+              overflow: 'hidden',
+              transition: 'all 0.3s ease'
+            }}>
+              {/* Sidebar Header */}
+              <div style={{ 
+                backgroundColor: '#3b82f6', 
+                color: 'white', 
+                padding: '1rem 1.5rem',
+                borderRadius: '8px 8px 0 0'
+              }}>
+                <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
+                  ⚙️ Configuration Panel
+                </h2>
+              </div>
+              
+              {/* Sidebar Content */}
+              <div style={{ padding: '1.5rem', maxHeight: '80vh', overflowY: 'auto' }}>
+                
+                {/* Bot Configuration Section */}
+                <div style={{ marginBottom: '2rem' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
+                    🤖 Bot Configuration
+                  </h3>
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
                 Bot Token
@@ -751,13 +800,15 @@ CONTACT & SOCIAL:
                 <li>Messages are updated automatically every 2 seconds</li>
               </ol>
             </div>
+                </div>
 
-            {/* Claude AI Configuration Panel */}
-            <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
-                <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🤖</span>
-                Claude AI Configuration
-              </h3>
+                {/* Claude AI Configuration Section */}
+                <div style={{ marginBottom: '2rem' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
+                    🤖 Claude AI Configuration
+                  </h3>
+
+            {/* Claude AI Configuration Content */}
 
               {/* Claude Connection Status */}
               <div style={{
@@ -893,17 +944,16 @@ CONTACT & SOCIAL:
                   Once connected, you can process messages with AI assistance and generate automated replies.
                 </p>
               </div>
-            </div>
+                </div>
 
-            {/* System Prompt Configuration Panel */}
-            <div style={{
-              backgroundColor: 'white', 
-              borderRadius: '8px', 
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-              padding: '1.5rem', 
-              border: '1px solid #e2e8f0',
-              opacity: claudeConnectionStatus === 'connected' ? 1 : 0.6
-            }}>
+                {/* System Prompt Configuration Section */}
+                <div style={{ marginBottom: '2rem' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
+                    🎭 System Prompt
+                  </h3>
+
+            {/* System Prompt Configuration Content */}
+            <div style={{ opacity: claudeConnectionStatus === 'connected' ? 1 : 0.6 }}>
               {claudeConnectionStatus !== 'connected' && (
                 <div style={{
                   backgroundColor: '#fef2f2',
@@ -917,10 +967,6 @@ CONTACT & SOCIAL:
                   </p>
                 </div>
               )}
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
-                <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🎭</span>
-                System Prompt Configuration
-              </h3>
 
                 {/* System Prompt Description */}
                 <div style={{
@@ -1059,16 +1105,16 @@ CONTACT & SOCIAL:
                   </p>
                 </div>
             </div>
+                </div>
 
-            {/* PDF Knowledge Base Panel */}
-            <div style={{
-              backgroundColor: 'white', 
-              borderRadius: '8px', 
-              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-              padding: '1.5rem', 
-              border: '1px solid #e2e8f0',
-              opacity: claudeConnectionStatus === 'connected' ? 1 : 0.6
-            }}>
+                {/* PDF Knowledge Base Section */}
+                <div style={{ marginBottom: '2rem' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
+                    📄 PDF Knowledge Base
+                  </h3>
+
+            {/* PDF Knowledge Base Content */}
+            <div style={{ opacity: claudeConnectionStatus === 'connected' ? 1 : 0.6 }}>
               {claudeConnectionStatus !== 'connected' && (
                 <div style={{
                   backgroundColor: '#fef2f2',
@@ -1082,10 +1128,6 @@ CONTACT & SOCIAL:
                   </p>
                 </div>
               )}
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
-                <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>📄</span>
-                PDF Knowledge Base
-              </h3>
 
                 {/* Knowledge Base Description */}
                 <div style={{
@@ -1380,7 +1422,11 @@ CONTACT & SOCIAL:
                   </div>
                 </div>
             </div>
-          </div>
+                </div>
+                
+              </div>
+            </div>
+          )}
           
           {/* RIGHT COLUMN - Chat Interface Only */}
           <div style={{ 
