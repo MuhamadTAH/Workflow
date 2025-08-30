@@ -19,7 +19,6 @@ const WhatsAppReceiver = () => {
   const [webhookUrl, setWebhookUrl] = useState('');
   
   // Messaging State
-  const [recipientPhone, setRecipientPhone] = useState('');
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [sendStatus, setSendStatus] = useState('');
@@ -310,7 +309,7 @@ const WhatsAppReceiver = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive]);
+  }, [isActive, selectedConversation, hasAutoSelected]);
 
   const handleActivate = async () => {
     // Validate all required fields
@@ -392,17 +391,21 @@ const WhatsAppReceiver = () => {
   };
 
   const handleSendMessage = async () => {
+    const recipientPhoneNumber = selectedConversation?.phoneNumber;
+    
     console.log('📤 Send message attempt:', {
       isActive,
-      hasRecipientPhone: !!recipientPhone.trim(),
+      hasSelectedConversation: !!selectedConversation,
+      hasRecipientPhone: !!recipientPhoneNumber,
       hasMessageText: !!messageText.trim(),
-      recipientPhone: recipientPhone,
+      recipientPhoneNumber: recipientPhoneNumber,
       messageTextLength: messageText.length
     });
     
-    if (!isActive || !recipientPhone.trim() || !messageText.trim()) {
+    if (!isActive || !selectedConversation || !recipientPhoneNumber || !messageText.trim()) {
       const error = !isActive ? 'System not active' : 
-                   !recipientPhone.trim() ? 'Missing recipient phone' :
+                   !selectedConversation ? 'No conversation selected' :
+                   !recipientPhoneNumber ? 'Missing recipient phone' :
                    'Missing message text';
       console.log('❌ Send failed:', error);
       setSendStatus(`❌ ${error}`);
@@ -410,7 +413,7 @@ const WhatsAppReceiver = () => {
     }
 
     setIsSending(true);
-    setSendStatus('⏳ Sending message via unified system...');
+    setSendStatus('⏳ Sending message...');
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/whatsapp-receiver/send-message`, {
@@ -420,7 +423,7 @@ const WhatsAppReceiver = () => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          recipientPhoneNumber: recipientPhone.trim(),
+          recipientPhoneNumber: recipientPhoneNumber,
           messageText: messageText.trim()
         })
       });
@@ -857,7 +860,10 @@ const WhatsAppReceiver = () => {
                 conversations.map((conversation, index) => (
                   <div
                     key={conversation.phoneNumber}
-                    onClick={() => setSelectedConversation(conversation)}
+                    onClick={() => {
+                      console.log('🖱️ Conversation clicked:', conversation.phoneNumber, conversation.contactName);
+                      setSelectedConversation(conversation);
+                    }}
                     style={{
                       padding: '16px 20px',
                       borderBottom: '1px solid #f0f0f0',
@@ -865,8 +871,8 @@ const WhatsAppReceiver = () => {
                       backgroundColor: selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : 'transparent',
                       transition: 'background-color 0.2s'
                     }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : '#f5f5f5'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : 'transparent'}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : '#f5f5f5'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : 'transparent'}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{
