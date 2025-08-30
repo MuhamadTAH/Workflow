@@ -689,18 +689,19 @@ CONTACT & SOCIAL:
           <div style={{ 
             width: '400px',
             backgroundColor: '#f8fafc', 
-            borderRadius: '8px', 
+            borderRadius: '8px 8px 0 0', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
             padding: '0',
-            height: 'fit-content',
-            position: 'sticky',
-            top: '2rem',
+            height: '100vh',
+            position: 'fixed',
+            top: '0',
+            left: '0',
             border: '1px solid #e2e8f0',
             overflow: 'hidden',
             transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
             transform: isSidebarCollapsed ? 'translateX(-420px)' : 'translateX(0)',
             opacity: isSidebarCollapsed ? 0 : 1,
-            zIndex: 10
+            zIndex: 1000
           }}>
               {/* Sidebar Header */}
               <div style={{ 
@@ -715,7 +716,7 @@ CONTACT & SOCIAL:
               </div>
               
               {/* Sidebar Content */}
-              <div style={{ padding: '1.5rem', maxHeight: '80vh', overflowY: 'auto' }}>
+              <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
                 
                 {/* Bot Configuration Section */}
                 <div style={{ marginBottom: '2rem' }}>
@@ -1460,7 +1461,9 @@ CONTACT & SOCIAL:
             display: 'flex', 
             flexDirection: 'column', 
             gap: '1.5rem',
-            minWidth: '500px'
+            minWidth: '500px',
+            marginLeft: isSidebarCollapsed ? '0' : '420px',
+            transition: 'margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
           }}>
 
             {/* Two Panel Layout */}

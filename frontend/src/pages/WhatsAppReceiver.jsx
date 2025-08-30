@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
 
 const WhatsAppReceiver = () => {
@@ -22,7 +22,6 @@ const WhatsAppReceiver = () => {
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [sendStatus, setSendStatus] = useState('');
-  const messagesEndRef = useRef(null);
   const [hasAutoSelected, setHasAutoSelected] = useState(false);
   
   // Claude AI State
@@ -49,14 +48,6 @@ const WhatsAppReceiver = () => {
   const [isManualSaving, setIsManualSaving] = useState(false);
   const [manualInputStatus, setManualInputStatus] = useState('');
 
-  // Auto-scroll to bottom when new messages arrive
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   // Set webhook URL on component mount, check auth token, and sync status
   useEffect(() => {
@@ -1786,7 +1777,6 @@ CONTACT & SOCIAL:
                       </div>
                     );
                   })}
-                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Message Input Area */}

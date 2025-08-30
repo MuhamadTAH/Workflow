@@ -1,20 +1,10 @@
- Screen Appearance Behavior
-              left side bar                             Middel side bar                           left side bar
-  ┌─────────────────────────────────────────┐                                                ┌─────────────────────────────────────────┐
-  │ 1. Main Configuration Panel             │                                                |6. User information                      |
-  ├─────────────────────────────────────────├                                                ├─────────────────────────────────────────├
-  │ 1. Main Configuration Panel             │ 
-  ├─────────────────────────────────────────├
-  │ 2. Claude AI Configuration Panel       │ 
-  ├─────────────────────────────────────────┤
-  │ 3. System Prompt Panel                 │ 
-  ├─────────────────────────────────────────┤
-  │ 4. PDF Knowledge Base Panel            │ 
-  ├─────────────────────────────────────────┤─────────────────────────────────────────┤
-                                            │ 5. Chat Interface (Two Panels)         │ 
-                                            │   ┌──────────┬──────────────────────┐   │
-                                            │   │ Users    │ Messages             │   │
-                                            │   │ (300px)  │ (flexible)           │   │
-                                            │   │          │                      │   │
-                                            │   └──────────┴──────────────────────┘   │
-                                            └─────────────────────────────────────────┘
+  Screen Position:
+  ┌─────────────────────────────────────────────┐ ← Top of screen
+  │ [32px gap - top: 2rem]                      │
+  ┌─────────────┐                               │ ← Left sidebar appears here
+  │ LEFT SIDEBAR│  [Content]  [Right Sidebar]   │
+  │   (400px)   │                               │
+  │             │                               │
+  └─────────────┘                               │
+  │                                             │
+  └─────────────────────────────────────────────┘ ← Bottom of screen
