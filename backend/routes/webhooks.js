@@ -1208,6 +1208,7 @@ router.post('/whatsapp', asyncHandler(async (req, res) => {
     try {
       // Import axios at the beginning for both Claude API and WhatsApp API calls
       const axios = require('axios');
+      console.log('🔧 DEBUG: axios loaded successfully for WhatsApp AI processing');
       const receiverState = getReceiverState();
       
       // Only process AI responses if WhatsApp receiver is active and we have stored a message
@@ -1311,7 +1312,7 @@ Key guidelines:
               messages: [
                 {
                   role: 'user',
-                  content: `${mockWhatsAppAssistant.system_prompt}\n\nCustomer: ${messageText}`
+                  content: messageText
                 }
               ]
             }, {
@@ -1356,6 +1357,7 @@ Key guidelines:
             // Send response back via WhatsApp using the unified configuration
             if (receiverState.accessToken && receiverState.phoneNumberSendId) {
               console.log('📤 Sending AI response via WhatsApp...');
+              console.log('🔧 DEBUG: About to use axios for WhatsApp sending, axios defined:', typeof axios);
               
               // Use WhatsApp Business API to send the response
               const url = `https://graph.facebook.com/v21.0/${receiverState.phoneNumberSendId}/messages`;

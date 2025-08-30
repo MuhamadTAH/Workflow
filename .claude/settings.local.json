@@ -62,7 +62,8 @@
       "Bash(del nul frontendnul)",
       "Bash(start http://localhost:5173)",
       "Bash(git restore:*)",
-      "Bash(start http://localhost:5174)"
+      "Bash(start http://localhost:5174)",
+      "Bash(printenv)"
     ],
     "deny": []
   }

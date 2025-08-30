@@ -1428,12 +1428,13 @@ CONTACT & SOCIAL:
             </div>
           )}
           
-          {/* RIGHT COLUMN - Chat Interface Only */}
+          {/* MIDDLE COLUMN - Chat Interface */}
           <div style={{ 
             flex: '1',
             display: 'flex', 
             flexDirection: 'column', 
-            gap: '1.5rem' 
+            gap: '1.5rem',
+            minWidth: '500px'
           }}>
 
             {/* Two Panel Layout */}
