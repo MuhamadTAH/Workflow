@@ -974,7 +974,16 @@ const WhatsAppReceiver = () => {
                   backgroundColor: '#fafafa'
                 }}>
                   {selectedConversation.messages.map((message, index) => {
-                    const isOutgoing = message.direction === 'outbound' || message.type === 'sent';
+                    const isOutgoing = message.direction === 'outgoing' || message.isOutgoing === true || message.type === 'sent';
+                    
+                    console.log('💬 Message render:', {
+                      index,
+                      direction: message.direction,
+                      isOutgoing: message.isOutgoing,
+                      type: message.type,
+                      calculated: isOutgoing,
+                      text: (message.text || message.message)?.substring(0, 20)
+                    });
                     
                     return (
                       <div key={index} style={{
@@ -1001,6 +1010,7 @@ const WhatsAppReceiver = () => {
                             textAlign: 'right'
                           }}>
                             {formatTimestamp(message.timestamp || message.createdAt)}
+                            {isOutgoing && <span style={{ marginLeft: '4px' }}>✓</span>}
                           </div>
                         </div>
                       </div>
