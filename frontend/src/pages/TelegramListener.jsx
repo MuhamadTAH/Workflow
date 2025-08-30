@@ -903,12 +903,10 @@ CONTACT & SOCIAL:
                   </p>
                 </div>
               )}
-              {true && (
-              <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🎭</span>
-                  System Prompt Configuration
-                </h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+                <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🎭</span>
+                System Prompt Configuration
+              </h3>
 
                 {/* System Prompt Description */}
                 <div style={{
@@ -1046,7 +1044,6 @@ CONTACT & SOCIAL:
                     💡 Click on any example to use it as your system prompt
                   </p>
                 </div>
-              )}
             </div>
 
             {/* PDF Knowledge Base Panel */}
@@ -1071,12 +1068,10 @@ CONTACT & SOCIAL:
                   </p>
                 </div>
               )}
-              {true && (
-              <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
-                  <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>📄</span>
-                  PDF Knowledge Base
-                </h3>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+                <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>📄</span>
+                PDF Knowledge Base
+              </h3>
 
                 {/* Knowledge Base Description */}
                 <div style={{
@@ -1370,7 +1365,6 @@ CONTACT & SOCIAL:
                     </p>
                   </div>
                 </div>
-              )}
             </div>
 
             {/* Two Panel Layout */}
@@ -1390,7 +1384,6 @@ CONTACT & SOCIAL:
                   </p>
                 </div>
               )}
-              {true && (
               <div style={{ display: 'flex', gap: '1rem', height: '500px' }}>
                 
                 {/* Users Panel */}
@@ -1674,7 +1667,6 @@ CONTACT & SOCIAL:
                 </div>
 
               </div>
-              )}
             </div>
           </div>
         </div>
