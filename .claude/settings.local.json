@@ -63,7 +63,8 @@
       "Bash(start http://localhost:5173)",
       "Bash(git restore:*)",
       "Bash(start http://localhost:5174)",
-      "Bash(printenv)"
+      "Bash(printenv)",
+      "Bash(start http://localhost:10000)"
     ],
     "deny": []
   }

@@ -18,7 +18,7 @@ router.get('/webhooks/instagram/comments', (req, res) => {
   });
 
   // Verify the token (you should set this in environment variables or use the one from frontend)
-  const VERIFY_TOKEN = process.env.INSTAGRAM_VERIFY_TOKEN || 'custom_verification_token';
+  const VERIFY_TOKEN = process.env.INSTAGRAM_VERIFY_TOKEN || 'muhammadtarq24@gmail.com';
   
   if (mode && token) {
     if (mode === 'subscribe' && token === VERIFY_TOKEN) {
