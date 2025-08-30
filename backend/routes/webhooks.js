@@ -1440,7 +1440,6 @@ Key guidelines:
           } else if (result) {
             console.error('❌ WhatsApp AI processing failed:', result.error);
           }
-        }
         } // End of Claude configuration check
       } else {
         console.log('📴 WhatsApp AI processing skipped - receiver inactive or no stored message');
