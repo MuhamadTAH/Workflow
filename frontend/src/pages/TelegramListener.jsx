@@ -1059,15 +1059,6 @@ CONTACT & SOCIAL:
                   </p>
                 </div>
             </div>
-          </div>
-          
-          {/* RIGHT COLUMN - PDF Knowledge Base and Chat Interface */}
-          <div style={{ 
-            flex: '1',
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: '1.5rem' 
-          }}>
 
             {/* PDF Knowledge Base Panel */}
             <div style={{
@@ -1389,6 +1380,15 @@ CONTACT & SOCIAL:
                   </div>
                 </div>
             </div>
+          </div>
+          
+          {/* RIGHT COLUMN - Chat Interface Only */}
+          <div style={{ 
+            flex: '1',
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '1.5rem' 
+          }}>
 
             {/* Two Panel Layout */}
             <div style={{
