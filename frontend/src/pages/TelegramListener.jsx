@@ -643,7 +643,7 @@ CONTACT & SOCIAL:
             top: '2rem'
           }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1.5rem' }}>
-              ⚙️ Bot Configuration
+              ⚙️ Configuration Panel
             </h2>
             {/* Token Input */}
             <div>
@@ -751,15 +751,6 @@ CONTACT & SOCIAL:
                 <li>Messages are updated automatically every 2 seconds</li>
               </ol>
             </div>
-          </div>
-          
-          {/* RIGHT COLUMN - Other Panels */}
-          <div style={{ 
-            flex: '1',
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: '1.5rem' 
-          }}>
 
             {/* Claude AI Configuration Panel */}
             <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
@@ -903,6 +894,15 @@ CONTACT & SOCIAL:
                 </p>
               </div>
             </div>
+          </div>
+          
+          {/* RIGHT COLUMN - Other Panels */}
+          <div style={{ 
+            flex: '1',
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '1.5rem' 
+          }}>
 
             {/* System Prompt Configuration Panel */}
             <div style={{
