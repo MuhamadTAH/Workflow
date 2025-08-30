@@ -1,88 +1,168 @@
-[2025-08-30T05:13:10.676Z] INFO: Incoming request {"method":"POST","url":"/api/webhooks/whatsapp","ip":"::1","userAgent":"facebookexternalua"}
-🌐 INCOMING REQUEST: {
-  method: 'POST',
-  url: '/api/webhooks/whatsapp',
-  origin: undefined,
-  userAgent: 'facebookexternalua',
-  contentType: 'application/json',
-  contentLength: '481',
-  authorization: 'missing',
-  timestamp: '2025-08-30T05:13:10.676Z'
-}
-📱 WhatsApp webhook received: {
-  "object": "whatsapp_business_account",
-  "entry": [
-    {
-      "id": "1411124906823702",
-      "changes": [
-        {
-          "value": {
-            "messaging_product": "whatsapp",
-            "metadata": {
-              "display_phone_number": "15556646119",
-              "phone_number_id": "628007790405551"
-            },
-            "contacts": [
-              {
-                "profile": {
-                  "name": "Muhammad Tarq"
-                },
-                "wa_id": "9647700716669"
-              }
-            ],
-            "messages": [
-              {
-                "from": "9647700716669",
-                "id": "wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBRTQ0QjY0MDNGNTM3RTlEMTlFAA==",
-                "timestamp": "1756530789",
-                "text": {
-                  "body": "Hey"
-                },
-                "type": "text"
-              }
-            ]
-          },
-          "field": "messages"
-        }
-      ]
-    }
-  ]
-}
-📱 WhatsApp query params: {}
-💾 Storing WhatsApp message from receiver...
-📝 Message data to store: {
-  from: '9647700716669',
-  name: 'Muhammad Tarq',
-  text: 'Hey',
-  type: 'text'
-}
-✅ Message stored with ID: 1
-💾 WhatsApp message storage result: {
-  stored: true,
-  id: 1,
-  messageData: {
-    phoneNumber: '9647700716669',
-    contactName: 'Muhammad Tarq',
-    messageText: 'Hey',
-    messageId: 'wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBRTQ0QjY0MDNGNTM3RTlEMTlFAA==',
-    messageType: 'text',
-    timestamp: '2025-08-30T05:13:09.000Z',
-    rawData: '{"object":"whatsapp_business_account","entry":[{"id":"1411124906823702","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"15556646119","phone_number_id":"628007790405551"},"contacts":[{"profile":{"name":"Muhammad Tarq"},"wa_id":"9647700716669"}],"messages":[{"from":"9647700716669","id":"wamid.HBgNOTY0NzcwMDcxNjY2ORUCABIYFDNBRTQ0QjY0MDNGNTM3RTlEMTlFAA==","timestamp":"1756530789","text":{"body":"Hey"},"type":"text"}]},"field":"messages"}]}]}'
+ 📱 Instagram Comment Manager - Page Plan
+
+  🎯 New Page Structure
+
+  I'll create: frontend/src/pages/InstagramCommentManager.jsx
+
+  Similar to your WhatsApp page but for Instagram comment management.
+
+  🔧 Instagram API Connection Panel Fields
+
+  Required Fields for Instagram Graph API:
+
+  const InstagramConnectionFields = {
+    // Meta App Configuration
+    appId: "Instagram App ID",                    // From Meta Developer Console
+    appSecret: "Instagram App Secret",            // From Meta Developer Console
+
+    // User Account Access
+    accessToken: "User Access Token",             // Long-lived user token
+
+    // Instagram Business Account
+    instagramBusinessId: "Instagram Business Account ID",  // IG Business Account
+
+    // Webhook Configuration (for real-time comments)
+    webhookToken: "Webhook Verification Token"    // Custom token for webhooks
   }
-}
-🤖 Processing WhatsApp message for Claude AI auto-response...
-📱 WhatsApp AI Processing: { from: '9647700716669', name: 'Muhammad Tarq', text: 'Hey' }
-🧠 Using Advanced AI Processing for WhatsApp message
-🔍 Using Claude config from user: default_user
-✅ Found Claude API key for WhatsApp AI responses
-🔄 Processing WhatsApp message with Claude AI...
-📞 Making direct Claude API call for WhatsApp...
-✅ Claude API response generated: Hi there! 👋 How can I help you today?
-✅ Claude AI generated response for WhatsApp: Hi there! 👋 How can I help you today?
-📤 Sending AI response via WhatsApp...
-🔍 Checking for active WhatsApp workflows...
-❌ WhatsApp AI processing error: ReferenceError: axios is not defined
-📊 Found 0 active WhatsApp workflows
-    at /opt/render/project/src/backend/routes/webhooks.js:1373:32
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-[2025-08-30T05:13:11.507Z] INFO: Request completed {"method":"POST","url":"/whatsapp","status":200,"duration":"831ms"}
+
+  Webhook URL (Auto-generated):
+
+  webhookUrl: "https://workflow-lg9z.onrender.com/api/webhooks/instagram/comments"
+
+  🏗️ Page Layout Plan
+
+  Similar to WhatsApp Page Structure:
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │                    Instagram Comment Manager                    │
+  ├─────────────────────────────────────────────────────────────────┤
+  │                                                                 │
+  │ [☰ Config] ──── CENTER AREA ──── [☰ Analytics]                │
+  │     │               │                    │                     │
+  │ LEFT SIDEBAR   COMMENT THREADS     RIGHT SIDEBAR               │
+  │                                                                 │
+  │ • IG API Setup   • Live Comments    • Comment Stats            │
+  │ • Claude AI      • Auto-Replies     • User Info                │
+  │ • AI Prompts     • Thread View      • Quick Actions            │
+  │ • Knowledge      • Send Replies     • Performance              │
+  └─────────────────────────────────────────────────────────────────┘
+
+  📝 Configuration Panel Content
+
+  Section 1: Instagram API Configuration
+
+  const instagramConfig = {
+    title: "📷 Instagram API Setup",
+    fields: [
+      {
+        label: "App ID",
+        type: "text",
+        placeholder: "123456789012345",
+        help: "Get from Meta Developer Console > Your App > App ID"
+      },
+      {
+        label: "App Secret",
+        type: "password",
+        placeholder: "abcd1234efgh5678...",
+        help: "From Meta Developer Console > Your App > App Secret"
+      },
+      {
+        label: "Access Token",
+        type: "password",
+        placeholder: "IGQVJxxxxxxxx...",
+        help: "Long-lived user access token from Graph API Explorer"
+      },
+      {
+        label: "Instagram Business ID",
+        type: "text",
+        placeholder: "17841401441775531",
+        help: "Your Instagram Business Account ID"
+      },
+      {
+        label: "Webhook Token",
+        type: "text",
+        placeholder: "custom_verification_token",
+        help: "Custom token for webhook verification"
+      }
+    ],
+    webhookUrl: "https://workflow-lg9z.onrender.com/api/webhooks/instagram/comments"
+  }
+
+  Section 2: Claude AI Integration
+
+  const claudeConfig = {
+    title: "🤖 Claude AI for Auto-Replies",
+    fields: [
+      "Claude API Key",
+      "System Prompt",
+      "Knowledge Base Upload",
+      "Response Templates"
+    ]
+  }
+
+  Section 3: Comment Management Settings
+
+  const commentSettings = {
+    title: "💬 Comment Management",
+    options: [
+      "Auto-reply to new comments",
+      "AI response delay (1-30 seconds)",
+      "Filter spam comments",
+      "Keyword triggers",
+      "Response templates"
+    ]
+  }
+
+  🚀 Activation Flow
+
+  When User Clicks "Start Instagram Integration":
+
+  const activationProcess = {
+    step1: "Validate all 5 Instagram API fields",
+    step2: "Test connection to Instagram Graph API",
+    step3: "Set up webhook for real-time comments",
+    step4: "Initialize comment monitoring",
+    step5: "Start polling for existing comments",
+    step6: "Enable auto-reply system"
+  }
+
+  🔄 Comment Flow (Similar to WhatsApp Messages)
+
+  New Comment → Instagram Webhook → Backend → AI Processing → Auto Reply → Posted
+       ↓              ↓                ↓           ↓             ↓          ↓
+  User comments → Meta notifies → Store DB → Claude AI → Generate → IG API
+
+  📊 Center Area - Comment Threads
+
+  Left Panel: Comment Threads List
+
+  - Recent comments by post
+  - User profile pictures
+  - Comment previews
+  - Unread indicators
+
+  Right Panel: Selected Thread
+
+  - Full comment conversation
+  - Reply history
+  - Send reply interface
+  - AI suggestions
+
+  🎯 Key Features to Include:
+
+  1. ✅ Real-time comment monitoring
+  2. ✅ AI-powered auto-replies
+  3. ✅ Comment thread management
+  4. ✅ Claude AI integration
+  5. ✅ Knowledge base for responses
+  6. ✅ Manual reply capability
+  7. ✅ Performance analytics
+  8. 🔮 Future: Switch to DM when verified
+
+  ❓ My Questions:
+
+  1. Should I start building this Instagram Comment Manager page now?
+  2. Do you want the exact same sidebar system as WhatsApp?
+  3. Any specific Instagram features you want me to focus on first?
+
+  This approach gives you a complete Instagram management system where everything works except messaging - and when you get business verification, we just switch the API endpoints!
