@@ -683,11 +683,11 @@ CONTACT & SOCIAL:
           </h1>
         </div>
         
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', position: 'relative' }}>
           
           {/* LEFT SIDEBAR - Sliding Configuration Panel */}
           <div style={{ 
-            flex: isSidebarCollapsed ? '0 0 0px' : '0 0 400px',
+            width: '400px',
             backgroundColor: '#f8fafc', 
             borderRadius: '8px', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
@@ -697,10 +697,10 @@ CONTACT & SOCIAL:
             top: '2rem',
             border: '1px solid #e2e8f0',
             overflow: 'hidden',
-            transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-            transform: isSidebarCollapsed ? 'translateX(-100%)' : 'translateX(0)',
+            transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
+            transform: isSidebarCollapsed ? 'translateX(-420px)' : 'translateX(0)',
             opacity: isSidebarCollapsed ? 0 : 1,
-            marginRight: isSidebarCollapsed ? '-400px' : '0'
+            zIndex: 10
           }}>
               {/* Sidebar Header */}
               <div style={{ 
@@ -1768,7 +1768,7 @@ CONTACT & SOCIAL:
           
           {/* RIGHT SIDEBAR - Sliding User Information Panel */}
           <div style={{ 
-            flex: isRightSidebarCollapsed ? '0 0 0px' : '0 0 300px',
+            width: '300px',
             backgroundColor: '#f8fafc', 
             borderRadius: '8px', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
@@ -1778,10 +1778,10 @@ CONTACT & SOCIAL:
             top: '2rem',
             border: '1px solid #e2e8f0',
             overflow: 'hidden',
-            transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-            transform: isRightSidebarCollapsed ? 'translateX(100%)' : 'translateX(0)',
+            transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
+            transform: isRightSidebarCollapsed ? 'translateX(320px)' : 'translateX(0)',
             opacity: isRightSidebarCollapsed ? 0 : 1,
-            marginLeft: isRightSidebarCollapsed ? '-300px' : '0'
+            zIndex: 10
           }}>
             {/* Right Sidebar Header */}
             <div style={{ 
