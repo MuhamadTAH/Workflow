@@ -36,6 +36,19 @@ const WhatsAppReceiver = () => {
   const [isSystemPromptLoading, setIsSystemPromptLoading] = useState(false);
   const [systemPromptStatus, setSystemPromptStatus] = useState('');
 
+  // PDF Knowledge Base State
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
+  const [hasKnowledgeBase, setHasKnowledgeBase] = useState(false);
+  const [knowledgeBaseInfo, setKnowledgeBaseInfo] = useState(null);
+
+  // Manual text input states
+  const [showManualInput, setShowManualInput] = useState(false);
+  const [manualBusinessInfo, setManualBusinessInfo] = useState('');
+  const [isManualSaving, setIsManualSaving] = useState(false);
+  const [manualInputStatus, setManualInputStatus] = useState('');
+
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -101,6 +114,9 @@ const WhatsAppReceiver = () => {
     
     // Load system prompt on mount
     loadSystemPrompt();
+    
+    // Load knowledge base info on mount
+    loadKnowledgeBaseInfo();
   }, []);
   
   // Check Claude API connection status
@@ -289,6 +305,212 @@ const WhatsAppReceiver = () => {
       return () => clearTimeout(timeout);
     }
   }, [systemPromptStatus]);
+
+  // PDF Knowledge Base Functions
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        setUploadStatus('❌ Please select a PDF file only');
+        setTimeout(() => setUploadStatus(''), 3000);
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        setUploadStatus('❌ File size must be less than 10MB');
+        setTimeout(() => setUploadStatus(''), 3000);
+        return;
+      }
+      setSelectedFile(file);
+      setUploadStatus(`📄 Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+    }
+  };
+
+  const handleUploadPDF = async () => {
+    if (!selectedFile) {
+      setUploadStatus('❌ Please select a PDF file first');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadStatus('📤 Uploading and processing PDF...');
+
+    try {
+      const formData = new FormData();
+      formData.append('pdf', selectedFile);
+
+      const response = await fetch(`${API_BASE_URL}/api/claude/upload-knowledge`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setUploadStatus('✅ PDF processed successfully! Knowledge base updated.');
+        setHasKnowledgeBase(true);
+        setKnowledgeBaseInfo({
+          filename: selectedFile.name,
+          uploadedAt: new Date().toISOString(),
+          textLength: result.textLength || 0,
+          pageCount: result.pageCount || 0
+        });
+        setSelectedFile(null);
+        
+        // Clear the file input
+        const fileInput = document.getElementById('pdf-upload-whatsapp');
+        if (fileInput) fileInput.value = '';
+        
+        setTimeout(() => setUploadStatus(''), 5000);
+      } else {
+        setUploadStatus(`❌ Upload failed: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('PDF upload error:', error);
+      setUploadStatus(`❌ Network error: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const loadKnowledgeBaseInfo = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/knowledge-info`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success && result.hasKnowledge) {
+        setHasKnowledgeBase(true);
+        setKnowledgeBaseInfo(result.info);
+      }
+    } catch (error) {
+      console.error('Error loading knowledge base info:', error);
+    }
+  };
+
+  const handleDeleteKnowledge = async () => {
+    if (!confirm('Are you sure you want to delete the current knowledge base? This cannot be undone.')) {
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadStatus('🗑️ Deleting knowledge base...');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/delete-knowledge`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setUploadStatus('✅ Knowledge base deleted successfully');
+        setHasKnowledgeBase(false);
+        setKnowledgeBaseInfo(null);
+        setTimeout(() => setUploadStatus(''), 3000);
+      } else {
+        setUploadStatus(`❌ Delete failed: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Delete knowledge error:', error);
+      setUploadStatus(`❌ Network error: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Manual business info functions
+  const handleSaveManualInfo = async () => {
+    if (!manualBusinessInfo.trim()) {
+      setManualInputStatus('❌ Please enter your business information');
+      return;
+    }
+
+    setIsManualSaving(true);
+    setManualInputStatus('💾 Saving business information...');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/manual-knowledge`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          businessInfo: manualBusinessInfo.trim()
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setManualInputStatus('✅ Business information saved successfully!');
+        setHasKnowledgeBase(true);
+        setKnowledgeBaseInfo({
+          filename: 'Manual Input',
+          uploadedAt: new Date().toISOString(),
+          textLength: manualBusinessInfo.trim().length,
+          pageCount: 1,
+          method: 'manual-input'
+        });
+        setShowManualInput(false);
+        setTimeout(() => setManualInputStatus(''), 3000);
+      } else {
+        setManualInputStatus(`❌ Save failed: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Manual info save error:', error);
+      setManualInputStatus(`❌ Network error: ${error.message}`);
+    } finally {
+      setIsManualSaving(false);
+    }
+  };
+
+  const loadBusinessTemplate = () => {
+    const template = `BUSINESS DETAILS:
+- Business Name: [Your business name]
+- Business Type: [Restaurant, Store, Service, etc.]
+- Address: [Your address]
+- Phone: [Your phone number]
+- Email: [Your email]
+
+OPERATING HOURS:
+- Monday: [Hours]
+- Tuesday: [Hours]
+- Wednesday: [Hours]
+- Thursday: [Hours]
+- Friday: [Hours]
+- Saturday: [Hours]
+- Sunday: [Hours]
+
+SERVICES/PRODUCTS:
+- [List your main services or products]
+- [Include prices if relevant]
+- [Special offers or features]
+
+POLICIES:
+- [Return/refund policy]
+- [Payment methods accepted]
+- [Special terms or conditions]
+
+CONTACT & SOCIAL:
+- Website: [Your website]
+- Social Media: [Your social accounts]
+- Additional Contact Methods: [Any other ways to reach you]`;
+
+    setManualBusinessInfo(template);
+    setManualInputStatus('📋 Template loaded! Please fill in your information.');
+    setTimeout(() => setManualInputStatus(''), 3000);
+  };
 
   // Group messages into conversations
   const groupMessagesIntoConversations = (messages) => {
@@ -832,6 +1054,322 @@ const WhatsAppReceiver = () => {
                        onClick={() => setSystemPrompt('You are a professional business assistant. Provide formal, concise responses. Focus on efficiency and accuracy in all communications.')}>
                     <strong>💼 Business:</strong> "You are a professional business assistant..."
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* PDF Knowledge Base Configuration Panel */}
+            <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+                <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>📄</span>
+                PDF Knowledge Base
+              </h3>
+
+              {/* Knowledge Base Description */}
+              <div style={{
+                backgroundColor: '#fef3c7',
+                padding: '1rem',
+                borderRadius: '6px',
+                marginBottom: '1rem',
+                fontSize: '0.875rem',
+                border: '1px solid #fbbf24'
+              }}>
+                <p style={{ color: '#92400e', lineHeight: '1.5', margin: 0 }}>
+                  <strong>📚 Knowledge Base:</strong> Upload a PDF with your business information, services, location details, etc. 
+                  Claude will use this information to answer specific questions about your business accurately.
+                </p>
+              </div>
+
+              {/* Warning when Claude not connected */}
+              {!isClaudeConnected && (
+                <div style={{
+                  backgroundColor: '#fef2f2',
+                  padding: '0.75rem',
+                  borderRadius: '6px',
+                  marginBottom: '1rem',
+                  border: '1px solid #fecaca'
+                }}>
+                  <p style={{ color: '#991b1b', fontSize: '0.875rem', margin: 0 }}>
+                    ⚠️ Connect to Claude API first to upload knowledge base
+                  </p>
+                </div>
+              )}
+
+              {/* Current Knowledge Base Status */}
+              {hasKnowledgeBase && knowledgeBaseInfo && (
+                <div style={{
+                  backgroundColor: '#f0fdf4',
+                  padding: '1rem',
+                  borderRadius: '6px',
+                  marginBottom: '1rem',
+                  border: '1px solid #bbf7d0'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <h4 style={{ color: '#15803d', margin: 0, fontSize: '0.875rem', fontWeight: '600' }}>
+                        ✅ Active Knowledge Base
+                      </h4>
+                      <p style={{ color: '#166534', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+                        📄 {knowledgeBaseInfo.filename}
+                      </p>
+                      <p style={{ color: '#166534', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+                        📊 {knowledgeBaseInfo.pageCount} pages • {knowledgeBaseInfo.textLength} characters
+                      </p>
+                      <p style={{ color: '#166534', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+                        🕐 Uploaded: {new Date(knowledgeBaseInfo.uploadedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleDeleteKnowledge}
+                      disabled={isUploading}
+                      style={{
+                        backgroundColor: isUploading ? '#9ca3af' : '#ef4444',
+                        color: 'white',
+                        padding: '0.5rem 0.75rem',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: isUploading ? 'not-allowed' : 'pointer',
+                        fontSize: '0.75rem'
+                      }}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* File Upload Section */}
+              <div style={{ marginBottom: '1rem', opacity: isClaudeConnected ? 1 : 0.6 }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '0.5rem'
+                }}>
+                  {hasKnowledgeBase ? 'Replace Knowledge Base' : 'Upload PDF Knowledge Base'}
+                </label>
+                
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'end' }}>
+                  <div style={{ flex: 1 }}>
+                    <input
+                      id="pdf-upload-whatsapp"
+                      type="file"
+                      accept=".pdf"
+                      onChange={handleFileSelect}
+                      disabled={isUploading}
+                      style={{
+                        width: '100%',
+                        padding: '0.75rem',
+                        border: '2px dashed #d1d5db',
+                        borderRadius: '6px',
+                        backgroundColor: '#f9fafb',
+                        cursor: isUploading ? 'not-allowed' : 'pointer',
+                        opacity: isUploading ? '0.5' : '1'
+                      }}
+                    />
+                    <p style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: '#6b7280' }}>
+                      PDF files only • Max 10MB • Will be processed and text extracted
+                    </p>
+                  </div>
+                  
+                  <button
+                    onClick={handleUploadPDF}
+                    disabled={isUploading || !selectedFile || !isClaudeConnected}
+                    style={{
+                      backgroundColor: isUploading || !selectedFile || !isClaudeConnected ? '#9ca3af' : '#2563eb',
+                      color: 'white',
+                      padding: '0.75rem 1rem',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: isUploading || !selectedFile || !isClaudeConnected ? 'not-allowed' : 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {isUploading ? '⏳ Processing...' : '📤 Upload PDF'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Upload Status Message */}
+              {uploadStatus && (
+                <div style={{
+                  padding: '1rem',
+                  borderRadius: '6px',
+                  backgroundColor: uploadStatus.includes('✅') ? '#f0fdf4' : uploadStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
+                  color: uploadStatus.includes('✅') ? '#15803d' : uploadStatus.includes('❌') ? '#dc2626' : '#1d4ed8',
+                  fontSize: '0.875rem',
+                  marginBottom: '1rem'
+                }}>
+                  {uploadStatus}
+                </div>
+              )}
+
+              {/* Manual Input Alternative */}
+              <div style={{
+                backgroundColor: '#fff7ed',
+                padding: '1rem',
+                borderRadius: '6px',
+                marginBottom: '1rem',
+                border: '1px solid #fed7aa'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                  <h4 style={{ color: '#c2410c', margin: 0, fontSize: '0.875rem', fontWeight: '600' }}>
+                    ✏️ Alternative: Manual Input
+                  </h4>
+                  <button
+                    onClick={() => setShowManualInput(!showManualInput)}
+                    style={{
+                      backgroundColor: '#ea580c',
+                      color: 'white',
+                      padding: '0.25rem 0.5rem',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '0.75rem'
+                    }}
+                  >
+                    {showManualInput ? '📁 Hide Manual Input' : '✏️ Enter Business Info Manually'}
+                  </button>
+                </div>
+                <p style={{ color: '#c2410c', fontSize: '0.75rem', margin: 0 }}>
+                  If PDF upload fails or you prefer to enter information directly, use manual input below.
+                </p>
+              </div>
+
+              {/* Manual Input Section */}
+              {showManualInput && (
+                <div style={{
+                  backgroundColor: '#fefefe',
+                  padding: '1.5rem',
+                  borderRadius: '6px',
+                  marginBottom: '1rem',
+                  border: '2px solid #e5e7eb'
+                }}>
+                  <h4 style={{ color: '#1f2937', margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: '600' }}>
+                    ✏️ Manual Business Information Entry
+                  </h4>
+
+                  {/* Manual Input Buttons */}
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                    <button
+                      onClick={loadBusinessTemplate}
+                      disabled={isManualSaving}
+                      style={{
+                        backgroundColor: '#10b981',
+                        color: 'white',
+                        padding: '0.5rem 0.75rem',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.75rem'
+                      }}
+                    >
+                      📋 Load Template
+                    </button>
+                    
+                    <button
+                      onClick={() => setManualBusinessInfo('')}
+                      disabled={isManualSaving}
+                      style={{
+                        backgroundColor: '#6b7280',
+                        color: 'white',
+                        padding: '0.5rem 0.75rem',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '0.75rem'
+                      }}
+                    >
+                      🗑️ Clear
+                    </button>
+                  </div>
+
+                  {/* Manual Input Textarea */}
+                  <textarea
+                    value={manualBusinessInfo}
+                    onChange={(e) => setManualBusinessInfo(e.target.value)}
+                    placeholder="Enter your business information here... (business name, hours, services, contact info, etc.)"
+                    rows={12}
+                    style={{
+                      width: '100%',
+                      padding: '1rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '0.875rem',
+                      fontFamily: 'monospace',
+                      resize: 'vertical',
+                      minHeight: '200px',
+                      maxHeight: '400px',
+                      opacity: isManualSaving ? '0.5' : '1'
+                    }}
+                    disabled={isManualSaving}
+                  />
+                  
+                  <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#6b7280' }}>
+                    Character count: {manualBusinessInfo.length} • Enter detailed information about your business
+                  </p>
+
+                  {/* Manual Input Actions */}
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                    <button
+                      onClick={handleSaveManualInfo}
+                      disabled={isManualSaving || !manualBusinessInfo.trim() || !isClaudeConnected}
+                      style={{
+                        flex: '1',
+                        backgroundColor: isManualSaving || !manualBusinessInfo.trim() || !isClaudeConnected ? '#9ca3af' : '#2563eb',
+                        color: 'white',
+                        padding: '0.75rem 1rem',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: isManualSaving || !manualBusinessInfo.trim() || !isClaudeConnected ? 'not-allowed' : 'pointer',
+                        fontSize: '1rem',
+                        fontWeight: '500'
+                      }}
+                    >
+                      {isManualSaving ? '⏳ Saving...' : '💾 Save Business Information'}
+                    </button>
+                  </div>
+
+                  {/* Manual Input Status */}
+                  {manualInputStatus && (
+                    <div style={{
+                      padding: '1rem',
+                      borderRadius: '6px',
+                      backgroundColor: manualInputStatus.includes('✅') ? '#f0fdf4' : manualInputStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
+                      color: manualInputStatus.includes('✅') ? '#15803d' : manualInputStatus.includes('❌') ? '#dc2626' : '#1d4ed8',
+                      fontSize: '0.875rem',
+                      marginTop: '1rem'
+                    }}>
+                      {manualInputStatus}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Instructions */}
+              <div style={{
+                backgroundColor: '#f8fafc',
+                padding: '1rem',
+                borderRadius: '6px',
+                fontSize: '0.875rem'
+              }}>
+                <h4 style={{ fontWeight: '500', color: '#1e3a8a', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>
+                  💡 How Knowledge Base Works:
+                </h4>
+                <ul style={{ color: '#1e40af', lineHeight: '1.5', margin: '0', paddingLeft: '1.2rem' }}>
+                  <li><strong>Upload your PDF</strong> - Business info, menu, services, FAQ, etc.</li>
+                  <li><strong>Automatic processing</strong> - Text is extracted and stored</li>
+                  <li><strong>Smart responses</strong> - Claude references your PDF for accurate answers</li>
+                  <li><strong>Context-aware</strong> - Generic questions use normal AI, specific questions use your data</li>
+                </ul>
+                
+                <div style={{ marginTop: '0.75rem', padding: '0.75rem', backgroundColor: '#e0f2fe', borderRadius: '4px' }}>
+                  <p style={{ color: '#0277bd', fontSize: '0.75rem', margin: 0 }}>
+                    <strong>Example:</strong> User asks "What are your opening hours?" → Claude checks your PDF → Responds with your actual hours!
+                  </p>
                 </div>
               </div>
             </div>
