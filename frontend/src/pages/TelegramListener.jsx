@@ -1740,6 +1740,237 @@ CONTACT & SOCIAL:
             </div>
           </div>
           
+          {/* RIGHT SIDEBAR - User Information */}
+          <div style={{ 
+            flex: '0 0 300px',
+            backgroundColor: '#f8fafc', 
+            borderRadius: '8px', 
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
+            padding: '0',
+            height: 'fit-content',
+            position: 'sticky',
+            top: '2rem',
+            border: '1px solid #e2e8f0',
+            overflow: 'hidden',
+            transition: 'all 0.3s ease'
+          }}>
+            {/* Right Sidebar Header */}
+            <div style={{ 
+              backgroundColor: '#10b981', 
+              color: 'white', 
+              padding: '1rem 1.5rem',
+              borderRadius: '8px 8px 0 0'
+            }}>
+              <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
+                👤 User Information
+              </h2>
+            </div>
+            
+            {/* Right Sidebar Content */}
+            <div style={{ padding: '1.5rem', maxHeight: '80vh', overflowY: 'auto' }}>
+              
+              {/* Selected User Info Section */}
+              <div style={{ marginBottom: '2rem' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
+                  👤 Selected User
+                </h3>
+                
+                {selectedUser ? (
+                  <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e7eb' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                      <div style={{
+                        width: '50px',
+                        height: '50px',
+                        borderRadius: '50%',
+                        backgroundColor: '#10b981',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginRight: '1rem',
+                        fontSize: '1.5rem',
+                        color: 'white',
+                        fontWeight: 'bold'
+                      }}>
+                        {selectedUser.fromName ? selectedUser.fromName[0].toUpperCase() : 'U'}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: '600', fontSize: '1rem', color: '#111827' }}>
+                          {selectedUser.fromName || 'Unknown User'}
+                        </div>
+                        {selectedUser.fromUsername && (
+                          <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                            @{selectedUser.fromUsername}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.875rem' }}>
+                      <div>
+                        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Messages</div>
+                        <div style={{ fontWeight: '600', color: '#111827' }}>{selectedUser.messageCount}</div>
+                      </div>
+                      <div>
+                        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>User ID</div>
+                        <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem', wordBreak: 'break-all' }}>
+                          {selectedUser.userId}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Chat ID</div>
+                        <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem' }}>
+                          {selectedUser.chatId}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Last Seen</div>
+                        <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem' }}>
+                          {new Date(selectedUser.lastMessageTime).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                      <div style={{ color: '#6b7280', marginBottom: '0.25rem', fontSize: '0.875rem' }}>Last Message</div>
+                      <div style={{ 
+                        backgroundColor: '#f9fafb', 
+                        padding: '0.75rem', 
+                        borderRadius: '6px', 
+                        fontSize: '0.875rem',
+                        color: '#374151',
+                        fontStyle: selectedUser.lastMessage ? 'normal' : 'italic'
+                      }}>
+                        {selectedUser.lastMessage || 'No recent messages'}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ 
+                    backgroundColor: '#f9fafb', 
+                    padding: '2rem', 
+                    borderRadius: '8px', 
+                    textAlign: 'center', 
+                    color: '#6b7280',
+                    fontSize: '0.875rem'
+                  }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👤</div>
+                    <p>Select a user from the chat interface to view their information</p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Statistics Section */}
+              <div style={{ marginBottom: '2rem' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
+                  📊 Statistics
+                </h3>
+                
+                <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e7eb' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', fontSize: '0.875rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#6b7280' }}>Total Users</span>
+                      <span style={{ fontWeight: '600', color: '#111827', backgroundColor: '#dbeafe', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                        {uniqueUsers.length}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#6b7280' }}>Total Messages</span>
+                      <span style={{ fontWeight: '600', color: '#111827', backgroundColor: '#dcfce7', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                        {messages.length}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#6b7280' }}>Bot Status</span>
+                      <span style={{ 
+                        fontWeight: '600', 
+                        color: isPolling ? '#15803d' : '#dc2626', 
+                        backgroundColor: isPolling ? '#dcfce7' : '#fee2e2', 
+                        padding: '0.25rem 0.5rem', 
+                        borderRadius: '4px',
+                        fontSize: '0.75rem'
+                      }}>
+                        {isPolling ? '🟢 Active' : '🔴 Inactive'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#6b7280' }}>Claude Status</span>
+                      <span style={{ 
+                        fontWeight: '600', 
+                        color: claudeConnectionStatus === 'connected' ? '#15803d' : '#dc2626', 
+                        backgroundColor: claudeConnectionStatus === 'connected' ? '#dcfce7' : '#fee2e2', 
+                        padding: '0.25rem 0.5rem', 
+                        borderRadius: '4px',
+                        fontSize: '0.75rem'
+                      }}>
+                        {claudeConnectionStatus === 'connected' ? '🟢 Connected' : '🔴 Disconnected'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Quick Actions Section */}
+              <div>
+                <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
+                  ⚡ Quick Actions
+                </h3>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <button
+                    onClick={() => setMessages([])}
+                    disabled={messages.length === 0}
+                    style={{
+                      backgroundColor: messages.length === 0 ? '#9ca3af' : '#ef4444',
+                      color: 'white',
+                      padding: '0.75rem',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: messages.length === 0 ? 'not-allowed' : 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    🗑️ Clear All Messages
+                  </button>
+                  
+                  <button
+                    onClick={() => setSelectedUser(null)}
+                    disabled={!selectedUser}
+                    style={{
+                      backgroundColor: !selectedUser ? '#9ca3af' : '#6b7280',
+                      color: 'white',
+                      padding: '0.75rem',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: !selectedUser ? 'not-allowed' : 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    ❌ Clear Selection
+                  </button>
+                  
+                  <button
+                    onClick={() => window.location.reload()}
+                    style={{
+                      backgroundColor: '#3b82f6',
+                      color: 'white',
+                      padding: '0.75rem',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    🔄 Refresh Page
+                  </button>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+          
         </div>
       </div>
     </div>
