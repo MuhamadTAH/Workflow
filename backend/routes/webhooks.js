@@ -1245,26 +1245,58 @@ router.post('/whatsapp', asyncHandler(async (req, res) => {
           timestamp: messageData.timestamp
         };
 
-        // For now, we'll create a mock assistant configuration for WhatsApp
-        // In production, this should be configurable per user/business
-        const mockWhatsAppAssistant = {
-          id: 'whatsapp_auto_responder',
-          system_prompt: `You are a helpful WhatsApp assistant. Respond to customer messages in a friendly, professional manner. 
+        // Get Claude configuration from the same system used by Telegram
+        const { claudeConfigs, systemPrompts, knowledgeBase } = require('./claude');
+        
+        // For now, we'll use the first available Claude configuration
+        // In production, this should be configurable per WhatsApp business account
+        let claudeConfig = null;
+        let userId = null;
+        
+        // Find the first user with a Claude API configuration
+        for (const [id, config] of claudeConfigs.entries()) {
+          if (config && config.apiKey) {
+            claudeConfig = config;
+            userId = id;
+            console.log('🔍 Using Claude config from user:', userId);
+            break;
+          }
+        }
+
+        if (!claudeConfig || !claudeConfig.apiKey) {
+          console.log('⚠️ No Claude API configuration found - skipping AI response');
+          console.log('🔧 Available Claude configs:', Array.from(claudeConfigs.keys()));
+        } else {
+          console.log('✅ Found Claude API key for WhatsApp AI responses');
+          
+          // Get system prompt and knowledge base for this user
+          const systemPromptData = systemPrompts.get(userId);
+          let systemPrompt = systemPromptData?.prompt || `You are a helpful WhatsApp assistant. Respond to customer messages in a friendly, professional manner. 
           
 Key guidelines:
-- Keep responses concise and helpful
+- Keep responses concise and helpful  
 - Use emojis appropriately for WhatsApp
 - Be conversational but professional
 - If you cannot help with something specific, offer to connect them with a human agent
-- Always be polite and understanding`,
-          ai_provider: 'claude',
-          ai_api_key: process.env.CLAUDE_API_KEY || process.env.ANTHROPIC_API_KEY,
-          ai_model: 'claude-3-5-sonnet-20241022'
-        };
+- Always be polite and understanding`;
 
-        if (!mockWhatsAppAssistant.ai_api_key) {
-          console.log('⚠️ No Claude API key found - skipping AI response');
-        } else {
+          // Get knowledge base for this user
+          const knowledge = knowledgeBase.get(userId);
+          if (knowledge) {
+            console.log('📚 Adding knowledge base to WhatsApp AI:', knowledge.filename);
+            systemPrompt += `\n\nIMPORTANT - You have access to this business knowledge base:\n\n`;
+            systemPrompt += `--- BUSINESS KNOWLEDGE BASE ---\n${knowledge.extractedText}\n--- END KNOWLEDGE BASE ---\n\n`;
+            systemPrompt += `INSTRUCTIONS: When users ask questions about the business (hours, services, location, contact info, policies, etc.), use the information from the knowledge base above. This is YOUR business information. Answer as if you represent this business and have full access to this information.`;
+          }
+
+          const mockWhatsAppAssistant = {
+            id: 'whatsapp_auto_responder',
+            system_prompt: systemPrompt,
+            ai_provider: 'claude',
+            ai_api_key: claudeConfig.apiKey,
+            ai_model: 'claude-3-5-sonnet-20241022'
+          };
+
           console.log('🔄 Processing WhatsApp message with Claude AI...');
           
           // Get AI response using the same system as Telegram
@@ -1363,6 +1395,7 @@ Key guidelines:
           } else {
             console.error('❌ Advanced AI processing failed for WhatsApp:', result.error);
           }
+        }
         }
       } else {
         console.log('📴 WhatsApp AI processing skipped - receiver inactive or no stored message');
