@@ -13,8 +13,9 @@ const TelegramListener = () => {
   const [sendMessage, setSendMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   
-  // Sidebar state
+  // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
   
   // Claude API states
   const [claudeApiKey, setClaudeApiKey] = useState('');
@@ -649,7 +650,31 @@ CONTACT & SOCIAL:
             onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
             onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
           >
-            {isSidebarCollapsed ? '☰ Show Sidebar' : '✕ Hide Sidebar'}
+            {isSidebarCollapsed ? '☰ Show Left' : '✕ Hide Left'}
+          </button>
+          
+          {/* Right Sidebar Toggle Button */}
+          <button
+            onClick={() => setIsRightSidebarCollapsed(!isRightSidebarCollapsed)}
+            style={{
+              position: 'absolute',
+              right: '0',
+              backgroundColor: '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '0.75rem 1rem',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+              transition: 'all 0.2s ease',
+              zIndex: 10
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
+          >
+            {isRightSidebarCollapsed ? 'Show Right ☰' : 'Hide Right ✕'}
           </button>
           
           <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827' }}>
@@ -658,23 +683,25 @@ CONTACT & SOCIAL:
           </h1>
         </div>
         
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', position: 'relative', overflow: 'hidden' }}>
           
-          {/* LEFT SIDEBAR - Collapsible Configuration Panel */}
-          {!isSidebarCollapsed && (
-            <div style={{ 
-              flex: '0 0 400px',
-              backgroundColor: '#f8fafc', 
-              borderRadius: '8px', 
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
-              padding: '0',
-              height: 'fit-content',
-              position: 'sticky',
-              top: '2rem',
-              border: '1px solid #e2e8f0',
-              overflow: 'hidden',
-              transition: 'all 0.3s ease'
-            }}>
+          {/* LEFT SIDEBAR - Sliding Configuration Panel */}
+          <div style={{ 
+            flex: isSidebarCollapsed ? '0 0 0px' : '0 0 400px',
+            backgroundColor: '#f8fafc', 
+            borderRadius: '8px', 
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
+            padding: '0',
+            height: 'fit-content',
+            position: 'sticky',
+            top: '2rem',
+            border: '1px solid #e2e8f0',
+            overflow: 'hidden',
+            transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            transform: isSidebarCollapsed ? 'translateX(-100%)' : 'translateX(0)',
+            opacity: isSidebarCollapsed ? 0 : 1,
+            marginRight: isSidebarCollapsed ? '-400px' : '0'
+          }}>
               {/* Sidebar Header */}
               <div style={{ 
                 backgroundColor: '#3b82f6', 
@@ -1426,7 +1453,6 @@ CONTACT & SOCIAL:
                 
               </div>
             </div>
-          )}
           
           {/* MIDDLE COLUMN - Chat Interface */}
           <div style={{ 
@@ -1740,9 +1766,9 @@ CONTACT & SOCIAL:
             </div>
           </div>
           
-          {/* RIGHT SIDEBAR - User Information */}
+          {/* RIGHT SIDEBAR - Sliding User Information Panel */}
           <div style={{ 
-            flex: '0 0 300px',
+            flex: isRightSidebarCollapsed ? '0 0 0px' : '0 0 300px',
             backgroundColor: '#f8fafc', 
             borderRadius: '8px', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
@@ -1752,7 +1778,10 @@ CONTACT & SOCIAL:
             top: '2rem',
             border: '1px solid #e2e8f0',
             overflow: 'hidden',
-            transition: 'all 0.3s ease'
+            transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            transform: isRightSidebarCollapsed ? 'translateX(100%)' : 'translateX(0)',
+            opacity: isRightSidebarCollapsed ? 0 : 1,
+            marginLeft: isRightSidebarCollapsed ? '-300px' : '0'
           }}>
             {/* Right Sidebar Header */}
             <div style={{ 
