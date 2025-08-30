@@ -31,7 +31,6 @@ const WhatsAppReceiver = () => {
   const [isClaudeConnected, setIsClaudeConnected] = useState(false);
   const [isConnectingClaude, setIsConnectingClaude] = useState(false);
   const [claudeStatus, setClaudeStatus] = useState('');
-  const [isActivating, setIsActivating] = useState(false);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -115,11 +114,6 @@ const WhatsAppReceiver = () => {
         const isConnected = data.connected || false;
         console.log('🔍 Setting isClaudeConnected to:', isConnected);
         setIsClaudeConnected(isConnected);
-        
-        // Debug: Check the state right after setting it with a delay
-        setTimeout(() => {
-          console.log('🔍 State after set attempt - isClaudeConnected should be:', isConnected);
-        }, 100);
         
         if (isConnected) {
           setClaudeStatus('✅ Claude AI ready for WhatsApp integration');
@@ -208,11 +202,6 @@ const WhatsAppReceiver = () => {
       setIsConnectingClaude(false);
     }
   };
-  
-  // Debug: Log Claude connection state changes
-  useEffect(() => {
-    console.log('🔍 REACT STATE CHANGE: isClaudeConnected =', isClaudeConnected);
-  }, [isClaudeConnected]);
 
   // Auto-clear Claude status after 5 seconds
   useEffect(() => {
@@ -260,32 +249,6 @@ const WhatsAppReceiver = () => {
       new Date(b.lastMessageTime) - new Date(a.lastMessageTime)
     );
     
-    // Debug message ordering
-    if (sortedConversations.length > 0) {
-      const firstConv = sortedConversations[0];
-      console.log('📱 MESSAGE ORDERING DEBUG for phone:', firstConv.phoneNumber);
-      console.log('📊 Total messages:', firstConv.messages.length);
-      
-      if (firstConv.messages.length > 0) {
-        console.log('🔼 FIRST message (should be oldest):', {
-          text: firstConv.messages[0]?.text,
-          time: firstConv.messages[0]?.timestamp || firstConv.messages[0]?.createdAt,
-          direction: firstConv.messages[0]?.direction
-        });
-        
-        console.log('🔽 LAST message (should be newest):', {
-          text: firstConv.messages[firstConv.messages.length - 1]?.text,
-          time: firstConv.messages[firstConv.messages.length - 1]?.timestamp || firstConv.messages[firstConv.messages.length - 1]?.createdAt,
-          direction: firstConv.messages[firstConv.messages.length - 1]?.direction
-        });
-        
-        console.log('📋 ALL MESSAGES IN ORDER (oldest → newest):');
-        firstConv.messages.forEach((msg, index) => {
-          console.log(`  ${index + 1}. "${msg.text}" (${msg.direction}) at ${msg.timestamp || msg.createdAt}`);
-        });
-      }
-    }
-    
     return sortedConversations;
   };
 
@@ -320,17 +283,6 @@ const WhatsAppReceiver = () => {
             const newConversations = groupMessagesIntoConversations(newMessages);
             console.log('💬 Conversations created:', newConversations.length, newConversations);
             setConversations(newConversations);
-            
-            // Force debug output here
-            if (newConversations.length > 0 && newConversations[0].messages.length > 0) {
-              const conv = newConversations[0];
-              console.log('🚨 FORCED DEBUG - Message Order Check:');
-              console.log('Phone:', conv.phoneNumber);
-              console.log('Message count:', conv.messages.length);
-              conv.messages.forEach((msg, i) => {
-                console.log(`${i + 1}. "${msg.text}" (${msg.direction || 'unknown'}) - ${msg.timestamp || msg.createdAt}`);
-              });
-            }
             
             // Auto-select first conversation if none selected (only once)
             if (!selectedConversation && !hasAutoSelected && newConversations.length > 0) {
@@ -513,7 +465,6 @@ const WhatsAppReceiver = () => {
           </h1>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-
             {/* Claude AI Configuration Panel */}
             <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
@@ -845,7 +796,7 @@ const WhatsAppReceiver = () => {
                     fontSize: '1rem'
                   }}
                 >
-                  {isLoading ? '⏳ Stopping...' : '📋 Stop Integration'}
+                  {isLoading ? '⏳ Stopping...' : '🛑 Stop Integration'}
                 </button>
               )}
             </div>
@@ -861,315 +812,314 @@ const WhatsAppReceiver = () => {
                 ✅ WhatsApp integration is active and listening for messages
               </div>
             )}
-            
           </div>
         </div>
 
-
-      {/* CONVERSATIONS SECTION */}
-      <div style={{
-        backgroundColor: 'white', 
-        borderRadius: '8px', 
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-        padding: '1.5rem',
-        marginTop: '1.5rem',
-        display: 'flex',
-        height: '500px'
-      }}>
-        {/* Conversations List - Left Side */}
+        {/* CONVERSATIONS SECTION */}
         <div style={{
-          width: '300px',
-          borderRight: '1px solid #e4e6ea',
+          backgroundColor: 'white', 
+          borderRadius: '8px', 
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
+          padding: '1.5rem',
+          marginTop: '1.5rem',
           display: 'flex',
-          flexDirection: 'column'
+          height: '500px'
         }}>
-          {/* Conversations Header */}
+          {/* Conversations List - Left Side */}
           <div style={{
-            padding: '20px',
-            borderBottom: '1px solid #e4e6ea',
-            backgroundColor: '#f8f9fa'
+            width: '300px',
+            borderRight: '1px solid #e4e6ea',
+            display: 'flex',
+            flexDirection: 'column'
           }}>
-            <h2 style={{
-              margin: '0',
-              fontSize: '18px',
-              fontWeight: '600',
-              color: '#1f2937',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
+            {/* Conversations Header */}
+            <div style={{
+              padding: '20px',
+              borderBottom: '1px solid #e4e6ea',
+              backgroundColor: '#f8f9fa'
             }}>
-              💬 Conversations ({conversations.length})
-            </h2>
-          </div>
-          
-          {/* Conversations List */}
-          <div style={{ flex: 1, overflowY: 'auto' }}>
-            {conversations.length > 0 ? (
-              conversations.map((conversation, index) => (
-                <div
-                  key={conversation.phoneNumber}
-                  onClick={() => setSelectedConversation(conversation)}
-                  style={{
-                    padding: '16px 20px',
-                    borderBottom: '1px solid #f0f0f0',
-                    cursor: 'pointer',
-                    backgroundColor: selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : 'transparent',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : '#f5f5f5'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : 'transparent'}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '50%',
-                      backgroundColor: '#25D366',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'white',
-                      fontSize: '16px',
-                      fontWeight: '600'
-                    }}>
-                      {conversation.contactName?.charAt(0) || '👤'}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
+              <h2 style={{
+                margin: '0',
+                fontSize: '18px',
+                fontWeight: '600',
+                color: '#1f2937',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                💬 Conversations ({conversations.length})
+              </h2>
+            </div>
+            
+            {/* Conversations List */}
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {conversations.length > 0 ? (
+                conversations.map((conversation, index) => (
+                  <div
+                    key={conversation.phoneNumber}
+                    onClick={() => setSelectedConversation(conversation)}
+                    style={{
+                      padding: '16px 20px',
+                      borderBottom: '1px solid #f0f0f0',
+                      cursor: 'pointer',
+                      backgroundColor: selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : 'transparent',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.target.style.backgroundColor = selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : '#f5f5f5'}
+                    onMouseLeave={(e) => e.target.style.backgroundColor = selectedConversation?.phoneNumber === conversation.phoneNumber ? '#e3f2fd' : 'transparent'}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{
-                        fontWeight: '600',
-                        fontSize: '14px',
-                        color: '#1f2937',
-                        marginBottom: '4px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        backgroundColor: '#25D366',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontSize: '16px',
+                        fontWeight: '600'
                       }}>
-                        {conversation.contactName || conversation.phoneNumber}
+                        {conversation.contactName?.charAt(0) || '👤'}
                       </div>
-                      <div style={{
-                        fontSize: '13px',
-                        color: '#6b7280',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}>
-                        {conversation.lastMessage}
-                      </div>
-                      <div style={{
-                        fontSize: '12px',
-                        color: '#9ca3af',
-                        marginTop: '2px'
-                      }}>
-                        {formatTimestamp(conversation.lastMessageTime)}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          fontWeight: '600',
+                          fontSize: '14px',
+                          color: '#1f2937',
+                          marginBottom: '4px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {conversation.contactName || conversation.phoneNumber}
+                        </div>
+                        <div style={{
+                          fontSize: '13px',
+                          color: '#6b7280',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {conversation.lastMessage}
+                        </div>
+                        <div style={{
+                          fontSize: '12px',
+                          color: '#9ca3af',
+                          marginTop: '2px'
+                        }}>
+                          {formatTimestamp(conversation.lastMessageTime)}
+                        </div>
                       </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div style={{
+                  padding: '40px 20px',
+                  textAlign: 'center',
+                  color: '#6b7280'
+                }}>
+                  <div style={{ fontSize: '48px', marginBottom: '16px', opacity: '0.5' }}>💬</div>
+                  <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }}>No conversations yet</div>
+                  <div style={{ fontSize: '14px' }}>Messages will appear here when received</div>
                 </div>
-              ))
+              )}
+            </div>
+          </div>
+
+          {/* Chat Panel - Right Side */}
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {selectedConversation ? (
+              <>
+                {/* Chat Header */}
+                <div style={{
+                  padding: '20px',
+                  borderBottom: '1px solid #e4e6ea',
+                  backgroundColor: '#f8f9fa'
+                }}>
+                  <h3 style={{
+                    margin: '0',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#1f2937'
+                  }}>
+                    {selectedConversation.contactName || selectedConversation.phoneNumber}
+                  </h3>
+                  <p style={{
+                    margin: '5px 0 0 0',
+                    fontSize: '14px',
+                    color: '#6b7280'
+                  }}>
+                    {selectedConversation.phoneNumber}
+                  </p>
+                </div>
+
+                {/* Messages Area */}
+                <div style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  padding: '20px',
+                  backgroundColor: '#fafafa'
+                }}>
+                  {selectedConversation.messages.map((message, index) => {
+                    const isOutgoing = message.direction === 'outbound' || message.type === 'sent';
+                    
+                    return (
+                      <div key={index} style={{
+                        marginBottom: '16px',
+                        display: 'flex',
+                        justifyContent: isOutgoing ? 'flex-end' : 'flex-start'
+                      }}>
+                        <div style={{
+                          maxWidth: '70%',
+                          padding: '12px 16px',
+                          borderRadius: isOutgoing ? '18px 18px 6px 18px' : '18px 18px 18px 6px',
+                          backgroundColor: isOutgoing ? '#25D366' : '#ffffff',
+                          color: isOutgoing ? 'white' : '#1f2937',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                          wordBreak: 'break-word'
+                        }}>
+                          <div style={{ fontSize: '14px', lineHeight: '1.4' }}>
+                            {message.text || message.message}
+                          </div>
+                          <div style={{
+                            fontSize: '12px',
+                            marginTop: '4px',
+                            opacity: '0.7',
+                            textAlign: 'right'
+                          }}>
+                            {formatTimestamp(message.timestamp || message.createdAt)}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Message Input Area */}
+                <div style={{
+                  padding: '20px',
+                  borderTop: '1px solid #e4e6ea',
+                  backgroundColor: '#ffffff'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'flex-end',
+                    gap: '12px'
+                  }}>
+                    <textarea
+                      value={messageText}
+                      onChange={(e) => setMessageText(e.target.value)}
+                      placeholder="Type a message..."
+                      disabled={!isActive}
+                      style={{
+                        flex: 1,
+                        minHeight: '44px',
+                        maxHeight: '120px',
+                        padding: '12px 16px',
+                        border: '1px solid #e4e6ea',
+                        borderRadius: '22px',
+                        resize: 'none',
+                        fontSize: '14px',
+                        fontFamily: 'inherit',
+                        outline: 'none',
+                        backgroundColor: isActive ? 'white' : '#f5f5f5'
+                      }}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          if (!isSending && messageText.trim() && isActive) {
+                            handleSendMessage();
+                          }
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={handleSendMessage}
+                      disabled={isSending || !messageText.trim() || !isActive}
+                      style={{
+                        padding: '12px',
+                        background: (isSending || !messageText.trim() || !isActive) ? '#e9ecef' : '#25D366',
+                        color: (isSending || !messageText.trim() || !isActive) ? '#6c757d' : 'white',
+                        border: 'none',
+                        borderRadius: '50%',
+                        cursor: (isSending || !messageText.trim() || !isActive) ? 'not-allowed' : 'pointer',
+                        fontSize: '18px',
+                        width: '44px',
+                        height: '44px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'background-color 0.2s'
+                      }}
+                    >
+                      {isSending ? '⏳' : '📤'}
+                    </button>
+                  </div>
+                  
+                  {/* Send Status */}
+                  {sendStatus && (
+                    <div style={{
+                      marginTop: '8px',
+                      fontSize: '12px',
+                      color: sendStatus.includes('✅') ? '#16a34a' : sendStatus.includes('❌') ? '#dc2626' : '#6b7280',
+                      textAlign: 'center'
+                    }}>
+                      {sendStatus}
+                    </div>
+                  )}
+                </div>
+              </>
             ) : (
               <div style={{
-                padding: '40px 20px',
-                textAlign: 'center',
-                color: '#6b7280'
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#6b7280',
+                textAlign: 'center'
               }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px', opacity: '0.5' }}>💬</div>
-                <div style={{ fontSize: '16px', fontWeight: '500', marginBottom: '8px' }}>No conversations yet</div>
-                <div style={{ fontSize: '14px' }}>Messages will appear here when received</div>
+                <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>💬</div>
+                <h3 style={{ fontSize: '18px', margin: '0 0 8px 0', fontWeight: '500' }}>
+                  Select a conversation
+                </h3>
+                <p style={{ fontSize: '14px', margin: 0 }}>
+                  Choose a conversation from the left to view and send messages
+                </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Chat Panel - Right Side */}
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          {selectedConversation ? (
-            <>
-              {/* Chat Header */}
-              <div style={{
-                padding: '20px',
-                borderBottom: '1px solid #e4e6ea',
-                backgroundColor: '#f8f9fa'
-              }}>
-                <h3 style={{
-                  margin: '0',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  color: '#1f2937'
-                }}>
-                  {selectedConversation.contactName || selectedConversation.phoneNumber}
-                </h3>
-                <p style={{
-                  margin: '5px 0 0 0',
-                  fontSize: '14px',
-                  color: '#6b7280'
-                }}>
-                  {selectedConversation.phoneNumber}
-                </p>
-              </div>
+        {/* Status indicator for WhatsApp system */}
+        {!isActive && (
+          <div style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            color: '#991b1b',
+            fontSize: '14px',
+            fontWeight: '500',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+            zIndex: 1000
+          }}>
+            ⚠️ WhatsApp system is inactive. Configure and activate to start receiving messages.
+          </div>
+        )}
 
-              {/* Messages Area */}
-              <div style={{
-                flex: 1,
-                overflowY: 'auto',
-                padding: '20px',
-                backgroundColor: '#fafafa'
-              }}>
-                {selectedConversation.messages.map((message, index) => {
-                  const isOutgoing = message.direction === 'outbound' || message.type === 'sent';
-                  
-                  return (
-                    <div key={index} style={{
-                      marginBottom: '16px',
-                      display: 'flex',
-                      justifyContent: isOutgoing ? 'flex-end' : 'flex-start'
-                    }}>
-                      <div style={{
-                        maxWidth: '70%',
-                        padding: '12px 16px',
-                        borderRadius: isOutgoing ? '18px 18px 6px 18px' : '18px 18px 18px 6px',
-                        backgroundColor: isOutgoing ? '#25D366' : '#ffffff',
-                        color: isOutgoing ? 'white' : '#1f2937',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                        wordBreak: 'break-word'
-                      }}>
-                        <div style={{ fontSize: '14px', lineHeight: '1.4' }}>
-                          {message.text || message.message}
-                        </div>
-                        <div style={{
-                          fontSize: '12px',
-                          marginTop: '4px',
-                          opacity: '0.7',
-                          textAlign: 'right'
-                        }}>
-                          {formatTimestamp(message.timestamp || message.createdAt)}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-                <div ref={messagesEndRef} />
-              </div>
-
-              {/* Message Input Area */}
-              <div style={{
-                padding: '20px',
-                borderTop: '1px solid #e4e6ea',
-                backgroundColor: '#ffffff'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'flex-end',
-                  gap: '12px'
-                }}>
-                  <textarea
-                    value={messageText}
-                    onChange={(e) => setMessageText(e.target.value)}
-                    placeholder="Type a message..."
-                    disabled={!isActive}
-                    style={{
-                      flex: 1,
-                      minHeight: '44px',
-                      maxHeight: '120px',
-                      padding: '12px 16px',
-                      border: '1px solid #e4e6ea',
-                      borderRadius: '22px',
-                      resize: 'none',
-                      fontSize: '14px',
-                      fontFamily: 'inherit',
-                      outline: 'none',
-                      backgroundColor: isActive ? 'white' : '#f5f5f5'
-                    }}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        if (!isSending && messageText.trim() && isActive) {
-                          handleSendMessage();
-                        }
-                      }
-                    }}
-                  />
-                  <button
-                    onClick={handleSendMessage}
-                    disabled={isSending || !messageText.trim() || !isActive}
-                    style={{
-                      padding: '12px',
-                      background: (isSending || !messageText.trim() || !isActive) ? '#e9ecef' : '#25D366',
-                      color: (isSending || !messageText.trim() || !isActive) ? '#6c757d' : 'white',
-                      border: 'none',
-                      borderRadius: '50%',
-                      cursor: (isSending || !messageText.trim() || !isActive) ? 'not-allowed' : 'pointer',
-                      fontSize: '18px',
-                      width: '44px',
-                      height: '44px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'background-color 0.2s'
-                    }}
-                  >
-                    {isSending ? '⏳' : '📤'}
-                  </button>
-                </div>
-                
-                {/* Send Status */}
-                {sendStatus && (
-                  <div style={{
-                    marginTop: '8px',
-                    fontSize: '12px',
-                    color: sendStatus.includes('✅') ? '#16a34a' : sendStatus.includes('❌') ? '#dc2626' : '#6b7280',
-                    textAlign: 'center'
-                  }}>
-                    {sendStatus}
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <div style={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#6b7280',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.5 }}>💬</div>
-              <h3 style={{ fontSize: '18px', margin: '0 0 8px 0', fontWeight: '500' }}>
-                Select a conversation
-              </h3>
-              <p style={{ fontSize: '14px', margin: 0 }}>
-                Choose a conversation from the left to view and send messages
-              </p>
-            </div>
-          )}
-        </div>
       </div>
-
-      {/* Status indicator for WhatsApp system */}
-      {!isActive && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          background: '#fef2f2',
-          border: '1px solid #fecaca',
-          borderRadius: '8px',
-          padding: '12px 16px',
-          color: '#991b1b',
-          fontSize: '14px',
-          fontWeight: '500',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-          zIndex: 1000
-        }}>
-          ⚠️ WhatsApp system is inactive. Configure and activate to start receiving messages.
-        </div>
-      )}
-
     </div>
   );
 };
