@@ -24,6 +24,19 @@ const { storeWhatsAppMessage, getReceiverState } = require('./whatsapp-receiver'
 const fs = require('fs');
 const path = require('path');
 
+// Add fetch support for Node.js
+let fetch;
+try {
+  fetch = require('node-fetch');
+} catch (e) {
+  // Use built-in fetch if available (Node 18+)
+  if (typeof globalThis.fetch !== 'undefined') {
+    fetch = globalThis.fetch;
+  } else {
+    console.warn('⚠️ Fetch not available - AI responses may not work');
+  }
+}
+
 // Store for active workflow configurations (in production, use database)
 const workflowConfigs = new Map();
 
@@ -1182,12 +1195,182 @@ router.post('/whatsapp', asyncHandler(async (req, res) => {
     }
 
     // Store message in WhatsApp receiver if active
+    let storeResult = null;
     try {
-      const storeResult = await storeWhatsAppMessage(webhookData);
+      storeResult = await storeWhatsAppMessage(webhookData);
       console.log('💾 WhatsApp message storage result:', storeResult);
     } catch (storeError) {
       console.error('❌ Failed to store WhatsApp message:', storeError);
       // Continue processing even if storage fails
+    }
+
+    // CLAUDE AI AUTO-RESPONSE FOR WHATSAPP (Similar to Telegram system)
+    try {
+      const receiverState = getReceiverState();
+      
+      // Only process AI responses if WhatsApp receiver is active and we have stored a message
+      if (receiverState.isActive && storeResult && storeResult.stored && storeResult.messageData) {
+        console.log('🤖 Processing WhatsApp message for Claude AI auto-response...');
+        
+        const messageData = storeResult.messageData;
+        const phoneNumber = messageData.phoneNumber;
+        const messageText = messageData.messageText;
+        const contactName = messageData.contactName || 'Unknown Contact';
+        
+        console.log('📱 WhatsApp AI Processing:', {
+          from: phoneNumber,
+          name: contactName,
+          text: messageText?.substring(0, 50)
+        });
+
+        // Use Advanced AI Processor for enhanced conversation handling (same as Telegram)
+        const advancedAIProcessor = require('../services/advancedAIProcessor');
+        const startTime = Date.now();
+        
+        console.log('🧠 Using Advanced AI Processing for WhatsApp message');
+        
+        // Prepare customer info (WhatsApp format)
+        const customerInfo = {
+          chatId: phoneNumber, // Use phone number as chat ID for WhatsApp
+          name: contactName,
+          username: null, // WhatsApp doesn't have usernames
+          firstName: contactName,
+          lastName: null
+        };
+
+        // Prepare customer message (WhatsApp format)
+        const customerMessage = {
+          text: messageText,
+          messageId: messageData.messageId,
+          timestamp: messageData.timestamp
+        };
+
+        // For now, we'll create a mock assistant configuration for WhatsApp
+        // In production, this should be configurable per user/business
+        const mockWhatsAppAssistant = {
+          id: 'whatsapp_auto_responder',
+          system_prompt: `You are a helpful WhatsApp assistant. Respond to customer messages in a friendly, professional manner. 
+          
+Key guidelines:
+- Keep responses concise and helpful
+- Use emojis appropriately for WhatsApp
+- Be conversational but professional
+- If you cannot help with something specific, offer to connect them with a human agent
+- Always be polite and understanding`,
+          ai_provider: 'claude',
+          ai_api_key: process.env.CLAUDE_API_KEY || process.env.ANTHROPIC_API_KEY,
+          ai_model: 'claude-3-5-sonnet-20241022'
+        };
+
+        if (!mockWhatsAppAssistant.ai_api_key) {
+          console.log('⚠️ No Claude API key found - skipping AI response');
+        } else {
+          console.log('🔄 Processing WhatsApp message with Claude AI...');
+          
+          // Get AI response using the same system as Telegram
+          const result = await advancedAIProcessor.processAdvancedConversation(
+            mockWhatsAppAssistant.id,
+            customerMessage,
+            customerInfo
+          );
+
+          if (result.success) {
+            console.log('✅ Claude AI generated response for WhatsApp:', result.response?.substring(0, 100));
+            
+            // Send response back via WhatsApp using the unified configuration
+            if (receiverState.accessToken && receiverState.phoneNumberSendId) {
+              console.log('📤 Sending AI response via WhatsApp...');
+              
+              // Use WhatsApp Business API to send the response
+              const url = `https://graph.facebook.com/v21.0/${receiverState.phoneNumberSendId}/messages`;
+              
+              const requestBody = {
+                messaging_product: 'whatsapp',
+                to: phoneNumber,
+                type: 'text',
+                text: {
+                  body: result.response
+                }
+              };
+
+              const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${receiverState.accessToken}`,
+                  'User-Agent': 'WhatsApp-AI-Bot/1.0'
+                },
+                body: JSON.stringify(requestBody)
+              });
+
+              const data = await response.json();
+
+              if (!response.ok) {
+                const errorMsg = data.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+                console.error('❌ WhatsApp AI Response Send Error:', data);
+              } else {
+                console.log('✅ WhatsApp AI Response sent successfully:', {
+                  messageId: data.messages?.[0]?.id,
+                  status: data.messages?.[0]?.message_status || 'sent'
+                });
+
+                // Store the AI response as an outgoing message in the database
+                try {
+                  const db = require('../db');
+                  const insertQuery = `
+                    INSERT INTO whatsapp_receiver_messages 
+                    (phone_number, contact_name, message_text, message_id, message_type, timestamp, raw_data, direction, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  `;
+                  
+                  const now = new Date().toISOString();
+                  const responseMessageId = data.messages?.[0]?.id || `ai_response_${Date.now()}`;
+                  
+                  await new Promise((resolve, reject) => {
+                    db.run(insertQuery, [
+                      phoneNumber,
+                      contactName,
+                      result.response,
+                      responseMessageId,
+                      'text',
+                      now,
+                      JSON.stringify({ 
+                        ai_generated: true, 
+                        whatsappResponse: data,
+                        phoneNumberSendId: receiverState.phoneNumberSendId,
+                        processing_time: Date.now() - startTime,
+                        ai_model: mockWhatsAppAssistant.ai_model
+                      }),
+                      'outgoing',
+                      now
+                    ], function(err) {
+                      if (err) reject(err);
+                      else resolve(this.lastID);
+                    });
+                  });
+                  
+                  console.log('💾 Stored AI response message in WhatsApp database');
+                  
+                } catch (dbError) {
+                  console.error('⚠️ Failed to store AI response in database:', dbError);
+                }
+              }
+              
+            } else {
+              console.log('⚠️ WhatsApp sending credentials not available - AI response not sent');
+            }
+            
+          } else {
+            console.error('❌ Advanced AI processing failed for WhatsApp:', result.error);
+          }
+        }
+      } else {
+        console.log('📴 WhatsApp AI processing skipped - receiver inactive or no stored message');
+      }
+      
+    } catch (aiError) {
+      console.error('❌ WhatsApp AI processing error:', aiError);
+      // Continue processing even if AI fails
     }
 
     // Process regular webhook data for active workflows
