@@ -634,7 +634,7 @@ CONTACT & SOCIAL:
           style={{
             position: 'fixed',
             top: '20px',
-            left: isSidebarCollapsed ? '20px' : '420px',
+            left: isSidebarCollapsed ? '20px' : '400px',
             backgroundColor: '#3b82f6',
             color: 'white',
             border: 'none',
@@ -658,7 +658,7 @@ CONTACT & SOCIAL:
           style={{
             position: 'fixed',
             top: '20px',
-            right: isRightSidebarCollapsed ? '20px' : '320px',
+            right: isRightSidebarCollapsed ? '20px' : '300px',
             backgroundColor: '#10b981',
             color: 'white',
             border: 'none',
@@ -1464,8 +1464,8 @@ CONTACT & SOCIAL:
             flexDirection: 'column', 
             gap: '1.5rem',
             minWidth: '500px',
-            marginLeft: isSidebarCollapsed ? '0' : '420px',
-            marginRight: isRightSidebarCollapsed ? '0' : '320px',
+            marginLeft: isSidebarCollapsed ? '0' : '400px',
+            marginRight: isRightSidebarCollapsed ? '0' : '300px',
             transition: 'margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), margin-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
           }}>
 
