@@ -474,7 +474,7 @@ const WhatsAppReceiver = () => {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '2rem 0' }}>
-      <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0 1rem' }}>
+      <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0' }}>
         {/* Fixed Toggle Buttons */}
         <button
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
@@ -537,14 +537,14 @@ const WhatsAppReceiver = () => {
           <div style={{ 
             width: '400px',
             backgroundColor: '#f8fafc', 
-            borderRadius: '8px 8px 0 0', 
+            borderRadius: '0', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
             padding: '0',
             height: '100vh',
             position: 'fixed',
             top: '0',
             left: '0',
-            border: '1px solid #e2e8f0',
+            borderRight: '1px solid #e2e8f0',
             overflow: 'hidden',
             transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
             transform: isSidebarCollapsed ? 'translateX(-420px)' : 'translateX(0)',
@@ -556,7 +556,7 @@ const WhatsAppReceiver = () => {
                 backgroundColor: '#25D366', 
                 color: 'white', 
                 padding: '1rem 1.5rem',
-                borderRadius: '8px 8px 0 0'
+                borderRadius: '0'
               }}>
                 <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
                   ⚙️ WhatsApp Configuration
@@ -1032,11 +1032,14 @@ const WhatsAppReceiver = () => {
             display: 'flex', 
             flexDirection: 'column', 
             gap: '0',
-            minWidth: '500px',
+            minWidth: 'calc(100vw - 700px)',
             marginLeft: isSidebarCollapsed ? '0' : '400px',
             marginRight: isRightSidebarCollapsed ? '0' : '300px',
             transition: 'margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), margin-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-            padding: '1rem'
+            padding: '2rem 1rem',
+            backgroundColor: '#fafafa',
+            borderTop: '1px solid #e2e8f0',
+            borderBottom: '1px solid #e2e8f0'
           }}>
 
             {/* WhatsApp Status Warning */}
@@ -1339,14 +1342,14 @@ const WhatsAppReceiver = () => {
           <div style={{ 
             width: '300px',
             backgroundColor: '#f8fafc', 
-            borderRadius: '8px 0 0 8px', 
+            borderRadius: '0', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
             padding: '0',
             height: '100vh',
             position: 'fixed',
             top: '0',
             right: '0',
-            border: '1px solid #e2e8f0',
+            borderLeft: '1px solid #e2e8f0',
             overflow: 'hidden',
             transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
             transform: isRightSidebarCollapsed ? 'translateX(320px)' : 'translateX(0)',
@@ -1358,7 +1361,7 @@ const WhatsAppReceiver = () => {
               backgroundColor: '#10b981', 
               color: 'white', 
               padding: '1rem 1.5rem',
-              borderRadius: '8px 8px 0 0'
+              borderRadius: '0'
             }}>
               <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
                 📱 Contact Information
