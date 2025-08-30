@@ -504,601 +504,375 @@ const WhatsAppReceiver = () => {
   };
 
   return (
-    <div className="whatsapp-receiver-page" style={{ 
-      minHeight: '100vh',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      backgroundColor: '#f0f2f5',
-      padding: '20px'
-    }}>
-      {/* CLAUDE AI INTEGRATION SECTION */}
-      <div style={{
-        backgroundColor: '#ffffff',
-        borderRadius: '8px',
-        marginBottom: '20px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-      }}>
-        <div style={{
-          padding: '20px',
-          borderBottom: '1px solid #e4e6ea'
-        }}>
-          <h2 style={{ 
-            color: '#7C3AED',
-            fontSize: '20px',
-            fontWeight: '600',
-            margin: '0 0 10px 0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            🤖 Claude AI Integration
-          </h2>
-        </div>
-        <div style={{ padding: '20px', flex: 1, overflowY: 'auto' }}>
-        
-        {/* Sidebar Header */}
-        <div style={{
-          padding: '20px',
-          borderBottom: '1px solid #e4e6ea',
-          backgroundColor: '#f8f9fa'
-        }}>
-          <h1 style={{ 
-            color: '#25D366',
-            margin: '0',
-            fontSize: '20px',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            📱 WhatsApp Control Panel
+    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '2rem 0' }}>
+      <div style={{ maxWidth: '60rem', margin: '0 auto', padding: '0 1rem' }}>
+        <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '1.5rem' }}>
+            <i className="fab fa-whatsapp" style={{ color: '#25D366', marginRight: '0.5rem' }}></i>
+            WhatsApp Business Integration
           </h1>
-        </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
 
-        {/* Sidebar Content */}
-        <div style={{ padding: '20px', flex: 1, overflowY: 'auto' }}>
+            {/* Claude AI Configuration Panel */}
+            <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+                <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🤖</span>
+                Claude AI Configuration
+              </h3>
 
-        {/* Claude AI Integration Panel */}
-        <div style={{
-          background: '#f0f9ff',
-          border: '2px solid #bfdbfe',
-          borderRadius: '12px',
-          padding: '20px',
-          marginBottom: '24px'
-        }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            marginBottom: '16px'
-          }}>
-            <span style={{ fontSize: '24px' }}>🤖</span>
-            <h3 style={{
-              color: '#1e40af',
-              margin: 0,
-              fontSize: '18px',
-              fontWeight: '600'
-            }}>
-              Claude AI Integration
-            </h3>
-            {isClaudeConnected && (
-              <span style={{
-                background: '#dcfce7',
-                color: '#166534',
-                padding: '4px 8px',
-                borderRadius: '12px',
-                fontSize: '12px',
-                fontWeight: '500',
-                border: '1px solid #bbf7d0'
+              {/* Claude Connection Status */}
+              <div style={{
+                padding: '1rem',
+                borderRadius: '8px',
+                backgroundColor: isClaudeConnected ? '#f0fdf4' : '#fef2f2',
+                border: `1px solid ${isClaudeConnected ? '#bbf7d0' : '#fecaca'}`,
+                marginBottom: '1rem'
               }}>
-                ✅ Connected
-              </span>
-            )}
-          </div>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '50%',
+                    backgroundColor: isClaudeConnected ? '#10b981' : '#ef4444',
+                    marginRight: '0.75rem'
+                  }}></div>
+                  <span style={{
+                    fontWeight: '500',
+                    color: isClaudeConnected ? '#065f46' : '#991b1b'
+                  }}>
+                    {isClaudeConnected ? 'Connected to Claude API' : 'Not Connected'}
+                  </span>
+                </div>
+              </div>
 
-          {/* Connection Status */}
-          <div style={{
-            background: isClaudeConnected ? '#f0fdf4' : '#fef2f2',
-            border: `1px solid ${isClaudeConnected ? '#bbf7d0' : '#fecaca'}`,
-            borderRadius: '8px',
-            padding: '12px',
-            marginBottom: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <div style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              backgroundColor: isClaudeConnected ? '#22c55e' : '#ef4444'
-            }}></div>
-            <span style={{
-              fontSize: '14px',
-              color: isClaudeConnected ? '#166534' : '#991b1b',
-              fontWeight: '500'
-            }}>
-              {isClaudeConnected 
-                ? 'Claude AI ready for intelligent WhatsApp processing' 
-                : 'Connect Claude AI for smart message analysis and responses'
-              }
-            </span>
-          </div>
+              {/* Claude API Key Input */}
+              {!isClaudeConnected && (
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    color: '#374151',
+                    marginBottom: '0.5rem'
+                  }}>
+                    Claude API Key
+                  </label>
+                  <input
+                    type="password"
+                    value={claudeApiKey}
+                    onChange={(e) => setClaudeApiKey(e.target.value)}
+                    placeholder="Enter your Claude API key (sk-ant-...)"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      opacity: isConnectingClaude ? '0.5' : '1'
+                    }}
+                    disabled={isConnectingClaude}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !isConnectingClaude && claudeApiKey.trim()) {
+                        handleClaudeConnect();
+                      }
+                    }}
+                  />
+                  <p style={{ 
+                    marginTop: '0.25rem', 
+                    fontSize: '0.875rem', 
+                    color: '#6b7280' 
+                  }}>
+                    Get your API key from{' '}
+                    <a 
+                      href="https://console.anthropic.com/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ color: '#3b82f6', textDecoration: 'underline' }}
+                    >
+                      Anthropic Console
+                    </a>
+                  </p>
+                </div>
+              )}
 
-          {/* Claude API Key Input - Always show unless connected */}
-          {!isClaudeConnected && (
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{
-                display: 'block',
-                marginBottom: '6px',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#374151'
-              }}>
-                Claude API Key:
+              {/* Claude Status */}
+              {claudeStatus && (
+                <div style={{ 
+                  padding: '1rem', 
+                  borderRadius: '6px', 
+                  backgroundColor: claudeStatus.includes('✅') ? '#f0fdf4' : claudeStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
+                  color: claudeStatus.includes('✅') ? '#15803d' : claudeStatus.includes('❌') ? '#dc2626' : '#1d4ed8',
+                  marginBottom: '1rem'
+                }}>
+                  {claudeStatus}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                {!isClaudeConnected ? (
+                  <button
+                    onClick={handleClaudeConnect}
+                    disabled={isConnectingClaude || !claudeApiKey.trim()}
+                    style={{ 
+                      flex: '1',
+                      backgroundColor: isConnectingClaude || !claudeApiKey.trim() ? '#9ca3af' : '#2563eb', 
+                      color: 'white', 
+                      padding: '0.75rem 1rem', 
+                      border: 'none',
+                      borderRadius: '6px', 
+                      cursor: isConnectingClaude || !claudeApiKey.trim() ? 'not-allowed' : 'pointer',
+                      fontSize: '1rem'
+                    }}
+                  >
+                    {isConnectingClaude ? '⏳ Connecting...' : '🔗 Connect Claude AI'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleClaudeDisconnect}
+                    disabled={isConnectingClaude}
+                    style={{ 
+                      flex: '1',
+                      backgroundColor: isConnectingClaude ? '#9ca3af' : '#dc2626', 
+                      color: 'white', 
+                      padding: '0.75rem 1rem', 
+                      border: 'none',
+                      borderRadius: '6px', 
+                      cursor: isConnectingClaude ? 'not-allowed' : 'pointer',
+                      fontSize: '1rem'
+                    }}
+                  >
+                    {isConnectingClaude ? '⏳ Disconnecting...' : '🔌 Disconnect'}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Webhook URL Display */}
+            <div style={{ backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '6px' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                Webhook URL
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <code style={{ 
+                  display: 'block', 
+                  width: '100%', 
+                  padding: '0.5rem', 
+                  backgroundColor: '#f3f4f6', 
+                  borderRadius: '4px', 
+                  fontSize: '0.875rem', 
+                  wordBreak: 'break-all',
+                  fontFamily: 'monospace'
+                }}>
+                  {webhookUrl}
+                </code>
+                <button 
+                  onClick={copyWebhookUrl}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    backgroundColor: '#2563eb',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Copy
+                </button>
+              </div>
+              <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                Use this URL as your webhook endpoint in WhatsApp Business API settings
+              </p>
+            </div>
+
+            {/* WhatsApp Configuration */}
+            <div>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                WhatsApp App ID
+              </label>
+              <input
+                type="text"
+                value={appId}
+                onChange={(e) => setAppId(e.target.value)}
+                placeholder="Enter your WhatsApp App ID"
+                disabled={isActive}
+                style={{ 
+                  width: '100%', 
+                  padding: '0.75rem', 
+                  border: '1px solid #d1d5db', 
+                  borderRadius: '6px', 
+                  fontSize: '1rem',
+                  outline: 'none',
+                  opacity: isActive ? '0.5' : '1',
+                  marginBottom: '1rem'
+                }}
+              />
+              
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                Client Secret
               </label>
               <input
                 type="password"
-                value={claudeApiKey}
-                onChange={(e) => setClaudeApiKey(e.target.value)}
-                placeholder="Enter Claude API key (sk-ant-...)" 
-                disabled={isConnectingClaude}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  backgroundColor: isConnectingClaude ? '#f9fafb' : 'white',
+                value={clientSecret}
+                onChange={(e) => setClientSecret(e.target.value)}
+                placeholder="Enter your Client Secret"
+                disabled={isActive}
+                style={{ 
+                  width: '100%', 
+                  padding: '0.75rem', 
+                  border: '1px solid #d1d5db', 
+                  borderRadius: '6px', 
+                  fontSize: '1rem',
                   outline: 'none',
-                  transition: 'border-color 0.2s'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#3b82f6';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#e5e7eb';
-                }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !isConnectingClaude && claudeApiKey.trim()) {
-                    handleClaudeConnect();
-                  }
+                  opacity: isActive ? '0.5' : '1',
+                  marginBottom: '1rem'
                 }}
               />
-              <p style={{ 
-                margin: '4px 0 0 0', 
-                fontSize: '12px', 
-                color: '#6b7280' 
-              }}>
-                Get your API key from{' '}
-                <a 
-                  href="https://console.anthropic.com/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  style={{ color: '#3b82f6', textDecoration: 'underline' }}
-                >
-                  Anthropic Console
-                </a>
-              </p>
-            </div>
-          )}
-          
-          {/* Debug info - remove after testing */}
-          <div style={{
-            fontSize: '11px',
-            color: '#6b7280',
-            marginBottom: '8px',
-            fontFamily: 'monospace'
-          }}>
-            Debug: Connected={isClaudeConnected.toString()}, Connecting={isConnectingClaude.toString()}, HasKey={!!claudeApiKey}
-          </div>
 
-          {/* Claude Status */}
-          {claudeStatus && (
-            <div style={{
-              padding: '10px 12px',
-              borderRadius: '6px',
-              marginBottom: '12px',
-              fontSize: '14px',
-              fontWeight: '500',
-              backgroundColor: claudeStatus.includes('✅') ? '#f0fdf4' : claudeStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
-              color: claudeStatus.includes('✅') ? '#166534' : claudeStatus.includes('❌') ? '#991b1b' : '#1e40af',
-              border: `1px solid ${claudeStatus.includes('✅') ? '#bbf7d0' : claudeStatus.includes('❌') ? '#fecaca' : '#bfdbfe'}`
-            }}>
-              {claudeStatus}
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            {!isClaudeConnected ? (
-              <button
-                onClick={handleClaudeConnect}
-                disabled={isConnectingClaude || !claudeApiKey.trim()}
-                style={{
-                  padding: '10px 16px',
-                  backgroundColor: (isConnectingClaude || !claudeApiKey.trim()) ? '#d1d5db' : '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  cursor: (isConnectingClaude || !claudeApiKey.trim()) ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                Business ID
+              </label>
+              <input
+                type="text"
+                value={businessId}
+                onChange={(e) => setBusinessId(e.target.value)}
+                placeholder="e.g., 1234567890123456"
+                disabled={isActive}
+                style={{ 
+                  width: '100%', 
+                  padding: '0.75rem', 
+                  border: '1px solid #d1d5db', 
+                  borderRadius: '6px', 
+                  fontSize: '1rem',
+                  outline: 'none',
+                  opacity: isActive ? '0.5' : '1',
+                  marginBottom: '1rem'
                 }}
-              >
-                {isConnectingClaude ? '⏳ Connecting...' : '🔗 Connect Claude AI'}
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={() => alert('Claude AI chat coming soon! 🚀')}
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: '#10b981',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  💬 Chat with Claude
-                </button>
-                <button
-                  onClick={handleClaudeDisconnect}
-                  disabled={isConnectingClaude}
-                  style={{
-                    padding: '10px 16px',
-                    backgroundColor: isConnectingClaude ? '#d1d5db' : '#ef4444',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    cursor: isConnectingClaude ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  {isConnectingClaude ? '⏳ Disconnecting...' : '🔌 Disconnect'}
-                </button>
-              </>
+              />
+
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                Access Token
+              </label>
+              <input
+                type="password"
+                value={accessToken}
+                onChange={(e) => setAccessToken(e.target.value)}
+                placeholder="EAAxxxxxxxx..."
+                disabled={isActive}
+                style={{ 
+                  width: '100%', 
+                  padding: '0.75rem', 
+                  border: '1px solid #d1d5db', 
+                  borderRadius: '6px', 
+                  fontSize: '1rem',
+                  outline: 'none',
+                  opacity: isActive ? '0.5' : '1',
+                  marginBottom: '1rem'
+                }}
+              />
+
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                Phone Number Send ID
+              </label>
+              <input
+                type="text"
+                value={phoneNumberSendId}
+                onChange={(e) => setPhoneNumberSendId(e.target.value)}
+                placeholder="e.g., 628007790405551"
+                disabled={isActive}
+                style={{ 
+                  width: '100%', 
+                  padding: '0.75rem', 
+                  border: '1px solid #d1d5db', 
+                  borderRadius: '6px', 
+                  fontSize: '1rem',
+                  outline: 'none',
+                  opacity: isActive ? '0.5' : '1',
+                  marginBottom: '1rem'
+                }}
+              />
+            </div>
+
+            {/* Error Display */}
+            {error && (
+              <div style={{ 
+                padding: '1rem', 
+                borderRadius: '6px', 
+                backgroundColor: '#fef2f2',
+                color: '#dc2626',
+                marginBottom: '1rem',
+                border: '1px solid #fecaca'
+              }}>
+                {error}
+              </div>
             )}
-          </div>
 
-          {/* Integration Features */}
-          <div style={{
-            marginTop: '16px',
-            padding: '12px',
-            backgroundColor: '#fef3c7',
-            border: '1px solid #fbbf24',
-            borderRadius: '6px',
-            fontSize: '12px',
-            color: '#92400e'
-          }}>
-            <strong>🎯 Claude AI + WhatsApp Features:</strong>
-            <br />• Smart message analysis • Automated responses • Language translation
-            <br />• Sentiment analysis • Customer support • Content moderation
-          </div>
-        </div>
-
-        {/* Webhook URL Display */}
-        <div style={{ 
-          background: '#f8f9fa', 
-          padding: '16px', 
-          borderRadius: '8px', 
-          marginBottom: '20px',
-          border: '1px solid #e9ecef'
-        }}>
-          <h3 style={{ margin: '0 0 10px 0', color: '#495057' }}>Webhook URL:</h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <code style={{ 
-              flex: 1, 
-              padding: '8px', 
-              background: 'white', 
-              border: '1px solid #ced4da', 
-              borderRadius: '4px',
-              fontSize: '14px',
-              wordBreak: 'break-all'
-            }}>
-              {webhookUrl}
-            </code>
-            <button 
-              onClick={copyWebhookUrl}
-              style={{
-                padding: '8px 16px',
-                background: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              Copy
-            </button>
-          </div>
-          <small style={{ color: '#6c757d', marginTop: '8px', display: 'block' }}>
-            Use this URL as your webhook endpoint in WhatsApp Business API settings
-          </small>
-        </div>
-
-        {/* Unified WhatsApp Configuration Form */}
-        <div style={{
-          marginBottom: '24px'
-        }}>
-          <h3 style={{
-            color: '#25D366',
-            marginBottom: '16px',
-            fontSize: '18px',
-            fontWeight: '600',
-            borderBottom: '2px solid #e9ecef',
-            paddingBottom: '8px'
-          }}>
-            📱 WhatsApp Configuration (Complete Setup)
-          </h3>
-          
-          {/* Receiving Configuration (WhatsApp Trigger Node) */}
-          <div style={{
-            background: '#f8f9fa',
-            padding: '16px',
-            borderRadius: '8px',
-            marginBottom: '16px',
-            border: '1px solid #e9ecef'
-          }}>
-            <h4 style={{ margin: '0 0 12px 0', color: '#495057', fontSize: '16px' }}>🔔 Receiving Messages (Trigger)</h4>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: '1fr 1fr', 
-              gap: '16px'
-            }}>
-              <div>
-                <label style={{ 
-                  display: 'block', 
-                  marginBottom: '8px', 
-                  fontWeight: '500',
-                  color: '#495057'
-                }}>
-                  WhatsApp App ID:
-                </label>
-                <input
-                  type="text"
-                  value={appId}
-                  onChange={(e) => setAppId(e.target.value)}
-                  placeholder="Enter your WhatsApp App ID"
-                  disabled={isActive}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '2px solid #e9ecef',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    transition: 'border-color 0.3s',
-                    backgroundColor: isActive ? '#f8f9fa' : 'white'
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              {!isActive ? (
+                <button
+                  onClick={handleActivate}
+                  disabled={isLoading || !appId.trim() || !clientSecret.trim() || !businessId.trim() || !accessToken.trim() || !phoneNumberSendId.trim()}
+                  style={{ 
+                    flex: '1',
+                    backgroundColor: isLoading || !appId.trim() || !clientSecret.trim() || !businessId.trim() || !accessToken.trim() || !phoneNumberSendId.trim() ? '#9ca3af' : '#25D366', 
+                    color: 'white', 
+                    padding: '0.75rem 1rem', 
+                    border: 'none',
+                    borderRadius: '6px', 
+                    cursor: isLoading || !appId.trim() || !clientSecret.trim() || !businessId.trim() || !accessToken.trim() || !phoneNumberSendId.trim() ? 'not-allowed' : 'pointer',
+                    fontSize: '1rem'
                   }}
-                />
-              </div>
-              
-              <div>
-                <label style={{ 
-                  display: 'block', 
-                  marginBottom: '8px', 
-                  fontWeight: '500',
-                  color: '#495057'
-                }}>
-                  Client Secret:
-                </label>
-                <input
-                  type="password"
-                  value={clientSecret}
-                  onChange={(e) => setClientSecret(e.target.value)}
-                  placeholder="Enter your Client Secret"
-                  disabled={isActive}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '2px solid #e9ecef',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    transition: 'border-color 0.3s',
-                    backgroundColor: isActive ? '#f8f9fa' : 'white'
+                >
+                  {isLoading ? '⏳ Setting up...' : '🚀 Start WhatsApp Integration'}
+                </button>
+              ) : (
+                <button
+                  onClick={handleDeactivate}
+                  disabled={isLoading}
+                  style={{ 
+                    flex: '1',
+                    backgroundColor: isLoading ? '#9ca3af' : '#dc2626', 
+                    color: 'white', 
+                    padding: '0.75rem 1rem', 
+                    border: 'none',
+                    borderRadius: '6px', 
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    fontSize: '1rem'
                   }}
-                />
-              </div>
+                >
+                  {isLoading ? '⏳ Stopping...' : '📋 Stop Integration'}
+                </button>
+              )}
             </div>
-          </div>
 
-          {/* Sending Configuration (WhatsApp Send Message Node) */}
-          <div style={{
-            background: '#e7f3ff',
-            padding: '16px',
-            borderRadius: '8px',
-            border: '1px solid #b3d9ff'
-          }}>
-            <h4 style={{ margin: '0 0 12px 0', color: '#0056b3', fontSize: '16px' }}>📤 Sending Messages (Action)</h4>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
-              gap: '16px'
-            }}>
-              <div>
-                <label style={{ 
-                  display: 'block', 
-                  marginBottom: '8px', 
-                  fontWeight: '500',
-                  color: '#495057'
-                }}>
-                  Business ID:
-                </label>
-                <input
-                  type="text"
-                  value={businessId}
-                  onChange={(e) => setBusinessId(e.target.value)}
-                  placeholder="e.g., 1234567890123456"
-                  disabled={isActive}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '2px solid #e9ecef',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    backgroundColor: isActive ? '#f8f9fa' : 'white'
-                  }}
-                />
+            {/* Status */}
+            {isActive && (
+              <div style={{ 
+                padding: '1rem', 
+                borderRadius: '6px', 
+                backgroundColor: '#f0fdf4',
+                color: '#15803d'
+              }}>
+                ✅ WhatsApp integration is active and listening for messages
               </div>
-
-              <div>
-                <label style={{ 
-                  display: 'block', 
-                  marginBottom: '8px', 
-                  fontWeight: '500',
-                  color: '#495057'
-                }}>
-                  Access Token:
-                </label>
-                <input
-                  type="password"
-                  value={accessToken}
-                  onChange={(e) => setAccessToken(e.target.value)}
-                  placeholder="EAAxxxxxxxx..."
-                  disabled={isActive}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '2px solid #e9ecef',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    backgroundColor: isActive ? '#f8f9fa' : 'white'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ 
-                  display: 'block', 
-                  marginBottom: '8px', 
-                  fontWeight: '500',
-                  color: '#495057'
-                }}>
-                  Phone Number Send ID:
-                </label>
-                <input
-                  type="text"
-                  value={phoneNumberSendId}
-                  onChange={(e) => setPhoneNumberSendId(e.target.value)}
-                  placeholder="e.g., 628007790405551"
-                  disabled={isActive}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    border: '2px solid #e9ecef',
-                    borderRadius: '8px',
-                    fontSize: '14px',
-                    backgroundColor: isActive ? '#f8f9fa' : 'white'
-                  }}
-                />
-              </div>
-            </div>
+            )}
+            
           </div>
         </div>
-
-        {/* Error Display */}
-        {error && (
-          <div style={{ 
-            color: '#dc3545', 
-            background: '#f8d7da', 
-            padding: '12px', 
-            borderRadius: '8px', 
-            marginBottom: '16px',
-            border: '1px solid #f5c6cb'
-          }}>
-            {error}
-          </div>
-        )}
-
-        {/* Control Buttons */}
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          {!isActive ? (
-            <button
-              onClick={handleActivate}
-              disabled={isLoading || !appId.trim() || !clientSecret.trim() || !businessId.trim() || !accessToken.trim() || !phoneNumberSendId.trim()}
-              style={{
-                padding: '12px 24px',
-                background: '#25D366',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: isLoading || !appId.trim() || !clientSecret.trim() || !businessId.trim() || !accessToken.trim() || !phoneNumberSendId.trim() ? 'not-allowed' : 'pointer',
-                fontSize: '16px',
-                fontWeight: '500',
-                opacity: isLoading || !appId.trim() || !clientSecret.trim() || !businessId.trim() || !accessToken.trim() || !phoneNumberSendId.trim() ? 0.6 : 1,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              {isLoading ? '⏳ Activating Complete Setup...' : '🚀 Start WhatsApp (Receive + Send)'}
-            </button>
-          ) : (
-            <button
-              onClick={handleDeactivate}
-              disabled={isLoading}
-              style={{
-                padding: '12px 24px',
-                background: '#dc3545',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                fontSize: '16px',
-                fontWeight: '500',
-                opacity: isLoading ? 0.6 : 1,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}
-            >
-              {isLoading ? '⏳ Stopping...' : '⏹️ Stop Listening'}
-            </button>
-          )}
-          
-          {/* Status Indicator */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px',
-            padding: '8px 16px',
-            borderRadius: '20px',
-            background: isActive ? '#d4edda' : '#f8d7da',
-            color: isActive ? '#155724' : '#721c24',
-            fontSize: '14px',
-            fontWeight: '500'
-          }}>
-            <div style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              background: isActive ? '#28a745' : '#dc3545'
-            }}></div>
-            {isActive ? 'Listening for messages' : 'Inactive'}
-          </div>
-        </div>
-      </div>
 
 
       {/* CONVERSATIONS SECTION */}
       <div style={{
-        backgroundColor: '#ffffff',
-        borderRadius: '8px',
-        marginBottom: '20px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        backgroundColor: 'white', 
+        borderRadius: '8px', 
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
+        padding: '1.5rem',
+        marginTop: '1.5rem',
         display: 'flex',
         height: '500px'
       }}>
