@@ -1206,6 +1206,8 @@ router.post('/whatsapp', asyncHandler(async (req, res) => {
 
     // CLAUDE AI AUTO-RESPONSE FOR WHATSAPP (Similar to Telegram system)
     try {
+      // Import axios at the beginning for both Claude API and WhatsApp API calls
+      const axios = require('axios');
       const receiverState = getReceiverState();
       
       // Only process AI responses if WhatsApp receiver is active and we have stored a message
@@ -1303,9 +1305,6 @@ Key guidelines:
           let result = null;
           try {
             console.log('📞 Making direct Claude API call for WhatsApp...');
-            
-            // Use axios instead of fetch for better compatibility
-            const axios = require('axios');
             const response = await axios.post('https://api.anthropic.com/v1/messages', {
               model: mockWhatsAppAssistant.ai_model,
               max_tokens: 500,
