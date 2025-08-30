@@ -531,7 +531,7 @@ const WhatsAppReceiver = () => {
           </h1>
         </div>
         
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', position: 'relative' }}>
+        <div style={{ display: 'flex', gap: '0', alignItems: 'flex-start', position: 'relative' }}>
           
           {/* LEFT SIDEBAR - Configuration Panel */}
           <div style={{ 
@@ -1031,11 +1031,12 @@ const WhatsAppReceiver = () => {
             flex: '1',
             display: 'flex', 
             flexDirection: 'column', 
-            gap: '1.5rem',
+            gap: '0',
             minWidth: '500px',
             marginLeft: isSidebarCollapsed ? '0' : '400px',
             marginRight: isRightSidebarCollapsed ? '0' : '300px',
-            transition: 'margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), margin-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+            transition: 'margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), margin-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            padding: '1rem'
           }}>
 
             {/* WhatsApp Status Warning */}
@@ -1057,15 +1058,14 @@ const WhatsAppReceiver = () => {
               )}
               
               {/* Two Panel Layout */}
-              <div style={{ display: 'flex', gap: '1rem', height: '500px' }}>
+              <div style={{ display: 'flex', gap: '0', height: '500px', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
                 
                 {/* Conversations Panel */}
                 <div style={{ 
                   flex: '0 0 300px', 
                   backgroundColor: '#f8fafc', 
                   padding: '1rem', 
-                  borderRadius: '6px', 
-                  border: '1px solid #e2e8f0',
+                  borderRight: '1px solid #e2e8f0',
                   display: 'flex',
                   flexDirection: 'column'
                 }}>
@@ -1169,8 +1169,6 @@ const WhatsAppReceiver = () => {
                   flex: '1', 
                   backgroundColor: '#f8fafc', 
                   padding: '1rem', 
-                  borderRadius: '6px', 
-                  border: '1px solid #e2e8f0',
                   display: 'flex',
                   flexDirection: 'column'
                 }}>
