@@ -882,7 +882,28 @@ CONTACT & SOCIAL:
             </div>
 
             {/* System Prompt Configuration Panel */}
-            {claudeConnectionStatus === 'connected' && (
+            <div style={{
+              backgroundColor: 'white', 
+              borderRadius: '8px', 
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
+              padding: '1.5rem', 
+              border: '1px solid #e2e8f0',
+              opacity: claudeConnectionStatus === 'connected' ? 1 : 0.6
+            }}>
+              {claudeConnectionStatus !== 'connected' && (
+                <div style={{
+                  backgroundColor: '#fef2f2',
+                  padding: '0.75rem',
+                  borderRadius: '6px',
+                  marginBottom: '1rem',
+                  border: '1px solid #fecaca'
+                }}>
+                  <p style={{ color: '#991b1b', fontSize: '0.875rem', margin: 0 }}>
+                    ⚠️ Connect to Claude API first to configure system prompt
+                  </p>
+                </div>
+              )}
+              {true && (
               <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
                   <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🎭</span>
@@ -1025,11 +1046,32 @@ CONTACT & SOCIAL:
                     💡 Click on any example to use it as your system prompt
                   </p>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* PDF Knowledge Base Panel */}
-            {claudeConnectionStatus === 'connected' && (
+            <div style={{
+              backgroundColor: 'white', 
+              borderRadius: '8px', 
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
+              padding: '1.5rem', 
+              border: '1px solid #e2e8f0',
+              opacity: claudeConnectionStatus === 'connected' ? 1 : 0.6
+            }}>
+              {claudeConnectionStatus !== 'connected' && (
+                <div style={{
+                  backgroundColor: '#fef2f2',
+                  padding: '0.75rem',
+                  borderRadius: '6px',
+                  marginBottom: '1rem',
+                  border: '1px solid #fecaca'
+                }}>
+                  <p style={{ color: '#991b1b', fontSize: '0.875rem', margin: 0 }}>
+                    ⚠️ Connect to Claude API first to upload knowledge base
+                  </p>
+                </div>
+              )}
+              {true && (
               <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
                   <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>📄</span>
@@ -1328,11 +1370,27 @@ CONTACT & SOCIAL:
                     </p>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Two Panel Layout */}
-            {isPolling && (
+            <div style={{
+              opacity: isPolling ? 1 : 0.6
+            }}>
+              {!isPolling && (
+                <div style={{
+                  backgroundColor: '#fef2f2',
+                  padding: '1rem',
+                  borderRadius: '6px',
+                  marginBottom: '1rem',
+                  border: '1px solid #fecaca'
+                }}>
+                  <p style={{ color: '#991b1b', fontSize: '0.875rem', margin: 0 }}>
+                    ⚠️ Setup and activate webhook first to start receiving messages
+                  </p>
+                </div>
+              )}
+              {true && (
               <div style={{ display: 'flex', gap: '1rem', height: '500px' }}>
                 
                 {/* Users Panel */}
@@ -1616,7 +1674,8 @@ CONTACT & SOCIAL:
                 </div>
 
               </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
