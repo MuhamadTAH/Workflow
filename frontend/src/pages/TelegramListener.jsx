@@ -623,14 +623,28 @@ CONTACT & SOCIAL:
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '2rem 0' }}>
-      <div style={{ maxWidth: '60rem', margin: '0 auto', padding: '0 1rem' }}>
-        <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '1.5rem' }}>
-            <i className="fab fa-telegram" style={{ color: '#0088cc', marginRight: '0.5rem' }}></i>
-            Telegram Bot Listener
-          </h1>
+      <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0 1rem' }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', marginBottom: '1.5rem', textAlign: 'center' }}>
+          <i className="fab fa-telegram" style={{ color: '#0088cc', marginRight: '0.5rem' }}></i>
+          Telegram Bot Listener
+        </h1>
+        
+        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* LEFT SIDEBAR - Main Configuration Panel */}
+          <div style={{ 
+            flex: '0 0 400px',
+            backgroundColor: 'white', 
+            borderRadius: '8px', 
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
+            padding: '1.5rem',
+            height: 'fit-content',
+            position: 'sticky',
+            top: '2rem'
+          }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1.5rem' }}>
+              ⚙️ Bot Configuration
+            </h2>
             {/* Token Input */}
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
@@ -737,6 +751,15 @@ CONTACT & SOCIAL:
                 <li>Messages are updated automatically every 2 seconds</li>
               </ol>
             </div>
+          </div>
+          
+          {/* RIGHT COLUMN - Other Panels */}
+          <div style={{ 
+            flex: '1',
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '1.5rem' 
+          }}>
 
             {/* Claude AI Configuration Panel */}
             <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
@@ -1669,6 +1692,7 @@ CONTACT & SOCIAL:
               </div>
             </div>
           </div>
+          
         </div>
       </div>
     </div>
