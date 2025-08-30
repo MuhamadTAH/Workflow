@@ -1312,7 +1312,7 @@ Key guidelines:
               messages: [
                 {
                   role: 'user',
-                  content: messageText
+                  content: `${mockWhatsAppAssistant.system_prompt}\n\nCustomer: ${messageText}`
                 }
               ]
             }, {

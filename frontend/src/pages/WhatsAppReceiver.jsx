@@ -31,6 +31,11 @@ const WhatsAppReceiver = () => {
   const [isConnectingClaude, setIsConnectingClaude] = useState(false);
   const [claudeStatus, setClaudeStatus] = useState('');
 
+  // System Prompt State
+  const [systemPrompt, setSystemPrompt] = useState('You are a helpful and friendly AI assistant. Respond to users in a professional yet warm manner.');
+  const [isSystemPromptLoading, setIsSystemPromptLoading] = useState(false);
+  const [systemPromptStatus, setSystemPromptStatus] = useState('');
+
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -93,6 +98,9 @@ const WhatsAppReceiver = () => {
     
     // Check Claude API status on mount
     checkClaudeStatus();
+    
+    // Load system prompt on mount
+    loadSystemPrompt();
   }, []);
   
   // Check Claude API connection status
@@ -211,6 +219,76 @@ const WhatsAppReceiver = () => {
       return () => clearTimeout(timeout);
     }
   }, [claudeStatus]);
+
+  // System Prompt Functions
+  const handleSystemPromptSave = async () => {
+    if (!systemPrompt.trim()) {
+      setSystemPromptStatus('❌ Please enter a system prompt');
+      return;
+    }
+
+    setIsSystemPromptLoading(true);
+    setSystemPromptStatus('💾 Saving system prompt...');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/system-prompt`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          systemPrompt: systemPrompt.trim()
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setSystemPromptStatus('✅ System prompt saved successfully!');
+        setTimeout(() => setSystemPromptStatus(''), 3000);
+      } else {
+        setSystemPromptStatus(`❌ Save failed: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('System prompt save error:', error);
+      setSystemPromptStatus(`❌ Network error: ${error.message}`);
+    } finally {
+      setIsSystemPromptLoading(false);
+    }
+  };
+
+  const loadSystemPrompt = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/system-prompt`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success && result.systemPrompt) {
+        setSystemPrompt(result.systemPrompt);
+      }
+    } catch (error) {
+      console.error('Error loading system prompt:', error);
+    }
+  };
+
+  const resetToDefaultPrompt = () => {
+    setSystemPrompt('You are a helpful and friendly AI assistant. Respond to users in a professional yet warm manner.');
+  };
+
+  // Auto-clear system prompt status after 5 seconds
+  useEffect(() => {
+    if (systemPromptStatus && !systemPromptStatus.includes('💾')) {
+      const timeout = setTimeout(() => {
+        setSystemPromptStatus('');
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [systemPromptStatus]);
 
   // Group messages into conversations
   const groupMessagesIntoConversations = (messages) => {
@@ -601,6 +679,160 @@ const WhatsAppReceiver = () => {
                     {isConnectingClaude ? '⏳ Disconnecting...' : '🔌 Disconnect'}
                   </button>
                 )}
+              </div>
+            </div>
+
+            {/* System Prompt Configuration Panel */}
+            <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '1.5rem', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#111827', marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+                <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>🎭</span>
+                System Prompt
+              </h3>
+
+              {/* System Prompt Description */}
+              <div style={{
+                backgroundColor: '#eff6ff',
+                padding: '1rem',
+                borderRadius: '6px',
+                marginBottom: '1rem',
+                fontSize: '0.875rem'
+              }}>
+                <p style={{ color: '#1e40af', lineHeight: '1.5', margin: 0 }}>
+                  <strong>🎯 System Prompt:</strong> Define how Claude should behave and respond to users. 
+                  This sets the personality and behavior for all AI responses.
+                </p>
+              </div>
+
+              {/* Warning when Claude not connected */}
+              {!isClaudeConnected && (
+                <div style={{
+                  backgroundColor: '#fef2f2',
+                  padding: '0.75rem',
+                  borderRadius: '6px',
+                  marginBottom: '1rem',
+                  border: '1px solid #fecaca'
+                }}>
+                  <p style={{ color: '#991b1b', fontSize: '0.875rem', margin: 0 }}>
+                    ⚠️ Connect to Claude API first to configure system prompt
+                  </p>
+                </div>
+              )}
+
+              {/* System Prompt Text Area */}
+              <div style={{ marginBottom: '1rem', opacity: isClaudeConnected ? 1 : 0.6 }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '0.5rem'
+                }}>
+                  System Prompt
+                </label>
+                <textarea
+                  value={systemPrompt}
+                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  placeholder="Enter how Claude should behave (e.g., You are a professional housekeeper assistant...)"
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    fontSize: '0.875rem',
+                    outline: 'none',
+                    resize: 'vertical',
+                    fontFamily: 'inherit',
+                    opacity: isSystemPromptLoading ? '0.5' : '1'
+                  }}
+                  disabled={isSystemPromptLoading}
+                />
+                <p style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: '#6b7280' }}>
+                  Character count: {systemPrompt.length}/2000
+                </p>
+              </div>
+
+              {/* System Prompt Action Buttons */}
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                <button
+                  onClick={handleSystemPromptSave}
+                  disabled={isSystemPromptLoading || !systemPrompt.trim() || systemPrompt.length > 2000 || !isClaudeConnected}
+                  style={{
+                    flex: '1',
+                    backgroundColor: isSystemPromptLoading || !systemPrompt.trim() || systemPrompt.length > 2000 || !isClaudeConnected ? '#9ca3af' : '#10b981',
+                    color: 'white',
+                    padding: '0.75rem 1rem',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: isSystemPromptLoading || !systemPrompt.trim() || systemPrompt.length > 2000 || !isClaudeConnected ? 'not-allowed' : 'pointer',
+                    fontSize: '1rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  {isSystemPromptLoading ? '⏳ Saving...' : '💾 Save System Prompt'}
+                </button>
+                
+                <button
+                  onClick={resetToDefaultPrompt}
+                  disabled={isSystemPromptLoading}
+                  style={{
+                    flex: '0 0 auto',
+                    backgroundColor: isSystemPromptLoading ? '#9ca3af' : '#6b7280',
+                    color: 'white',
+                    padding: '0.75rem 1rem',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: isSystemPromptLoading ? 'not-allowed' : 'pointer',
+                    fontSize: '1rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  🔄 Reset to Default
+                </button>
+              </div>
+
+              {/* System Prompt Status Message */}
+              {systemPromptStatus && (
+                <div style={{
+                  padding: '1rem',
+                  borderRadius: '6px',
+                  backgroundColor: systemPromptStatus.includes('✅') ? '#f0fdf4' : systemPromptStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
+                  color: systemPromptStatus.includes('✅') ? '#15803d' : systemPromptStatus.includes('❌') ? '#dc2626' : '#1d4ed8',
+                  fontSize: '0.875rem',
+                  marginBottom: '1rem'
+                }}>
+                  {systemPromptStatus}
+                </div>
+              )}
+
+              {/* Example System Prompts */}
+              <div style={{
+                backgroundColor: '#f8fafc',
+                padding: '1rem',
+                borderRadius: '6px',
+                fontSize: '0.875rem'
+              }}>
+                <h4 style={{ fontWeight: '500', color: '#1e3a8a', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>
+                  💡 Example System Prompts:
+                </h4>
+                <div style={{ color: '#1e40af', lineHeight: '1.5' }}>
+                  <div style={{ marginBottom: '0.5rem', cursor: 'pointer', padding: '0.25rem', borderRadius: '3px' }} 
+                       onClick={() => setSystemPrompt('You are a professional housekeeper assistant. Provide helpful cleaning tips, organization advice, and home maintenance guidance. Be detailed and practical in your responses.')}>
+                    <strong>🏠 Housekeeper:</strong> "You are a professional housekeeper assistant..."
+                  </div>
+                  <div style={{ marginBottom: '0.5rem', cursor: 'pointer', padding: '0.25rem', borderRadius: '3px' }} 
+                       onClick={() => setSystemPrompt('You are a professional customer service assistant. Be helpful, polite, and always try to solve the customer\'s problem. Ask clarifying questions when needed.')}>
+                    <strong>📞 Customer Service:</strong> "You are a professional customer service assistant..."
+                  </div>
+                  <div style={{ marginBottom: '0.5rem', cursor: 'pointer', padding: '0.25rem', borderRadius: '3px' }} 
+                       onClick={() => setSystemPrompt('You are a friendly and casual chatbot. Use emojis, be conversational, and make users feel comfortable. Keep responses short and engaging.')}>
+                    <strong>😊 Friendly Chat:</strong> "You are a friendly and casual chatbot..."
+                  </div>
+                  <div style={{ cursor: 'pointer', padding: '0.25rem', borderRadius: '3px' }} 
+                       onClick={() => setSystemPrompt('You are a professional business assistant. Provide formal, concise responses. Focus on efficiency and accuracy in all communications.')}>
+                    <strong>💼 Business:</strong> "You are a professional business assistant..."
+                  </div>
+                </div>
               </div>
             </div>
 
