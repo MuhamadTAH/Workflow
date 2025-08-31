@@ -1587,7 +1587,9 @@ CONTACT & SOCIAL:
                     </p>
                   </div>
                 </div>
-            </div>
+                      </div>
+                    </div>
+                  </div> {/* End Collapsible Content */}
                 </div>
                 
               </div>
