@@ -74,9 +74,9 @@ app.use((req, res, next) => {
   next();
 });
 
-// Emergency CORS fix: Allow all origins temporarily
+// Enhanced CORS fix: Allow all origins including fixdai.com
 app.use(cors({
-  origin: true,  // Allow all origins
+  origin: ['https://fixdai.com', 'https://workflow-lg9z.onrender.com', 'http://localhost:3000', 'http://localhost:5173', true],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
   allowedHeaders: [
@@ -104,7 +104,11 @@ app.use((req, res, next) => {
       headers: req.headers['access-control-request-headers']
     });
     
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    const allowedOrigins = ['https://fixdai.com', 'https://workflow-lg9z.onrender.com', 'http://localhost:3000', 'http://localhost:5173'];
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin) || !origin) {
+      res.header('Access-Control-Allow-Origin', origin || '*');
+    }
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, Access-Control-Allow-Headers, Origin, Cache-Control, Pragma');
     res.header('Access-Control-Allow-Credentials', 'true');

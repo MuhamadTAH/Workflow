@@ -1,7 +1,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
@@ -43,6 +43,7 @@ import './components/LeftSidebar.css';
 
 function Home() {
   const { t } = useTranslation();
+  const { theme, colors } = useTheme();
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -122,12 +123,12 @@ function Home() {
   return (
     <>
       <LeftSidebar />
-      <div className={`professional-dashboard variant-${gradientVariant}`}>
+      <div className={`professional-dashboard ${theme === 'dark' ? 'variant-1' : 'light-theme'}`} style={{ backgroundColor: colors.primaryBg, color: colors.primaryText }}>
         {/* Top Navigation Bar */}
-      <nav className="dashboard-nav">
+      <nav className="dashboard-nav" style={{ backgroundColor: colors.secondaryBg, borderBottomColor: colors.border }}>
         <div className="nav-container">
           <div className="nav-brand">
-            <h2>⚡ WorkflowPro</h2>
+            <h2 style={{ color: colors.primaryText }}>⚡ WorkflowPro</h2>
           </div>
           <div className="nav-user">
             <LanguageSwitcher className="mr-4" />
@@ -135,7 +136,7 @@ function Home() {
             <div className="user-avatar">
               {(user.name || user.email).charAt(0).toUpperCase()}
             </div>
-            <span className="user-name">{user.name || user.email}</span>
+            <span className="user-name" style={{ color: colors.primaryText }}>{user.name || user.email}</span>
             <button onClick={logout} className="logout-btn">
               <i className="fas fa-sign-out-alt"></i>
             </button>
