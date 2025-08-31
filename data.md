@@ -1,168 +1,142 @@
- 📱 Instagram Comment Manager - Page Plan
-
-  🎯 New Page Structure
-
-  I'll create: frontend/src/pages/InstagramCommentManager.jsx
-
-  Similar to your WhatsApp page but for Instagram comment management.
-
-  🔧 Instagram API Connection Panel Fields
-
-  Required Fields for Instagram Graph API:
-
-  const InstagramConnectionFields = {
-    // Meta App Configuration
-    appId: "Instagram App ID",                    // From Meta Developer Console
-    appSecret: "Instagram App Secret",            // From Meta Developer Console
-
-    // User Account Access
-    accessToken: "User Access Token",             // Long-lived user token
-
-    // Instagram Business Account
-    instagramBusinessId: "Instagram Business Account ID",  // IG Business Account
-
-    // Webhook Configuration (for real-time comments)
-    webhookToken: "Webhook Verification Token"    // Custom token for webhooks
-  }
-
-  Webhook URL (Auto-generated):
-
-  webhookUrl: "https://workflow-lg9z.onrender.com/api/webhooks/instagram/comments"
-
-  🏗️ Page Layout Plan
-
-  Similar to WhatsApp Page Structure:
-
-  ┌─────────────────────────────────────────────────────────────────┐
-  │                    Instagram Comment Manager                    │
-  ├─────────────────────────────────────────────────────────────────┤
-  │                                                                 │
-  │ [☰ Config] ──── CENTER AREA ──── [☰ Analytics]                │
-  │     │               │                    │                     │
-  │ LEFT SIDEBAR   COMMENT THREADS     RIGHT SIDEBAR               │
-  │                                                                 │
-  │ • IG API Setup   • Live Comments    • Comment Stats            │
-  │ • Claude AI      • Auto-Replies     • User Info                │
-  │ • AI Prompts     • Thread View      • Quick Actions            │
-  │ • Knowledge      • Send Replies     • Performance              │
-  └─────────────────────────────────────────────────────────────────┘
-
-  📝 Configuration Panel Content
-
-  Section 1: Instagram API Configuration
-
-  const instagramConfig = {
-    title: "📷 Instagram API Setup",
-    fields: [
-      {
-        label: "App ID",
-        type: "text",
-        placeholder: "123456789012345",
-        help: "Get from Meta Developer Console > Your App > App ID"
+{
+  "nodes": [
+    {
+      "parameters": {
+        "multipleMethods": true,
+        "path": "1d90b74f-b031-4a5b-87bb-638f315fd38d",
+        "responseMode": "responseNode",
+        "options": {}
       },
-      {
-        label: "App Secret",
-        type: "password",
-        placeholder: "abcd1234efgh5678...",
-        help: "From Meta Developer Console > Your App > App Secret"
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -80,
+        96
+      ],
+      "id": "332af39d-a389-4010-ab06-9b5e97203f9a",
+      "name": "Webhook",
+      "webhookId": "1d90b74f-b031-4a5b-87bb-638f315fd38d"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "618ffe40-bc32-4f9c-b57e-e531853e7e84",
+              "leftValue": "={{ $json.query['hub.mode'] }}",
+              "rightValue": "subscribe",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "db0ccf66-11ab-409b-bf91-0dce38329d43",
+              "leftValue": "={{ $json.query['hub.verify_token'] }}",
+              "rightValue": "muhammad",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
       },
-      {
-        label: "Access Token",
-        type: "password",
-        placeholder: "IGQVJxxxxxxxx...",
-        help: "Long-lived user access token from Graph API Explorer"
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        192,
+        -112
+      ],
+      "id": "09bbdc88-0f77-4c99-a91b-40b92c754c34",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {}
       },
-      {
-        label: "Instagram Business ID",
-        type: "text",
-        placeholder: "17841401441775531",
-        help: "Your Instagram Business Account ID"
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        416,
+        -96
+      ],
+      "id": "12a3436b-15de-4e68-9e1a-5c2b6b21c86d",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.instagram.com/v23.0/{{ $json.body.entry[0].messaging[0].recipient.id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer IGAASK8KNQ8bVBZAE9TYlJLU25WcEtKSzlGaDNNZAjFOY2xhYnV4UFRoNzBTNXVzX2pyaU5RRWgwYlhlZAnZASQnpjUW1HejNaRjVpaUxnNlBsSWQ1c01RRERsMW0xRVZAzT3IwZAng2MjlMM25xV2NVNWRnelNNM0ltYk1sM0NnWmdtZAwZDZD"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $json.body.entry[0].messaging[0].sender.id }}\"\n  },\n  \"message\": {\n    \"text\": \"Hello! Thanks for reaching out.\"\n  }\n}",
+        "options": {}
       },
-      {
-        label: "Webhook Token",
-        type: "text",
-        placeholder: "custom_verification_token",
-        help: "Custom token for webhook verification"
-      }
-    ],
-    webhookUrl: "https://workflow-lg9z.onrender.com/api/webhooks/instagram/comments"
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        464,
+        240
+      ],
+      "id": "7ef06bee-558d-4156-b394-3362c4e076b3",
+      "name": "HTTP Request"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "cdb134ca0095a1d4a0b035b6bbf4c6d5e84da0c199849d169362c7d01d059361"
   }
-
-  Section 2: Claude AI Integration
-
-  const claudeConfig = {
-    title: "🤖 Claude AI for Auto-Replies",
-    fields: [
-      "Claude API Key",
-      "System Prompt",
-      "Knowledge Base Upload",
-      "Response Templates"
-    ]
-  }
-
-  Section 3: Comment Management Settings
-
-  const commentSettings = {
-    title: "💬 Comment Management",
-    options: [
-      "Auto-reply to new comments",
-      "AI response delay (1-30 seconds)",
-      "Filter spam comments",
-      "Keyword triggers",
-      "Response templates"
-    ]
-  }
-
-  🚀 Activation Flow
-
-  When User Clicks "Start Instagram Integration":
-
-  const activationProcess = {
-    step1: "Validate all 5 Instagram API fields",
-    step2: "Test connection to Instagram Graph API",
-    step3: "Set up webhook for real-time comments",
-    step4: "Initialize comment monitoring",
-    step5: "Start polling for existing comments",
-    step6: "Enable auto-reply system"
-  }
-
-  🔄 Comment Flow (Similar to WhatsApp Messages)
-
-  New Comment → Instagram Webhook → Backend → AI Processing → Auto Reply → Posted
-       ↓              ↓                ↓           ↓             ↓          ↓
-  User comments → Meta notifies → Store DB → Claude AI → Generate → IG API
-
-  📊 Center Area - Comment Threads
-
-  Left Panel: Comment Threads List
-
-  - Recent comments by post
-  - User profile pictures
-  - Comment previews
-  - Unread indicators
-
-  Right Panel: Selected Thread
-
-  - Full comment conversation
-  - Reply history
-  - Send reply interface
-  - AI suggestions
-
-  🎯 Key Features to Include:
-
-  1. ✅ Real-time comment monitoring
-  2. ✅ AI-powered auto-replies
-  3. ✅ Comment thread management
-  4. ✅ Claude AI integration
-  5. ✅ Knowledge base for responses
-  6. ✅ Manual reply capability
-  7. ✅ Performance analytics
-  8. 🔮 Future: Switch to DM when verified
-
-  ❓ My Questions:
-
-  1. Should I start building this Instagram Comment Manager page now?
-  2. Do you want the exact same sidebar system as WhatsApp?
-  3. Any specific Instagram features you want me to focus on first?
-
-  This approach gives you a complete Instagram management system where everything works except messaging - and when you get business verification, we just switch the API endpoints!
+}

@@ -7,7 +7,7 @@ const InstagramCommentManager = () => {
   const [appSecret, setAppSecret] = useState('');
   const [accessToken, setAccessToken] = useState('');
   const [instagramBusinessId, setInstagramBusinessId] = useState('');
-  const [webhookToken, setWebhookToken] = useState('');
+  const [webhookToken, setWebhookToken] = useState('muhammad');
   
   // UI State
   const [isActive, setIsActive] = useState(false);
@@ -15,9 +15,9 @@ const InstagramCommentManager = () => {
   const [error, setError] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('');
   
-  // Comment Management State
-  const [comments, setComments] = useState([]);
-  const [selectedComment, setSelectedComment] = useState(null);
+  // Message Management State
+  const [messages, setMessages] = useState([]);
+  const [selectedMessage, setSelectedMessage] = useState(null);
   const [replyText, setReplyText] = useState('');
   const [isReplying, setIsReplying] = useState(false);
   
@@ -52,7 +52,7 @@ const InstagramCommentManager = () => {
           
           if (response.ok) {
             const data = await response.json();
-            setComments(data.comments || []);
+            setMessages(data.messages || []);
           }
         } catch (error) {
           console.error('Error fetching comments:', error);

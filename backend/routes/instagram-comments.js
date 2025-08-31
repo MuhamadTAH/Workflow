@@ -2,30 +2,40 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../services/logger');
 
-// Store for Instagram comment data
-let instagramComments = [];
+// Store for Instagram DM data
+let instagramMessages = [];
 
-// Instagram webhook verification endpoint
+// Instagram webhook verification endpoint  
 router.get('/webhooks/instagram/comments', (req, res) => {
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
 
-  logger.info('Instagram webhook verification attempt', {
+  logger.info('🔥 INSTAGRAM WEBHOOK CALL RECEIVED!', {
     mode,
     token,
-    challenge: challenge ? 'present' : 'missing'
+    challenge: challenge ? 'present' : 'missing',
+    timestamp: new Date().toISOString()
   });
 
-  // Verify the token (you should set this in environment variables or use the one from frontend)
-  const VERIFY_TOKEN = process.env.INSTAGRAM_VERIFY_TOKEN || 'muhammadtarq24@gmail.com';
+  // Mark that we received the first call
+  if (webhookState.isWaitingForCall && !webhookState.hasReceivedCall) {
+    webhookState.hasReceivedCall = true;
+    webhookState.firstCallAt = new Date().toISOString();
+    logger.info('🎉 FIRST WEBHOOK CALL DETECTED!', { 
+      firstCallAt: webhookState.firstCallAt 
+    });
+  }
+
+  // Verify the token
+  const VERIFY_TOKEN = 'muhammad';
   
   if (mode && token) {
     if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-      logger.info('Instagram webhook verified successfully');
+      logger.info('✅ Instagram webhook verified successfully');
       res.status(200).send(challenge);
     } else {
-      logger.warn('Instagram webhook verification failed', { 
+      logger.warn('❌ Instagram webhook verification failed', { 
         expectedToken: VERIFY_TOKEN,
         receivedToken: token,
         mode 
@@ -33,7 +43,7 @@ router.get('/webhooks/instagram/comments', (req, res) => {
       res.sendStatus(403);
     }
   } else {
-    logger.warn('Instagram webhook verification missing required parameters');
+    logger.warn('⚠️ Instagram webhook verification missing required parameters');
     res.sendStatus(400);
   }
 });
@@ -50,22 +60,28 @@ router.post('/webhooks/instagram/comments', (req, res) => {
   // Store the webhook data for processing
   if (body.entry && body.entry.length > 0) {
     body.entry.forEach(entry => {
-      // Process Instagram comment webhook data
-      if (entry.changes) {
-        entry.changes.forEach(change => {
-          if (change.field === 'comments') {
-            const commentData = {
-              id: change.value.id,
-              text: change.value.text,
-              from: change.value.from,
-              timestamp: new Date().toISOString(),
-              media_id: change.value.media?.id,
-              parent_id: change.value.parent_id
-            };
-            
-            instagramComments.push(commentData);
-            logger.info('Instagram comment stored', { commentId: commentData.id });
-          }
+      // Process Instagram DM webhook data (like your working n8n setup)
+      if (entry.messaging) {
+        entry.messaging.forEach(messaging => {
+          const messageData = {
+            id: messaging.message?.mid || Date.now().toString(),
+            text: messaging.message?.text,
+            sender: {
+              id: messaging.sender?.id
+            },
+            recipient: {
+              id: messaging.recipient?.id
+            },
+            timestamp: new Date().toISOString(),
+            webhookTimestamp: messaging.timestamp
+          };
+          
+          instagramMessages.push(messageData);
+          logger.info('Instagram DM stored', { 
+            messageId: messageData.id,
+            senderId: messageData.sender.id,
+            text: messageData.text ? messageData.text.substring(0, 50) + '...' : 'No text'
+          });
         });
       }
     });
@@ -74,70 +90,55 @@ router.post('/webhooks/instagram/comments', (req, res) => {
   res.status(200).send('EVENT_RECEIVED');
 });
 
-// Instagram comment management state
-let commentManagerState = {
-  isActive: false,
-  appId: null,
-  appSecret: null,
-  accessToken: null,
-  instagramBusinessId: null,
-  webhookToken: null,
-  activatedAt: null
+// Instagram webhook state
+let webhookState = {
+  isWaitingForCall: false,
+  hasReceivedCall: false,
+  activatedAt: null,
+  firstCallAt: null
 };
 
-// Get Instagram comment manager status
+// Get Instagram webhook status
 router.get('/instagram-comments/status', (req, res) => {
-  logger.info('Instagram comment manager status requested');
+  logger.info('Instagram webhook status requested');
   
   res.json({
     success: true,
     status: {
-      isActive: commentManagerState.isActive,
-      activatedAt: commentManagerState.activatedAt,
-      hasCredentials: !!(commentManagerState.appId && commentManagerState.accessToken)
+      isWaitingForCall: webhookState.isWaitingForCall,
+      hasReceivedCall: webhookState.hasReceivedCall,
+      activatedAt: webhookState.activatedAt,
+      firstCallAt: webhookState.firstCallAt
     },
-    comments: instagramComments
+    webhookUrl: 'https://workflow-lg9z.onrender.com/api/webhooks/instagram/comments',
+    verifyToken: 'muhammad'
   });
 });
 
-// Activate Instagram comment manager
+// Start waiting for webhook call
 router.post('/instagram-comments/activate', (req, res) => {
-  const { appId, appSecret, accessToken, instagramBusinessId, webhookToken } = req.body;
+  logger.info('🚀 Starting to wait for Instagram webhook call');
 
-  logger.info('Instagram comment manager activation requested', {
-    hasAppId: !!appId,
-    hasAppSecret: !!appSecret,
-    hasAccessToken: !!accessToken,
-    hasBusinessId: !!instagramBusinessId,
-    hasWebhookToken: !!webhookToken
-  });
+  // Start waiting for the first call
+  webhookState.isWaitingForCall = true;
+  webhookState.hasReceivedCall = false;
+  webhookState.activatedAt = new Date().toISOString();
+  webhookState.firstCallAt = null;
 
-  if (!appId || !appSecret || !accessToken || !instagramBusinessId || !webhookToken) {
-    return res.status(400).json({
-      success: false,
-      error: 'Missing required Instagram API credentials'
-    });
-  }
-
-  // Store credentials and activate
-  commentManagerState = {
-    isActive: true,
-    appId: appId.trim(),
-    appSecret: appSecret.trim(),
-    accessToken: accessToken.trim(),
-    instagramBusinessId: instagramBusinessId.trim(),
-    webhookToken: webhookToken.trim(),
-    activatedAt: new Date().toISOString()
-  };
-
-  logger.info('Instagram comment manager activated successfully');
+  logger.info('✅ Now waiting for webhook call from Meta');
 
   res.json({
     success: true,
-    message: 'Instagram comment manager activated successfully',
+    message: 'Waiting for webhook call from Meta...',
     status: {
-      isActive: true,
-      activatedAt: commentManagerState.activatedAt
+      isWaitingForCall: true,
+      hasReceivedCall: false,
+      activatedAt: webhookState.activatedAt
+    },
+    instructions: {
+      webhookUrl: 'https://workflow-lg9z.onrender.com/api/webhooks/instagram/comments',
+      verifyToken: 'muhammad',
+      nextStep: 'Add this URL and token to your Meta Developer Console'
     }
   });
 });
@@ -163,14 +164,14 @@ router.post('/instagram-comments/deactivate', (req, res) => {
 
 // Get Instagram comments
 router.get('/instagram-comments/comments', (req, res) => {
-  logger.info('Instagram comments requested', {
-    commentCount: instagramComments.length,
+  logger.info('Instagram messages requested', {
+    messageCount: instagramMessages.length,
     isActive: commentManagerState.isActive
   });
 
   res.json({
     success: true,
-    comments: instagramComments,
+    messages: instagramMessages,
     status: {
       isActive: commentManagerState.isActive,
       activatedAt: commentManagerState.activatedAt
@@ -178,12 +179,12 @@ router.get('/instagram-comments/comments', (req, res) => {
   });
 });
 
-// Send reply to Instagram comment (placeholder for future implementation)
-router.post('/instagram-comments/reply', (req, res) => {
-  const { commentId, replyText } = req.body;
+// Send reply to Instagram DM (using your working n8n setup)
+router.post('/instagram-comments/reply', async (req, res) => {
+  const { senderId, replyText } = req.body;
 
-  logger.info('Instagram comment reply requested', {
-    commentId,
+  logger.info('Instagram DM reply requested', {
+    senderId,
     hasReplyText: !!replyText,
     isActive: commentManagerState.isActive
   });
@@ -191,31 +192,64 @@ router.post('/instagram-comments/reply', (req, res) => {
   if (!commentManagerState.isActive) {
     return res.status(400).json({
       success: false,
-      error: 'Instagram comment manager is not active'
+      error: 'Instagram manager is not active'
     });
   }
 
-  if (!commentId || !replyText) {
+  if (!senderId || !replyText) {
     return res.status(400).json({
       success: false,
-      error: 'Missing commentId or replyText'
+      error: 'Missing senderId or replyText'
     });
   }
 
-  // TODO: Implement actual Instagram Graph API comment reply
-  // For now, just return success (placeholder)
-  
-  logger.info('Instagram comment reply sent successfully (placeholder)', { commentId });
+  try {
+    // Use Instagram Graph API to send DM (same as your working n8n setup)
+    const response = await fetch(`https://graph.instagram.com/v21.0/${commentManagerState.instagramBusinessId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${commentManagerState.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        recipient: {
+          id: senderId
+        },
+        message: {
+          text: replyText
+        }
+      })
+    });
 
-  res.json({
-    success: true,
-    message: 'Reply sent successfully',
-    data: {
-      commentId,
-      replyText,
-      timestamp: new Date().toISOString()
+    const data = await response.json();
+    
+    if (response.ok) {
+      logger.info('Instagram DM reply sent successfully', { senderId, messageId: data.message_id });
+      
+      res.json({
+        success: true,
+        message: 'DM sent successfully',
+        data: {
+          senderId,
+          replyText,
+          messageId: data.message_id,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } else {
+      logger.error('Instagram DM reply failed', { error: data });
+      res.status(400).json({
+        success: false,
+        error: data.error?.message || 'Failed to send DM'
+      });
     }
-  });
+  } catch (error) {
+    logger.error('Instagram DM reply error', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
 });
 
 module.exports = router;
