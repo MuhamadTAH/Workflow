@@ -230,18 +230,68 @@ router.post('/instagram-comments/reply', async (req, res) => {
     });
   }
 
-  // Reply functionality not implemented yet - just return success for now
-  logger.info('Instagram DM reply (placeholder)', { senderId });
+  try {
+    // Use the working Instagram access token from your n8n setup
+    const ACCESS_TOKEN = 'IGAASK8KNQ8bVBZAFBiWE80aG9Jck5rU1BfaGQ0bHh4QVdEWFNhQzhIS3dRY29iV25hMkR1cEt6eTkwS2ZAqLWhidk5xWXN4M0F0elRnamJTU2NGS3NqVFhUT0FGV05nRXFSVGFoTkVmcTV3TzUzZAnJDa1dNT3ZArSG5VczhjQ21kQQZDZD';
+    
+    // Get recipient ID (your Instagram business account) from stored messages
+    const recipientId = instagramMessages.length > 0 ? instagramMessages[0].recipient?.id : '17841445204646276';
+    
+    logger.info('🚀 Sending Instagram DM reply', { 
+      senderId, 
+      recipientId,
+      replyText: replyText.substring(0, 50) + '...'
+    });
 
-  res.json({
-    success: true,
-    message: 'Reply functionality not implemented yet',
-    data: {
-      senderId,
-      replyText,
-      timestamp: new Date().toISOString()
+    // Send reply using Instagram Graph API (same as your working n8n)
+    const response = await fetch(`https://graph.instagram.com/v23.0/${recipientId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${ACCESS_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        recipient: {
+          id: senderId
+        },
+        message: {
+          text: replyText
+        }
+      })
+    });
+
+    const data = await response.json();
+    
+    if (response.ok) {
+      logger.info('✅ Instagram DM reply sent successfully!', { 
+        senderId, 
+        messageId: data.message_id 
+      });
+      
+      res.json({
+        success: true,
+        message: 'DM sent successfully!',
+        data: {
+          senderId,
+          replyText,
+          messageId: data.message_id,
+          timestamp: new Date().toISOString()
+        }
+      });
+    } else {
+      logger.error('❌ Instagram DM reply failed', { error: data });
+      res.status(400).json({
+        success: false,
+        error: data.error?.message || 'Failed to send DM'
+      });
     }
-  });
+  } catch (error) {
+    logger.error('💥 Instagram DM reply error', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error: ' + error.message
+    });
+  }
 });
 
 module.exports = router;

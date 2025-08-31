@@ -8,6 +8,9 @@ const SimpleInstagramWebhook = () => {
   const [error, setError] = useState('');
   const [firstCallAt, setFirstCallAt] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [isReplying, setIsReplying] = useState(false);
 
   const webhookUrl = `${API_BASE_URL}/api/webhooks/instagram/comments`;
   const verifyToken = 'muhammad';
@@ -91,6 +94,41 @@ const SimpleInstagramWebhook = () => {
 
   const formatTimestamp = (timestamp) => {
     return new Date(timestamp).toLocaleString();
+  };
+
+  const handleReply = async () => {
+    if (!selectedMessage || !replyText.trim()) return;
+
+    setIsReplying(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/instagram-comments/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          senderId: selectedMessage.sender?.id,
+          replyText: replyText.trim()
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        console.log('✅ Reply sent successfully');
+        setReplyText('');
+        // Fetch messages to see if our reply appears
+        fetchMessages();
+      } else {
+        setError(data.error || 'Failed to send reply');
+      }
+    } catch (error) {
+      setError('Network error: ' + error.message);
+    } finally {
+      setIsReplying(false);
+    }
   };
 
   return (
@@ -364,12 +402,25 @@ const SimpleInstagramWebhook = () => {
                 {messages.map((message, index) => (
                   <div 
                     key={message.id || index}
+                    onClick={() => setSelectedMessage(message)}
                     style={{
-                      backgroundColor: 'white',
-                      border: '1px solid #e5e7eb',
+                      backgroundColor: selectedMessage?.id === message.id ? '#fef2f2' : 'white',
+                      border: selectedMessage?.id === message.id ? '2px solid #E4405F' : '1px solid #e5e7eb',
                       borderRadius: '8px',
                       padding: '1rem',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (selectedMessage?.id !== message.id) {
+                        e.target.style.backgroundColor = '#f9fafb';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (selectedMessage?.id !== message.id) {
+                        e.target.style.backgroundColor = 'white';
+                      }
                     }}
                   >
                     {/* Message Header */}
@@ -430,6 +481,105 @@ const SimpleInstagramWebhook = () => {
               </div>
             )}
           </div>
+
+          {/* Reply Interface */}
+          {selectedMessage && (
+            <div style={{ 
+              marginTop: '1rem',
+              padding: '1rem',
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e5e7eb',
+              borderRadius: '8px'
+            }}>
+              <div style={{ 
+                fontSize: '0.875rem', 
+                fontWeight: '600', 
+                color: '#374151', 
+                marginBottom: '0.5rem' 
+              }}>
+                💬 Reply to {selectedMessage.sender?.id}
+              </div>
+              
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
+                  <textarea
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder="Type your reply..."
+                    style={{
+                      width: '100%',
+                      minHeight: '80px',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '0.875rem',
+                      fontFamily: 'inherit',
+                      resize: 'vertical'
+                    }}
+                  />
+                </div>
+                
+                <button
+                  onClick={handleReply}
+                  disabled={!replyText.trim() || isReplying}
+                  style={{
+                    backgroundColor: !replyText.trim() || isReplying ? '#9ca3af' : '#E4405F',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '0.75rem 1rem',
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    cursor: !replyText.trim() || isReplying ? 'not-allowed' : 'pointer',
+                    transition: 'background-color 0.2s',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!(!replyText.trim() || isReplying)) {
+                      e.target.style.backgroundColor = '#C13584';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!(!replyText.trim() || isReplying)) {
+                      e.target.style.backgroundColor = '#E4405F';
+                    }
+                  }}
+                >
+                  {isReplying ? 'Sending...' : '📤 Send'}
+                </button>
+              </div>
+              
+              {error && (
+                <div style={{
+                  marginTop: '0.5rem',
+                  padding: '0.5rem',
+                  backgroundColor: '#fee2e2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '4px',
+                  fontSize: '0.75rem',
+                  color: '#dc2626'
+                }}>
+                  {error}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Instructions when no message selected */}
+          {!selectedMessage && messages.length > 0 && (
+            <div style={{ 
+              textAlign: 'center', 
+              marginTop: '1rem',
+              padding: '0.75rem',
+              backgroundColor: '#f0f9ff',
+              border: '1px solid #0ea5e9',
+              borderRadius: '6px',
+              fontSize: '0.875rem',
+              color: '#0c4a6e'
+            }}>
+              👆 Click on a message above to reply to it
+            </div>
+          )}
 
           {/* Live indicator */}
           {isWaiting && (
