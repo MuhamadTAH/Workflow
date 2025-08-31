@@ -450,7 +450,7 @@ const SimpleInstagramWebhook = () => {
                               {message.sender?.id ? message.sender.id.substring(0,1).toUpperCase() : '👤'}
                             </div>
                             <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '600' }}>
-                              {message.sender?.id || 'User'}
+                              {message.sender?.id === 'me' ? 'You' : (message.sender?.id || 'User')}
                             </div>
                           </div>
                         )}
@@ -463,6 +463,13 @@ const SimpleInstagramWebhook = () => {
                         }}>
                           {message.text || (isOutgoing ? 'Message sent' : 'No text content')}
                         </div>
+
+                        {/* Debug info - remove later */}
+                        {process.env.NODE_ENV === 'development' && (
+                          <div style={{ fontSize: '0.6rem', color: '#888', marginTop: '0.25rem' }}>
+                            Debug: text="{message.text}", isOutgoing={isOutgoing ? 'true' : 'false'}
+                          </div>
+                        )}
 
                         {/* Timestamp */}
                         <div style={{ 

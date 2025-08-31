@@ -280,7 +280,12 @@ router.post('/instagram-comments/reply', async (req, res) => {
       };
       
       instagramMessages.push(sentMessage);
-      logger.info('📤 Our sent message stored', { messageId: sentMessage.id });
+      logger.info('📤 Our sent message stored', { 
+        messageId: sentMessage.id,
+        text: sentMessage.text,
+        isOutgoing: sentMessage.isOutgoing,
+        totalMessages: instagramMessages.length
+      });
       
       res.json({
         success: true,
