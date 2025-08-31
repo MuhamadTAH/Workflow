@@ -17,6 +17,9 @@ const TelegramListener = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
   
+  // Configuration panel collapse states
+  const [isBotConfigCollapsed, setIsBotConfigCollapsed] = useState(false);
+  
   // Claude API states
   const [claudeApiKey, setClaudeApiKey] = useState('');
   const [claudeStatus, setClaudeStatus] = useState('');
@@ -722,9 +725,40 @@ CONTACT & SOCIAL:
                 
                 {/* Bot Configuration Section */}
                 <div style={{ marginBottom: '2rem' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                    🤖 Bot Configuration
+                  <h3 
+                    onClick={() => setIsBotConfigCollapsed(!isBotConfigCollapsed)}
+                    style={{ 
+                      fontSize: '1rem', 
+                      fontWeight: '600', 
+                      color: '#1f2937', 
+                      marginBottom: '1rem', 
+                      borderBottom: '2px solid #e5e7eb', 
+                      paddingBottom: '0.5rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <span>🤖 Bot Configuration</span>
+                    <span style={{ 
+                      transform: isBotConfigCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                      fontSize: '0.8rem',
+                      color: '#6b7280'
+                    }}>
+                      ▼
+                    </span>
                   </h3>
+                  
+                  {/* Collapsible Content */}
+                  <div style={{
+                    maxHeight: isBotConfigCollapsed ? '0' : '1000px',
+                    overflow: 'hidden',
+                    transition: 'max-height 0.3s ease-in-out',
+                    opacity: isBotConfigCollapsed ? 0 : 1
+                  }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
                 Bot Token
@@ -830,6 +864,7 @@ CONTACT & SOCIAL:
                 <li>Messages are updated automatically every 2 seconds</li>
               </ol>
             </div>
+                  </div> {/* End Collapsible Content */}
                 </div>
 
                 {/* Claude AI Configuration Section */}
