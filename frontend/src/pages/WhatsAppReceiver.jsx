@@ -51,6 +51,16 @@ const WhatsAppReceiver = () => {
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
+  
+  // Left sidebar collapse states
+  const [isClaudeConfigCollapsed, setIsClaudeConfigCollapsed] = useState(false);
+  const [isSystemPromptCollapsed, setIsSystemPromptCollapsed] = useState(false);
+  const [isWhatsAppSettingsCollapsed, setIsWhatsAppSettingsCollapsed] = useState(false);
+  
+  // Right sidebar collapse states
+  const [isContactInfoCollapsed, setIsContactInfoCollapsed] = useState(false);
+  const [isStatisticsCollapsed, setIsStatisticsCollapsed] = useState(false);
+  const [isQuickActionsCollapsed, setIsQuickActionsCollapsed] = useState(false);
 
   // Initialize component
   useEffect(() => {
@@ -567,12 +577,44 @@ const WhatsAppReceiver = () => {
               <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
                 
                 {/* Claude AI Configuration Section */}
-                <div style={{ marginBottom: '2rem' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                    🤖 Claude AI Configuration
+                <div style={{ marginBottom: isClaudeConfigCollapsed ? '0' : '2rem' }}>
+                  <h3 
+                    onClick={() => setIsClaudeConfigCollapsed(!isClaudeConfigCollapsed)}
+                    style={{ 
+                      fontSize: '1rem', 
+                      fontWeight: '600', 
+                      color: '#1f2937', 
+                      marginBottom: '1rem', 
+                      borderBottom: '2px solid #e5e7eb', 
+                      paddingBottom: '0.5rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <span>🤖 Claude AI Configuration</span>
+                    <span style={{ 
+                      transform: isClaudeConfigCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                      fontSize: '0.8rem',
+                      color: '#6b7280'
+                    }}>
+                      ▼
+                    </span>
                   </h3>
+
+                  {/* Collapsible Content */}
+                  <div style={{
+                    maxHeight: isClaudeConfigCollapsed ? '0' : '2000px',
+                    overflow: 'hidden',
+                    transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                    opacity: isClaudeConfigCollapsed ? 0 : 1
+                  }}>
+                    <div>
                   
-                  {/* Claude Connection Status */}
+                      {/* Claude Connection Status */}
                   <div style={{
                     padding: '1rem',
                     borderRadius: '8px',
@@ -691,15 +733,49 @@ const WhatsAppReceiver = () => {
                       </button>
                     )}
                   </div>
+                    </div>
+                  </div> {/* End Collapsible Content */}
                 </div>
 
                 {/* System Prompt Configuration Section */}
-                <div style={{ marginBottom: '2rem' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                    🎭 System Prompt
+                <div style={{ marginBottom: isSystemPromptCollapsed ? '0' : '2rem' }}>
+                  <h3 
+                    onClick={() => setIsSystemPromptCollapsed(!isSystemPromptCollapsed)}
+                    style={{ 
+                      fontSize: '1rem', 
+                      fontWeight: '600', 
+                      color: '#1f2937', 
+                      marginBottom: '1rem', 
+                      borderBottom: '2px solid #e5e7eb', 
+                      paddingBottom: '0.5rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <span>🎭 System Prompt</span>
+                    <span style={{ 
+                      transform: isSystemPromptCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                      fontSize: '0.8rem',
+                      color: '#6b7280'
+                    }}>
+                      ▼
+                    </span>
                   </h3>
 
-                  {/* Warning when Claude not connected */}
+                  {/* Collapsible Content */}
+                  <div style={{
+                    maxHeight: isSystemPromptCollapsed ? '0' : '2000px',
+                    overflow: 'hidden',
+                    transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                    opacity: isSystemPromptCollapsed ? 0 : 1
+                  }}>
+                    <div>
+
+                      {/* Warning when Claude not connected */}
                   {!isClaudeConnected && (
                     <div style={{
                       backgroundColor: '#fef2f2',
@@ -800,15 +876,49 @@ const WhatsAppReceiver = () => {
                       {systemPromptStatus}
                     </div>
                   )}
+                    </div>
+                  </div> {/* End Collapsible Content */}
                 </div>
 
                 {/* WhatsApp Configuration Section */}
-                <div style={{ marginBottom: '2rem' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                    📱 WhatsApp Settings
+                <div style={{ marginBottom: isWhatsAppSettingsCollapsed ? '0' : '2rem' }}>
+                  <h3 
+                    onClick={() => setIsWhatsAppSettingsCollapsed(!isWhatsAppSettingsCollapsed)}
+                    style={{ 
+                      fontSize: '1rem', 
+                      fontWeight: '600', 
+                      color: '#1f2937', 
+                      marginBottom: '1rem', 
+                      borderBottom: '2px solid #e5e7eb', 
+                      paddingBottom: '0.5rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <span>📱 WhatsApp Settings</span>
+                    <span style={{ 
+                      transform: isWhatsAppSettingsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                      fontSize: '0.8rem',
+                      color: '#6b7280'
+                    }}>
+                      ▼
+                    </span>
                   </h3>
+
+                  {/* Collapsible Content */}
+                  <div style={{
+                    maxHeight: isWhatsAppSettingsCollapsed ? '0' : '2000px',
+                    overflow: 'hidden',
+                    transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                    opacity: isWhatsAppSettingsCollapsed ? 0 : 1
+                  }}>
+                    <div>
                   
-                  {/* Webhook URL */}
+                      {/* Webhook URL */}
                   <div style={{ marginBottom: '1rem' }}>
                     <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
                       Webhook URL
@@ -1021,6 +1131,8 @@ const WhatsAppReceiver = () => {
                       ✅ WhatsApp integration is active and listening for messages
                     </div>
                   )}
+                    </div>
+                  </div> {/* End Collapsible Content */}
                 </div>
                 
               </div>
@@ -1371,9 +1483,32 @@ const WhatsAppReceiver = () => {
             <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
               
               {/* Selected Contact Info Section */}
-              <div style={{ marginBottom: '2rem' }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                  👤 Selected Contact
+              <div style={{ marginBottom: isContactInfoCollapsed ? '0' : '2rem' }}>
+                <h3 
+                  onClick={() => setIsContactInfoCollapsed(!isContactInfoCollapsed)}
+                  style={{ 
+                    fontSize: '1rem', 
+                    fontWeight: '600', 
+                    color: '#1f2937', 
+                    marginBottom: '1rem', 
+                    borderBottom: '2px solid #e5e7eb', 
+                    paddingBottom: '0.5rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    userSelect: 'none'
+                  }}
+                >
+                  <span>👤 Selected Contact</span>
+                  <span style={{ 
+                    transform: isContactInfoCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                    fontSize: '0.8rem',
+                    color: '#6b7280'
+                  }}>
+                    ▼
+                  </span>
                 </h3>
                 
                 {selectedConversation ? (

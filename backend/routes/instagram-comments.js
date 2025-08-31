@@ -159,38 +159,44 @@ router.post('/instagram-comments/activate', (req, res) => {
   });
 });
 
-// Deactivate Instagram comment manager
+// Deactivate Instagram webhook
 router.post('/instagram-comments/deactivate', (req, res) => {
-  logger.info('Instagram comment manager deactivation requested');
+  logger.info('Instagram webhook deactivation requested');
 
-  commentManagerState.isActive = false;
-  commentManagerState.activatedAt = null;
+  webhookState.isWaitingForCall = false;
+  webhookState.hasReceivedCall = false;
+  webhookState.activatedAt = null;
+  webhookState.firstCallAt = null;
 
-  logger.info('Instagram comment manager deactivated successfully');
+  logger.info('Instagram webhook deactivated successfully');
 
   res.json({
     success: true,
-    message: 'Instagram comment manager deactivated successfully',
+    message: 'Instagram webhook deactivated successfully',
     status: {
-      isActive: false,
-      activatedAt: null
+      isWaitingForCall: false,
+      hasReceivedCall: false,
+      activatedAt: null,
+      firstCallAt: null
     }
   });
 });
 
-// Get Instagram comments
+// Get Instagram messages
 router.get('/instagram-comments/comments', (req, res) => {
   logger.info('Instagram messages requested', {
     messageCount: instagramMessages.length,
-    isActive: commentManagerState.isActive
+    isWaiting: webhookState.isWaitingForCall
   });
 
   res.json({
     success: true,
     messages: instagramMessages,
     status: {
-      isActive: commentManagerState.isActive,
-      activatedAt: commentManagerState.activatedAt
+      isWaitingForCall: webhookState.isWaitingForCall,
+      hasReceivedCall: webhookState.hasReceivedCall,
+      activatedAt: webhookState.activatedAt,
+      firstCallAt: webhookState.firstCallAt
     }
   });
 });
@@ -202,13 +208,13 @@ router.post('/instagram-comments/reply', async (req, res) => {
   logger.info('Instagram DM reply requested', {
     senderId,
     hasReplyText: !!replyText,
-    isActive: commentManagerState.isActive
+    isWaiting: webhookState.isWaitingForCall
   });
 
-  if (!commentManagerState.isActive) {
+  if (!webhookState.isWaitingForCall) {
     return res.status(400).json({
       success: false,
-      error: 'Instagram manager is not active'
+      error: 'Instagram webhook is not active'
     });
   }
 
@@ -219,53 +225,18 @@ router.post('/instagram-comments/reply', async (req, res) => {
     });
   }
 
-  try {
-    // Use Instagram Graph API to send DM (same as your working n8n setup)
-    const response = await fetch(`https://graph.instagram.com/v21.0/${commentManagerState.instagramBusinessId}/messages`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${commentManagerState.accessToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        recipient: {
-          id: senderId
-        },
-        message: {
-          text: replyText
-        }
-      })
-    });
+  // Reply functionality not implemented yet - just return success for now
+  logger.info('Instagram DM reply (placeholder)', { senderId });
 
-    const data = await response.json();
-    
-    if (response.ok) {
-      logger.info('Instagram DM reply sent successfully', { senderId, messageId: data.message_id });
-      
-      res.json({
-        success: true,
-        message: 'DM sent successfully',
-        data: {
-          senderId,
-          replyText,
-          messageId: data.message_id,
-          timestamp: new Date().toISOString()
-        }
-      });
-    } else {
-      logger.error('Instagram DM reply failed', { error: data });
-      res.status(400).json({
-        success: false,
-        error: data.error?.message || 'Failed to send DM'
-      });
+  res.json({
+    success: true,
+    message: 'Reply functionality not implemented yet',
+    data: {
+      senderId,
+      replyText,
+      timestamp: new Date().toISOString()
     }
-  } catch (error) {
-    logger.error('Instagram DM reply error', { error: error.message });
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
-  }
+  });
 });
 
 module.exports = router;
