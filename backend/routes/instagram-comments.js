@@ -146,7 +146,23 @@ router.all('/webhooks/instagram/comments', (req, res) => {
               rawData: messaging
             };
             
-            instagramMessages.push(messageData);
+            // Check for duplicate messages to avoid double-storing sent messages
+            const isDuplicate = instagramMessages.some(existingMsg => 
+              existingMsg.id === messageData.id ||
+              (existingMsg.text === messageData.text && 
+               existingMsg.sender?.id === messageData.sender?.id &&
+               Math.abs(new Date(existingMsg.timestamp) - new Date(messageData.timestamp)) < 30000) // Within 30 seconds
+            );
+            
+            if (!isDuplicate) {
+              instagramMessages.push(messageData);
+            } else {
+              logger.info('🔄 Duplicate message detected, skipping:', { 
+                messageId: messageData.id,
+                text: messageData.text?.substring(0, 50),
+                senderId: messageData.sender?.id
+              });
+            }
             logger.info('✅ Instagram DM stored successfully!', { 
               messageId: messageData.id,
               senderId: messageData.sender.id,
@@ -354,7 +370,18 @@ router.post('/instagram-comments/reply', async (req, res) => {
         messageId: data.message_id
       };
       
-      instagramMessages.push(sentMessage);
+      // Check if this message already exists to avoid duplicates
+      const isDuplicate = instagramMessages.some(existingMsg => 
+        existingMsg.id === sentMessage.id ||
+        (existingMsg.text === sentMessage.text && 
+         existingMsg.sender?.id === 'me' &&
+         existingMsg.recipient?.id === senderId &&
+         Math.abs(new Date(existingMsg.timestamp) - new Date(sentMessage.timestamp)) < 30000)
+      );
+      
+      if (!isDuplicate) {
+        instagramMessages.push(sentMessage);
+      }
       logger.info('📤 Our sent message stored', { 
         messageId: sentMessage.id,
         text: sentMessage.text,

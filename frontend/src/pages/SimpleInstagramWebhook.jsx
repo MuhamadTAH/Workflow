@@ -97,16 +97,36 @@ const SimpleInstagramWebhook = () => {
     
     messages.forEach(message => {
       const senderId = message.sender?.id;
+      const recipientId = message.recipient?.id;
+      
+      // For incoming messages (from users to us)
       if (senderId && senderId !== 'me') {
         const user = users[senderId];
-        conversations[senderId] = {
-          userId: senderId,
-          username: user?.username || `user_${senderId.slice(0, 8)}`,
-          name: user?.name || 'Instagram User',
-          profile_picture_url: user?.profile_picture_url,
-          lastMessage: message,
-          unreadCount: 0 // Could implement unread logic later
-        };
+        if (!conversations[senderId] || new Date(message.timestamp) > new Date(conversations[senderId].lastMessage.timestamp)) {
+          conversations[senderId] = {
+            userId: senderId,
+            username: user?.username || `user_${senderId.slice(0, 8)}`,
+            name: user?.name || 'Instagram User',
+            profile_picture_url: user?.profile_picture_url,
+            lastMessage: message,
+            unreadCount: 0
+          };
+        }
+      }
+      
+      // For outgoing messages (from us to users), update existing conversation
+      if (senderId === 'me' && recipientId) {
+        const user = users[recipientId];
+        if (!conversations[recipientId] || new Date(message.timestamp) > new Date(conversations[recipientId].lastMessage.timestamp)) {
+          conversations[recipientId] = {
+            userId: recipientId,
+            username: user?.username || `user_${recipientId.slice(0, 8)}`,
+            name: user?.name || 'Instagram User',
+            profile_picture_url: user?.profile_picture_url,
+            lastMessage: message,
+            unreadCount: 0
+          };
+        }
       }
     });
     

@@ -653,6 +653,269 @@ Be enthusiastic and helpful while staying accurate.`,
     }
   });
 
+  // =================================================================
+  // PAY-AS-YOU-GO BILLING SYSTEM TABLES
+  // =================================================================
+
+  // Create ai_models table - Define AI models and pricing
+  db.run(`
+    CREATE TABLE IF NOT EXISTS ai_models (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      provider TEXT NOT NULL, -- 'claude', 'openai', 'custom'
+      model_id TEXT NOT NULL, -- 'claude-3-sonnet', 'gpt-4', etc.
+      cost_per_input_token DECIMAL(10,8) NOT NULL, -- Cost we pay per input token
+      cost_per_output_token DECIMAL(10,8) NOT NULL, -- Cost we pay per output token
+      price_per_input_token DECIMAL(10,8) NOT NULL, -- Price we charge users per input token
+      price_per_output_token DECIMAL(10,8) NOT NULL, -- Price we charge users per output token
+      markup_percentage DECIMAL(5,2) DEFAULT 100.00, -- Markup percentage (100% = 2x cost)
+      is_active BOOLEAN DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating ai_models table:', err);
+    } else {
+      console.log('✅ AI Models table ready');
+      
+      // Insert default models with 100% markup (2x cost)
+      const defaultModels = [
+        {
+          name: 'Claude Sonnet',
+          provider: 'claude',
+          model_id: 'claude-3-5-sonnet-20241022',
+          cost_per_input_token: 0.000003, // $3 per 1M tokens
+          cost_per_output_token: 0.000015, // $15 per 1M tokens
+          price_per_input_token: 0.000006, // $6 per 1M tokens (2x markup)
+          price_per_output_token: 0.000030, // $30 per 1M tokens (2x markup)
+          markup_percentage: 100.00
+        },
+        {
+          name: 'Claude Haiku',
+          provider: 'claude',
+          model_id: 'claude-3-haiku-20240307',
+          cost_per_input_token: 0.00000025, // $0.25 per 1M tokens
+          cost_per_output_token: 0.00000125, // $1.25 per 1M tokens
+          price_per_input_token: 0.0000005, // $0.50 per 1M tokens (2x markup)
+          price_per_output_token: 0.0000025, // $2.50 per 1M tokens (2x markup)
+          markup_percentage: 100.00
+        },
+        {
+          name: 'Custom AI',
+          provider: 'custom',
+          model_id: 'custom-model-v1',
+          cost_per_input_token: 0.000001, // $1 per 1M tokens
+          cost_per_output_token: 0.000002, // $2 per 1M tokens
+          price_per_input_token: 0.000002, // $2 per 1M tokens (2x markup)
+          price_per_output_token: 0.000004, // $4 per 1M tokens (2x markup)
+          markup_percentage: 100.00
+        }
+      ];
+
+      defaultModels.forEach(model => {
+        db.run(`INSERT OR IGNORE INTO ai_models 
+                (name, provider, model_id, cost_per_input_token, cost_per_output_token, 
+                 price_per_input_token, price_per_output_token, markup_percentage) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [model.name, model.provider, model.model_id, model.cost_per_input_token, 
+           model.cost_per_output_token, model.price_per_input_token, 
+           model.price_per_output_token, model.markup_percentage]
+        );
+      });
+    }
+  });
+
+  // Create user_billing table - Store user payment methods and billing info
+  db.run(`
+    CREATE TABLE IF NOT EXISTS user_billing (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL UNIQUE,
+      stripe_customer_id TEXT,
+      payment_method_id TEXT,
+      card_last_four TEXT,
+      card_brand TEXT,
+      card_exp_month INTEGER,
+      card_exp_year INTEGER,
+      billing_email TEXT,
+      billing_address TEXT, -- JSON
+      spending_limit DECIMAL(10,2) DEFAULT 100.00, -- Monthly spending limit
+      auto_billing BOOLEAN DEFAULT 1, -- Auto-charge monthly
+      billing_cycle_day INTEGER DEFAULT 1, -- Day of month to bill
+      next_billing_date DATE,
+      is_active BOOLEAN DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating user_billing table:', err);
+    } else {
+      console.log('✅ User Billing table ready');
+    }
+  });
+
+  // Create ai_usage_tracking table - Track every AI API call for billing
+  db.run(`
+    CREATE TABLE IF NOT EXISTS ai_usage_tracking (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      ai_model_id INTEGER NOT NULL,
+      conversation_id INTEGER, -- Link to ai_conversations if applicable
+      assistant_id INTEGER, -- Link to ai_assistants if applicable
+      request_type TEXT NOT NULL, -- 'chat', 'completion', 'embedding', etc.
+      input_tokens INTEGER NOT NULL DEFAULT 0,
+      output_tokens INTEGER NOT NULL DEFAULT 0,
+      total_tokens INTEGER NOT NULL DEFAULT 0,
+      cost_input DECIMAL(10,6) NOT NULL DEFAULT 0, -- Our cost for input tokens
+      cost_output DECIMAL(10,6) NOT NULL DEFAULT 0, -- Our cost for output tokens
+      price_input DECIMAL(10,6) NOT NULL DEFAULT 0, -- Price charged to user for input
+      price_output DECIMAL(10,6) NOT NULL DEFAULT 0, -- Price charged to user for output
+      total_cost DECIMAL(10,6) NOT NULL DEFAULT 0, -- Total cost we pay
+      total_price DECIMAL(10,6) NOT NULL DEFAULT 0, -- Total price charged to user
+      profit DECIMAL(10,6) NOT NULL DEFAULT 0, -- Our profit (price - cost)
+      response_time_ms INTEGER,
+      success BOOLEAN DEFAULT 1,
+      error_message TEXT,
+      billing_status TEXT DEFAULT 'pending', -- 'pending', 'billed', 'failed', 'refunded'
+      billed_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (ai_model_id) REFERENCES ai_models(id),
+      FOREIGN KEY (conversation_id) REFERENCES ai_conversations(id),
+      FOREIGN KEY (assistant_id) REFERENCES ai_assistants(id)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating ai_usage_tracking table:', err);
+    } else {
+      console.log('✅ AI Usage Tracking table ready');
+      
+      // Create indexes for performance
+      db.run(`CREATE INDEX IF NOT EXISTS idx_usage_user_date ON ai_usage_tracking (user_id, created_at)`, (indexErr) => {
+        if (indexErr && !indexErr.message.includes('already exists')) {
+          console.error('⚠️ Warning: Could not create usage_user_date index:', indexErr.message);
+        }
+      });
+      
+      db.run(`CREATE INDEX IF NOT EXISTS idx_usage_billing_status ON ai_usage_tracking (billing_status, created_at)`, (indexErr) => {
+        if (indexErr && !indexErr.message.includes('already exists')) {
+          console.error('⚠️ Warning: Could not create usage_billing_status index:', indexErr.message);
+        }
+      });
+    }
+  });
+
+  // Create monthly_billing_summaries table - Monthly usage summaries for billing
+  db.run(`
+    CREATE TABLE IF NOT EXISTS monthly_billing_summaries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      billing_month DATE NOT NULL, -- First day of billing month (YYYY-MM-01)
+      total_requests INTEGER DEFAULT 0,
+      total_input_tokens INTEGER DEFAULT 0,
+      total_output_tokens INTEGER DEFAULT 0,
+      total_tokens INTEGER DEFAULT 0,
+      total_cost DECIMAL(10,2) DEFAULT 0, -- What we paid to AI providers
+      total_amount DECIMAL(10,2) DEFAULT 0, -- What we charge user
+      total_profit DECIMAL(10,2) DEFAULT 0, -- Our profit
+      breakdown_by_model TEXT, -- JSON breakdown by AI model
+      billing_status TEXT DEFAULT 'pending', -- 'pending', 'processed', 'paid', 'failed', 'disputed'
+      stripe_invoice_id TEXT,
+      payment_intent_id TEXT,
+      invoice_url TEXT,
+      paid_at DATETIME,
+      due_date DATE,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE(user_id, billing_month)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating monthly_billing_summaries table:', err);
+    } else {
+      console.log('✅ Monthly Billing Summaries table ready');
+    }
+  });
+
+  // Create user_spending_alerts table - Spending limit alerts
+  db.run(`
+    CREATE TABLE IF NOT EXISTS user_spending_alerts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      alert_type TEXT NOT NULL, -- 'threshold', 'limit_reached', 'payment_failed'
+      threshold_percentage INTEGER, -- 50, 75, 90, 100 (% of spending limit)
+      current_amount DECIMAL(10,2) NOT NULL,
+      spending_limit DECIMAL(10,2) NOT NULL,
+      billing_month DATE NOT NULL,
+      alert_sent BOOLEAN DEFAULT 0,
+      sent_at DATETIME,
+      acknowledged BOOLEAN DEFAULT 0,
+      acknowledged_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating user_spending_alerts table:', err);
+    } else {
+      console.log('✅ User Spending Alerts table ready');
+    }
+  });
+
+  // Create billing_transactions table - Record all payment transactions
+  db.run(`
+    CREATE TABLE IF NOT EXISTS billing_transactions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      billing_summary_id INTEGER,
+      transaction_type TEXT NOT NULL, -- 'charge', 'refund', 'adjustment'
+      amount DECIMAL(10,2) NOT NULL,
+      currency TEXT DEFAULT 'USD',
+      stripe_payment_intent_id TEXT,
+      stripe_charge_id TEXT,
+      payment_method TEXT, -- 'card', 'bank_transfer', etc.
+      status TEXT DEFAULT 'pending', -- 'pending', 'succeeded', 'failed', 'cancelled'
+      failure_reason TEXT,
+      receipt_url TEXT,
+      description TEXT,
+      metadata TEXT, -- JSON for additional data
+      processed_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (billing_summary_id) REFERENCES monthly_billing_summaries(id)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating billing_transactions table:', err);
+    } else {
+      console.log('✅ Billing Transactions table ready');
+    }
+  });
+
+  // Create user_free_tier table - Track free tier usage
+  db.run(`
+    CREATE TABLE IF NOT EXISTS user_free_tier (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL UNIQUE,
+      free_tokens_used INTEGER DEFAULT 0,
+      free_tokens_limit INTEGER DEFAULT 1000, -- 1000 free tokens per month
+      reset_date DATE, -- When free tier resets (monthly)
+      is_active BOOLEAN DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating user_free_tier table:', err);
+    } else {
+      console.log('✅ User Free Tier table ready');
+    }
+  });
+
 });
 
 module.exports = db;
