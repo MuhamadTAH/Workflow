@@ -118,20 +118,9 @@ const SimpleInstagramWebhook = () => {
 
       if (response.ok && data.success) {
         console.log('✅ Reply sent successfully');
-        
-        // Add our sent message to the conversation immediately
-        const outgoingMessage = {
-          id: `sent_${Date.now()}`,
-          text: replyText.trim(),
-          sender: { id: 'me' },
-          recipient: selectedMessage.sender,
-          timestamp: new Date().toISOString(),
-          isOutgoing: true
-        };
-        
-        setMessages(prevMessages => [...prevMessages, outgoingMessage]);
         setReplyText('');
         setSelectedMessage(null); // Deselect after sending
+        // Don't add message here - backend will store it and next poll will fetch it
       } else {
         setError(data.error || 'Failed to send reply');
       }

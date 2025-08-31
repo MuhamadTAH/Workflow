@@ -267,6 +267,20 @@ router.post('/instagram-comments/reply', async (req, res) => {
         senderId, 
         messageId: data.message_id 
       });
+
+      // Store our sent message in the backend so it appears correctly
+      const sentMessage = {
+        id: data.message_id || `sent_${Date.now()}`,
+        text: replyText,
+        sender: { id: 'me' },
+        recipient: { id: senderId },
+        timestamp: new Date().toISOString(),
+        isOutgoing: true,
+        messageId: data.message_id
+      };
+      
+      instagramMessages.push(sentMessage);
+      logger.info('📤 Our sent message stored', { messageId: sentMessage.id });
       
       res.json({
         success: true,
