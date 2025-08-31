@@ -724,7 +724,7 @@ CONTACT & SOCIAL:
               <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
                 
                 {/* Bot Configuration Section */}
-                <div style={{ marginBottom: '2rem' }}>
+                <div style={{ marginBottom: isBotConfigCollapsed ? '0' : '2rem' }}>
                   <h3 
                     onClick={() => setIsBotConfigCollapsed(!isBotConfigCollapsed)}
                     style={{ 
