@@ -9,8 +9,8 @@ const ThemeToggle = ({ className = '' }) => {
       onClick={toggleTheme}
       className={`theme-toggle ${className}`}
       style={{
-        background: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)',
-        border: isDark ? '2px solid rgba(255, 255, 255, 0.5)' : '2px solid rgba(0, 0, 0, 0.3)',
+        background: isDark ? '#4a90e2' : '#f59e0b',
+        border: '3px solid #ffffff',
         borderRadius: '12px',
         padding: '0.5rem',
         cursor: 'pointer',
@@ -19,8 +19,8 @@ const ThemeToggle = ({ className = '' }) => {
         alignItems: 'center',
         justifyContent: 'center',
         fontSize: '1.2rem',
-        minWidth: '44px',
-        height: '44px',
+        minWidth: '60px',
+        height: '60px',
         position: 'relative',
         overflow: 'hidden',
         zIndex: 1000,
@@ -54,15 +54,15 @@ const ThemeToggle = ({ className = '' }) => {
               <circle cx="12" cy="12" r="4" stroke="#f59e0b" strokeWidth="2"/>
               <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" stroke="#f59e0b" strokeWidth="2"/>
             </svg>
-            <span style={{ fontSize: '16px', color: '#f59e0b', fontWeight: 'bold' }}>☀️</span>
+            <span style={{ fontSize: '24px', color: '#ffffff', fontWeight: 'bold' }}>☀️</span>
           </>
         ) : (
           // Moon icon for switching to dark mode
           <>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#4a90e2" strokeWidth="2" fill="#4a90e2" fillOpacity="0.1"/>
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#ffffff" strokeWidth="2" fill="#ffffff" fillOpacity="0.1"/>
             </svg>
-            <span style={{ fontSize: '16px', color: '#4a90e2', fontWeight: 'bold' }}>🌙</span>
+            <span style={{ fontSize: '24px', color: '#ffffff', fontWeight: 'bold' }}>🌙</span>
           </>
         )}
         
