@@ -1,6 +1,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ThemeProvider } from './contexts/ThemeContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
@@ -10,6 +11,7 @@ import InstagramCallback from './pages/InstagramCallback';
 import WorkflowBuilder from './pages/WorkflowBuilder';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import LeftSidebar from './components/LeftSidebar';
+import ThemeToggle from './components/ThemeToggle';
 // Initialize i18n
 import './i18n/i18n';
 import './i18n/rtl.css';
@@ -129,6 +131,7 @@ function Home() {
           </div>
           <div className="nav-user">
             <LanguageSwitcher className="mr-4" />
+            <ThemeToggle className="mr-3" />
             <div className="user-avatar">
               {(user.name || user.email).charAt(0).toUpperCase()}
             </div>
@@ -260,8 +263,9 @@ function Home() {
 
 function App() {
   return (
-    <Router>
-      <Routes>
+    <ThemeProvider>
+      <Router>
+        <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
@@ -288,8 +292,9 @@ function App() {
         <Route path="/whatsapp-test" element={<WhatsAppReceiverTest />} />
         <Route path="/instagram-comments" element={<SimpleInstagramWebhook />} />
         <Route path="/shop/:shopName" element={<PublicShop />} />
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }
 

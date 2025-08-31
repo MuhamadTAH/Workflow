@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api.js';
+import { useTheme } from '../contexts/ThemeContext';
+import ThemeToggle from '../components/ThemeToggle';
 
 const TelegramListener = () => {
+  const { theme, colors } = useTheme();
   const [botToken, setBotToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState('');
@@ -637,7 +640,7 @@ CONTACT & SOCIAL:
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '2rem 0' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: colors.primaryBg, padding: '2rem 0' }}>
       <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0' }}>
         {/* Fixed Toggle Buttons */}
         <button
@@ -688,12 +691,22 @@ CONTACT & SOCIAL:
           {isRightSidebarCollapsed ? '☰' : '✕'}
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', position: 'relative' }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between', 
+          marginBottom: '1.5rem', 
+          position: 'relative',
+          backgroundColor: colors.secondaryBg,
+          padding: '1rem 2rem',
+          borderBottom: `1px solid ${colors.border}`
+        }}>
           
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: colors.primaryText, margin: 0 }}>
             <i className="fab fa-telegram" style={{ color: '#0088cc', marginRight: '0.5rem' }}></i>
             Telegram Bot Listener
           </h1>
+          <ThemeToggle />
         </div>
         
         <div style={{ display: 'flex', gap: '0', alignItems: 'flex-start', position: 'relative' }}>
@@ -701,7 +714,7 @@ CONTACT & SOCIAL:
           {/* LEFT SIDEBAR - Sliding Configuration Panel */}
           <div style={{ 
             width: '400px',
-            backgroundColor: '#f8fafc', 
+            backgroundColor: colors.secondaryBg, 
             borderRadius: '0', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
             padding: '0',
@@ -709,7 +722,7 @@ CONTACT & SOCIAL:
             position: 'fixed',
             top: '0',
             left: '0',
-            borderRight: '1px solid #e2e8f0',
+            borderRight: `1px solid ${colors.border}`,
             overflow: 'hidden',
             transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
             transform: isSidebarCollapsed ? 'translateX(-420px)' : 'translateX(0)',
@@ -718,7 +731,7 @@ CONTACT & SOCIAL:
           }}>
               {/* Sidebar Header */}
               <div style={{ 
-                backgroundColor: '#3b82f6', 
+                backgroundColor: colors.brandBlue, 
                 color: 'white', 
                 padding: '1rem 1.5rem',
                 borderRadius: '0'
@@ -1612,9 +1625,9 @@ CONTACT & SOCIAL:
             gap: '0',
             transition: 'left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             padding: '2rem 1rem',
-            backgroundColor: '#fafafa',
-            borderTop: '1px solid #e2e8f0',
-            borderBottom: '1px solid #e2e8f0',
+            backgroundColor: colors.primaryBg,
+            borderTop: `1px solid ${colors.border}`,
+            borderBottom: `1px solid ${colors.border}`,
             zIndex: 999,
             overflowY: 'auto'
           }}>
