@@ -118,9 +118,20 @@ const SimpleInstagramWebhook = () => {
 
       if (response.ok && data.success) {
         console.log('✅ Reply sent successfully');
+        
+        // Add our sent message to the conversation immediately
+        const outgoingMessage = {
+          id: `sent_${Date.now()}`,
+          text: replyText.trim(),
+          sender: { id: 'me' },
+          recipient: selectedMessage.sender,
+          timestamp: new Date().toISOString(),
+          isOutgoing: true
+        };
+        
+        setMessages(prevMessages => [...prevMessages, outgoingMessage]);
         setReplyText('');
-        // Fetch messages to see if our reply appears
-        fetchMessages();
+        setSelectedMessage(null); // Deselect after sending
       } else {
         setError(data.error || 'Failed to send reply');
       }
@@ -398,86 +409,107 @@ const SimpleInstagramWebhook = () => {
                 No messages yet. Send a DM to your Instagram account to see it appear here!
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {messages.map((message, index) => (
-                  <div 
-                    key={message.id || index}
-                    onClick={() => setSelectedMessage(message)}
-                    style={{
-                      backgroundColor: selectedMessage?.id === message.id ? '#fef2f2' : 'white',
-                      border: selectedMessage?.id === message.id ? '2px solid #E4405F' : '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      padding: '1rem',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (selectedMessage?.id !== message.id) {
-                        e.target.style.backgroundColor = '#f9fafb';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (selectedMessage?.id !== message.id) {
-                        e.target.style.backgroundColor = 'white';
-                      }
-                    }}
-                  >
-                    {/* Message Header */}
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      marginBottom: '0.5rem',
-                      gap: '0.5rem'
-                    }}>
-                      <div style={{
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '50%',
-                        backgroundColor: '#E4405F',
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {messages.map((message, index) => {
+                  // Determine if message is from us (outgoing) or from user (incoming)
+                  const isOutgoing = message.isOutgoing || false; // We'll set this flag for sent messages
+                  
+                  return (
+                    <div 
+                      key={message.id || index}
+                      onClick={() => setSelectedMessage(message)}
+                      style={{
                         display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '0.875rem',
-                        color: 'white',
-                        fontWeight: 'bold'
+                        justifyContent: isOutgoing ? 'flex-end' : 'flex-start',
+                        width: '100%',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <div style={{
+                        maxWidth: '70%',
+                        minWidth: '120px',
+                        backgroundColor: isOutgoing ? '#E4405F' : 'white',
+                        color: isOutgoing ? 'white' : '#374151',
+                        borderRadius: isOutgoing ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                        padding: '0.75rem 1rem',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                        border: selectedMessage?.id === message.id ? `2px solid ${isOutgoing ? '#C13584' : '#E4405F'}` : 'none',
+                        transition: 'all 0.2s',
+                        position: 'relative'
                       }}>
-                        {message.sender?.id ? message.sender.id.substring(0,1).toUpperCase() : '👤'}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: '600', fontSize: '0.875rem', color: '#111827' }}>
-                          {message.sender?.id || 'Unknown User'}
+                        
+                        {/* Message Header (only for incoming messages) */}
+                        {!isOutgoing && (
+                          <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            marginBottom: '0.5rem',
+                            gap: '0.5rem'
+                          }}>
+                            <div style={{
+                              width: '20px',
+                              height: '20px',
+                              borderRadius: '50%',
+                              backgroundColor: '#E4405F',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '0.7rem',
+                              color: 'white',
+                              fontWeight: 'bold'
+                            }}>
+                              {message.sender?.id ? message.sender.id.substring(0,1).toUpperCase() : '👤'}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '600' }}>
+                              {message.sender?.id || 'User'}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Message Content */}
+                        <div style={{ 
+                          fontSize: '0.875rem',
+                          lineHeight: '1.4',
+                          wordWrap: 'break-word'
+                        }}>
+                          {message.text || (isOutgoing ? 'Message sent' : 'No text content')}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+
+                        {/* Timestamp */}
+                        <div style={{ 
+                          fontSize: '0.65rem', 
+                          color: isOutgoing ? 'rgba(255,255,255,0.7)' : '#9ca3af', 
+                          marginTop: '0.25rem',
+                          textAlign: isOutgoing ? 'right' : 'left'
+                        }}>
                           {formatTimestamp(message.timestamp)}
+                          {isOutgoing && ' ✓'}
                         </div>
+
+                        {/* Selection indicator */}
+                        {selectedMessage?.id === message.id && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '-8px',
+                            right: isOutgoing ? '20px' : 'auto',
+                            left: isOutgoing ? 'auto' : '20px',
+                            width: '16px',
+                            height: '16px',
+                            backgroundColor: '#E4405F',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.6rem',
+                            color: 'white'
+                          }}>
+                            ✓
+                          </div>
+                        )}
                       </div>
                     </div>
-
-                    {/* Message Content */}
-                    <div style={{ 
-                      padding: '0.5rem 0',
-                      fontSize: '0.875rem',
-                      color: '#374151',
-                      backgroundColor: '#f8fafc',
-                      borderRadius: '6px',
-                      padding: '0.75rem',
-                      fontStyle: message.text ? 'normal' : 'italic'
-                    }}>
-                      {message.text || 'No text content'}
-                    </div>
-
-                    {/* Message ID for debugging */}
-                    <div style={{ 
-                      fontSize: '0.65rem', 
-                      color: '#9ca3af', 
-                      marginTop: '0.5rem',
-                      fontFamily: 'monospace'
-                    }}>
-                      ID: {message.id}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -577,7 +609,7 @@ const SimpleInstagramWebhook = () => {
               fontSize: '0.875rem',
               color: '#0c4a6e'
             }}>
-              👆 Click on a message above to reply to it
+              💬 Click on any message bubble to reply to it
             </div>
           )}
 
