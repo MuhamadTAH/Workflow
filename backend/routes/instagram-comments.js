@@ -48,6 +48,15 @@ router.get('/webhooks/instagram/comments', (req, res) => {
   }
 });
 
+// Test endpoint to check if POST works
+router.post('/webhooks/instagram/test', (req, res) => {
+  logger.info('🧪 TEST POST RECEIVED!', {
+    body: JSON.stringify(req.body, null, 2),
+    headers: req.headers
+  });
+  res.json({ success: true, message: 'Test received!' });
+});
+
 // Instagram webhook data reception endpoint
 router.post('/webhooks/instagram/comments', (req, res) => {
   const body = req.body;
