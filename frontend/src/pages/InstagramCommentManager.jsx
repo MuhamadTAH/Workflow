@@ -15,6 +15,12 @@ const InstagramCommentManager = () => {
   const [error, setError] = useState('');
   const [webhookUrl, setWebhookUrl] = useState('');
   
+  // Comment Management State
+  const [comments, setComments] = useState([]);
+  const [selectedComment, setSelectedComment] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [isReplying, setIsReplying] = useState(false);
+  
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
@@ -31,6 +37,33 @@ const InstagramCommentManager = () => {
     
     checkBackendStatus();
   }, []);
+
+  // Poll for new comments when active
+  useEffect(() => {
+    let interval;
+    if (isActive) {
+      interval = setInterval(async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/instagram-comments/comments`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            setComments(data.comments || []);
+          }
+        } catch (error) {
+          console.error('Error fetching comments:', error);
+        }
+      }, 3000); // Poll every 3 seconds
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isActive]);
 
   const checkBackendStatus = async () => {
     try {
@@ -123,6 +156,46 @@ const InstagramCommentManager = () => {
   const copyWebhookUrl = () => {
     navigator.clipboard.writeText(webhookUrl);
     alert('Webhook URL copied to clipboard!');
+  };
+
+  const handleReplyToComment = async () => {
+    if (!selectedComment || !replyText.trim()) return;
+    
+    setIsReplying(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/instagram-comments/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          commentId: selectedComment.id,
+          replyText: replyText.trim()
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setReplyText('');
+        // Refresh comments to show the reply
+        setTimeout(() => {
+          // Poll will automatically refresh
+        }, 1000);
+      } else {
+        setError(data.error || 'Failed to reply to comment');
+      }
+    } catch (error) {
+      setError('Network error: ' + error.message);
+    } finally {
+      setIsReplying(false);
+    }
+  };
+
+  const formatTimestamp = (timestamp) => {
+    return new Date(timestamp).toLocaleString();
   };
 
   return (
@@ -503,27 +576,280 @@ const InstagramCommentManager = () => {
                 </div>
               )}
               
-              {/* Placeholder for Comment Interface */}
-              <div style={{ 
-                backgroundColor: 'white', 
-                borderRadius: '8px', 
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
-                padding: '2rem',
-                textAlign: 'center',
-                height: '500px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <div style={{ fontSize: '4rem', marginBottom: '1rem', opacity: '0.3' }}>💬</div>
-                <h2 style={{ color: '#6b7280', marginBottom: '1rem' }}>Comment Management Interface</h2>
-                <p style={{ color: '#9ca3af', fontSize: '0.875rem', maxWidth: '400px' }}>
-                  {isActive 
-                    ? "Comment monitoring is active. Comments will appear here when received from Instagram posts." 
-                    : "Configure Instagram API settings in the left panel to start monitoring comments."
-                  }
-                </p>
+              {/* Comment Management Interface */}
+              <div style={{ display: 'flex', gap: '1rem', height: '500px' }}>
+                
+                {/* Comments List Panel */}
+                <div style={{ 
+                  flex: '0 0 300px', 
+                  backgroundColor: '#f8fafc', 
+                  padding: '1rem', 
+                  borderRadius: '6px', 
+                  border: '1px solid #e2e8f0',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <h3 style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
+                      💬 Comments
+                      {isActive && (
+                        <span style={{ 
+                          marginLeft: '0.5rem', 
+                          fontSize: '0.75rem', 
+                          color: '#E4405F',
+                          backgroundColor: '#fef2f2',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px'
+                        }}>
+                          🔴 Live
+                        </span>
+                      )}
+                    </h3>
+                    <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                      {comments.length} comment{comments.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  <div style={{ 
+                    flex: 1,
+                    overflowY: 'auto', 
+                    backgroundColor: 'white', 
+                    borderRadius: '4px',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    {comments.length === 0 ? (
+                      <div style={{ 
+                        padding: '2rem', 
+                        textAlign: 'center', 
+                        color: '#9ca3af',
+                        fontSize: '0.875rem'
+                      }}>
+                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📷</div>
+                        <p>No comments yet. Comments will appear here when users comment on your Instagram posts</p>
+                      </div>
+                    ) : (
+                      <div style={{ padding: '0.5rem' }}>
+                        {comments.map((comment, index) => (
+                          <div
+                            key={comment.id || index}
+                            onClick={() => setSelectedComment(comment)}
+                            style={{
+                              padding: '0.75rem',
+                              marginBottom: '0.5rem',
+                              backgroundColor: selectedComment?.id === comment.id ? '#fef2f2' : '#f9fafb',
+                              borderRadius: '6px',
+                              border: selectedComment?.id === comment.id ? '2px solid #E4405F' : '1px solid #f3f4f6',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                backgroundColor: '#E4405F',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginRight: '0.75rem',
+                                fontSize: '1rem',
+                                color: 'white',
+                                fontWeight: 'bold'
+                              }}>
+                                {comment.from?.username ? comment.from.username[0].toUpperCase() : '👤'}
+                              </div>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: '500', fontSize: '0.875rem', color: '#111827' }}>
+                                  {comment.from?.username || comment.from?.id || 'Anonymous User'}
+                                </div>
+                                <div style={{ 
+                                  fontSize: '0.75rem', 
+                                  color: '#9ca3af',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}>
+                                  {comment.text || 'No text content'}
+                                </div>
+                                <div style={{ fontSize: '0.65rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                                  {formatTimestamp(comment.timestamp)}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Comment Details & Reply Panel */}
+                <div style={{ 
+                  flex: '1', 
+                  backgroundColor: '#f8fafc', 
+                  padding: '1rem', 
+                  borderRadius: '6px', 
+                  border: '1px solid #e2e8f0',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <h3 style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
+                      📱 Comment Details
+                      {selectedComment && (
+                        <span style={{ 
+                          marginLeft: '0.5rem', 
+                          fontSize: '0.75rem', 
+                          color: '#E4405F',
+                          backgroundColor: '#fef2f2',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px'
+                        }}>
+                          Selected
+                        </span>
+                      )}
+                    </h3>
+                  </div>
+
+                  {/* Comment Content Area */}
+                  <div style={{ 
+                    flex: 1,
+                    backgroundColor: 'white', 
+                    borderRadius: '4px 4px 0 0',
+                    border: '1px solid #e5e7eb',
+                    borderBottom: 'none'
+                  }}>
+                    {!selectedComment ? (
+                      <div style={{ 
+                        padding: '2rem', 
+                        textAlign: 'center', 
+                        color: '#9ca3af',
+                        fontSize: '0.875rem'
+                      }}>
+                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👈</div>
+                        <p>Select a comment to view details and reply</p>
+                      </div>
+                    ) : (
+                      <div style={{ padding: '1rem' }}>
+                        <div style={{ marginBottom: '1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <div style={{
+                              width: '50px',
+                              height: '50px',
+                              borderRadius: '50%',
+                              backgroundColor: '#E4405F',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginRight: '1rem',
+                              fontSize: '1.5rem',
+                              color: 'white',
+                              fontWeight: 'bold'
+                            }}>
+                              {selectedComment.from?.username ? selectedComment.from.username[0].toUpperCase() : '👤'}
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: '600', fontSize: '1rem', color: '#111827' }}>
+                                {selectedComment.from?.username || 'Anonymous User'}
+                              </div>
+                              <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                                {selectedComment.from?.id || 'No ID'}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div style={{
+                            backgroundColor: '#f9fafb',
+                            padding: '1rem',
+                            borderRadius: '8px',
+                            marginBottom: '1rem'
+                          }}>
+                            <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.4' }}>
+                              {selectedComment.text || 'No text content'}
+                            </p>
+                          </div>
+                          
+                          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                            <strong>Posted:</strong> {formatTimestamp(selectedComment.timestamp)}
+                          </div>
+                          {selectedComment.media_id && (
+                            <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                              <strong>Media ID:</strong> {selectedComment.media_id}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Reply Input Bar */}
+                  {selectedComment && (
+                    <div style={{ 
+                      backgroundColor: 'white', 
+                      border: '1px solid #e5e7eb',
+                      borderTop: 'none',
+                      borderRadius: '0 0 4px 4px',
+                      padding: '1rem',
+                      display: 'flex',
+                      gap: '0.75rem',
+                      alignItems: 'flex-end'
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <textarea
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder={`Reply to ${selectedComment.from?.username || 'this user'}...`}
+                          style={{
+                            width: '100%',
+                            minHeight: '40px',
+                            maxHeight: '120px',
+                            padding: '0.75rem',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '20px',
+                            fontSize: '0.875rem',
+                            resize: 'none',
+                            outline: 'none',
+                            fontFamily: 'inherit',
+                            lineHeight: '1.4'
+                          }}
+                          disabled={isReplying}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              if (replyText.trim() && !isReplying) {
+                                handleReplyToComment();
+                              }
+                            }
+                          }}
+                        />
+                      </div>
+                      <button
+                        onClick={handleReplyToComment}
+                        disabled={isReplying || !replyText.trim()}
+                        style={{
+                          backgroundColor: isReplying || !replyText.trim() ? '#9ca3af' : '#E4405F',
+                          color: 'white',
+                          padding: '0.75rem',
+                          border: 'none',
+                          borderRadius: '50%',
+                          fontSize: '1rem',
+                          cursor: isReplying || !replyText.trim() ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '40px',
+                          height: '40px',
+                          minWidth: '40px'
+                        }}
+                        title="Reply to comment"
+                      >
+                        {isReplying ? '⏳' : '📤'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
               </div>
             </div>
           </div>
@@ -561,17 +887,219 @@ const InstagramCommentManager = () => {
             {/* Right Sidebar Content */}
             <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
               
-              {/* Placeholder Content */}
-              <div style={{ 
-                backgroundColor: 'white', 
-                borderRadius: '8px', 
-                padding: '2rem', 
-                textAlign: 'center', 
-                color: '#6b7280',
-                fontSize: '0.875rem'
-              }}>
-                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📈</div>
-                <p>Analytics and comment statistics will appear here when the system is active.</p>
+              {/* Selected Comment Info Section */}
+              <div style={{ marginBottom: '2rem' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
+                  🎯 Selected Comment
+                </h3>
+                
+                {selectedComment ? (
+                  <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e7eb' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                      <div style={{
+                        width: '50px',
+                        height: '50px',
+                        borderRadius: '50%',
+                        backgroundColor: '#E4405F',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginRight: '1rem',
+                        fontSize: '1.5rem',
+                        color: 'white',
+                        fontWeight: 'bold'
+                      }}>
+                        {selectedComment.from?.username ? selectedComment.from.username[0].toUpperCase() : '👤'}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: '600', fontSize: '1rem', color: '#111827' }}>
+                          {selectedComment.from?.username || 'Anonymous User'}
+                        </div>
+                        <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                          Instagram User
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.875rem' }}>
+                      <div>
+                        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Comment ID</div>
+                        <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem', wordBreak: 'break-all' }}>
+                          {selectedComment.id || 'N/A'}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Media ID</div>
+                        <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem', wordBreak: 'break-all' }}>
+                          {selectedComment.media_id || 'N/A'}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Timestamp</div>
+                        <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem' }}>
+                          {formatTimestamp(selectedComment.timestamp)}
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Status</div>
+                        <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem' }}>
+                          New
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                      <div style={{ color: '#6b7280', marginBottom: '0.25rem', fontSize: '0.875rem' }}>Comment Text</div>
+                      <div style={{ 
+                        backgroundColor: '#f9fafb', 
+                        padding: '0.75rem', 
+                        borderRadius: '6px', 
+                        fontSize: '0.875rem',
+                        color: '#374151',
+                        fontStyle: selectedComment.text ? 'normal' : 'italic'
+                      }}>
+                        {selectedComment.text || 'No text content'}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ 
+                    backgroundColor: '#f9fafb', 
+                    padding: '2rem', 
+                    borderRadius: '8px', 
+                    textAlign: 'center', 
+                    color: '#6b7280',
+                    fontSize: '0.875rem'
+                  }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📱</div>
+                    <p>Select a comment from the list to view detailed information</p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Statistics Section */}
+              <div style={{ marginBottom: '2rem' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
+                  📊 Statistics
+                </h3>
+                
+                <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e7eb' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', fontSize: '0.875rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#6b7280' }}>Total Comments</span>
+                      <span style={{ fontWeight: '600', color: '#111827', backgroundColor: '#fef2f2', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                        {comments.length}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#6b7280' }}>New Comments</span>
+                      <span style={{ fontWeight: '600', color: '#111827', backgroundColor: '#dcfce7', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                        {comments.length}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#6b7280' }}>Instagram Status</span>
+                      <span style={{ 
+                        fontWeight: '600', 
+                        color: isActive ? '#15803d' : '#dc2626', 
+                        backgroundColor: isActive ? '#dcfce7' : '#fee2e2', 
+                        padding: '0.25rem 0.5rem', 
+                        borderRadius: '4px',
+                        fontSize: '0.75rem'
+                      }}>
+                        {isActive ? '🟢 Active' : '🔴 Inactive'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#6b7280' }}>Webhook Status</span>
+                      <span style={{ 
+                        fontWeight: '600', 
+                        color: isActive ? '#15803d' : '#dc2626', 
+                        backgroundColor: isActive ? '#dcfce7' : '#fee2e2', 
+                        padding: '0.25rem 0.5rem', 
+                        borderRadius: '4px',
+                        fontSize: '0.75rem'
+                      }}>
+                        {isActive ? '🟢 Connected' : '🔴 Disconnected'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Quick Actions Section */}
+              <div>
+                <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
+                  ⚡ Quick Actions
+                </h3>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <button
+                    onClick={() => setComments([])}
+                    disabled={comments.length === 0}
+                    style={{
+                      backgroundColor: comments.length === 0 ? '#9ca3af' : '#ef4444',
+                      color: 'white',
+                      padding: '0.75rem',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: comments.length === 0 ? 'not-allowed' : 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    🗑️ Clear All Comments
+                  </button>
+                  
+                  <button
+                    onClick={() => setSelectedComment(null)}
+                    disabled={!selectedComment}
+                    style={{
+                      backgroundColor: !selectedComment ? '#9ca3af' : '#6b7280',
+                      color: 'white',
+                      padding: '0.75rem',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: !selectedComment ? 'not-allowed' : 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    ❌ Clear Selection
+                  </button>
+                  
+                  <button
+                    onClick={() => window.location.reload()}
+                    style={{
+                      backgroundColor: '#E4405F',
+                      color: 'white',
+                      padding: '0.75rem',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    🔄 Refresh Page
+                  </button>
+                  
+                  <button
+                    onClick={() => window.open('https://business.instagram.com/', '_blank')}
+                    style={{
+                      backgroundColor: '#8B5CF6',
+                      color: 'white',
+                      padding: '0.75rem',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500'
+                    }}
+                  >
+                    🔗 Open Instagram Business
+                  </button>
+                </div>
               </div>
               
             </div>
