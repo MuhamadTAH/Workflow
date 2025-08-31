@@ -19,6 +19,7 @@ const TelegramListener = () => {
   
   // Configuration panel collapse states
   const [isBotConfigCollapsed, setIsBotConfigCollapsed] = useState(false);
+  const [isClaudeConfigCollapsed, setIsClaudeConfigCollapsed] = useState(false);
   
   // Claude API states
   const [claudeApiKey, setClaudeApiKey] = useState('');
@@ -868,12 +869,41 @@ CONTACT & SOCIAL:
                 </div>
 
                 {/* Claude AI Configuration Section */}
-                <div style={{ marginBottom: '2rem' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                    🤖 Claude AI Configuration
+                <div style={{ marginBottom: isClaudeConfigCollapsed ? '0' : '2rem' }}>
+                  <h3 
+                    onClick={() => setIsClaudeConfigCollapsed(!isClaudeConfigCollapsed)}
+                    style={{ 
+                      fontSize: '1rem', 
+                      fontWeight: '600', 
+                      color: '#1f2937', 
+                      marginBottom: '1rem', 
+                      borderBottom: '2px solid #e5e7eb', 
+                      paddingBottom: '0.5rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <span>🤖 Claude AI Configuration</span>
+                    <span style={{ 
+                      transform: isClaudeConfigCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                      fontSize: '0.8rem',
+                      color: '#6b7280'
+                    }}>
+                      ▼
+                    </span>
                   </h3>
 
-            {/* Claude AI Configuration Content */}
+                  {/* Collapsible Content */}
+                  <div style={{
+                    maxHeight: isClaudeConfigCollapsed ? '0' : '1000px',
+                    overflow: 'hidden',
+                    transition: 'max-height 0.3s ease-in-out',
+                    opacity: isClaudeConfigCollapsed ? 0 : 1
+                  }}>
 
               {/* Claude Connection Status */}
               <div style={{
@@ -1009,6 +1039,7 @@ CONTACT & SOCIAL:
                   Once connected, you can process messages with AI assistance and generate automated replies.
                 </p>
               </div>
+                  </div> {/* End Collapsible Content */}
                 </div>
 
                 {/* System Prompt Configuration Section */}
