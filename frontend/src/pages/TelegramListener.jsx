@@ -2076,12 +2076,43 @@ CONTACT & SOCIAL:
               </div>
               
               {/* Statistics Section */}
-              <div style={{ marginBottom: '2rem' }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                  📊 Statistics
+              <div style={{ marginBottom: isStatisticsCollapsed ? '0' : '2rem' }}>
+                <h3 
+                  onClick={() => setIsStatisticsCollapsed(!isStatisticsCollapsed)}
+                  style={{ 
+                    fontSize: '1rem', 
+                    fontWeight: '600', 
+                    color: '#1f2937', 
+                    marginBottom: '1rem', 
+                    borderBottom: '2px solid #e5e7eb', 
+                    paddingBottom: '0.5rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    userSelect: 'none'
+                  }}
+                >
+                  <span>📊 Statistics</span>
+                  <span style={{ 
+                    transform: isStatisticsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                    fontSize: '0.8rem',
+                    color: '#6b7280'
+                  }}>
+                    ▼
+                  </span>
                 </h3>
+
+                {/* Collapsible Content */}
+                <div style={{
+                  maxHeight: isStatisticsCollapsed ? '0' : '2000px',
+                  overflow: 'hidden',
+                  transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                  opacity: isStatisticsCollapsed ? 0 : 1
+                }}>
                 
-                <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e7eb' }}>
+                  <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e7eb' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', fontSize: '0.875rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ color: '#6b7280' }}>Total Users</span>
@@ -2122,16 +2153,49 @@ CONTACT & SOCIAL:
                       </span>
                     </div>
                   </div>
-                </div>
+                  </div>
+                
+                </div> {/* End Collapsible Content */}
               </div>
               
               {/* Quick Actions Section */}
-              <div>
-                <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                  ⚡ Quick Actions
+              <div style={{ marginBottom: isQuickActionsCollapsed ? '0' : '2rem' }}>
+                <h3 
+                  onClick={() => setIsQuickActionsCollapsed(!isQuickActionsCollapsed)}
+                  style={{ 
+                    fontSize: '1rem', 
+                    fontWeight: '600', 
+                    color: '#1f2937', 
+                    marginBottom: '1rem', 
+                    borderBottom: '2px solid #e5e7eb', 
+                    paddingBottom: '0.5rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    userSelect: 'none'
+                  }}
+                >
+                  <span>⚡ Quick Actions</span>
+                  <span style={{ 
+                    transform: isQuickActionsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                    fontSize: '0.8rem',
+                    color: '#6b7280'
+                  }}>
+                    ▼
+                  </span>
                 </h3>
+
+                {/* Collapsible Content */}
+                <div style={{
+                  maxHeight: isQuickActionsCollapsed ? '0' : '2000px',
+                  overflow: 'hidden',
+                  transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                  opacity: isQuickActionsCollapsed ? 0 : 1
+                }}>
                 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <button
                     onClick={() => setMessages([])}
                     disabled={messages.length === 0}
@@ -2181,7 +2245,9 @@ CONTACT & SOCIAL:
                   >
                     🔄 Refresh Page
                   </button>
-                </div>
+                  </div>
+                
+                </div> {/* End Collapsible Content */}
               </div>
               
             </div>
