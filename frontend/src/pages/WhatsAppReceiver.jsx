@@ -541,13 +541,13 @@ const WhatsAppReceiver = () => {
           </h1>
         </div>
         
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', position: 'relative' }}>
+        <div style={{ display: 'flex', gap: '0', alignItems: 'flex-start', position: 'relative' }}>
           
           {/* LEFT SIDEBAR - Configuration Panel */}
           <div style={{ 
             width: '400px',
             backgroundColor: '#f8fafc', 
-            borderRadius: '8px 8px 0 0', 
+            borderRadius: '0', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
             padding: '0',
             height: '100vh',
@@ -566,7 +566,7 @@ const WhatsAppReceiver = () => {
                 backgroundColor: '#25D366', 
                 color: 'white', 
                 padding: '1rem 1.5rem',
-                borderRadius: '8px 8px 0 0'
+                borderRadius: '0'
               }}>
                 <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
                   ⚙️ WhatsApp Configuration
@@ -1140,14 +1140,21 @@ const WhatsAppReceiver = () => {
           
           {/* MIDDLE COLUMN - Chat Interface */}
           <div style={{ 
-            flex: '1',
+            position: 'fixed',
+            top: '0',
+            left: isSidebarCollapsed ? '0' : '400px',
+            right: isRightSidebarCollapsed ? '0' : '300px',
+            height: '100vh',
             display: 'flex', 
             flexDirection: 'column', 
             gap: '1.5rem',
-            minWidth: '500px',
-            marginLeft: isSidebarCollapsed ? '0' : '400px',
-            marginRight: isRightSidebarCollapsed ? '0' : '300px',
-            transition: 'margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), margin-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+            transition: 'left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            padding: '2rem 1rem',
+            backgroundColor: '#fafafa',
+            borderTop: '1px solid #e2e8f0',
+            borderBottom: '1px solid #e2e8f0',
+            zIndex: 999,
+            overflowY: 'auto'
           }}>
 
             {/* WhatsApp Status Warning */}
@@ -1169,15 +1176,14 @@ const WhatsAppReceiver = () => {
               )}
               
               {/* Two Panel Layout */}
-              <div style={{ display: 'flex', gap: '1rem', height: '500px' }}>
+              <div style={{ display: 'flex', gap: '0', height: '500px', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
                 
                 {/* Conversations Panel */}
                 <div style={{ 
                   flex: '0 0 300px', 
                   backgroundColor: '#f8fafc', 
                   padding: '1rem', 
-                  borderRadius: '6px', 
-                  border: '1px solid #e2e8f0',
+                  borderRight: '1px solid #e2e8f0',
                   display: 'flex',
                   flexDirection: 'column'
                 }}>
@@ -1280,9 +1286,7 @@ const WhatsAppReceiver = () => {
                 <div style={{ 
                   flex: '1', 
                   backgroundColor: '#f8fafc', 
-                  padding: '1rem', 
-                  borderRadius: '6px', 
-                  border: '1px solid #e2e8f0',
+                  padding: '1rem',
                   display: 'flex',
                   flexDirection: 'column'
                 }}>
@@ -1453,7 +1457,7 @@ const WhatsAppReceiver = () => {
           <div style={{ 
             width: '300px',
             backgroundColor: '#f8fafc', 
-            borderRadius: '8px 0 0 8px', 
+            borderRadius: '0', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
             padding: '0',
             height: '100vh',
@@ -1472,7 +1476,7 @@ const WhatsAppReceiver = () => {
               backgroundColor: '#10b981', 
               color: 'white', 
               padding: '1rem 1.5rem',
-              borderRadius: '8px 8px 0 0'
+              borderRadius: '0'
             }}>
               <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
                 📱 Contact Information
