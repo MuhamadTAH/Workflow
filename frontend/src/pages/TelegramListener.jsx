@@ -649,7 +649,7 @@ CONTACT & SOCIAL:
             position: 'fixed',
             top: '20px',
             left: isSidebarCollapsed ? '20px' : '400px',
-            backgroundColor: '#3b82f6',
+            backgroundColor: colors.brandBlue,
             color: 'white',
             border: 'none',
             borderRadius: '8px',
@@ -661,8 +661,8 @@ CONTACT & SOCIAL:
             transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             zIndex: 1001
           }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+          onMouseEnter={(e) => e.target.style.backgroundColor = colors.brandBlueDark}
+          onMouseLeave={(e) => e.target.style.backgroundColor = colors.brandBlue}
         >
           {isSidebarCollapsed ? '☰' : '✕'}
         </button>
@@ -673,7 +673,7 @@ CONTACT & SOCIAL:
             position: 'fixed',
             top: '20px',
             right: isRightSidebarCollapsed ? '20px' : '300px',
-            backgroundColor: '#10b981',
+            backgroundColor: colors.success,
             color: 'white',
             border: 'none',
             borderRadius: '8px',
@@ -685,8 +685,8 @@ CONTACT & SOCIAL:
             transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             zIndex: 1001
           }}
-          onMouseEnter={(e) => e.target.style.backgroundColor = '#059669'}
-          onMouseLeave={(e) => e.target.style.backgroundColor = '#10b981'}
+          onMouseEnter={(e) => e.target.style.backgroundColor = colors.brandBlueDark}
+          onMouseLeave={(e) => e.target.style.backgroundColor = colors.success}
         >
           {isRightSidebarCollapsed ? '☰' : '✕'}
         </button>
@@ -751,9 +751,9 @@ CONTACT & SOCIAL:
                     style={{ 
                       fontSize: '1rem', 
                       fontWeight: '600', 
-                      color: '#1f2937', 
+                      color: colors.primaryText, 
                       marginBottom: '1rem', 
-                      borderBottom: '2px solid #e5e7eb', 
+                      borderBottom: `2px solid ${colors.border}`, 
                       paddingBottom: '0.5rem',
                       cursor: 'pointer',
                       display: 'flex',
@@ -767,7 +767,7 @@ CONTACT & SOCIAL:
                       transform: isBotConfigCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
                       transition: 'transform 0.2s ease',
                       fontSize: '0.8rem',
-                      color: '#6b7280'
+                      color: colors.mutedText
                     }}>
                       ▼
                     </span>
@@ -781,7 +781,7 @@ CONTACT & SOCIAL:
                     opacity: isBotConfigCollapsed ? 0 : 1
                   }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: colors.secondaryText, marginBottom: '0.5rem' }}>
                 Bot Token
               </label>
               <input
@@ -792,7 +792,7 @@ CONTACT & SOCIAL:
                 style={{ 
                   width: '100%', 
                   padding: '0.75rem', 
-                  border: '1px solid #d1d5db', 
+                  border: `1px solid ${colors.border}`, 
                   borderRadius: '6px', 
                   fontSize: '1rem',
                   outline: 'none',
@@ -800,7 +800,7 @@ CONTACT & SOCIAL:
                 }}
                 disabled={isLoading}
               />
-              <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', color: '#6b7280' }}>
+              <p style={{ marginTop: '0.25rem', fontSize: '0.875rem', color: colors.mutedText }}>
                 Get your bot token from @BotFather on Telegram
               </p>
             </div>
@@ -812,7 +812,7 @@ CONTACT & SOCIAL:
                 disabled={isLoading || !botToken.trim()}
                 style={{ 
                   flex: '1',
-                  backgroundColor: isLoading || !botToken.trim() ? '#9ca3af' : '#2563eb', 
+                  backgroundColor: isLoading || !botToken.trim() ? colors.mutedText : colors.brandBlue, 
                   color: 'white', 
                   padding: '0.75rem 1rem', 
                   border: 'none',
@@ -829,7 +829,7 @@ CONTACT & SOCIAL:
                 disabled={isLoading || !botToken.trim()}
                 style={{ 
                   flex: '1',
-                  backgroundColor: isLoading || !botToken.trim() ? '#9ca3af' : '#dc2626', 
+                  backgroundColor: isLoading || !botToken.trim() ? colors.mutedText : colors.error, 
                   color: 'white', 
                   padding: '0.75rem 1rem', 
                   border: 'none',
@@ -847,8 +847,8 @@ CONTACT & SOCIAL:
               <div style={{ 
                 padding: '1rem', 
                 borderRadius: '6px', 
-                backgroundColor: status.includes('✅') ? '#f0fdf4' : status.includes('❌') ? '#fef2f2' : '#eff6ff',
-                color: status.includes('✅') ? '#15803d' : status.includes('❌') ? '#dc2626' : '#1d4ed8'
+                backgroundColor: status.includes('✅') ? 'rgba(16, 185, 129, 0.1)' : status.includes('❌') ? 'rgba(244, 67, 54, 0.1)' : colors.overlay,
+                color: status.includes('✅') ? colors.success : status.includes('❌') ? colors.error : colors.brandBlue
               }}>
                 {status}
               </div>
@@ -856,15 +856,15 @@ CONTACT & SOCIAL:
 
             {/* Webhook URL Display */}
             {webhookUrl && (
-              <div style={{ backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '6px' }}>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+              <div style={{ backgroundColor: colors.cardBg, padding: '1rem', borderRadius: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: colors.secondaryText, marginBottom: '0.5rem' }}>
                   Webhook URL
                 </label>
                 <code style={{ 
                   display: 'block', 
                   width: '100%', 
                   padding: '0.5rem', 
-                  backgroundColor: '#f3f4f6', 
+                  backgroundColor: colors.inputBg, 
                   borderRadius: '4px', 
                   fontSize: '0.875rem', 
                   wordBreak: 'break-all',
@@ -876,9 +876,9 @@ CONTACT & SOCIAL:
             )}
 
             {/* Instructions */}
-            <div style={{ backgroundColor: '#eff6ff', padding: '1rem', borderRadius: '6px' }}>
-              <h3 style={{ fontWeight: '500', color: '#1e3a8a', marginBottom: '0.5rem' }}>📋 Instructions:</h3>
-              <ol style={{ paddingLeft: '1.5rem', fontSize: '0.875rem', color: '#1e40af', lineHeight: '1.5' }}>
+            <div style={{ backgroundColor: colors.overlay, padding: '1rem', borderRadius: '6px' }}>
+              <h3 style={{ fontWeight: '500', color: colors.brandBlue, marginBottom: '0.5rem' }}>📋 Instructions:</h3>
+              <ol style={{ paddingLeft: '1.5rem', fontSize: '0.875rem', color: colors.brandBlueDark, lineHeight: '1.5' }}>
                 <li>Get a bot token from @BotFather on Telegram</li>
                 <li>Paste the token above and click "Setup Webhook"</li>
                 <li>Send messages to your bot - they'll appear in the conversations panel below</li>
@@ -895,9 +895,9 @@ CONTACT & SOCIAL:
                     style={{ 
                       fontSize: '1rem', 
                       fontWeight: '600', 
-                      color: '#1f2937', 
+                      color: colors.primaryText, 
                       marginBottom: '1rem', 
-                      borderBottom: '2px solid #e5e7eb', 
+                      borderBottom: `2px solid ${colors.border}`, 
                       paddingBottom: '0.5rem',
                       cursor: 'pointer',
                       display: 'flex',
@@ -911,7 +911,7 @@ CONTACT & SOCIAL:
                       transform: isClaudeConfigCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
                       transition: 'transform 0.2s ease',
                       fontSize: '0.8rem',
-                      color: '#6b7280'
+                      color: colors.mutedText
                     }}>
                       ▼
                     </span>
@@ -930,8 +930,8 @@ CONTACT & SOCIAL:
                       <div style={{
                         padding: '1rem',
                 borderRadius: '8px',
-                backgroundColor: claudeConnectionStatus === 'connected' ? '#f0fdf4' : '#fef2f2',
-                border: `1px solid ${claudeConnectionStatus === 'connected' ? '#bbf7d0' : '#fecaca'}`,
+                backgroundColor: claudeConnectionStatus === 'connected' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 67, 54, 0.1)',
+                border: `1px solid ${claudeConnectionStatus === 'connected' ? colors.success : colors.error}`,
                 marginBottom: '1rem'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -939,12 +939,12 @@ CONTACT & SOCIAL:
                     width: '12px',
                     height: '12px',
                     borderRadius: '50%',
-                    backgroundColor: claudeConnectionStatus === 'connected' ? '#10b981' : '#ef4444',
+                    backgroundColor: claudeConnectionStatus === 'connected' ? colors.success : colors.error,
                     marginRight: '0.75rem'
                   }}></div>
                   <span style={{
                     fontWeight: '500',
-                    color: claudeConnectionStatus === 'connected' ? '#065f46' : '#991b1b'
+                    color: claudeConnectionStatus === 'connected' ? 'white' : 'white'
                   }}>
                     {claudeConnectionStatus === 'connected' ? 'Connected to Claude API' : 'Not Connected'}
                   </span>
@@ -958,7 +958,7 @@ CONTACT & SOCIAL:
                     display: 'block',
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: '#374151',
+                    color: colors.secondaryText,
                     marginBottom: '0.5rem'
                   }}>
                     Claude API Key
@@ -971,7 +971,7 @@ CONTACT & SOCIAL:
                     style={{
                       width: '100%',
                       padding: '0.75rem',
-                      border: '1px solid #d1d5db',
+                      border: `1px solid ${colors.border}`,
                       borderRadius: '6px',
                       fontSize: '1rem',
                       outline: 'none',
@@ -984,8 +984,8 @@ CONTACT & SOCIAL:
                       }
                     }}
                   />
-                  <p style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: '#6b7280' }}>
-                    Get your API key from <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6' }}>Anthropic Console</a>
+                  <p style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: colors.mutedText }}>
+                    Get your API key from <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer" style={{ color: colors.brandBlue }}>Anthropic Console</a>
                   </p>
                 </div>
               )}
@@ -998,7 +998,7 @@ CONTACT & SOCIAL:
                     disabled={isClaudeLoading || !claudeApiKey.trim()}
                     style={{
                       flex: '1',
-                      backgroundColor: isClaudeLoading || !claudeApiKey.trim() ? '#9ca3af' : '#3b82f6',
+                      backgroundColor: isClaudeLoading || !claudeApiKey.trim() ? colors.mutedText : colors.brandBlue,
                       color: 'white',
                       padding: '0.75rem 1rem',
                       border: 'none',
@@ -1016,7 +1016,7 @@ CONTACT & SOCIAL:
                     disabled={isClaudeLoading}
                     style={{
                       flex: '1',
-                      backgroundColor: isClaudeLoading ? '#9ca3af' : '#ef4444',
+                      backgroundColor: isClaudeLoading ? colors.mutedText : colors.error,
                       color: 'white',
                       padding: '0.75rem 1rem',
                       border: 'none',
@@ -1036,8 +1036,8 @@ CONTACT & SOCIAL:
                 <div style={{
                   padding: '1rem',
                   borderRadius: '6px',
-                  backgroundColor: claudeStatus.includes('✅') ? '#f0fdf4' : claudeStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
-                  color: claudeStatus.includes('✅') ? '#15803d' : claudeStatus.includes('❌') ? '#dc2626' : '#1d4ed8',
+                  backgroundColor: claudeStatus.includes('✅') ? 'rgba(16, 185, 129, 0.1)' : claudeStatus.includes('❌') ? 'rgba(244, 67, 54, 0.1)' : colors.overlay,
+                  color: claudeStatus.includes('✅') ? colors.success : claudeStatus.includes('❌') ? colors.error : colors.brandBlue,
                   fontSize: '0.875rem',
                   marginBottom: '1rem'
                 }}>
@@ -1047,15 +1047,15 @@ CONTACT & SOCIAL:
 
               {/* Claude Instructions */}
               <div style={{
-                backgroundColor: '#f8fafc',
+                backgroundColor: colors.cardBg,
                 padding: '1rem',
                 borderRadius: '6px',
                 fontSize: '0.875rem'
               }}>
-                <h4 style={{ fontWeight: '500', color: '#1e3a8a', marginBottom: '0.5rem', margin: 0 }}>
+                <h4 style={{ fontWeight: '500', color: colors.brandBlue, marginBottom: '0.5rem', margin: 0 }}>
                   🔧 Claude AI Integration:
                 </h4>
-                <p style={{ color: '#1e40af', lineHeight: '1.5', margin: '0.5rem 0 0 0' }}>
+                <p style={{ color: colors.brandBlueDark, lineHeight: '1.5', margin: '0.5rem 0 0 0' }}>
                   Connect Claude AI to enable intelligent auto-responses to your Telegram messages. 
                   Once connected, you can process messages with AI assistance and generate automated replies.
                 </p>
@@ -1071,9 +1071,9 @@ CONTACT & SOCIAL:
                     style={{ 
                       fontSize: '1rem', 
                       fontWeight: '600', 
-                      color: '#1f2937', 
+                      color: colors.primaryText, 
                       marginBottom: '1rem', 
-                      borderBottom: '2px solid #e5e7eb', 
+                      borderBottom: `2px solid ${colors.border}`, 
                       paddingBottom: '0.5rem',
                       cursor: 'pointer',
                       display: 'flex',
@@ -1087,7 +1087,7 @@ CONTACT & SOCIAL:
                       transform: isSystemPromptCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
                       transition: 'transform 0.2s ease',
                       fontSize: '0.8rem',
-                      color: '#6b7280'
+                      color: colors.mutedText
                     }}>
                       ▼
                     </span>
@@ -1106,13 +1106,13 @@ CONTACT & SOCIAL:
                       <div style={{ opacity: claudeConnectionStatus === 'connected' ? 1 : 0.6 }}>
               {claudeConnectionStatus !== 'connected' && (
                 <div style={{
-                  backgroundColor: '#fef2f2',
+                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
                   padding: '0.75rem',
                   borderRadius: '6px',
                   marginBottom: '1rem',
-                  border: '1px solid #fecaca'
+                  border: `1px solid ${colors.error}`
                 }}>
-                  <p style={{ color: '#991b1b', fontSize: '0.875rem', margin: 0 }}>
+                  <p style={{ color: colors.error, fontSize: '0.875rem', margin: 0 }}>
                     ⚠️ Connect to Claude API first to configure system prompt
                   </p>
                 </div>
@@ -1120,13 +1120,13 @@ CONTACT & SOCIAL:
 
                 {/* System Prompt Description */}
                 <div style={{
-                  backgroundColor: '#eff6ff',
+                  backgroundColor: colors.overlay,
                   padding: '1rem',
                   borderRadius: '6px',
                   marginBottom: '1rem',
                   fontSize: '0.875rem'
                 }}>
-                  <p style={{ color: '#1e40af', lineHeight: '1.5', margin: 0 }}>
+                  <p style={{ color: colors.brandBlueDark, lineHeight: '1.5', margin: 0 }}>
                     <strong>🎯 System Prompt:</strong> Define how Claude should behave and respond to users. 
                     This sets the personality and behavior for all AI responses.
                   </p>
@@ -1138,7 +1138,7 @@ CONTACT & SOCIAL:
                     display: 'block',
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: '#374151',
+                    color: colors.secondaryText,
                     marginBottom: '0.5rem'
                   }}>
                     System Prompt
@@ -1151,7 +1151,7 @@ CONTACT & SOCIAL:
                     style={{
                       width: '100%',
                       padding: '0.75rem',
-                      border: '1px solid #d1d5db',
+                      border: `1px solid ${colors.border}`,
                       borderRadius: '6px',
                       fontSize: '0.875rem',
                       outline: 'none',
@@ -1164,7 +1164,7 @@ CONTACT & SOCIAL:
                     }}
                     disabled={isSystemPromptLoading}
                   />
-                  <p style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: '#6b7280' }}>
+                  <p style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: colors.mutedText }}>
                     Character count: {systemPrompt.length}/2000
                   </p>
                 </div>
@@ -1176,7 +1176,7 @@ CONTACT & SOCIAL:
                     disabled={isSystemPromptLoading || !systemPrompt.trim() || systemPrompt.length > 2000}
                     style={{
                       flex: '1',
-                      backgroundColor: isSystemPromptLoading || !systemPrompt.trim() || systemPrompt.length > 2000 ? '#9ca3af' : '#10b981',
+                      backgroundColor: isSystemPromptLoading || !systemPrompt.trim() || systemPrompt.length > 2000 ? colors.mutedText : colors.success,
                       color: 'white',
                       padding: '0.75rem 1rem',
                       border: 'none',
@@ -1194,7 +1194,7 @@ CONTACT & SOCIAL:
                     disabled={isSystemPromptLoading}
                     style={{
                       flex: '0 0 auto',
-                      backgroundColor: isSystemPromptLoading ? '#9ca3af' : '#6b7280',
+                      backgroundColor: isSystemPromptLoading ? colors.mutedText : colors.mutedText,
                       color: 'white',
                       padding: '0.75rem 1rem',
                       border: 'none',
@@ -1213,8 +1213,8 @@ CONTACT & SOCIAL:
                   <div style={{
                     padding: '1rem',
                     borderRadius: '6px',
-                    backgroundColor: systemPromptStatus.includes('✅') ? '#f0fdf4' : systemPromptStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
-                    color: systemPromptStatus.includes('✅') ? '#15803d' : systemPromptStatus.includes('❌') ? '#dc2626' : '#1d4ed8',
+                    backgroundColor: systemPromptStatus.includes('✅') ? 'rgba(16, 185, 129, 0.1)' : systemPromptStatus.includes('❌') ? 'rgba(244, 67, 54, 0.1)' : colors.overlay,
+                    color: systemPromptStatus.includes('✅') ? colors.success : systemPromptStatus.includes('❌') ? colors.error : colors.brandBlue,
                     fontSize: '0.875rem',
                     marginBottom: '1rem'
                   }}>
@@ -1224,15 +1224,15 @@ CONTACT & SOCIAL:
 
                 {/* Example System Prompts */}
                 <div style={{
-                  backgroundColor: '#f8fafc',
+                  backgroundColor: colors.cardBg,
                   padding: '1rem',
                   borderRadius: '6px',
                   fontSize: '0.875rem'
                 }}>
-                  <h4 style={{ fontWeight: '500', color: '#1e3a8a', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>
+                  <h4 style={{ fontWeight: '500', color: colors.brandBlue, marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>
                     💡 Example System Prompts:
                   </h4>
-                  <div style={{ color: '#1e40af', lineHeight: '1.5' }}>
+                  <div style={{ color: colors.brandBlueDark, lineHeight: '1.5' }}>
                     <div style={{ marginBottom: '0.5rem', cursor: 'pointer', padding: '0.25rem', borderRadius: '3px' }} 
                          onClick={() => setSystemPrompt('You are a professional customer service assistant. Be helpful, polite, and always try to solve the customer\'s problem. Ask clarifying questions when needed.')}>
                       <strong>📞 Customer Service:</strong> "You are a professional customer service assistant..."
@@ -1250,7 +1250,7 @@ CONTACT & SOCIAL:
                       <strong>🔧 Tech Support:</strong> "You are a technical support specialist..."
                     </div>
                   </div>
-                  <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
+                  <p style={{ fontSize: '0.75rem', color: colors.mutedText, marginTop: '0.5rem', margin: '0.5rem 0 0 0' }}>
                     💡 Click on any example to use it as your system prompt
                   </p>
                 </div>
@@ -1266,9 +1266,9 @@ CONTACT & SOCIAL:
                     style={{ 
                       fontSize: '1rem', 
                       fontWeight: '600', 
-                      color: '#1f2937', 
+                      color: colors.primaryText, 
                       marginBottom: '1rem', 
-                      borderBottom: '2px solid #e5e7eb', 
+                      borderBottom: `2px solid ${colors.border}`, 
                       paddingBottom: '0.5rem',
                       cursor: 'pointer',
                       display: 'flex',
@@ -1282,7 +1282,7 @@ CONTACT & SOCIAL:
                       transform: isPdfKnowledgeCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
                       transition: 'transform 0.2s ease',
                       fontSize: '0.8rem',
-                      color: '#6b7280'
+                      color: colors.mutedText
                     }}>
                       ▼
                     </span>
@@ -1301,13 +1301,13 @@ CONTACT & SOCIAL:
                       <div style={{ opacity: claudeConnectionStatus === 'connected' ? 1 : 0.6 }}>
               {claudeConnectionStatus !== 'connected' && (
                 <div style={{
-                  backgroundColor: '#fef2f2',
+                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
                   padding: '0.75rem',
                   borderRadius: '6px',
                   marginBottom: '1rem',
-                  border: '1px solid #fecaca'
+                  border: `1px solid ${colors.error}`
                 }}>
-                  <p style={{ color: '#991b1b', fontSize: '0.875rem', margin: 0 }}>
+                  <p style={{ color: colors.error, fontSize: '0.875rem', margin: 0 }}>
                     ⚠️ Connect to Claude API first to upload knowledge base
                   </p>
                 </div>
@@ -1315,14 +1315,14 @@ CONTACT & SOCIAL:
 
                 {/* Knowledge Base Description */}
                 <div style={{
-                  backgroundColor: '#fef3c7',
+                  backgroundColor: 'rgba(245, 158, 11, 0.1)',
                   padding: '1rem',
                   borderRadius: '6px',
                   marginBottom: '1rem',
                   fontSize: '0.875rem',
-                  border: '1px solid #fbbf24'
+                  border: `1px solid ${colors.warning}`
                 }}>
-                  <p style={{ color: '#92400e', lineHeight: '1.5', margin: 0 }}>
+                  <p style={{ color: colors.warning, lineHeight: '1.5', margin: 0 }}>
                     <strong>📚 Knowledge Base:</strong> Upload a PDF with your business information, services, location details, etc. 
                     Claude will use this information to answer specific questions about your business accurately.
                   </p>
@@ -1331,24 +1331,24 @@ CONTACT & SOCIAL:
                 {/* Current Knowledge Base Status */}
                 {hasKnowledgeBase && knowledgeBaseInfo && (
                   <div style={{
-                    backgroundColor: '#f0fdf4',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
                     padding: '1rem',
                     borderRadius: '6px',
                     marginBottom: '1rem',
-                    border: '1px solid #bbf7d0'
+                    border: `1px solid ${colors.success}`
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div>
-                        <h4 style={{ color: '#15803d', margin: 0, fontSize: '0.875rem', fontWeight: '600' }}>
+                        <h4 style={{ color: colors.success, margin: 0, fontSize: '0.875rem', fontWeight: '600' }}>
                           ✅ Active Knowledge Base
                         </h4>
-                        <p style={{ color: '#166534', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+                        <p style={{ color: colors.success, fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
                           📄 {knowledgeBaseInfo.filename}
                         </p>
-                        <p style={{ color: '#166534', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+                        <p style={{ color: colors.success, fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
                           📊 {knowledgeBaseInfo.pageCount} pages • {knowledgeBaseInfo.textLength} characters
                         </p>
-                        <p style={{ color: '#166534', fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
+                        <p style={{ color: colors.success, fontSize: '0.75rem', margin: '0.25rem 0 0 0' }}>
                           🕐 Uploaded: {new Date(knowledgeBaseInfo.uploadedAt).toLocaleDateString()}
                         </p>
                       </div>
@@ -1356,7 +1356,7 @@ CONTACT & SOCIAL:
                         onClick={handleDeleteKnowledge}
                         disabled={isUploading}
                         style={{
-                          backgroundColor: isUploading ? '#9ca3af' : '#ef4444',
+                          backgroundColor: isUploading ? colors.mutedText : colors.error,
                           color: 'white',
                           padding: '0.5rem 0.75rem',
                           border: 'none',
@@ -1377,7 +1377,7 @@ CONTACT & SOCIAL:
                     display: 'block',
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    color: '#374151',
+                    color: colors.secondaryText,
                     marginBottom: '0.5rem'
                   }}>
                     {hasKnowledgeBase ? 'Replace Knowledge Base' : 'Upload PDF Knowledge Base'}
@@ -1394,14 +1394,14 @@ CONTACT & SOCIAL:
                         style={{
                           width: '100%',
                           padding: '0.75rem',
-                          border: '2px dashed #d1d5db',
+                          border: `2px dashed ${colors.border}`,
                           borderRadius: '6px',
-                          backgroundColor: '#f9fafb',
+                          backgroundColor: colors.cardBg,
                           cursor: isUploading ? 'not-allowed' : 'pointer',
                           opacity: isUploading ? '0.5' : '1'
                         }}
                       />
-                      <p style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: '#6b7280' }}>
+                      <p style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: colors.mutedText }}>
                         PDF files only • Max 10MB • Will be processed and text extracted
                       </p>
                     </div>
@@ -1410,7 +1410,7 @@ CONTACT & SOCIAL:
                       onClick={handleUploadPDF}
                       disabled={isUploading || !selectedFile}
                       style={{
-                        backgroundColor: isUploading || !selectedFile ? '#9ca3af' : '#2563eb',
+                        backgroundColor: isUploading || !selectedFile ? colors.mutedText : colors.brandBlue,
                         color: 'white',
                         padding: '0.75rem 1rem',
                         border: 'none',
@@ -1431,8 +1431,8 @@ CONTACT & SOCIAL:
                   <div style={{
                     padding: '1rem',
                     borderRadius: '6px',
-                    backgroundColor: uploadStatus.includes('✅') ? '#f0fdf4' : uploadStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
-                    color: uploadStatus.includes('✅') ? '#15803d' : uploadStatus.includes('❌') ? '#dc2626' : '#1d4ed8',
+                    backgroundColor: uploadStatus.includes('✅') ? 'rgba(16, 185, 129, 0.1)' : uploadStatus.includes('❌') ? 'rgba(244, 67, 54, 0.1)' : colors.overlay,
+                    color: uploadStatus.includes('✅') ? colors.success : uploadStatus.includes('❌') ? colors.error : colors.brandBlue,
                     fontSize: '0.875rem',
                     marginBottom: '1rem'
                   }}>
@@ -1442,20 +1442,20 @@ CONTACT & SOCIAL:
 
                 {/* Manual Input Alternative */}
                 <div style={{
-                  backgroundColor: '#fff7ed',
+                  backgroundColor: 'rgba(245, 158, 11, 0.05)',
                   padding: '1rem',
                   borderRadius: '6px',
                   marginBottom: '1rem',
-                  border: '1px solid #fed7aa'
+                  border: `1px solid ${colors.warning}`
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <h4 style={{ color: '#c2410c', margin: 0, fontSize: '0.875rem', fontWeight: '600' }}>
+                    <h4 style={{ color: colors.warning, margin: 0, fontSize: '0.875rem', fontWeight: '600' }}>
                       ✏️ Alternative: Manual Input
                     </h4>
                     <button
                       onClick={() => setShowManualInput(!showManualInput)}
                       style={{
-                        backgroundColor: '#ea580c',
+                        backgroundColor: colors.warning,
                         color: 'white',
                         padding: '0.25rem 0.5rem',
                         border: 'none',
@@ -1467,7 +1467,7 @@ CONTACT & SOCIAL:
                       {showManualInput ? '📁 Hide Manual Input' : '✏️ Enter Business Info Manually'}
                     </button>
                   </div>
-                  <p style={{ color: '#c2410c', fontSize: '0.75rem', margin: 0 }}>
+                  <p style={{ color: colors.warning, fontSize: '0.75rem', margin: 0 }}>
                     If PDF upload fails or you prefer to enter information directly, use manual input below.
                   </p>
                 </div>
@@ -1475,13 +1475,13 @@ CONTACT & SOCIAL:
                 {/* Manual Input Section */}
                 {showManualInput && (
                   <div style={{
-                    backgroundColor: '#fefefe',
+                    backgroundColor: colors.cardBg,
                     padding: '1.5rem',
                     borderRadius: '6px',
                     marginBottom: '1rem',
-                    border: '2px solid #e5e7eb'
+                    border: `2px solid ${colors.border}`
                   }}>
-                    <h4 style={{ color: '#1f2937', margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: '600' }}>
+                    <h4 style={{ color: colors.primaryText, margin: '0 0 1rem 0', fontSize: '1rem', fontWeight: '600' }}>
                       ✏️ Manual Business Information Entry
                     </h4>
 
@@ -1491,7 +1491,7 @@ CONTACT & SOCIAL:
                         onClick={loadBusinessTemplate}
                         disabled={isManualSaving}
                         style={{
-                          backgroundColor: '#10b981',
+                          backgroundColor: colors.success,
                           color: 'white',
                           padding: '0.5rem 0.75rem',
                           border: 'none',
@@ -1507,7 +1507,7 @@ CONTACT & SOCIAL:
                         onClick={() => setManualBusinessInfo('')}
                         disabled={isManualSaving}
                         style={{
-                          backgroundColor: '#6b7280',
+                          backgroundColor: colors.mutedText,
                           color: 'white',
                           padding: '0.5rem 0.75rem',
                           border: 'none',
@@ -1529,7 +1529,7 @@ CONTACT & SOCIAL:
                       style={{
                         width: '100%',
                         padding: '1rem',
-                        border: '1px solid #d1d5db',
+                        border: `1px solid ${colors.border}`,
                         borderRadius: '6px',
                         fontSize: '0.875rem',
                         fontFamily: 'monospace',
@@ -1541,7 +1541,7 @@ CONTACT & SOCIAL:
                       disabled={isManualSaving}
                     />
                     
-                    <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#6b7280' }}>
+                    <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: colors.mutedText }}>
                       Character count: {manualBusinessInfo.length} • Enter detailed information about your business
                     </p>
 
@@ -1552,7 +1552,7 @@ CONTACT & SOCIAL:
                         disabled={isManualSaving || !manualBusinessInfo.trim()}
                         style={{
                           flex: '1',
-                          backgroundColor: isManualSaving || !manualBusinessInfo.trim() ? '#9ca3af' : '#2563eb',
+                          backgroundColor: isManualSaving || !manualBusinessInfo.trim() ? colors.mutedText : colors.brandBlue,
                           color: 'white',
                           padding: '0.75rem 1rem',
                           border: 'none',
@@ -1571,8 +1571,8 @@ CONTACT & SOCIAL:
                       <div style={{
                         padding: '1rem',
                         borderRadius: '6px',
-                        backgroundColor: manualInputStatus.includes('✅') ? '#f0fdf4' : manualInputStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
-                        color: manualInputStatus.includes('✅') ? '#15803d' : manualInputStatus.includes('❌') ? '#dc2626' : '#1d4ed8',
+                        backgroundColor: manualInputStatus.includes('✅') ? 'rgba(16, 185, 129, 0.1)' : manualInputStatus.includes('❌') ? 'rgba(244, 67, 54, 0.1)' : colors.overlay,
+                        color: manualInputStatus.includes('✅') ? colors.success : manualInputStatus.includes('❌') ? colors.error : colors.brandBlue,
                         fontSize: '0.875rem',
                         marginTop: '1rem'
                       }}>
@@ -1584,23 +1584,23 @@ CONTACT & SOCIAL:
 
                 {/* Instructions */}
                 <div style={{
-                  backgroundColor: '#f8fafc',
+                  backgroundColor: colors.cardBg,
                   padding: '1rem',
                   borderRadius: '6px',
                   fontSize: '0.875rem'
                 }}>
-                  <h4 style={{ fontWeight: '500', color: '#1e3a8a', marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>
+                  <h4 style={{ fontWeight: '500', color: colors.brandBlue, marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>
                     💡 How Knowledge Base Works:
                   </h4>
-                  <ul style={{ color: '#1e40af', lineHeight: '1.5', margin: '0', paddingLeft: '1.2rem' }}>
+                  <ul style={{ color: colors.brandBlueDark, lineHeight: '1.5', margin: '0', paddingLeft: '1.2rem' }}>
                     <li><strong>Upload your PDF</strong> - Business info, menu, services, FAQ, etc.</li>
                     <li><strong>Automatic processing</strong> - Text is extracted and stored</li>
                     <li><strong>Smart responses</strong> - Claude references your PDF for accurate answers</li>
                     <li><strong>Context-aware</strong> - Generic questions use normal AI, specific questions use your data</li>
                   </ul>
                   
-                  <div style={{ marginTop: '0.75rem', padding: '0.75rem', backgroundColor: '#e0f2fe', borderRadius: '4px' }}>
-                    <p style={{ color: '#0277bd', fontSize: '0.75rem', margin: 0 }}>
+                  <div style={{ marginTop: '0.75rem', padding: '0.75rem', backgroundColor: colors.overlay, borderRadius: '4px' }}>
+                    <p style={{ color: colors.brandBlue, fontSize: '0.75rem', margin: 0 }}>
                       <strong>Example:</strong> User asks "What are your opening hours?" → Claude checks your PDF → Responds with your actual hours!
                     </p>
                   </div>
@@ -1638,37 +1638,37 @@ CONTACT & SOCIAL:
             }}>
               {!isPolling && (
                 <div style={{
-                  backgroundColor: '#fef2f2',
+                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
                   padding: '1rem',
                   borderRadius: '6px',
                   marginBottom: '1rem',
-                  border: '1px solid #fecaca'
+                  border: `1px solid ${colors.error}`
                 }}>
-                  <p style={{ color: '#991b1b', fontSize: '0.875rem', margin: 0 }}>
+                  <p style={{ color: colors.error, fontSize: '0.875rem', margin: 0 }}>
                     ⚠️ Setup and activate webhook first to start receiving messages
                   </p>
                 </div>
               )}
-              <div style={{ display: 'flex', gap: '0', height: '500px', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', gap: '0', height: '500px', border: `1px solid ${colors.border}`, borderRadius: '8px', overflow: 'hidden' }}>
                 
                 {/* Users Panel */}
                 <div style={{ 
                   flex: '0 0 300px', 
-                  backgroundColor: '#f8fafc', 
+                  backgroundColor: colors.cardBg, 
                   padding: '1rem', 
-                  borderRight: '1px solid #e2e8f0',
+                  borderRight: `1px solid ${colors.border}`,
                   display: 'flex',
                   flexDirection: 'column'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                    <h3 style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
+                    <h3 style={{ fontWeight: '500', color: colors.primaryText, margin: 0 }}>
                       👥 Users
                       {isPolling && (
                         <span style={{ 
                           marginLeft: '0.5rem', 
                           fontSize: '0.75rem', 
-                          color: '#10b981',
-                          backgroundColor: '#d1fae5',
+                          color: colors.success,
+                          backgroundColor: 'rgba(16, 185, 129, 0.1)',
                           padding: '0.25rem 0.5rem',
                           borderRadius: '4px'
                         }}>
@@ -1676,7 +1676,7 @@ CONTACT & SOCIAL:
                         </span>
                       )}
                     </h3>
-                    <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                    <span style={{ fontSize: '0.875rem', color: colors.mutedText }}>
                       {uniqueUsers.length} user{uniqueUsers.length !== 1 ? 's' : ''}
                     </span>
                   </div>
@@ -1686,13 +1686,13 @@ CONTACT & SOCIAL:
                     overflowY: 'auto', 
                     backgroundColor: 'white', 
                     borderRadius: '4px',
-                    border: '1px solid #e5e7eb'
+                    border: `1px solid ${colors.border}`
                   }}>
                     {uniqueUsers.length === 0 ? (
                       <div style={{ 
                         padding: '2rem', 
                         textAlign: 'center', 
-                        color: '#9ca3af',
+                        color: colors.mutedText,
                         fontSize: '0.875rem'
                       }}>
                         <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👤</div>
@@ -1707,9 +1707,9 @@ CONTACT & SOCIAL:
                             style={{
                               padding: '0.75rem',
                               marginBottom: '0.5rem',
-                              backgroundColor: selectedUser?.userId === user.userId ? '#eff6ff' : '#f9fafb',
+                              backgroundColor: selectedUser?.userId === user.userId ? colors.overlay : colors.cardBg,
                               borderRadius: '6px',
-                              border: selectedUser?.userId === user.userId ? '2px solid #3b82f6' : '1px solid #f3f4f6',
+                              border: selectedUser?.userId === user.userId ? `2px solid ${colors.brandBlue}` : `1px solid ${colors.borderLight}`,
                               cursor: 'pointer',
                               transition: 'all 0.2s'
                             }}
@@ -1719,7 +1719,7 @@ CONTACT & SOCIAL:
                                 width: '40px',
                                 height: '40px',
                                 borderRadius: '50%',
-                                backgroundColor: '#3b82f6',
+                                backgroundColor: colors.brandBlue,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -1731,20 +1731,20 @@ CONTACT & SOCIAL:
                                 {user.fromName ? user.fromName[0].toUpperCase() : 'U'}
                               </div>
                               <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: '500', fontSize: '0.875rem', color: '#111827' }}>
+                                <div style={{ fontWeight: '500', fontSize: '0.875rem', color: colors.primaryText }}>
                                   {user.fromName || 'Unknown User'}
                                   {user.fromUsername && (
-                                    <span style={{ color: '#6b7280', fontWeight: 'normal', fontSize: '0.75rem' }}>
+                                    <span style={{ color: colors.mutedText, fontWeight: 'normal', fontSize: '0.75rem' }}>
                                       {' '}@{user.fromUsername}
                                     </span>
                                   )}
                                 </div>
-                                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>
+                                <div style={{ fontSize: '0.75rem', color: colors.mutedText, marginBottom: '0.25rem' }}>
                                   {user.messageCount} message{user.messageCount !== 1 ? 's' : ''}
                                 </div>
                                 <div style={{ 
                                   fontSize: '0.75rem', 
-                                  color: '#9ca3af',
+                                  color: colors.mutedText,
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap'
@@ -1763,20 +1763,20 @@ CONTACT & SOCIAL:
                 {/* Messages Panel */}
                 <div style={{ 
                   flex: '1', 
-                  backgroundColor: '#f8fafc', 
+                  backgroundColor: colors.cardBg, 
                   padding: '1rem', 
                   display: 'flex',
                   flexDirection: 'column'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                    <h3 style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
+                    <h3 style={{ fontWeight: '500', color: colors.primaryText, margin: 0 }}>
                       💬 Messages
                       {selectedUser && (
                         <span style={{ 
                           marginLeft: '0.5rem', 
                           fontSize: '0.75rem', 
-                          color: '#3b82f6',
-                          backgroundColor: '#eff6ff',
+                          color: colors.brandBlue,
+                          backgroundColor: colors.overlay,
                           padding: '0.25rem 0.5rem',
                           borderRadius: '4px'
                         }}>
@@ -1784,7 +1784,7 @@ CONTACT & SOCIAL:
                         </span>
                       )}
                     </h3>
-                    <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                    <span style={{ fontSize: '0.875rem', color: colors.mutedText }}>
                       {selectedUser ? selectedUserMessages.length : 0} message{(selectedUser ? selectedUserMessages.length : 0) !== 1 ? 's' : ''}
                     </span>
                   </div>
@@ -1795,14 +1795,14 @@ CONTACT & SOCIAL:
                     overflowY: 'auto', 
                     backgroundColor: 'white', 
                     borderRadius: '4px 4px 0 0',
-                    border: '1px solid #e5e7eb',
+                    border: `1px solid ${colors.border}`,
                     borderBottom: 'none'
                   }}>
                     {!selectedUser ? (
                       <div style={{ 
                         padding: '2rem', 
                         textAlign: 'center', 
-                        color: '#9ca3af',
+                        color: colors.mutedText,
                         fontSize: '0.875rem'
                       }}>
                         <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👈</div>
@@ -1812,7 +1812,7 @@ CONTACT & SOCIAL:
                       <div style={{ 
                         padding: '2rem', 
                         textAlign: 'center', 
-                        color: '#9ca3af',
+                        color: colors.mutedText,
                         fontSize: '0.875rem'
                       }}>
                         <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💬</div>
@@ -1834,8 +1834,8 @@ CONTACT & SOCIAL:
                                 maxWidth: '75%',
                                 padding: '0.75rem 1rem',
                                 borderRadius: message.isBotMessage ? '1rem 1rem 1rem 0.25rem' : '1rem 1rem 0.25rem 1rem',
-                                backgroundColor: message.isBotMessage ? '#3b82f6' : '#e5e7eb',
-                                color: message.isBotMessage ? 'white' : '#111827',
+                                backgroundColor: message.isBotMessage ? colors.brandBlue : colors.inputBg,
+                                color: message.isBotMessage ? 'white' : colors.primaryText,
                                 wordWrap: 'break-word',
                                 position: 'relative'
                               }}
@@ -1865,7 +1865,7 @@ CONTACT & SOCIAL:
                   {selectedUser && (
                     <div style={{ 
                       backgroundColor: 'white', 
-                      border: '1px solid #e5e7eb',
+                      border: `1px solid ${colors.border}`,
                       borderTop: 'none',
                       borderRadius: '0 0 4px 4px',
                       padding: '1rem',
@@ -1883,7 +1883,7 @@ CONTACT & SOCIAL:
                             minHeight: '40px',
                             maxHeight: '120px',
                             padding: '0.75rem',
-                            border: '1px solid #d1d5db',
+                            border: `1px solid ${colors.border}`,
                             borderRadius: '20px',
                             fontSize: '0.875rem',
                             resize: 'none',
@@ -1906,7 +1906,7 @@ CONTACT & SOCIAL:
                         onClick={handleSendMessage}
                         disabled={isSending || !sendMessage.trim()}
                         style={{
-                          backgroundColor: isSending || !sendMessage.trim() ? '#9ca3af' : '#3b82f6',
+                          backgroundColor: isSending || !sendMessage.trim() ? colors.mutedText : colors.brandBlue,
                           color: 'white',
                           padding: '0.75rem',
                           border: 'none',
@@ -1935,7 +1935,7 @@ CONTACT & SOCIAL:
           {/* RIGHT SIDEBAR - Sliding User Information Panel */}
           <div style={{ 
             width: '300px',
-            backgroundColor: '#f8fafc', 
+            backgroundColor: colors.cardBg, 
             borderRadius: '0', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
             padding: '0',
@@ -1943,7 +1943,7 @@ CONTACT & SOCIAL:
             position: 'fixed',
             top: '0',
             right: '0',
-            borderLeft: '1px solid #e2e8f0',
+            borderLeft: `1px solid ${colors.border}`,
             overflow: 'hidden',
             transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
             transform: isRightSidebarCollapsed ? 'translateX(320px)' : 'translateX(0)',
@@ -1952,7 +1952,7 @@ CONTACT & SOCIAL:
           }}>
             {/* Right Sidebar Header */}
             <div style={{ 
-              backgroundColor: '#10b981', 
+              backgroundColor: colors.success, 
               color: 'white', 
               padding: '1rem 1.5rem',
               borderRadius: '0'
@@ -1972,9 +1972,9 @@ CONTACT & SOCIAL:
                   style={{ 
                     fontSize: '1rem', 
                     fontWeight: '600', 
-                    color: '#1f2937', 
+                    color: colors.primaryText, 
                     marginBottom: '1rem', 
-                    borderBottom: '2px solid #e5e7eb', 
+                    borderBottom: `2px solid ${colors.border}`, 
                     paddingBottom: '0.5rem',
                     cursor: 'pointer',
                     display: 'flex',
@@ -1988,7 +1988,7 @@ CONTACT & SOCIAL:
                     transform: isSelectedUserCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
                     transition: 'transform 0.2s ease',
                     fontSize: '0.8rem',
-                    color: '#6b7280'
+                    color: colors.mutedText
                   }}>
                     ▼
                   </span>
@@ -2003,13 +2003,13 @@ CONTACT & SOCIAL:
                 }}>
                 
                   {selectedUser ? (
-                  <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e7eb' }}>
+                  <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '1rem', border: `1px solid ${colors.border}` }}>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
                       <div style={{
                         width: '50px',
                         height: '50px',
                         borderRadius: '50%',
-                        backgroundColor: '#10b981',
+                        backgroundColor: colors.success,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -2021,11 +2021,11 @@ CONTACT & SOCIAL:
                         {selectedUser.fromName ? selectedUser.fromName[0].toUpperCase() : 'U'}
                       </div>
                       <div>
-                        <div style={{ fontWeight: '600', fontSize: '1rem', color: '#111827' }}>
+                        <div style={{ fontWeight: '600', fontSize: '1rem', color: colors.primaryText }}>
                           {selectedUser.fromName || 'Unknown User'}
                         </div>
                         {selectedUser.fromUsername && (
-                          <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                          <div style={{ color: colors.mutedText, fontSize: '0.875rem' }}>
                             @{selectedUser.fromUsername}
                           </div>
                         )}
@@ -2034,37 +2034,37 @@ CONTACT & SOCIAL:
                     
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.875rem' }}>
                       <div>
-                        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Messages</div>
-                        <div style={{ fontWeight: '600', color: '#111827' }}>{selectedUser.messageCount}</div>
+                        <div style={{ color: colors.mutedText, marginBottom: '0.25rem' }}>Messages</div>
+                        <div style={{ fontWeight: '600', color: colors.primaryText }}>{selectedUser.messageCount}</div>
                       </div>
                       <div>
-                        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>User ID</div>
-                        <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem', wordBreak: 'break-all' }}>
+                        <div style={{ color: colors.mutedText, marginBottom: '0.25rem' }}>User ID</div>
+                        <div style={{ fontWeight: '600', color: colors.primaryText, fontSize: '0.75rem', wordBreak: 'break-all' }}>
                           {selectedUser.userId}
                         </div>
                       </div>
                       <div>
-                        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Chat ID</div>
-                        <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem' }}>
+                        <div style={{ color: colors.mutedText, marginBottom: '0.25rem' }}>Chat ID</div>
+                        <div style={{ fontWeight: '600', color: colors.primaryText, fontSize: '0.75rem' }}>
                           {selectedUser.chatId}
                         </div>
                       </div>
                       <div>
-                        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Last Seen</div>
-                        <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem' }}>
+                        <div style={{ color: colors.mutedText, marginBottom: '0.25rem' }}>Last Seen</div>
+                        <div style={{ fontWeight: '600', color: colors.primaryText, fontSize: '0.75rem' }}>
                           {new Date(selectedUser.lastMessageTime).toLocaleDateString()}
                         </div>
                       </div>
                     </div>
                     
-                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
-                      <div style={{ color: '#6b7280', marginBottom: '0.25rem', fontSize: '0.875rem' }}>Last Message</div>
+                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: `1px solid ${colors.border}` }}>
+                      <div style={{ color: colors.mutedText, marginBottom: '0.25rem', fontSize: '0.875rem' }}>Last Message</div>
                       <div style={{ 
-                        backgroundColor: '#f9fafb', 
+                        backgroundColor: colors.cardBg, 
                         padding: '0.75rem', 
                         borderRadius: '6px', 
                         fontSize: '0.875rem',
-                        color: '#374151',
+                        color: colors.secondaryText,
                         fontStyle: selectedUser.lastMessage ? 'normal' : 'italic'
                       }}>
                         {selectedUser.lastMessage || 'No recent messages'}
@@ -2073,11 +2073,11 @@ CONTACT & SOCIAL:
                   </div>
                 ) : (
                   <div style={{ 
-                    backgroundColor: '#f9fafb', 
+                    backgroundColor: colors.cardBg, 
                     padding: '2rem', 
                     borderRadius: '8px', 
                     textAlign: 'center', 
-                    color: '#6b7280',
+                    color: colors.mutedText,
                     fontSize: '0.875rem'
                   }}>
                     <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👤</div>
@@ -2095,9 +2095,9 @@ CONTACT & SOCIAL:
                   style={{ 
                     fontSize: '1rem', 
                     fontWeight: '600', 
-                    color: '#1f2937', 
+                    color: colors.primaryText, 
                     marginBottom: '1rem', 
-                    borderBottom: '2px solid #e5e7eb', 
+                    borderBottom: `2px solid ${colors.border}`, 
                     paddingBottom: '0.5rem',
                     cursor: 'pointer',
                     display: 'flex',
@@ -2111,7 +2111,7 @@ CONTACT & SOCIAL:
                     transform: isStatisticsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
                     transition: 'transform 0.2s ease',
                     fontSize: '0.8rem',
-                    color: '#6b7280'
+                    color: colors.mutedText
                   }}>
                     ▼
                   </span>
@@ -2125,26 +2125,26 @@ CONTACT & SOCIAL:
                   opacity: isStatisticsCollapsed ? 0 : 1
                 }}>
                 
-                  <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e7eb' }}>
+                  <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '1rem', border: `1px solid ${colors.border}` }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', fontSize: '0.875rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#6b7280' }}>Total Users</span>
-                      <span style={{ fontWeight: '600', color: '#111827', backgroundColor: '#dbeafe', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                      <span style={{ color: colors.mutedText }}>Total Users</span>
+                      <span style={{ fontWeight: '600', color: colors.primaryText, backgroundColor: colors.overlay, padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
                         {uniqueUsers.length}
                       </span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#6b7280' }}>Total Messages</span>
-                      <span style={{ fontWeight: '600', color: '#111827', backgroundColor: '#dcfce7', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                      <span style={{ color: colors.mutedText }}>Total Messages</span>
+                      <span style={{ fontWeight: '600', color: colors.primaryText, backgroundColor: 'rgba(16, 185, 129, 0.1)', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
                         {messages.length}
                       </span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#6b7280' }}>Bot Status</span>
+                      <span style={{ color: colors.mutedText }}>Bot Status</span>
                       <span style={{ 
                         fontWeight: '600', 
-                        color: isPolling ? '#15803d' : '#dc2626', 
-                        backgroundColor: isPolling ? '#dcfce7' : '#fee2e2', 
+                        color: isPolling ? colors.success : colors.error, 
+                        backgroundColor: isPolling ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 67, 54, 0.1)', 
                         padding: '0.25rem 0.5rem', 
                         borderRadius: '4px',
                         fontSize: '0.75rem'
@@ -2153,11 +2153,11 @@ CONTACT & SOCIAL:
                       </span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#6b7280' }}>Claude Status</span>
+                      <span style={{ color: colors.mutedText }}>Claude Status</span>
                       <span style={{ 
                         fontWeight: '600', 
-                        color: claudeConnectionStatus === 'connected' ? '#15803d' : '#dc2626', 
-                        backgroundColor: claudeConnectionStatus === 'connected' ? '#dcfce7' : '#fee2e2', 
+                        color: claudeConnectionStatus === 'connected' ? colors.success : colors.error, 
+                        backgroundColor: claudeConnectionStatus === 'connected' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 67, 54, 0.1)', 
                         padding: '0.25rem 0.5rem', 
                         borderRadius: '4px',
                         fontSize: '0.75rem'
@@ -2178,9 +2178,9 @@ CONTACT & SOCIAL:
                   style={{ 
                     fontSize: '1rem', 
                     fontWeight: '600', 
-                    color: '#1f2937', 
+                    color: colors.primaryText, 
                     marginBottom: '1rem', 
-                    borderBottom: '2px solid #e5e7eb', 
+                    borderBottom: `2px solid ${colors.border}`, 
                     paddingBottom: '0.5rem',
                     cursor: 'pointer',
                     display: 'flex',
@@ -2194,7 +2194,7 @@ CONTACT & SOCIAL:
                     transform: isQuickActionsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
                     transition: 'transform 0.2s ease',
                     fontSize: '0.8rem',
-                    color: '#6b7280'
+                    color: colors.mutedText
                   }}>
                     ▼
                   </span>
@@ -2213,7 +2213,7 @@ CONTACT & SOCIAL:
                     onClick={() => setMessages([])}
                     disabled={messages.length === 0}
                     style={{
-                      backgroundColor: messages.length === 0 ? '#9ca3af' : '#ef4444',
+                      backgroundColor: messages.length === 0 ? colors.mutedText : colors.error,
                       color: 'white',
                       padding: '0.75rem',
                       border: 'none',
@@ -2230,7 +2230,7 @@ CONTACT & SOCIAL:
                     onClick={() => setSelectedUser(null)}
                     disabled={!selectedUser}
                     style={{
-                      backgroundColor: !selectedUser ? '#9ca3af' : '#6b7280',
+                      backgroundColor: !selectedUser ? colors.mutedText : colors.mutedText,
                       color: 'white',
                       padding: '0.75rem',
                       border: 'none',
@@ -2246,7 +2246,7 @@ CONTACT & SOCIAL:
                   <button
                     onClick={() => window.location.reload()}
                     style={{
-                      backgroundColor: '#3b82f6',
+                      backgroundColor: colors.brandBlue,
                       color: 'white',
                       padding: '0.75rem',
                       border: 'none',

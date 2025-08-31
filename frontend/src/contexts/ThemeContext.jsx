@@ -32,16 +32,21 @@ export const ThemeProvider = ({ children }) => {
   // Theme color values
   const themes = {
     dark: {
-      // Main backgrounds
-      primaryBg: '#1a1a1a',
-      secondaryBg: '#323232',
-      cardBg: '#323232',
-      darkerBg: '#262626',
+      // Main backgrounds (using login page colors)
+      primaryBg: '#212121',         // Auth page background
+      secondaryBg: '#323232',       // Auth form background  
+      cardBg: '#262626',           // Input background
+      darkerBg: '#1a1a1a',        // Phone screen background
       
-      // Text colors
-      primaryText: '#E0E0E0',
-      secondaryText: '#a0a0a0',
-      mutedText: '#8E8E8E',
+      // Additional dark shades
+      inputBg: '#262626',          // Input fields
+      hoverBg: '#424242',          // Button hover
+      borderDark: '#2c2c2c',       // Dark borders
+      
+      // Text colors (from login page)
+      primaryText: '#E0E0E0',      // Main text
+      secondaryText: '#a0a0a0',    // Subtitle text
+      mutedText: '#8E8E8E',        // Placeholder text
       
       // Brand colors
       brandBlue: '#4a90e2',
@@ -53,11 +58,13 @@ export const ThemeProvider = ({ children }) => {
       info: '#06b6d4',
       error: '#f44336',
       
-      // Interactive elements
-      border: 'rgba(255, 255, 255, 0.1)',
-      borderHover: 'rgba(74, 144, 226, 0.3)',
-      shadow: 'rgba(0, 0, 0, 0.2)',
-      overlay: 'rgba(255, 255, 255, 0.1)',
+      // Interactive elements (using login page colors)
+      border: '#2c2c2c',                    // Dark borders like chat header
+      borderLight: 'rgba(255, 255, 255, 0.1)', // Very subtle borders
+      borderHover: 'rgba(74, 144, 226, 0.3)',   // Brand color borders
+      shadow: 'rgba(0, 0, 0, 0.25)',           // Deeper shadows
+      shadowLarge: 'rgba(0, 0, 0, 0.4)',       // Phone mockup shadow
+      overlay: 'rgba(255, 255, 255, 0.05)',    // Very subtle overlay
     },
     light: {
       // Main backgrounds
