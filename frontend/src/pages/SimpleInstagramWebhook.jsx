@@ -8,7 +8,9 @@ const SimpleInstagramWebhook = () => {
   const [error, setError] = useState('');
   const [firstCallAt, setFirstCallAt] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [users, setUsers] = useState({});
   const [selectedMessage, setSelectedMessage] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState(null);
   const [replyText, setReplyText] = useState('');
   const [isReplying, setIsReplying] = useState(false);
 
@@ -82,10 +84,45 @@ const SimpleInstagramWebhook = () => {
       
       if (data.success) {
         setMessages(data.messages || []);
+        setUsers(data.users || {});
       }
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
+  };
+
+  // Get unique conversations (users who have sent messages)
+  const getConversations = () => {
+    const conversations = {};
+    
+    messages.forEach(message => {
+      const senderId = message.sender?.id;
+      if (senderId && senderId !== 'me') {
+        const user = users[senderId];
+        conversations[senderId] = {
+          userId: senderId,
+          username: user?.username || `user_${senderId.slice(0, 8)}`,
+          name: user?.name || 'Instagram User',
+          profile_picture_url: user?.profile_picture_url,
+          lastMessage: message,
+          unreadCount: 0 // Could implement unread logic later
+        };
+      }
+    });
+    
+    // Sort by most recent message
+    return Object.values(conversations).sort((a, b) => 
+      new Date(b.lastMessage.timestamp) - new Date(a.lastMessage.timestamp)
+    );
+  };
+
+  // Get messages for selected user
+  const getMessagesForUser = (userId) => {
+    if (!userId) return messages;
+    return messages.filter(message => 
+      message.sender?.id === userId || 
+      (message.recipient?.id === userId && message.sender?.id === 'me')
+    );
   };
 
   const copyToClipboard = (text) => {
@@ -97,7 +134,7 @@ const SimpleInstagramWebhook = () => {
   };
 
   const handleReply = async () => {
-    if (!selectedMessage || !replyText.trim()) return;
+    if (!selectedUserId || !replyText.trim()) return;
 
     setIsReplying(true);
     setError('');
@@ -109,7 +146,7 @@ const SimpleInstagramWebhook = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          senderId: selectedMessage.sender?.id,
+          senderId: selectedUserId,
           replyText: replyText.trim()
         })
       });
@@ -119,7 +156,7 @@ const SimpleInstagramWebhook = () => {
       if (response.ok && data.success) {
         console.log('✅ Reply sent successfully');
         setReplyText('');
-        setSelectedMessage(null); // Deselect after sending
+        // Don't deselect user - keep conversation open
         // Don't add message here - backend will store it and next poll will fetch it
       } else {
         setError(data.error || 'Failed to send reply');
@@ -131,502 +168,449 @@ const SimpleInstagramWebhook = () => {
     }
   };
 
+  const conversations = getConversations();
+  const currentMessages = getMessagesForUser(selectedUserId);
+
   return (
     <div style={{ 
-      minHeight: '100vh', 
-      backgroundColor: '#f9fafb', 
-      padding: '2rem'
+      height: '100vh', 
+      backgroundColor: '#f0f2f5',
+      display: 'flex'
     }}>
+      
+      {/* Left Panel - Webhook Setup & Contact List */}
       <div style={{ 
-        maxWidth: '1400px', 
-        margin: '0 auto',
+        width: '400px',
+        backgroundColor: 'white',
+        borderRight: '1px solid #e5e7eb',
         display: 'flex',
-        gap: '2rem',
-        alignItems: 'flex-start'
+        flexDirection: 'column'
       }}>
         
-        {/* Left Panel - Webhook Setup */}
-        <div style={{ 
-          width: '500px',
-          backgroundColor: 'white',
-          borderRadius: '12px',
-          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-          padding: '2rem'
-        }}>
-        
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h1 style={{ 
-            fontSize: '2rem', 
-            fontWeight: 'bold', 
-            color: '#111827',
-            marginBottom: '0.5rem'
-          }}>
-            <span style={{ color: '#E4405F' }}>📷</span> Instagram Webhook
-          </h1>
-          <p style={{ color: '#6b7280', fontSize: '1rem' }}>
-            Simple webhook testing for Instagram integration
-          </p>
-        </div>
-
-        {/* Status Display */}
-        {hasReceivedCall ? (
-          <div style={{
-            backgroundColor: '#dcfce7',
-            border: '2px solid #22c55e',
-            borderRadius: '8px',
-            padding: '1.5rem',
-            marginBottom: '2rem',
-            textAlign: 'center'
-          }}>
-            <h2 style={{ color: '#15803d', fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-              🎉 SUCCESS! Webhook Received!
-            </h2>
-            <p style={{ color: '#166534' }}>
-              Meta successfully called your webhook at {new Date(firstCallAt).toLocaleString()}
-            </p>
-          </div>
-        ) : isWaiting ? (
-          <div style={{
-            backgroundColor: '#fef3c7',
-            border: '2px solid #f59e0b',
-            borderRadius: '8px',
-            padding: '1.5rem',
-            marginBottom: '2rem',
-            textAlign: 'center'
-          }}>
-            <h2 style={{ color: '#d97706', fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>
-              ⏳ Waiting for Meta Webhook Call...
-            </h2>
-            <p style={{ color: '#92400e' }}>
-              Add the URL and token below to your Meta Developer Console
-            </p>
-          </div>
-        ) : null}
-
-        {/* Webhook Information */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#111827', marginBottom: '1rem' }}>
-            Webhook Configuration
-          </h3>
-          
-          {/* Webhook URL */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ 
-              display: 'block', 
-              fontSize: '0.875rem', 
-              fontWeight: '500', 
-              color: '#374151', 
-              marginBottom: '0.5rem' 
+        <div style={{ 
+          padding: '1rem',
+          backgroundColor: '#E4405F',
+          color: 'white'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+            <h1 style={{ 
+              fontSize: '1.25rem', 
+              fontWeight: 'bold',
+              margin: '0 0 0.5rem 0'
             }}>
-              Webhook URL:
-            </label>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <code style={{
-                flex: 1,
-                padding: '0.75rem',
-                backgroundColor: '#f3f4f6',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                fontSize: '0.875rem',
-                fontFamily: 'monospace',
-                wordBreak: 'break-all'
-              }}>
-                {webhookUrl}
-              </code>
-              <button
-                onClick={() => copyToClipboard(webhookUrl)}
-                style={{
-                  padding: '0.75rem',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem'
-                }}
-              >
-                📋 Copy
-              </button>
-            </div>
+              📷 Instagram DM Manager (NEW THREE-PANEL LAYOUT)
+            </h1>
           </div>
 
-          {/* Verify Token */}
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ 
-              display: 'block', 
-              fontSize: '0.875rem', 
-              fontWeight: '500', 
-              color: '#374151', 
-              marginBottom: '0.5rem' 
-            }}>
-              Verify Token:
-            </label>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <code style={{
-                flex: 1,
-                padding: '0.75rem',
-                backgroundColor: '#f3f4f6',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                fontSize: '0.875rem',
-                fontFamily: 'monospace'
-              }}>
-                {verifyToken}
-              </code>
-              <button
-                onClick={() => copyToClipboard(verifyToken)}
-                style={{
-                  padding: '0.75rem',
-                  backgroundColor: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem'
-                }}
-              >
-                📋 Copy
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Error Display */}
-        {error && (
-          <div style={{
-            backgroundColor: '#fee2e2',
-            border: '1px solid #fecaca',
-            color: '#dc2626',
-            padding: '0.75rem',
-            borderRadius: '6px',
-            marginBottom: '1rem',
-            fontSize: '0.875rem'
-          }}>
-            {error}
-          </div>
-        )}
-
-        {/* Action Button */}
-        <div style={{ textAlign: 'center' }}>
+          {/* Status Display */}
           {!isWaiting && !hasReceivedCall && (
-            <button
-              onClick={handleActivate}
-              disabled={isLoading}
-              style={{
-                backgroundColor: isLoading ? '#9ca3af' : '#E4405F',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '1rem 2rem',
-                fontSize: '1rem',
-                fontWeight: '600',
-                cursor: isLoading ? 'not-allowed' : 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                if (!isLoading) e.target.style.backgroundColor = '#C13584';
-              }}
-              onMouseLeave={(e) => {
-                if (!isLoading) e.target.style.backgroundColor = '#E4405F';
-              }}
-            >
-              {isLoading ? 'Activating...' : '🚀 Start Waiting for Webhook'}
-            </button>
+            <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+              <button
+                onClick={handleActivate}
+                disabled={isLoading}
+                style={{
+                  backgroundColor: isLoading ? '#9ca3af' : 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  borderRadius: '6px',
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  width: '100%'
+                }}
+              >
+                {isLoading ? 'Activating...' : '🚀 Start Webhook'}
+              </button>
+            </div>
+          )}
+          
+          {isWaiting && (
+            <div style={{ fontSize: '0.8rem', textAlign: 'center', opacity: '0.9' }}>
+              🔴 Live - Listening for messages...
+            </div>
           )}
         </div>
 
-        {/* Instructions */}
-        <div style={{ 
-          marginTop: '2rem', 
-          padding: '1rem', 
-          backgroundColor: '#f8fafc', 
-          borderRadius: '6px',
-          border: '1px solid #e2e8f0'
-        }}>
-          <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
-            Next Steps:
-          </h4>
-          <ol style={{ fontSize: '0.875rem', color: '#6b7280', margin: '0', paddingLeft: '1rem' }}>
-            <li>Click "Start Waiting for Webhook" above</li>
-            <li>Go to Meta Developer Console</li>
-            <li>Add the webhook URL and verify token</li>
-            <li>Meta will call the webhook and you'll see success!</li>
-          </ol>
-        </div>
-        </div>
-
-        {/* Right Panel - Conversation */}
-        <div style={{ 
-          flex: '1',
-          backgroundColor: 'white',
-          borderRadius: '12px',
-          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-          padding: '2rem',
-          minHeight: '600px'
-        }}>
-          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-            <h2 style={{ 
-              fontSize: '1.5rem', 
-              fontWeight: 'bold', 
-              color: '#111827',
-              marginBottom: '0.5rem'
-            }}>
-              💬 Instagram DMs
-            </h2>
-            <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-              {messages.length} message{messages.length !== 1 ? 's' : ''} received
-            </p>
-          </div>
-
-          {/* Messages Display */}
+        {/* Contact List */}
+        <div style={{ flex: 1, overflowY: 'auto' }}>
           <div style={{ 
-            height: '400px', 
-            overflowY: 'auto', 
-            border: '1px solid #e5e7eb', 
-            borderRadius: '8px',
-            padding: '1rem',
-            backgroundColor: '#fafafa'
+            padding: '1rem 0.5rem',
+            borderBottom: '1px solid #e5e7eb',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            color: '#374151'
           }}>
-            {messages.length === 0 ? (
-              <div style={{ 
-                textAlign: 'center', 
-                color: '#9ca3af', 
-                padding: '2rem',
-                fontStyle: 'italic'
-              }}>
-                No messages yet. Send a DM to your Instagram account to see it appear here!
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {messages.map((message, index) => {
-                  // Determine if message is from us (outgoing) or from user (incoming)
-                  const isOutgoing = message.isOutgoing || false; // We'll set this flag for sent messages
-                  
-                  return (
-                    <div 
-                      key={message.id || index}
-                      onClick={() => setSelectedMessage(message)}
-                      style={{
-                        display: 'flex',
-                        justifyContent: isOutgoing ? 'flex-end' : 'flex-start',
-                        width: '100%',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <div style={{
-                        maxWidth: '70%',
-                        minWidth: '120px',
-                        backgroundColor: isOutgoing ? '#E4405F' : 'white',
-                        color: isOutgoing ? 'white' : '#374151',
-                        borderRadius: isOutgoing ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                        padding: '0.75rem 1rem',
-                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                        border: selectedMessage?.id === message.id ? `2px solid ${isOutgoing ? '#C13584' : '#E4405F'}` : 'none',
-                        transition: 'all 0.2s',
-                        position: 'relative'
-                      }}>
-                        
-                        {/* Message Header (only for incoming messages) */}
-                        {!isOutgoing && (
-                          <div style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            marginBottom: '0.5rem',
-                            gap: '0.5rem'
-                          }}>
-                            <div style={{
-                              width: '20px',
-                              height: '20px',
-                              borderRadius: '50%',
-                              backgroundColor: '#E4405F',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '0.7rem',
-                              color: 'white',
-                              fontWeight: 'bold'
-                            }}>
-                              {message.sender?.id ? message.sender.id.substring(0,1).toUpperCase() : '👤'}
-                            </div>
-                            <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '600' }}>
-                              {message.sender?.id === 'me' ? 'You' : (message.sender?.id || 'User')}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Message Content */}
-                        <div style={{ 
-                          fontSize: '0.875rem',
-                          lineHeight: '1.4',
-                          wordWrap: 'break-word'
-                        }}>
-                          {message.text || (isOutgoing ? 'Message sent' : 'No text content')}
-                        </div>
-
-                        {/* Debug info - remove later */}
-                        {process.env.NODE_ENV === 'development' && (
-                          <div style={{ fontSize: '0.6rem', color: '#888', marginTop: '0.25rem' }}>
-                            Debug: text="{message.text}", isOutgoing={isOutgoing ? 'true' : 'false'}
-                          </div>
-                        )}
-
-                        {/* Timestamp */}
-                        <div style={{ 
-                          fontSize: '0.65rem', 
-                          color: isOutgoing ? 'rgba(255,255,255,0.7)' : '#9ca3af', 
-                          marginTop: '0.25rem',
-                          textAlign: isOutgoing ? 'right' : 'left'
-                        }}>
-                          {formatTimestamp(message.timestamp)}
-                          {isOutgoing && ' ✓'}
-                        </div>
-
-                        {/* Selection indicator */}
-                        {selectedMessage?.id === message.id && (
-                          <div style={{
-                            position: 'absolute',
-                            top: '-8px',
-                            right: isOutgoing ? '20px' : 'auto',
-                            left: isOutgoing ? 'auto' : '20px',
-                            width: '16px',
-                            height: '16px',
-                            backgroundColor: '#E4405F',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.6rem',
-                            color: 'white'
-                          }}>
-                            ✓
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            Conversations ({conversations.length})
           </div>
-
-          {/* Reply Interface */}
-          {selectedMessage && (
+          
+          {conversations.length === 0 ? (
             <div style={{ 
-              marginTop: '1rem',
-              padding: '1rem',
-              backgroundColor: '#f8fafc',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px'
+              padding: '2rem 1rem',
+              textAlign: 'center',
+              color: '#9ca3af',
+              fontSize: '0.875rem'
             }}>
-              <div style={{ 
-                fontSize: '0.875rem', 
-                fontWeight: '600', 
-                color: '#374151', 
-                marginBottom: '0.5rem' 
-              }}>
-                💬 Reply to {selectedMessage.sender?.id}
-              </div>
-              
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
-                <div style={{ flex: 1 }}>
-                  <textarea
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    placeholder="Type your reply..."
-                    style={{
-                      width: '100%',
-                      minHeight: '80px',
-                      padding: '0.75rem',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '0.875rem',
-                      fontFamily: 'inherit',
-                      resize: 'vertical'
-                    }}
-                  />
-                </div>
-                
-                <button
-                  onClick={handleReply}
-                  disabled={!replyText.trim() || isReplying}
+              No conversations yet.<br/>
+              Send a DM to start!
+            </div>
+          ) : (
+            <div>
+              {conversations.map((conversation) => (
+                <div
+                  key={conversation.userId}
+                  onClick={() => setSelectedUserId(conversation.userId)}
                   style={{
-                    backgroundColor: !replyText.trim() || isReplying ? '#9ca3af' : '#E4405F',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '0.75rem 1rem',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    cursor: !replyText.trim() || isReplying ? 'not-allowed' : 'pointer',
-                    transition: 'background-color 0.2s',
-                    whiteSpace: 'nowrap'
+                    padding: '0.75rem',
+                    borderBottom: '1px solid #f3f4f6',
+                    cursor: 'pointer',
+                    backgroundColor: selectedUserId === conversation.userId ? '#f0f9ff' : 'transparent',
+                    transition: 'background-color 0.2s'
                   }}
                   onMouseEnter={(e) => {
-                    if (!(!replyText.trim() || isReplying)) {
-                      e.target.style.backgroundColor = '#C13584';
+                    if (selectedUserId !== conversation.userId) {
+                      e.target.style.backgroundColor = '#f9fafb';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!(!replyText.trim() || isReplying)) {
-                      e.target.style.backgroundColor = '#E4405F';
+                    if (selectedUserId !== conversation.userId) {
+                      e.target.style.backgroundColor = 'transparent';
                     }
                   }}
                 >
-                  {isReplying ? 'Sending...' : '📤 Send'}
-                </button>
-              </div>
-              
-              {error && (
-                <div style={{
-                  marginTop: '0.5rem',
-                  padding: '0.5rem',
-                  backgroundColor: '#fee2e2',
-                  border: '1px solid #fecaca',
-                  borderRadius: '4px',
-                  fontSize: '0.75rem',
-                  color: '#dc2626'
-                }}>
-                  {error}
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    {/* Profile Picture */}
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      backgroundColor: '#E4405F',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1rem',
+                      color: 'white',
+                      fontWeight: 'bold',
+                      backgroundImage: conversation.profile_picture_url ? `url(${conversation.profile_picture_url})` : 'none',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    }}>
+                      {!conversation.profile_picture_url && conversation.name.charAt(0).toUpperCase()}
+                    </div>
+                    
+                    {/* Conversation Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ 
+                        fontSize: '0.875rem', 
+                        fontWeight: '600', 
+                        color: '#111827',
+                        marginBottom: '0.25rem',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        {conversation.name}
+                      </div>
+                      <div style={{ 
+                        fontSize: '0.75rem', 
+                        color: '#6b7280',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        @{conversation.username}
+                      </div>
+                      <div style={{ 
+                        fontSize: '0.75rem', 
+                        color: '#9ca3af',
+                        marginTop: '0.25rem',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        {conversation.lastMessage.text || 'No message'}
+                      </div>
+                    </div>
+                    
+                    {/* Timestamp */}
+                    <div style={{ 
+                      fontSize: '0.65rem', 
+                      color: '#9ca3af',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* Instructions when no message selected */}
-          {!selectedMessage && messages.length > 0 && (
-            <div style={{ 
-              textAlign: 'center', 
-              marginTop: '1rem',
-              padding: '0.75rem',
-              backgroundColor: '#f0f9ff',
-              border: '1px solid #0ea5e9',
-              borderRadius: '6px',
-              fontSize: '0.875rem',
-              color: '#0c4a6e'
-            }}>
-              💬 Click on any message bubble to reply to it
-            </div>
-          )}
-
-          {/* Live indicator */}
-          {isWaiting && (
-            <div style={{ 
-              textAlign: 'center', 
-              marginTop: '1rem',
-              padding: '0.75rem',
-              backgroundColor: '#fef3c7',
-              border: '1px solid #f59e0b',
-              borderRadius: '6px',
-              fontSize: '0.875rem',
-              color: '#92400e'
-            }}>
-              🔴 Live - Listening for new messages...
+              ))}
             </div>
           )}
         </div>
 
       </div>
+
+      {/* Center Panel - Conversation */}
+      <div style={{ 
+        flex: '1',
+        backgroundColor: 'white',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        
+        {/* Conversation Header */}
+        {selectedUserId ? (
+          <div style={{ 
+            padding: '1rem',
+            backgroundColor: '#f8fafc',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem'
+          }}>
+            {(() => {
+              const selectedUser = users[selectedUserId];
+              return (
+                <>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    backgroundColor: '#E4405F',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    backgroundImage: selectedUser?.profile_picture_url ? `url(${selectedUser.profile_picture_url})` : 'none',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }}>
+                    {!selectedUser?.profile_picture_url && (selectedUser?.name?.charAt(0).toUpperCase() || 'U')}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '1rem', fontWeight: '600', color: '#111827' }}>
+                      {selectedUser?.name || 'Instagram User'}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+                      @{selectedUser?.username || `user_${selectedUserId.slice(0, 8)}`}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        ) : (
+          <div style={{ 
+            padding: '1rem',
+            backgroundColor: '#f8fafc',
+            borderBottom: '1px solid #e5e7eb',
+            textAlign: 'center'
+          }}>
+            <h2 style={{ 
+              fontSize: '1.25rem', 
+              fontWeight: 'bold', 
+              color: '#111827',
+              margin: 0
+            }}>
+              💬 Instagram DM Manager (NEW THREE-PANEL)
+            </h2>
+          </div>
+        )}
+
+        {/* Messages Display */}
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '1rem',
+          backgroundColor: '#f8fafc'
+        }}>
+          {!selectedUserId ? (
+            <div style={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              color: '#9ca3af',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem', color: '#6b7280' }}>
+                Select a conversation
+              </h3>
+              <p style={{ fontSize: '0.875rem' }}>
+                Choose a conversation from the left panel to start messaging
+              </p>
+              {!isWaiting && !hasReceivedCall && (
+                <div style={{ marginTop: '2rem' }}>
+                  <p style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>
+                    Haven't started receiving messages yet?
+                  </p>
+                  <button
+                    onClick={handleActivate}
+                    disabled={isLoading}
+                    style={{
+                      backgroundColor: isLoading ? '#9ca3af' : '#E4405F',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '0.75rem 1.5rem',
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      cursor: isLoading ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    {isLoading ? 'Activating...' : '🚀 Start Webhook'}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : currentMessages.length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              color: '#9ca3af', 
+              padding: '2rem',
+              fontStyle: 'italic'
+            }}>
+              No messages in this conversation yet.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {currentMessages.map((message, index) => {
+                const isOutgoing = message.isOutgoing || message.sender?.id === 'me';
+                
+                return (
+                  <div 
+                    key={message.id || index}
+                    style={{
+                      display: 'flex',
+                      justifyContent: isOutgoing ? 'flex-end' : 'flex-start',
+                      width: '100%'
+                    }}
+                  >
+                    <div style={{
+                      maxWidth: '70%',
+                      minWidth: '120px',
+                      backgroundColor: isOutgoing ? '#E4405F' : 'white',
+                      color: isOutgoing ? 'white' : '#374151',
+                      borderRadius: isOutgoing ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                      padding: '0.75rem 1rem',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                      position: 'relative'
+                    }}>
+                      
+                      {/* Message Content */}
+                      <div style={{ 
+                        fontSize: '0.875rem',
+                        lineHeight: '1.4',
+                        wordWrap: 'break-word'
+                      }}>
+                        {message.text || (isOutgoing ? 'Message sent' : 'No text content')}
+                      </div>
+
+                      {/* Timestamp */}
+                      <div style={{ 
+                        fontSize: '0.65rem', 
+                        color: isOutgoing ? 'rgba(255,255,255,0.7)' : '#9ca3af', 
+                        marginTop: '0.25rem',
+                        textAlign: isOutgoing ? 'right' : 'left'
+                      }}>
+                        {formatTimestamp(message.timestamp)}
+                        {isOutgoing && ' ✓'}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Reply Interface */}
+        {selectedUserId && (
+          <div style={{ 
+            padding: '1rem',
+            backgroundColor: 'white',
+            borderTop: '1px solid #e5e7eb'
+          }}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+              <div style={{ flex: 1 }}>
+                <textarea
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Type your message..."
+                  style={{
+                    width: '100%',
+                    minHeight: '60px',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '20px',
+                    fontSize: '0.875rem',
+                    fontFamily: 'inherit',
+                    resize: 'none',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleReply();
+                    }
+                  }}
+                />
+              </div>
+              
+              <button
+                onClick={handleReply}
+                disabled={!replyText.trim() || isReplying}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  backgroundColor: !replyText.trim() || isReplying ? '#9ca3af' : '#E4405F',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '50%',
+                  cursor: !replyText.trim() || isReplying ? 'not-allowed' : 'pointer',
+                  transition: 'background-color 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1rem'
+                }}
+                onMouseEnter={(e) => {
+                  if (!(!replyText.trim() || isReplying)) {
+                    e.target.style.backgroundColor = '#C13584';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!(!replyText.trim() || isReplying)) {
+                    e.target.style.backgroundColor = '#E4405F';
+                  }
+                }}
+              >
+                {isReplying ? '⏳' : '📤'}
+              </button>
+            </div>
+            
+            {error && (
+              <div style={{
+                marginTop: '0.5rem',
+                padding: '0.5rem',
+                backgroundColor: '#fee2e2',
+                border: '1px solid #fecaca',
+                borderRadius: '4px',
+                fontSize: '0.75rem',
+                color: '#dc2626'
+              }}>
+                {error}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
     </div>
   );
 };

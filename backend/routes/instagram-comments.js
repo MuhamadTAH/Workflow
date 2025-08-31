@@ -4,6 +4,60 @@ const logger = require('../services/logger');
 
 // Store for Instagram DM data
 let instagramMessages = [];
+// Store for Instagram user profiles
+let instagramUsers = {};
+
+// Function to fetch Instagram user info
+async function fetchUserInfo(userId) {
+  try {
+    const ACCESS_TOKEN = 'IGAASK8KNQ8bVBZAFBiWE80aG9Jck5rU1BfaGQ0bHh4QVdEWFNhQzhIS3dRY29iV25hMkR1cEt6eTkwS2ZAqLWhidk5xWXN4M0F0elRnamJTU2NGS3NqVFhUT0FGV05nRXFSVGFoTkVmcTV3TzUzZAnJDa1dNT3ZArSG5VczhjQ21kQQZDZD';
+    
+    logger.info('👤 Fetching user info for:', { userId });
+    
+    const response = await fetch(`https://graph.instagram.com/v21.0/${userId}?fields=id,username,name,profile_picture_url&access_token=${ACCESS_TOKEN}`);
+    const data = await response.json();
+    
+    if (response.ok && data.id) {
+      instagramUsers[userId] = {
+        id: data.id,
+        username: data.username || `user_${userId.slice(0, 8)}`,
+        name: data.name || data.username || 'Instagram User',
+        profile_picture_url: data.profile_picture_url || null,
+        fetchedAt: new Date().toISOString()
+      };
+      
+      logger.info('✅ User info fetched:', { 
+        userId, 
+        username: instagramUsers[userId].username,
+        name: instagramUsers[userId].name 
+      });
+    } else {
+      // Fallback if API fails
+      instagramUsers[userId] = {
+        id: userId,
+        username: `user_${userId.slice(0, 8)}`,
+        name: 'Instagram User',
+        profile_picture_url: null,
+        fetchedAt: new Date().toISOString(),
+        failed: true
+      };
+      
+      logger.warn('⚠️ Failed to fetch user info, using fallback:', { userId, error: data });
+    }
+  } catch (error) {
+    logger.error('💥 Error fetching user info:', { userId, error: error.message });
+    
+    // Fallback user info
+    instagramUsers[userId] = {
+      id: userId,
+      username: `user_${userId.slice(0, 8)}`,
+      name: 'Instagram User',
+      profile_picture_url: null,
+      fetchedAt: new Date().toISOString(),
+      failed: true
+    };
+  }
+}
 
 // Instagram webhook endpoint (handles both GET verification and POST messages like n8n)
 router.all('/webhooks/instagram/comments', (req, res) => {
@@ -63,13 +117,20 @@ router.all('/webhooks/instagram/comments', (req, res) => {
         });
 
         if (entry.messaging) {
-          entry.messaging.forEach(messaging => {
+          entry.messaging.forEach(async (messaging) => {
             logger.info('💬 Processing messaging event:', {
               sender: messaging.sender?.id,
               recipient: messaging.recipient?.id,
               hasMessage: !!messaging.message,
               messageText: messaging.message?.text
             });
+
+            const senderId = messaging.sender?.id;
+            
+            // Fetch user info if we don't have it
+            if (senderId && !instagramUsers[senderId]) {
+              await fetchUserInfo(senderId);
+            }
 
             const messageData = {
               id: messaging.message?.mid || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -187,22 +248,36 @@ router.post('/instagram-comments/deactivate', (req, res) => {
   });
 });
 
-// Get Instagram messages
+// Get Instagram messages with user profiles
 router.get('/instagram-comments/comments', (req, res) => {
   logger.info('Instagram messages requested', {
     messageCount: instagramMessages.length,
+    userCount: Object.keys(instagramUsers).length,
     isWaiting: webhookState.isWaitingForCall
   });
 
   res.json({
     success: true,
     messages: instagramMessages,
+    users: instagramUsers,
     status: {
       isWaitingForCall: webhookState.isWaitingForCall,
       hasReceivedCall: webhookState.hasReceivedCall,
       activatedAt: webhookState.activatedAt,
       firstCallAt: webhookState.firstCallAt
     }
+  });
+});
+
+// Get Instagram user profiles
+router.get('/instagram-comments/users', (req, res) => {
+  logger.info('Instagram user profiles requested', {
+    userCount: Object.keys(instagramUsers).length
+  });
+
+  res.json({
+    success: true,
+    users: instagramUsers
   });
 });
 

@@ -38,6 +38,11 @@ function LeftSidebar() {
       name: 'Telegram Listener',
       path: '/telegram-listener',
       icon: 'fab fa-telegram'
+    },
+    {
+      name: 'Instagram DM Manager',
+      path: '/instagram-comments',
+      icon: 'fab fa-instagram'
     }
   ];
 
