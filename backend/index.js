@@ -134,6 +134,8 @@ app.use('/public', express.static('public'));
 
 // Routes
 app.use('/api', authRoutes);
+// INSTAGRAM COMMENT ROUTES (must be before webhooks to avoid conflict)
+app.use('/api', instagramCommentRoutes);
 app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/workflows', workflowRoutes);
 app.use('/api/agent', agentRoutes);
@@ -154,8 +156,6 @@ app.use('/api/whatsapp-receiver', whatsappReceiverRoutes);
 app.use('/api/telegram-listener', telegramListenerRoutes);
 // CLAUDE API ROUTES
 app.use('/api/claude', claudeRoutes);
-// INSTAGRAM COMMENT ROUTES
-app.use('/api', instagramCommentRoutes);
 
 // Chat trigger alias route for frontend compatibility
 app.get('/api/chat/:nodeId', (req, res) => {

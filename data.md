@@ -107,3 +107,42 @@
     "instanceId": "cdb134ca0095a1d4a0b035b6bbf4c6d5e84da0c199849d169362c7d01d059361"
   }
 }
+
+[2025-08-31T14:21:44.607Z] INFO: Incoming request {"method":"POST","url":"/api/webhooks/instagram/comments","ip":"::1","userAgent":"facebookexternalua"}
+🌐 INCOMING REQUEST: {
+  method: 'POST',
+  url: '/api/webhooks/instagram/comments',
+  origin: undefined,
+  userAgent: 'facebookexternalua',
+  contentType: 'application/json',
+  contentLength: '402',
+  authorization: 'missing',
+  timestamp: '2025-08-31T14:21:44.608Z'
+}
+📷 Instagram webhook received for workflow: comments
+📷 Instagram update data: {
+  "object": "instagram",
+  "entry": [
+    {
+      "time": 1756650104449,
+      "id": "17841445204646276",
+      "messaging": [
+        {
+          "sender": {
+            "id": "751391291169578"
+          },
+          "recipient": {
+            "id": "17841445204646276"
+          },
+          "timestamp": 1756649218759,
+          "message": {
+            "mid": "aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDQ1MjA0NjQ2Mjc2OjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI1OTkyNDE4MDE3NjkwMDgzOTozMjQwNDQ1ODU2NTczMzA4MTQ1NDA0MjUwNzIyNzY5MzA1NgZDZD",
+            "text": "Hello’s"
+          }
+        }
+      ]
+    }
+  ]
+}
+❌ Instagram webhook: workflow not found: comments
+[2025-08-31T14:21:44.610Z] INFO: Request completed {"method":"POST","url":"/instagram/comments","status":404,"duration":"3ms"}
