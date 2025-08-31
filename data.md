@@ -10,8 +10,8 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -80,
-        96
+        -288,
+        80
       ],
       "id": "332af39d-a389-4010-ab06-9b5e97203f9a",
       "name": "Webhook",
@@ -75,33 +75,6 @@
       ],
       "id": "12a3436b-15de-4e68-9e1a-5c2b6b21c86d",
       "name": "Respond to Webhook"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "=https://graph.instagram.com/v23.0/{{ $json.body.entry[0].messaging[0].recipient.id }}/messages",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Authorization",
-              "value": "Bearer IGAASK8KNQ8bVBZAE9TYlJLU25WcEtKSzlGaDNNZAjFOY2xhYnV4UFRoNzBTNXVzX2pyaU5RRWgwYlhlZAnZASQnpjUW1HejNaRjVpaUxnNlBsSWQ1c01RRERsMW0xRVZAzT3IwZAng2MjlMM25xV2NVNWRnelNNM0ltYk1sM0NnWmdtZAwZDZD"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $json.body.entry[0].messaging[0].sender.id }}\"\n  },\n  \"message\": {\n    \"text\": \"Hello! Thanks for reaching out.\"\n  }\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        464,
-        240
-      ],
-      "id": "7ef06bee-558d-4156-b394-3362c4e076b3",
-      "name": "HTTP Request"
     }
   ],
   "connections": {
@@ -114,13 +87,7 @@
             "index": 0
           }
         ],
-        [
-          {
-            "node": "HTTP Request",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "If": {
@@ -140,38 +107,3 @@
     "instanceId": "cdb134ca0095a1d4a0b035b6bbf4c6d5e84da0c199849d169362c7d01d059361"
   }
 }
-
-
-vendor-CsChfltt.js:32 ReferenceError: selectedComment is not defined
-    at py (index-B3IPvyH9.js:74:80464)
-    at Iu (vendor-CsChfltt.js:30:16995)
-    at ca (vendor-CsChfltt.js:32:44163)
-    at oa (vendor-CsChfltt.js:32:39850)
-    at ic (vendor-CsChfltt.js:32:39778)
-    at yl (vendor-CsChfltt.js:32:39632)
-    at oi (vendor-CsChfltt.js:32:35986)
-    at ra (vendor-CsChfltt.js:32:34934)
-    at Ge (vendor-CsChfltt.js:17:1578)
-    at MessagePort.ut (vendor-CsChfltt.js:17:1965)
-$u @ vendor-CsChfltt.js:32
-Ns.n.callback @ vendor-CsChfltt.js:32
-ts @ vendor-CsChfltt.js:30
-ea @ vendor-CsChfltt.js:32
-bs @ vendor-CsChfltt.js:32
-rc @ vendor-CsChfltt.js:32
-sc @ vendor-CsChfltt.js:32
-nn @ vendor-CsChfltt.js:32
-ra @ vendor-CsChfltt.js:32
-Ge @ vendor-CsChfltt.js:17
-ut @ vendor-CsChfltt.js:17
-vendor-CsChfltt.js:32 Uncaught ReferenceError: selectedComment is not defined
-    at py (index-B3IPvyH9.js:74:80464)
-    at Iu (vendor-CsChfltt.js:30:16995)
-    at ca (vendor-CsChfltt.js:32:44163)
-    at oa (vendor-CsChfltt.js:32:39850)
-    at ic (vendor-CsChfltt.js:32:39778)
-    at yl (vendor-CsChfltt.js:32:39632)
-    at oi (vendor-CsChfltt.js:32:35986)
-    at ra (vendor-CsChfltt.js:32:34934)
-    at Ge (vendor-CsChfltt.js:17:1578)
-    at MessagePort.ut (vendor-CsChfltt.js:17:1965)

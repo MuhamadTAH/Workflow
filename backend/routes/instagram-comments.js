@@ -5,46 +5,99 @@ const logger = require('../services/logger');
 // Store for Instagram DM data
 let instagramMessages = [];
 
-// Instagram webhook verification endpoint  
-router.get('/webhooks/instagram/comments', (req, res) => {
-  const mode = req.query['hub.mode'];
-  const token = req.query['hub.verify_token'];
-  const challenge = req.query['hub.challenge'];
-
-  logger.info('🔥 INSTAGRAM WEBHOOK CALL RECEIVED!', {
-    mode,
-    token,
-    challenge: challenge ? 'present' : 'missing',
+// Instagram webhook endpoint (handles both GET verification and POST messages like n8n)
+router.all('/webhooks/instagram/comments', (req, res) => {
+  logger.info('🔥 INSTAGRAM WEBHOOK RECEIVED!', {
+    method: req.method,
+    query: req.query,
+    hasBody: !!req.body,
     timestamp: new Date().toISOString()
   });
 
-  // Mark that we received the first call
-  if (webhookState.isWaitingForCall && !webhookState.hasReceivedCall) {
-    webhookState.hasReceivedCall = true;
-    webhookState.firstCallAt = new Date().toISOString();
-    logger.info('🎉 FIRST WEBHOOK CALL DETECTED!', { 
-      firstCallAt: webhookState.firstCallAt 
-    });
+  // Handle GET verification (like n8n If node)
+  if (req.method === 'GET') {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    logger.info('📝 Processing verification:', { mode, token, challenge: !!challenge });
+
+    // Mark that we received the first call
+    if (webhookState.isWaitingForCall && !webhookState.hasReceivedCall) {
+      webhookState.hasReceivedCall = true;
+      webhookState.firstCallAt = new Date().toISOString();
+      logger.info('🎉 FIRST WEBHOOK CALL DETECTED!', { 
+        firstCallAt: webhookState.firstCallAt 
+      });
+    }
+
+    // Verify token (like n8n conditions)
+    const VERIFY_TOKEN = 'muhammad';
+    
+    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+      logger.info('✅ Instagram webhook verified - sending challenge');
+      return res.status(200).send(challenge);
+    } else {
+      logger.warn('❌ Verification failed', { expectedToken: VERIFY_TOKEN, receivedToken: token });
+      return res.sendStatus(403);
+    }
   }
 
-  // Verify the token
-  const VERIFY_TOKEN = 'muhammad';
-  
-  if (mode && token) {
-    if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-      logger.info('✅ Instagram webhook verified successfully');
-      res.status(200).send(challenge);
-    } else {
-      logger.warn('❌ Instagram webhook verification failed', { 
-        expectedToken: VERIFY_TOKEN,
-        receivedToken: token,
-        mode 
+  // Handle POST messages (like n8n message processing)
+  if (req.method === 'POST') {
+    const body = req.body;
+
+    logger.info('💬 INSTAGRAM MESSAGE DATA!', {
+      hasEntry: !!body.entry,
+      entryCount: body.entry ? body.entry.length : 0,
+      fullBody: JSON.stringify(body, null, 2)
+    });
+
+    // Process messages (same as before)
+    if (body.entry && body.entry.length > 0) {
+      body.entry.forEach(entry => {
+        logger.info('📝 Processing entry:', {
+          id: entry.id,
+          hasMessaging: !!entry.messaging,
+          messagingCount: entry.messaging ? entry.messaging.length : 0
+        });
+
+        if (entry.messaging) {
+          entry.messaging.forEach(messaging => {
+            logger.info('💬 Processing messaging event:', {
+              sender: messaging.sender?.id,
+              recipient: messaging.recipient?.id,
+              hasMessage: !!messaging.message,
+              messageText: messaging.message?.text
+            });
+
+            const messageData = {
+              id: messaging.message?.mid || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              text: messaging.message?.text || '',
+              sender: {
+                id: messaging.sender?.id
+              },
+              recipient: {
+                id: messaging.recipient?.id
+              },
+              timestamp: new Date().toISOString(),
+              webhookTimestamp: messaging.timestamp,
+              rawData: messaging
+            };
+            
+            instagramMessages.push(messageData);
+            logger.info('✅ Instagram DM stored successfully!', { 
+              messageId: messageData.id,
+              senderId: messageData.sender.id,
+              text: messageData.text ? messageData.text.substring(0, 50) + '...' : 'No text',
+              totalMessages: instagramMessages.length
+            });
+          });
+        }
       });
-      res.sendStatus(403);
     }
-  } else {
-    logger.warn('⚠️ Instagram webhook verification missing required parameters');
-    res.sendStatus(400);
+
+    return res.status(200).send('EVENT_RECEIVED');
   }
 });
 
@@ -57,63 +110,6 @@ router.post('/webhooks/instagram/test', (req, res) => {
   res.json({ success: true, message: 'Test received!' });
 });
 
-// Instagram webhook data reception endpoint
-router.post('/webhooks/instagram/comments', (req, res) => {
-  const body = req.body;
-
-  logger.info('🔥 INSTAGRAM WEBHOOK DATA RECEIVED!', {
-    hasEntry: !!body.entry,
-    entryCount: body.entry ? body.entry.length : 0,
-    fullBody: JSON.stringify(body, null, 2)
-  });
-
-  // Store the webhook data for processing
-  if (body.entry && body.entry.length > 0) {
-    body.entry.forEach(entry => {
-      logger.info('📝 Processing entry:', {
-        id: entry.id,
-        hasMessaging: !!entry.messaging,
-        messagingCount: entry.messaging ? entry.messaging.length : 0
-      });
-
-      // Process Instagram DM webhook data (like your working n8n setup)
-      if (entry.messaging) {
-        entry.messaging.forEach(messaging => {
-          logger.info('💬 Processing messaging event:', {
-            sender: messaging.sender?.id,
-            recipient: messaging.recipient?.id,
-            hasMessage: !!messaging.message,
-            messageText: messaging.message?.text
-          });
-
-          const messageData = {
-            id: messaging.message?.mid || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            text: messaging.message?.text || '',
-            sender: {
-              id: messaging.sender?.id
-            },
-            recipient: {
-              id: messaging.recipient?.id
-            },
-            timestamp: new Date().toISOString(),
-            webhookTimestamp: messaging.timestamp,
-            rawData: messaging // Store raw data for debugging
-          };
-          
-          instagramMessages.push(messageData);
-          logger.info('✅ Instagram DM stored successfully!', { 
-            messageId: messageData.id,
-            senderId: messageData.sender.id,
-            text: messageData.text ? messageData.text.substring(0, 50) + '...' : 'No text',
-            totalMessages: instagramMessages.length
-          });
-        });
-      }
-    });
-  }
-
-  res.status(200).send('EVENT_RECEIVED');
-});
 
 // Instagram webhook state
 let webhookState = {
