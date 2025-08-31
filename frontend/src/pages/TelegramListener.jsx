@@ -23,6 +23,11 @@ const TelegramListener = () => {
   const [isSystemPromptCollapsed, setIsSystemPromptCollapsed] = useState(false);
   const [isPdfKnowledgeCollapsed, setIsPdfKnowledgeCollapsed] = useState(false);
   
+  // Right sidebar collapse states
+  const [isSelectedUserCollapsed, setIsSelectedUserCollapsed] = useState(false);
+  const [isStatisticsCollapsed, setIsStatisticsCollapsed] = useState(false);
+  const [isQuickActionsCollapsed, setIsQuickActionsCollapsed] = useState(false);
+  
   // Claude API states
   const [claudeApiKey, setClaudeApiKey] = useState('');
   const [claudeStatus, setClaudeStatus] = useState('');
@@ -1948,12 +1953,43 @@ CONTACT & SOCIAL:
             <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
               
               {/* Selected User Info Section */}
-              <div style={{ marginBottom: '2rem' }}>
-                <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                  👤 Selected User
+              <div style={{ marginBottom: isSelectedUserCollapsed ? '0' : '2rem' }}>
+                <h3 
+                  onClick={() => setIsSelectedUserCollapsed(!isSelectedUserCollapsed)}
+                  style={{ 
+                    fontSize: '1rem', 
+                    fontWeight: '600', 
+                    color: '#1f2937', 
+                    marginBottom: '1rem', 
+                    borderBottom: '2px solid #e5e7eb', 
+                    paddingBottom: '0.5rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    userSelect: 'none'
+                  }}
+                >
+                  <span>👤 Selected User</span>
+                  <span style={{ 
+                    transform: isSelectedUserCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                    fontSize: '0.8rem',
+                    color: '#6b7280'
+                  }}>
+                    ▼
+                  </span>
                 </h3>
+
+                {/* Collapsible Content */}
+                <div style={{
+                  maxHeight: isSelectedUserCollapsed ? '0' : '2000px',
+                  overflow: 'hidden',
+                  transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                  opacity: isSelectedUserCollapsed ? 0 : 1
+                }}>
                 
-                {selectedUser ? (
+                  {selectedUser ? (
                   <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e7eb' }}>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
                       <div style={{
@@ -2035,6 +2071,8 @@ CONTACT & SOCIAL:
                     <p>Select a user from the chat interface to view their information</p>
                   </div>
                 )}
+                
+                </div> {/* End Collapsible Content */}
               </div>
               
               {/* Statistics Section */}

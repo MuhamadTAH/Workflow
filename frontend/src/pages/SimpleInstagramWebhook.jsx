@@ -7,6 +7,7 @@ const SimpleInstagramWebhook = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [firstCallAt, setFirstCallAt] = useState(null);
+  const [messages, setMessages] = useState([]);
 
   const webhookUrl = `${API_BASE_URL}/api/webhooks/instagram/comments`;
   const verifyToken = 'muhammad';
@@ -16,14 +17,17 @@ const SimpleInstagramWebhook = () => {
     checkStatus();
   }, []);
 
-  // Poll for webhook status when waiting
+  // Poll for webhook status and messages when waiting
   useEffect(() => {
     let interval;
-    if (isWaiting && !hasReceivedCall) {
-      interval = setInterval(checkStatus, 2000); // Check every 2 seconds
+    if (isWaiting) {
+      interval = setInterval(() => {
+        checkStatus();
+        fetchMessages();
+      }, 3000); // Check every 3 seconds
     }
     return () => clearInterval(interval);
-  }, [isWaiting, hasReceivedCall]);
+  }, [isWaiting]);
 
   const checkStatus = async () => {
     try {
@@ -68,27 +72,49 @@ const SimpleInstagramWebhook = () => {
     }
   };
 
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/instagram-comments/comments`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setMessages(data.messages || []);
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
+  };
+
+  const formatTimestamp = (timestamp) => {
+    return new Date(timestamp).toLocaleString();
   };
 
   return (
     <div style={{ 
       minHeight: '100vh', 
       backgroundColor: '#f9fafb', 
-      padding: '2rem',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
+      padding: '2rem'
     }}>
       <div style={{ 
-        maxWidth: '600px', 
-        width: '100%',
-        backgroundColor: 'white',
-        borderRadius: '12px',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-        padding: '2rem'
+        maxWidth: '1400px', 
+        margin: '0 auto',
+        display: 'flex',
+        gap: '2rem',
+        alignItems: 'flex-start'
       }}>
+        
+        {/* Left Panel - Webhook Setup */}
+        <div style={{ 
+          width: '500px',
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+          padding: '2rem'
+        }}>
         
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
@@ -290,6 +316,138 @@ const SimpleInstagramWebhook = () => {
             <li>Meta will call the webhook and you'll see success!</li>
           </ol>
         </div>
+        </div>
+
+        {/* Right Panel - Conversation */}
+        <div style={{ 
+          flex: '1',
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+          padding: '2rem',
+          minHeight: '600px'
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+            <h2 style={{ 
+              fontSize: '1.5rem', 
+              fontWeight: 'bold', 
+              color: '#111827',
+              marginBottom: '0.5rem'
+            }}>
+              💬 Instagram DMs
+            </h2>
+            <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+              {messages.length} message{messages.length !== 1 ? 's' : ''} received
+            </p>
+          </div>
+
+          {/* Messages Display */}
+          <div style={{ 
+            height: '400px', 
+            overflowY: 'auto', 
+            border: '1px solid #e5e7eb', 
+            borderRadius: '8px',
+            padding: '1rem',
+            backgroundColor: '#fafafa'
+          }}>
+            {messages.length === 0 ? (
+              <div style={{ 
+                textAlign: 'center', 
+                color: '#9ca3af', 
+                padding: '2rem',
+                fontStyle: 'italic'
+              }}>
+                No messages yet. Send a DM to your Instagram account to see it appear here!
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {messages.map((message, index) => (
+                  <div 
+                    key={message.id || index}
+                    style={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      padding: '1rem',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                    }}
+                  >
+                    {/* Message Header */}
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      marginBottom: '0.5rem',
+                      gap: '0.5rem'
+                    }}>
+                      <div style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        backgroundColor: '#E4405F',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '0.875rem',
+                        color: 'white',
+                        fontWeight: 'bold'
+                      }}>
+                        {message.sender?.id ? message.sender.id.substring(0,1).toUpperCase() : '👤'}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: '600', fontSize: '0.875rem', color: '#111827' }}>
+                          {message.sender?.id || 'Unknown User'}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                          {formatTimestamp(message.timestamp)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Message Content */}
+                    <div style={{ 
+                      padding: '0.5rem 0',
+                      fontSize: '0.875rem',
+                      color: '#374151',
+                      backgroundColor: '#f8fafc',
+                      borderRadius: '6px',
+                      padding: '0.75rem',
+                      fontStyle: message.text ? 'normal' : 'italic'
+                    }}>
+                      {message.text || 'No text content'}
+                    </div>
+
+                    {/* Message ID for debugging */}
+                    <div style={{ 
+                      fontSize: '0.65rem', 
+                      color: '#9ca3af', 
+                      marginTop: '0.5rem',
+                      fontFamily: 'monospace'
+                    }}>
+                      ID: {message.id}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Live indicator */}
+          {isWaiting && (
+            <div style={{ 
+              textAlign: 'center', 
+              marginTop: '1rem',
+              padding: '0.75rem',
+              backgroundColor: '#fef3c7',
+              border: '1px solid #f59e0b',
+              borderRadius: '6px',
+              fontSize: '0.875rem',
+              color: '#92400e'
+            }}>
+              🔴 Live - Listening for new messages...
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );

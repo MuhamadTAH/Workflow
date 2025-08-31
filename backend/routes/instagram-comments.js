@@ -52,20 +52,34 @@ router.get('/webhooks/instagram/comments', (req, res) => {
 router.post('/webhooks/instagram/comments', (req, res) => {
   const body = req.body;
 
-  logger.info('Instagram webhook data received', {
+  logger.info('🔥 INSTAGRAM WEBHOOK DATA RECEIVED!', {
     hasEntry: !!body.entry,
-    entryCount: body.entry ? body.entry.length : 0
+    entryCount: body.entry ? body.entry.length : 0,
+    fullBody: JSON.stringify(body, null, 2)
   });
 
   // Store the webhook data for processing
   if (body.entry && body.entry.length > 0) {
     body.entry.forEach(entry => {
+      logger.info('📝 Processing entry:', {
+        id: entry.id,
+        hasMessaging: !!entry.messaging,
+        messagingCount: entry.messaging ? entry.messaging.length : 0
+      });
+
       // Process Instagram DM webhook data (like your working n8n setup)
       if (entry.messaging) {
         entry.messaging.forEach(messaging => {
+          logger.info('💬 Processing messaging event:', {
+            sender: messaging.sender?.id,
+            recipient: messaging.recipient?.id,
+            hasMessage: !!messaging.message,
+            messageText: messaging.message?.text
+          });
+
           const messageData = {
-            id: messaging.message?.mid || Date.now().toString(),
-            text: messaging.message?.text,
+            id: messaging.message?.mid || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            text: messaging.message?.text || '',
             sender: {
               id: messaging.sender?.id
             },
@@ -73,14 +87,16 @@ router.post('/webhooks/instagram/comments', (req, res) => {
               id: messaging.recipient?.id
             },
             timestamp: new Date().toISOString(),
-            webhookTimestamp: messaging.timestamp
+            webhookTimestamp: messaging.timestamp,
+            rawData: messaging // Store raw data for debugging
           };
           
           instagramMessages.push(messageData);
-          logger.info('Instagram DM stored', { 
+          logger.info('✅ Instagram DM stored successfully!', { 
             messageId: messageData.id,
             senderId: messageData.sender.id,
-            text: messageData.text ? messageData.text.substring(0, 50) + '...' : 'No text'
+            text: messageData.text ? messageData.text.substring(0, 50) + '...' : 'No text',
+            totalMessages: instagramMessages.length
           });
         });
       }
