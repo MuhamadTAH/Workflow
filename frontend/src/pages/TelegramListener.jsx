@@ -904,10 +904,11 @@ CONTACT & SOCIAL:
                     transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
                     opacity: isClaudeConfigCollapsed ? 0 : 1
                   }}>
+                    <div>
 
-              {/* Claude Connection Status */}
-              <div style={{
-                padding: '1rem',
+                      {/* Claude Connection Status */}
+                      <div style={{
+                        padding: '1rem',
                 borderRadius: '8px',
                 backgroundColor: claudeConnectionStatus === 'connected' ? '#f0fdf4' : '#fef2f2',
                 border: `1px solid ${claudeConnectionStatus === 'connected' ? '#bbf7d0' : '#fecaca'}`,
@@ -1039,6 +1040,7 @@ CONTACT & SOCIAL:
                   Once connected, you can process messages with AI assistance and generate automated replies.
                 </p>
               </div>
+                    </div>
                   </div> {/* End Collapsible Content */}
                 </div>
 
