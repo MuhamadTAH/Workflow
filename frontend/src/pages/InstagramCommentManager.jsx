@@ -606,7 +606,7 @@ const InstagramCommentManager = () => {
                       )}
                     </h3>
                     <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                      {comments.length} comment{comments.length !== 1 ? 's' : ''}
+                      {messages.length} message{messages.length !== 1 ? 's' : ''}
                     </span>
                   </div>
 
@@ -617,7 +617,7 @@ const InstagramCommentManager = () => {
                     borderRadius: '4px',
                     border: '1px solid #e5e7eb'
                   }}>
-                    {comments.length === 0 ? (
+                    {messages.length === 0 ? (
                       <div style={{ 
                         padding: '2rem', 
                         textAlign: 'center', 
@@ -625,20 +625,20 @@ const InstagramCommentManager = () => {
                         fontSize: '0.875rem'
                       }}>
                         <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📷</div>
-                        <p>No comments yet. Comments will appear here when users comment on your Instagram posts</p>
+                        <p>No messages yet. Messages will appear here when users send you Instagram DMs</p>
                       </div>
                     ) : (
                       <div style={{ padding: '0.5rem' }}>
-                        {comments.map((comment, index) => (
+                        {messages.map((message, index) => (
                           <div
-                            key={comment.id || index}
-                            onClick={() => setSelectedComment(comment)}
+                            key={message.id || index}
+                            onClick={() => setSelectedMessage(message)}
                             style={{
                               padding: '0.75rem',
                               marginBottom: '0.5rem',
-                              backgroundColor: selectedComment?.id === comment.id ? '#fef2f2' : '#f9fafb',
+                              backgroundColor: selectedMessage?.id === message.id ? '#fef2f2' : '#f9fafb',
                               borderRadius: '6px',
-                              border: selectedComment?.id === comment.id ? '2px solid #E4405F' : '1px solid #f3f4f6',
+                              border: selectedMessage?.id === message.id ? '2px solid #E4405F' : '1px solid #f3f4f6',
                               cursor: 'pointer',
                               transition: 'all 0.2s'
                             }}
@@ -657,11 +657,11 @@ const InstagramCommentManager = () => {
                                 color: 'white',
                                 fontWeight: 'bold'
                               }}>
-                                {comment.from?.username ? comment.from.username[0].toUpperCase() : '👤'}
+                                {message.sender?.id ? message.sender.id.substring(0,1).toUpperCase() : '👤'}
                               </div>
                               <div style={{ flex: 1 }}>
                                 <div style={{ fontWeight: '500', fontSize: '0.875rem', color: '#111827' }}>
-                                  {comment.from?.username || comment.from?.id || 'Anonymous User'}
+                                  {message.sender?.id || 'Anonymous User'}
                                 </div>
                                 <div style={{ 
                                   fontSize: '0.75rem', 
@@ -670,10 +670,10 @@ const InstagramCommentManager = () => {
                                   textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap'
                                 }}>
-                                  {comment.text || 'No text content'}
+                                  {message.text || 'No text content'}
                                 </div>
                                 <div style={{ fontSize: '0.65rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                                  {formatTimestamp(comment.timestamp)}
+                                  {formatTimestamp(message.timestamp)}
                                 </div>
                               </div>
                             </div>
@@ -988,13 +988,13 @@ const InstagramCommentManager = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ color: '#6b7280' }}>Total Comments</span>
                       <span style={{ fontWeight: '600', color: '#111827', backgroundColor: '#fef2f2', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
-                        {comments.length}
+                        {messages.length}
                       </span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ color: '#6b7280' }}>New Comments</span>
                       <span style={{ fontWeight: '600', color: '#111827', backgroundColor: '#dcfce7', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
-                        {comments.length}
+                        {messages.length}
                       </span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1036,14 +1036,14 @@ const InstagramCommentManager = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                   <button
                     onClick={() => setComments([])}
-                    disabled={comments.length === 0}
+                    disabled={messages.length === 0}
                     style={{
-                      backgroundColor: comments.length === 0 ? '#9ca3af' : '#ef4444',
+                      backgroundColor: messages.length === 0 ? '#9ca3af' : '#ef4444',
                       color: 'white',
                       padding: '0.75rem',
                       border: 'none',
                       borderRadius: '6px',
-                      cursor: comments.length === 0 ? 'not-allowed' : 'pointer',
+                      cursor: messages.length === 0 ? 'not-allowed' : 'pointer',
                       fontSize: '0.875rem',
                       fontWeight: '500'
                     }}
