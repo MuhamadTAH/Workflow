@@ -142,8 +142,8 @@
 }
 
 
-vendor-CsChfltt.js:32 ReferenceError: comments is not defined
-    at py (index-CLuxuZKz.js:74:78515)
+vendor-CsChfltt.js:32 ReferenceError: selectedComment is not defined
+    at py (index-B3IPvyH9.js:74:80464)
     at Iu (vendor-CsChfltt.js:30:16995)
     at ca (vendor-CsChfltt.js:32:44163)
     at oa (vendor-CsChfltt.js:32:39850)
@@ -153,8 +153,19 @@ vendor-CsChfltt.js:32 ReferenceError: comments is not defined
     at ra (vendor-CsChfltt.js:32:34934)
     at Ge (vendor-CsChfltt.js:17:1578)
     at MessagePort.ut (vendor-CsChfltt.js:17:1965)
-vendor-CsChfltt.js:32 Uncaught ReferenceError: comments is not defined
-    at py (index-CLuxuZKz.js:74:78515)
+$u @ vendor-CsChfltt.js:32
+Ns.n.callback @ vendor-CsChfltt.js:32
+ts @ vendor-CsChfltt.js:30
+ea @ vendor-CsChfltt.js:32
+bs @ vendor-CsChfltt.js:32
+rc @ vendor-CsChfltt.js:32
+sc @ vendor-CsChfltt.js:32
+nn @ vendor-CsChfltt.js:32
+ra @ vendor-CsChfltt.js:32
+Ge @ vendor-CsChfltt.js:17
+ut @ vendor-CsChfltt.js:17
+vendor-CsChfltt.js:32 Uncaught ReferenceError: selectedComment is not defined
+    at py (index-B3IPvyH9.js:74:80464)
     at Iu (vendor-CsChfltt.js:30:16995)
     at ca (vendor-CsChfltt.js:32:44163)
     at oa (vendor-CsChfltt.js:32:39850)

@@ -899,9 +899,9 @@ CONTACT & SOCIAL:
 
                   {/* Collapsible Content */}
                   <div style={{
-                    maxHeight: isClaudeConfigCollapsed ? '0' : '1000px',
+                    maxHeight: isClaudeConfigCollapsed ? '0' : '2000px',
                     overflow: 'hidden',
-                    transition: 'max-height 0.3s ease-in-out',
+                    transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
                     opacity: isClaudeConfigCollapsed ? 0 : 1
                   }}>
 

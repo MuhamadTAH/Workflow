@@ -159,7 +159,7 @@ const InstagramCommentManager = () => {
   };
 
   const handleReplyToComment = async () => {
-    if (!selectedComment || !replyText.trim()) return;
+    if (!selectedMessage || !replyText.trim()) return;
     
     setIsReplying(true);
     
@@ -171,7 +171,7 @@ const InstagramCommentManager = () => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          commentId: selectedComment.id,
+          senderId: selectedMessage.sender?.id,
           replyText: replyText.trim()
         })
       });
@@ -697,7 +697,7 @@ const InstagramCommentManager = () => {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                     <h3 style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
                       📱 Comment Details
-                      {selectedComment && (
+                      {selectedMessage && (
                         <span style={{ 
                           marginLeft: '0.5rem', 
                           fontSize: '0.75rem', 
@@ -720,7 +720,7 @@ const InstagramCommentManager = () => {
                     border: '1px solid #e5e7eb',
                     borderBottom: 'none'
                   }}>
-                    {!selectedComment ? (
+                    {!selectedMessage ? (
                       <div style={{ 
                         padding: '2rem', 
                         textAlign: 'center', 
@@ -747,14 +747,14 @@ const InstagramCommentManager = () => {
                               color: 'white',
                               fontWeight: 'bold'
                             }}>
-                              {selectedComment.from?.username ? selectedComment.from.username[0].toUpperCase() : '👤'}
+                              {selectedMessage.sender?.id ? selectedMessage.sender.id.substring(0,1).toUpperCase() : '👤'}
                             </div>
                             <div>
                               <div style={{ fontWeight: '600', fontSize: '1rem', color: '#111827' }}>
-                                {selectedComment.from?.username || 'Anonymous User'}
+                                {selectedMessage.sender?.id || 'Anonymous User'}
                               </div>
                               <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-                                {selectedComment.from?.id || 'No ID'}
+                                {selectedMessage.sender?.id || 'No ID'}
                               </div>
                             </div>
                           </div>
@@ -766,16 +766,16 @@ const InstagramCommentManager = () => {
                             marginBottom: '1rem'
                           }}>
                             <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.4' }}>
-                              {selectedComment.text || 'No text content'}
+                              {selectedMessage.text || 'No text content'}
                             </p>
                           </div>
                           
                           <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                            <strong>Posted:</strong> {formatTimestamp(selectedComment.timestamp)}
+                            <strong>Posted:</strong> {formatTimestamp(selectedMessage.timestamp)}
                           </div>
-                          {selectedComment.media_id && (
+                          {selectedMessage.media_id && (
                             <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                              <strong>Media ID:</strong> {selectedComment.media_id}
+                              <strong>Media ID:</strong> {selectedMessage.media_id}
                             </div>
                           )}
                         </div>
@@ -784,7 +784,7 @@ const InstagramCommentManager = () => {
                   </div>
 
                   {/* Reply Input Bar */}
-                  {selectedComment && (
+                  {selectedMessage && (
                     <div style={{ 
                       backgroundColor: 'white', 
                       border: '1px solid #e5e7eb',
@@ -799,7 +799,7 @@ const InstagramCommentManager = () => {
                         <textarea
                           value={replyText}
                           onChange={(e) => setReplyText(e.target.value)}
-                          placeholder={`Reply to ${selectedComment.from?.username || 'this user'}...`}
+                          placeholder={`Reply to ${selectedMessage.sender?.id || 'this user'}...`}
                           style={{
                             width: '100%',
                             minHeight: '40px',
@@ -893,7 +893,7 @@ const InstagramCommentManager = () => {
                   🎯 Selected Comment
                 </h3>
                 
-                {selectedComment ? (
+                {selectedMessage ? (
                   <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '1rem', border: '1px solid #e5e7eb' }}>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
                       <div style={{
@@ -909,11 +909,11 @@ const InstagramCommentManager = () => {
                         color: 'white',
                         fontWeight: 'bold'
                       }}>
-                        {selectedComment.from?.username ? selectedComment.from.username[0].toUpperCase() : '👤'}
+                        {selectedMessage.sender?.id ? selectedMessage.from.username[0].toUpperCase() : '👤'}
                       </div>
                       <div>
                         <div style={{ fontWeight: '600', fontSize: '1rem', color: '#111827' }}>
-                          {selectedComment.from?.username || 'Anonymous User'}
+                          {selectedMessage.sender?.id || 'Anonymous User'}
                         </div>
                         <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
                           Instagram User
@@ -925,19 +925,19 @@ const InstagramCommentManager = () => {
                       <div>
                         <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Comment ID</div>
                         <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem', wordBreak: 'break-all' }}>
-                          {selectedComment.id || 'N/A'}
+                          {selectedMessage.id || 'N/A'}
                         </div>
                       </div>
                       <div>
                         <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Media ID</div>
                         <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem', wordBreak: 'break-all' }}>
-                          {selectedComment.media_id || 'N/A'}
+                          {selectedMessage.media_id || 'N/A'}
                         </div>
                       </div>
                       <div>
                         <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Timestamp</div>
                         <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem' }}>
-                          {formatTimestamp(selectedComment.timestamp)}
+                          {formatTimestamp(selectedMessage.timestamp)}
                         </div>
                       </div>
                       <div>
@@ -956,9 +956,9 @@ const InstagramCommentManager = () => {
                         borderRadius: '6px', 
                         fontSize: '0.875rem',
                         color: '#374151',
-                        fontStyle: selectedComment.text ? 'normal' : 'italic'
+                        fontStyle: selectedMessage.text ? 'normal' : 'italic'
                       }}>
-                        {selectedComment.text || 'No text content'}
+                        {selectedMessage.text || 'No text content'}
                       </div>
                     </div>
                   </div>
@@ -1053,14 +1053,14 @@ const InstagramCommentManager = () => {
                   
                   <button
                     onClick={() => setSelectedComment(null)}
-                    disabled={!selectedComment}
+                    disabled={!selectedMessage}
                     style={{
-                      backgroundColor: !selectedComment ? '#9ca3af' : '#6b7280',
+                      backgroundColor: !selectedMessage ? '#9ca3af' : '#6b7280',
                       color: 'white',
                       padding: '0.75rem',
                       border: 'none',
                       borderRadius: '6px',
-                      cursor: !selectedComment ? 'not-allowed' : 'pointer',
+                      cursor: !selectedMessage ? 'not-allowed' : 'pointer',
                       fontSize: '0.875rem',
                       fontWeight: '500'
                     }}
