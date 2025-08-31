@@ -20,6 +20,8 @@ const TelegramListener = () => {
   // Configuration panel collapse states
   const [isBotConfigCollapsed, setIsBotConfigCollapsed] = useState(false);
   const [isClaudeConfigCollapsed, setIsClaudeConfigCollapsed] = useState(false);
+  const [isSystemPromptCollapsed, setIsSystemPromptCollapsed] = useState(false);
+  const [isPdfKnowledgeCollapsed, setIsPdfKnowledgeCollapsed] = useState(false);
   
   // Claude API states
   const [claudeApiKey, setClaudeApiKey] = useState('');
@@ -1045,13 +1047,45 @@ CONTACT & SOCIAL:
                 </div>
 
                 {/* System Prompt Configuration Section */}
-                <div style={{ marginBottom: '2rem' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                    🎭 System Prompt
+                <div style={{ marginBottom: isSystemPromptCollapsed ? '0' : '2rem' }}>
+                  <h3 
+                    onClick={() => setIsSystemPromptCollapsed(!isSystemPromptCollapsed)}
+                    style={{ 
+                      fontSize: '1rem', 
+                      fontWeight: '600', 
+                      color: '#1f2937', 
+                      marginBottom: '1rem', 
+                      borderBottom: '2px solid #e5e7eb', 
+                      paddingBottom: '0.5rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <span>🎭 System Prompt</span>
+                    <span style={{ 
+                      transform: isSystemPromptCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                      fontSize: '0.8rem',
+                      color: '#6b7280'
+                    }}>
+                      ▼
+                    </span>
                   </h3>
 
-            {/* System Prompt Configuration Content */}
-            <div style={{ opacity: claudeConnectionStatus === 'connected' ? 1 : 0.6 }}>
+                  {/* Collapsible Content */}
+                  <div style={{
+                    maxHeight: isSystemPromptCollapsed ? '0' : '2000px',
+                    overflow: 'hidden',
+                    transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                    opacity: isSystemPromptCollapsed ? 0 : 1
+                  }}>
+                    <div>
+
+                      {/* System Prompt Configuration Content */}
+                      <div style={{ opacity: claudeConnectionStatus === 'connected' ? 1 : 0.6 }}>
               {claudeConnectionStatus !== 'connected' && (
                 <div style={{
                   backgroundColor: '#fef2f2',
@@ -1202,17 +1236,51 @@ CONTACT & SOCIAL:
                     💡 Click on any example to use it as your system prompt
                   </p>
                 </div>
-            </div>
+                      </div>
+                    </div>
+                  </div> {/* End Collapsible Content */}
                 </div>
 
                 {/* PDF Knowledge Base Section */}
-                <div style={{ marginBottom: '2rem' }}>
-                  <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                    📄 PDF Knowledge Base
+                <div style={{ marginBottom: isPdfKnowledgeCollapsed ? '0' : '2rem' }}>
+                  <h3 
+                    onClick={() => setIsPdfKnowledgeCollapsed(!isPdfKnowledgeCollapsed)}
+                    style={{ 
+                      fontSize: '1rem', 
+                      fontWeight: '600', 
+                      color: '#1f2937', 
+                      marginBottom: '1rem', 
+                      borderBottom: '2px solid #e5e7eb', 
+                      paddingBottom: '0.5rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <span>📄 PDF Knowledge Base</span>
+                    <span style={{ 
+                      transform: isPdfKnowledgeCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                      fontSize: '0.8rem',
+                      color: '#6b7280'
+                    }}>
+                      ▼
+                    </span>
                   </h3>
 
-            {/* PDF Knowledge Base Content */}
-            <div style={{ opacity: claudeConnectionStatus === 'connected' ? 1 : 0.6 }}>
+                  {/* Collapsible Content */}
+                  <div style={{
+                    maxHeight: isPdfKnowledgeCollapsed ? '0' : '2000px',
+                    overflow: 'hidden',
+                    transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                    opacity: isPdfKnowledgeCollapsed ? 0 : 1
+                  }}>
+                    <div>
+
+                      {/* PDF Knowledge Base Content */}
+                      <div style={{ opacity: claudeConnectionStatus === 'connected' ? 1 : 0.6 }}>
               {claudeConnectionStatus !== 'connected' && (
                 <div style={{
                   backgroundColor: '#fef2f2',

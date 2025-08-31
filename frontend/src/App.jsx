@@ -20,7 +20,7 @@ import PublicShop from './pages/PublicShop';
 import TelegramListener from './pages/TelegramListener';
 import WhatsAppReceiver from './pages/WhatsAppReceiver';
 import WhatsAppReceiverTest from './pages/WhatsAppReceiverTest';
-import InstagramCommentManager from './pages/InstagramCommentManager';
+import SimpleInstagramWebhook from './pages/SimpleInstagramWebhook';
 // Import shop components using the modular router
 import { 
   ShopDashboard, 
@@ -286,7 +286,7 @@ function App() {
         <Route path="/telegram-listener" element={<TelegramListener />} />
         <Route path="/whatsapp-receiver" element={<WhatsAppReceiver />} />
         <Route path="/whatsapp-test" element={<WhatsAppReceiverTest />} />
-        <Route path="/instagram-comments" element={<InstagramCommentManager />} />
+        <Route path="/instagram-comments" element={<SimpleInstagramWebhook />} />
         <Route path="/shop/:shopName" element={<PublicShop />} />
       </Routes>
     </Router>

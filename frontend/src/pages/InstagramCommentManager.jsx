@@ -85,11 +85,6 @@ const InstagramCommentManager = () => {
   };
 
   const handleActivate = async () => {
-    if (!appId.trim() || !appSecret.trim() || !accessToken.trim() || !instagramBusinessId.trim() || !webhookToken.trim()) {
-      setError('Please fill in all Instagram API configuration fields');
-      return;
-    }
-
     setIsLoading(true);
     setError('');
 
@@ -99,23 +94,16 @@ const InstagramCommentManager = () => {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          appId: appId.trim(),
-          appSecret: appSecret.trim(),
-          accessToken: accessToken.trim(),
-          instagramBusinessId: instagramBusinessId.trim(),
-          webhookToken: webhookToken.trim()
-        })
+        }
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
         setIsActive(true);
-        console.log('Instagram comment manager activated successfully');
+        console.log('✅ Started waiting for webhook call from Meta');
       } else {
-        setError(data.error || 'Failed to activate Instagram comment manager');
+        setError(data.error || 'Failed to start waiting for webhook');
       }
     } catch (error) {
       setError('Network error: ' + error.message);
