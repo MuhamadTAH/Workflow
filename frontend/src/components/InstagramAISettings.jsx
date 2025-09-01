@@ -41,6 +41,7 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
   // Load config on component mount
   useEffect(() => {
     if (isVisible) {
+      console.log('🔄 Instagram AI Settings modal opened - loading current settings...');
       loadConfig();
       checkClaudeStatus();
       loadSystemPrompt();
@@ -228,6 +229,9 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
 
       if (response.ok && result.success) {
         setSystemPromptStatus('✅ System prompt saved successfully!');
+        // Update the config state to reflect the saved prompt
+        setConfig(prev => ({ ...prev, systemPrompt: systemPrompt.trim() }));
+        console.log('✅ System prompt saved and updated locally');
         setTimeout(() => setSystemPromptStatus(''), 3000);
       } else {
         setSystemPromptStatus(`❌ Save failed: ${result.error || 'Unknown error'}`);
@@ -247,6 +251,9 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
 
       if (response.ok && result.success && result.systemPrompt) {
         setSystemPrompt(result.systemPrompt);
+        // Also update the config state for consistency
+        setConfig(prev => ({ ...prev, systemPrompt: result.systemPrompt }));
+        console.log('✅ Loaded system prompt:', result.systemPrompt.substring(0, 100) + '...');
       }
     } catch (error) {
       console.error('Error loading system prompt:', error);

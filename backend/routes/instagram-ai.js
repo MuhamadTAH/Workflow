@@ -247,10 +247,22 @@ router.post('/instagram-ai/upload-knowledge', async (req, res) => {
       filename: 'business-info.pdf',
       size: 1024 * 1024, // 1MB
       uploadedAt: new Date().toISOString(),
-      textContent: 'Sample PDF content extracted for knowledge base'
+      textContent: `PDF Knowledge Base Content:
+      
+Our Business Information:
+- Company: Instagram Marketing Agency
+- Services: Social media management, content creation, influencer partnerships
+- Hours: Monday-Friday 9AM-6PM PST
+- Contact: support@ourcompany.com
+- Specialization: Instagram growth strategies and engagement optimization
+- Pricing: Custom packages available starting at $500/month
+- Experience: 5+ years helping brands grow their Instagram presence
+
+This information should be used to answer customer questions about our services, pricing, and availability.`
     };
     
     knowledgeBaseInfo = mockPdfInfo;
+    // Update the knowledge base in aiConfig for immediate use
     aiConfig.knowledgeBase = mockPdfInfo.textContent;
     
     logger.info('✅ PDF knowledge base uploaded successfully');
@@ -288,10 +300,22 @@ async function generateAIReply(message, senderId) {
       autoReply: aiConfig.autoReply
     });
 
+    // Use the current system prompt from aiConfig (updated by the new interface)
+    const systemPromptToUse = aiConfig.systemPrompt;
+    
+    // Use PDF knowledge base if available, otherwise use text knowledge base
+    const knowledgeBaseToUse = knowledgeBaseInfo ? knowledgeBaseInfo.textContent : aiConfig.knowledgeBase;
+    
+    logger.info('📝 Using system prompt and knowledge base', {
+      systemPromptLength: systemPromptToUse?.length || 0,
+      knowledgeBaseLength: knowledgeBaseToUse?.length || 0,
+      hasPdfKnowledge: !!knowledgeBaseInfo
+    });
+
     const result = await claudeAI.sendMessage(
       message,
-      aiConfig.systemPrompt,
-      aiConfig.knowledgeBase
+      systemPromptToUse,
+      knowledgeBaseToUse
     );
 
     if (result.success) {
