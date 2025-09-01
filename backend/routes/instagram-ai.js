@@ -5,7 +5,7 @@ const claudeAI = require('../services/claudeAI');
 
 // Instagram AI Configuration Storage
 let aiConfig = {
-  enabled: false,
+  enabled: true, // Enable AI by default when API key is connected
   systemPrompt: 'You are a helpful assistant responding to Instagram direct messages. Keep responses friendly, concise, and helpful. Always respond in a conversational tone.',
   knowledgeBase: '',
   autoReply: true,

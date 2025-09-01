@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../config/api.js';
 const InstagramAISettings = ({ isVisible, onClose }) => {
   // AI Configuration State
   const [config, setConfig] = useState({
-    enabled: false,
+    enabled: true, // Enable AI by default
     systemPrompt: 'You are a helpful assistant responding to Instagram direct messages. Keep responses friendly, concise, and helpful. Always respond in a conversational tone.',
     knowledgeBase: '',
     autoReply: true,
@@ -160,9 +160,28 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        setClaudeStatus('✅ Claude AI connected! Ready for Instagram integration');
+        setClaudeStatus('✅ Claude AI connected! AI is now automatically enabled for Instagram DMs');
         setIsClaudeConnected(true);
         setClaudeApiKey('');
+        
+        // Automatically enable AI and auto-reply when connected
+        const autoEnabledConfig = {
+          ...config,
+          enabled: true,
+          autoReply: true
+        };
+        setConfig(autoEnabledConfig);
+        
+        // Save the auto-enabled configuration to backend
+        await fetch(`${API_BASE_URL}/api/instagram-ai/config`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(autoEnabledConfig)
+        });
+        
+        console.log('✅ AI automatically enabled with auto-reply on connection');
       } else {
         setClaudeStatus(`❌ Connection failed: ${result.error || 'Unknown error'}`);
         setIsClaudeConnected(false);
@@ -321,7 +340,7 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
   };
 
   const resetToDefaultPrompt = () => {
-    setSystemPrompt('You are a helpful assistant responding to Instagram direct messages. Keep responses friendly, concise, and helpful. Always respond in a conversational tone.');
+    setSystemPrompt('You are a helpful AI assistant for Instagram direct messages. Respond in a friendly, professional, and engaging manner. Keep responses concise but informative. Always maintain a conversational tone that reflects the casual nature of Instagram messaging.');
   };
 
   if (!isVisible) return null;
@@ -743,7 +762,7 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
           )}
         </div>
 
-        {/* AI Settings Section */}
+        {/* AI Test Section */}
         <div style={{ marginBottom: '2rem' }}>
           <h3 style={{ 
             fontSize: '1rem', 
@@ -753,156 +772,81 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
             borderBottom: '2px solid #e5e7eb', 
             paddingBottom: '0.5rem'
           }}>
-            ⚙️ AI Settings
+            🧪 Test AI Response
           </h3>
-
-          {/* Main Toggle */}
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ 
-              display: 'flex', 
-              alignItems: 'center',
-              gap: '1rem',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: '500'
+          
+          {/* Warning when Claude not connected */}
+          {!isClaudeConnected && (
+            <div style={{
+              backgroundColor: '#fef2f2',
+              padding: '0.75rem',
+              borderRadius: '6px',
+              marginBottom: '1rem',
+              border: '1px solid #fecaca'
             }}>
-              <input
-                type="checkbox"
-                checked={config.enabled}
-                onChange={(e) => setConfig({ ...config, enabled: e.target.checked })}
-                style={{
-                  width: '20px',
-                  height: '20px',
-                  accentColor: '#E4405F'
-                }}
-              />
-              Enable AI Assistant for Instagram DMs
-            </label>
-          </div>
-
-          {config.enabled && (
-            <>
-              {/* Auto-Reply Toggle */}
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ 
-                  display: 'flex', 
-                  alignItems: 'center',
-                  gap: '1rem',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem'
-                }}>
-                  <input
-                    type="checkbox"
-                    checked={config.autoReply}
-                    onChange={(e) => setConfig({ ...config, autoReply: e.target.checked })}
-                    style={{
-                      width: '18px',
-                      height: '18px',
-                      accentColor: '#E4405F'
-                    }}
-                  />
-                  Auto-reply to incoming messages
-                </label>
-              </div>
-
-              {/* Response Delay */}
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ 
-                  display: 'block', 
-                  fontSize: '0.875rem', 
-                  fontWeight: '500', 
-                  color: '#374151', 
-                  marginBottom: '0.5rem' 
-                }}>
-                  Response Delay (milliseconds):
-                </label>
-                <input
-                  type="number"
-                  value={config.responseDelay}
-                  onChange={(e) => setConfig({ ...config, responseDelay: parseInt(e.target.value) })}
-                  min="0"
-                  max="30000"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '0.875rem',
-                    boxSizing: 'border-box'
-                  }}
-                />
-                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
-                  Delay before sending auto-reply to seem more natural
-                </div>
-              </div>
-
-              {/* AI Test Section */}
-              <div style={{ 
-                padding: '1rem',
-                backgroundColor: '#f8fafc',
-                borderRadius: '8px',
-                border: '1px solid #e5e7eb'
-              }}>
-                <h4 style={{ 
-                  fontSize: '0.875rem', 
-                  fontWeight: '600', 
-                  color: '#374151',
-                  marginBottom: '1rem'
-                }}>
-                  🧪 Test AI Response
-                </h4>
-                
-                <div style={{ marginBottom: '1rem' }}>
-                  <input
-                    type="text"
-                    value={testMessage}
-                    onChange={(e) => setTestMessage(e.target.value)}
-                    placeholder="Type a test message..."
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '0.875rem',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
-                
-                <button
-                  onClick={testAI}
-                  disabled={isTesting || !testMessage.trim() || !isClaudeConnected}
-                  style={{
-                    backgroundColor: isTesting || !isClaudeConnected ? '#9ca3af' : '#E4405F',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    padding: '0.75rem 1.5rem',
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    cursor: isTesting || !isClaudeConnected ? 'not-allowed' : 'pointer',
-                    marginBottom: '1rem'
-                  }}
-                >
-                  {isTesting ? '🔄 Testing...' : '🚀 Test Response'}
-                </button>
-                
-                {testResponse && (
-                  <div style={{
-                    padding: '0.75rem',
-                    backgroundColor: 'white',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '0.875rem',
-                    whiteSpace: 'pre-wrap'
-                  }}>
-                    <strong>AI Response:</strong><br/>
-                    {testResponse}
-                  </div>
-                )}
-              </div>
-            </>
+              <p style={{ color: '#991b1b', fontSize: '0.875rem', margin: 0 }}>
+                ⚠️ Connect to Claude API first to test AI responses
+              </p>
+            </div>
           )}
+
+          <div style={{ 
+            padding: '1rem',
+            backgroundColor: '#f8fafc',
+            borderRadius: '8px',
+            border: '1px solid #e5e7eb',
+            opacity: isClaudeConnected ? 1 : 0.6
+          }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <input
+                type="text"
+                value={testMessage}
+                onChange={(e) => setTestMessage(e.target.value)}
+                placeholder="Type a test message..."
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '0.875rem',
+                  boxSizing: 'border-box'
+                }}
+                disabled={!isClaudeConnected}
+              />
+            </div>
+            
+            <button
+              onClick={testAI}
+              disabled={isTesting || !testMessage.trim() || !isClaudeConnected}
+              style={{
+                backgroundColor: isTesting || !isClaudeConnected ? '#9ca3af' : '#E4405F',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                padding: '0.75rem 1.5rem',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                cursor: isTesting || !isClaudeConnected ? 'not-allowed' : 'pointer',
+                marginBottom: '1rem'
+              }}
+            >
+              {isTesting ? '🔄 Testing...' : '🚀 Test Response'}
+            </button>
+            
+            {testResponse && (
+              <div style={{
+                padding: '0.75rem',
+                backgroundColor: 'white',
+                border: '1px solid #d1d5db',
+                borderRadius: '6px',
+                fontSize: '0.875rem',
+                whiteSpace: 'pre-wrap'
+              }}>
+                <strong>AI Response:</strong><br/>
+                {testResponse}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Error Display */}
@@ -946,19 +890,19 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
           
           <button
             onClick={saveConfig}
-            disabled={isLoading || !isClaudeConnected}
+            disabled={isLoading}
             style={{
-              backgroundColor: isLoading || !isClaudeConnected ? '#9ca3af' : '#E4405F',
+              backgroundColor: isLoading ? '#9ca3af' : '#E4405F',
               color: 'white',
               border: 'none',
               borderRadius: '6px',
               padding: '0.75rem 1.5rem',
               fontSize: '0.875rem',
               fontWeight: '500',
-              cursor: isLoading || !isClaudeConnected ? 'not-allowed' : 'pointer'
+              cursor: isLoading ? 'not-allowed' : 'pointer'
             }}
           >
-            {isLoading ? '💾 Saving...' : '💾 Save Settings'}
+            {isLoading ? '💾 Saving...' : '💾 Save Configuration'}
           </button>
         </div>
         </div>
