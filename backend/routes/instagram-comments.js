@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const logger = require('../services/logger');
+const { generateAIReply, getAIConfig } = require('./instagram-ai');
 
 // Store for Instagram DM data
 let instagramMessages = [];
@@ -56,6 +57,83 @@ async function fetchUserInfo(userId) {
       fetchedAt: new Date().toISOString(),
       failed: true
     };
+  }
+}
+
+// Helper function to send Instagram reply (used by both manual replies and AI auto-replies)
+async function sendInstagramReply(senderId, replyText, isAIReply = false) {
+  try {
+    const ACCESS_TOKEN = 'IGAASK8KNQ8bVBZAFBiWE80aG9Jck5rU1BfaGQ0bHh4QVdEWFNhQzhIS3dRY29iV25hMkR1cEt6eTkwS2ZAqLWhidk5xWXN4M0F0elRnamJTU2NGS3NqVFhUT0FGV05nRXFSVGFoTkVmcTV3TzUzZAnJDa1dNT3ZArSG5VczhjQ21kQQZDZD';
+    
+    // Get recipient ID from stored messages
+    const recipientId = instagramMessages.length > 0 ? instagramMessages[0].recipient?.id : '17841445204646276';
+    
+    logger.info(`${isAIReply ? '🤖' : '📤'} Sending Instagram ${isAIReply ? 'AI auto-' : ''}reply`, { 
+      senderId, 
+      recipientId,
+      replyText: replyText.substring(0, 50) + '...',
+      isAI: isAIReply
+    });
+
+    // Send reply using Instagram Graph API
+    const response = await fetch(`https://graph.instagram.com/v23.0/${recipientId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${ACCESS_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        recipient: {
+          id: senderId
+        },
+        message: {
+          text: replyText
+        }
+      })
+    });
+
+    const data = await response.json();
+    
+    if (response.ok) {
+      logger.info(`✅ Instagram ${isAIReply ? 'AI auto-' : ''}reply sent successfully!`, { 
+        senderId, 
+        messageId: data.message_id,
+        isAI: isAIReply
+      });
+
+      // Store the sent message
+      const sentMessage = {
+        id: data.message_id || `sent_${Date.now()}`,
+        text: replyText,
+        sender: { id: 'me' },
+        recipient: { id: senderId },
+        timestamp: new Date().toISOString(),
+        isOutgoing: true,
+        isAIReply: isAIReply,
+        messageId: data.message_id
+      };
+      
+      // Check for duplicates and store
+      const isDuplicate = instagramMessages.some(existingMsg => 
+        existingMsg.id === sentMessage.id ||
+        (existingMsg.text === sentMessage.text && 
+         existingMsg.sender?.id === 'me' &&
+         existingMsg.recipient?.id === senderId &&
+         Math.abs(new Date(existingMsg.timestamp) - new Date(sentMessage.timestamp)) < 30000)
+      );
+      
+      if (!isDuplicate) {
+        instagramMessages.push(sentMessage);
+      }
+
+      return { success: true, messageId: data.message_id };
+    } else {
+      logger.error(`❌ Instagram ${isAIReply ? 'AI auto-' : ''}reply failed`, { error: data });
+      return { success: false, error: data.error?.message || 'Failed to send reply' };
+    }
+  } catch (error) {
+    logger.error(`💥 Instagram ${isAIReply ? 'AI auto-' : ''}reply error`, { error: error.message });
+    return { success: false, error: error.message };
   }
 }
 
@@ -165,6 +243,32 @@ router.all('/webhooks/instagram/comments', (req, res) => {
             
             if (!isDuplicate) {
               instagramMessages.push(messageData);
+              
+              // Trigger AI auto-reply for incoming messages (not echoes)
+              if (messageData.text && !messaging.message?.is_echo && senderId !== 'me') {
+                const aiConfig = getAIConfig();
+                if (aiConfig.enabled && aiConfig.autoReply) {
+                  logger.info('🤖 Triggering AI auto-reply', {
+                    senderId,
+                    message: messageData.text.substring(0, 50),
+                    delay: aiConfig.responseDelay
+                  });
+                  
+                  // Delay the reply to seem more natural
+                  setTimeout(async () => {
+                    try {
+                      const aiReply = await generateAIReply(messageData.text, senderId);
+                      
+                      if (aiReply) {
+                        // Send the AI reply
+                        await sendInstagramReply(senderId, aiReply, true); // true = isAIReply
+                      }
+                    } catch (error) {
+                      logger.error('💥 AI auto-reply error:', error.message);
+                    }
+                  }, aiConfig.responseDelay || 2000);
+                }
+              }
             } else {
               logger.info('🔄 Duplicate message detected, skipping:', { 
                 messageId: messageData.id,
@@ -306,11 +410,11 @@ router.get('/instagram-comments/users', (req, res) => {
   });
 });
 
-// Send reply to Instagram DM (using your working n8n setup)
+// Send reply to Instagram DM (manual replies)
 router.post('/instagram-comments/reply', async (req, res) => {
   const { senderId, replyText } = req.body;
 
-  logger.info('Instagram DM reply requested', {
+  logger.info('📤 Manual Instagram DM reply requested', {
     senderId,
     hasReplyText: !!replyText,
     isWaiting: webhookState.isWaitingForCall
@@ -331,98 +435,27 @@ router.post('/instagram-comments/reply', async (req, res) => {
   }
 
   try {
-    // Use the working Instagram access token from your n8n setup
-    const ACCESS_TOKEN = 'IGAASK8KNQ8bVBZAFBiWE80aG9Jck5rU1BfaGQ0bHh4QVdEWFNhQzhIS3dRY29iV25hMkR1cEt6eTkwS2ZAqLWhidk5xWXN4M0F0elRnamJTU2NGS3NqVFhUT0FGV05nRXFSVGFoTkVmcTV3TzUzZAnJDa1dNT3ZArSG5VczhjQ21kQQZDZD';
+    const result = await sendInstagramReply(senderId, replyText, false);
     
-    // Get recipient ID (your Instagram business account) from stored messages
-    const recipientId = instagramMessages.length > 0 ? instagramMessages[0].recipient?.id : '17841445204646276';
-    
-    logger.info('🚀 Sending Instagram DM reply', { 
-      senderId, 
-      recipientId,
-      replyText: replyText.substring(0, 50) + '...'
-    });
-
-    // Send reply using Instagram Graph API (same as your working n8n)
-    const response = await fetch(`https://graph.instagram.com/v23.0/${recipientId}/messages`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${ACCESS_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        recipient: {
-          id: senderId
-        },
-        message: {
-          text: replyText
-        }
-      })
-    });
-
-    const data = await response.json();
-    
-    if (response.ok) {
-      logger.info('✅ Instagram DM reply sent successfully!', { 
-        senderId, 
-        messageId: data.message_id 
-      });
-
-      // Store our sent message in the backend so it appears correctly
-      const sentMessage = {
-        id: data.message_id || `sent_${Date.now()}`,
-        text: replyText,
-        sender: { id: 'me' },
-        recipient: { id: senderId },
-        timestamp: new Date().toISOString(),
-        isOutgoing: true,
-        messageId: data.message_id
-      };
-      
-      // Check if this message already exists to avoid duplicates
-      const isDuplicate = instagramMessages.some(existingMsg => 
-        existingMsg.id === sentMessage.id ||
-        (existingMsg.text === sentMessage.text && 
-         existingMsg.sender?.id === 'me' &&
-         existingMsg.recipient?.id === senderId &&
-         Math.abs(new Date(existingMsg.timestamp) - new Date(sentMessage.timestamp)) < 30000)
-      );
-      
-      if (!isDuplicate) {
-        instagramMessages.push(sentMessage);
-        logger.info('✅ Our sent message stored successfully', { 
-          messageId: sentMessage.id,
-          text: sentMessage.text,
-          isOutgoing: sentMessage.isOutgoing,
-          totalMessages: instagramMessages.length
-        });
-      } else {
-        logger.warn('🚫 Sent message not stored due to duplicate detection', {
-          messageId: sentMessage.id,
-          text: sentMessage.text,
-          existingMessages: instagramMessages.map(m => ({ id: m.id, text: m.text?.substring(0, 30), sender: m.sender?.id }))
-        });
-      }
-      
+    if (result.success) {
       res.json({
         success: true,
-        message: 'DM sent successfully!',
+        message: 'Manual reply sent successfully!',
         data: {
           senderId,
           replyText,
-          messageId: data.message_id,
+          messageId: result.messageId,
           timestamp: new Date().toISOString()
         }
       });
     } else {
-      logger.error('❌ Instagram DM reply failed', { error: data });
       res.status(400).json({
         success: false,
-        error: data.error?.message || 'Failed to send DM'
+        error: result.error
       });
     }
   } catch (error) {
-    logger.error('💥 Instagram DM reply error', { error: error.message });
+    logger.error('💥 Manual Instagram reply error', { error: error.message });
     res.status(500).json({
       success: false,
       error: 'Internal server error: ' + error.message

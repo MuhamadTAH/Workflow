@@ -29,6 +29,8 @@ const telegramListenerRoutes = require('./routes/telegramListener');
 const claudeRoutes = require('./routes/claude');
 // INSTAGRAM COMMENT ROUTES
 const instagramCommentRoutes = require('./routes/instagram-comments');
+// INSTAGRAM AI ROUTES
+const { router: instagramAIRoutes } = require('./routes/instagram-ai');
 // BILLING ROUTES
 const billingRoutes = require('./routes/billing');
 // CUSTOM AI ROUTES
@@ -140,6 +142,8 @@ app.use('/public', express.static('public'));
 app.use('/api', authRoutes);
 // INSTAGRAM COMMENT ROUTES (must be before webhooks to avoid conflict)
 app.use('/api', instagramCommentRoutes);
+// INSTAGRAM AI ROUTES
+app.use('/api', instagramAIRoutes);
 app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/workflows', workflowRoutes);
 app.use('/api/agent', agentRoutes);

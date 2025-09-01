@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api.js';
+import InstagramAISettings from '../components/InstagramAISettings.jsx';
 
 const SimpleInstagramWebhook = () => {
   const [isWaiting, setIsWaiting] = useState(false);
@@ -13,6 +14,8 @@ const SimpleInstagramWebhook = () => {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [replyText, setReplyText] = useState('');
   const [isReplying, setIsReplying] = useState(false);
+  const [showAISettings, setShowAISettings] = useState(false);
+  const [aiConfig, setAiConfig] = useState({ enabled: false });
 
   const webhookUrl = `${API_BASE_URL}/api/webhooks/instagram/comments`;
   const verifyToken = 'muhammad';
@@ -20,7 +23,21 @@ const SimpleInstagramWebhook = () => {
   // Check status on load
   useEffect(() => {
     checkStatus();
+    loadAIConfig();
   }, []);
+
+  const loadAIConfig = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/instagram-ai/config`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setAiConfig(data.config);
+      }
+    } catch (error) {
+      console.error('Error loading AI config:', error);
+    }
+  };
 
   // Poll for webhook status and messages when waiting
   useEffect(() => {
@@ -213,14 +230,54 @@ const SimpleInstagramWebhook = () => {
           backgroundColor: '#E4405F',
           color: 'white'
         }}>
-          <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
-            <h1 style={{ 
-              fontSize: '1.25rem', 
-              fontWeight: 'bold',
-              margin: '0 0 0.5rem 0'
+          <div style={{ marginBottom: '1rem' }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '0.5rem'
             }}>
-              📷 Instagram DM Manager (NEW THREE-PANEL LAYOUT)
-            </h1>
+              <h1 style={{ 
+                fontSize: '1.25rem', 
+                fontWeight: 'bold',
+                margin: 0
+              }}>
+                📷 Instagram DM Manager
+              </h1>
+              
+              <button
+                onClick={() => setShowAISettings(true)}
+                style={{
+                  backgroundColor: aiConfig.enabled ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  border: `1px solid ${aiConfig.enabled ? 'rgba(34, 197, 94, 0.5)' : 'rgba(255,255,255,0.3)'}`,
+                  borderRadius: '6px',
+                  padding: '0.5rem 0.75rem',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}
+                title="AI Assistant Settings"
+              >
+                🤖 AI {aiConfig.enabled ? 'ON' : 'OFF'}
+              </button>
+            </div>
+            
+            {aiConfig.enabled && aiConfig.autoReply && (
+              <div style={{ 
+                fontSize: '0.75rem', 
+                color: 'rgba(255,255,255,0.8)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem'
+              }}>
+                <span style={{ color: '#22c55e' }}>●</span>
+                AI Auto-reply Active
+              </div>
+            )}
           </div>
 
           {/* Status Display */}
@@ -630,6 +687,15 @@ const SimpleInstagramWebhook = () => {
           </div>
         )}
       </div>
+
+      {/* AI Settings Modal */}
+      <InstagramAISettings
+        isVisible={showAISettings}
+        onClose={() => {
+          setShowAISettings(false);
+          loadAIConfig(); // Reload config after closing settings
+        }}
+      />
 
     </div>
   );
