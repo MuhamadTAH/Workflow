@@ -318,6 +318,8 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
   };
 
   if (!isVisible) return null;
+  
+  console.log('🚀 InstagramAISettings is rendering with new design!');
 
   return (
     <div style={{
@@ -360,7 +362,7 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
             alignItems: 'center',
             gap: '0.5rem'
           }}>
-            🤖 Instagram AI Configuration
+            🤖 Instagram AI Configuration - UPDATED
           </h2>
           <button
             onClick={onClose}
@@ -895,21 +897,6 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
             </>
           )}
         </div>
-
-        {/* Error Display */}
-        {error && (
-          <div style={{
-            backgroundColor: '#fee2e2',
-            border: '1px solid #fecaca',
-            color: '#dc2626',
-            padding: '0.75rem',
-            borderRadius: '6px',
-            marginBottom: '2rem',
-            fontSize: '0.875rem'
-          }}>
-            {error}
-          </div>
-        )}
 
         {/* Error Display */}
         {error && (
