@@ -29,6 +29,10 @@ const telegramListenerRoutes = require('./routes/telegramListener');
 const claudeRoutes = require('./routes/claude');
 // INSTAGRAM COMMENT ROUTES
 const instagramCommentRoutes = require('./routes/instagram-comments');
+// BILLING ROUTES
+const billingRoutes = require('./routes/billing');
+// CUSTOM AI ROUTES
+const customAIRoutes = require('./routes/customAI');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
@@ -156,6 +160,10 @@ app.use('/api/whatsapp-receiver', whatsappReceiverRoutes);
 app.use('/api/telegram-listener', telegramListenerRoutes);
 // CLAUDE API ROUTES
 app.use('/api/claude', claudeRoutes);
+// BILLING ROUTES
+app.use('/api/billing', billingRoutes);
+// CUSTOM AI ROUTES
+app.use('/api/custom-ai', customAIRoutes);
 
 // Chat trigger alias route for frontend compatibility
 app.get('/api/chat/:nodeId', (req, res) => {

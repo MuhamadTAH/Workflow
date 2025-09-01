@@ -517,7 +517,7 @@ router.get('/status', (req, res) => {
 // Chat with Claude API
 router.post('/chat', asyncHandler(async (req, res) => {
   const { message, maxTokens = 1000 } = req.body;
-  const userId = req.user?.id || 'default_user';
+  const userId = req.user?.id || req.session?.userId || 'default_user';
 
   if (!message || !message.trim()) {
     return res.status(400).json({
@@ -538,7 +538,25 @@ router.post('/chat', asyncHandler(async (req, res) => {
 
   try {
     const axios = require('axios');
+    const billingService = require('../services/billingService');
     
+    // Get AI model info for billing
+    const db = require('../db');
+    const aiModel = await new Promise((resolve, reject) => {
+      db.get('SELECT * FROM ai_models WHERE model_id = ? AND is_active = 1', 
+        ['claude-3-5-sonnet-20241022'], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!aiModel) {
+      return res.status(500).json({
+        success: false,
+        error: 'AI model not found in billing system'
+      });
+    }
+
     const response = await axios.post(
       'https://api.anthropic.com/v1/messages',
       {
@@ -564,20 +582,54 @@ router.post('/chat', asyncHandler(async (req, res) => {
     // Update last used time
     config.lastUsed = new Date().toISOString();
 
+    // Extract usage information
+    const usage = response.data.usage || {};
+    const inputTokens = usage.input_tokens || 0;
+    const outputTokens = usage.output_tokens || 0;
+
+    // Track usage for billing (only if we have a valid user ID)
+    let billingResult = null;
+    if (userId !== 'default_user') {
+      try {
+        billingResult = await billingService.trackUsage(
+          userId, 
+          aiModel.id, 
+          inputTokens, 
+          outputTokens, 
+          null, // conversationId
+          null, // assistantId
+          'chat'
+        );
+        console.log('💰 Usage tracked for billing:', billingResult);
+      } catch (billingError) {
+        console.error('❌ Billing tracking error:', billingError.message);
+        // Don't fail the request if billing fails
+      }
+    }
+
     console.log('✅ Claude API chat successful for user:', userId);
     
     logger.info(`Claude API chat successful`, {
       userId,
       model: config.model,
       messageLength: message.length,
-      responseLength: response.data.content[0]?.text?.length || 0
+      responseLength: response.data.content[0]?.text?.length || 0,
+      inputTokens,
+      outputTokens,
+      billingTracked: !!billingResult
     });
 
     res.json({
       success: true,
       response: response.data.content[0]?.text || '',
       model: config.model,
-      usage: response.data.usage || {}
+      usage: {
+        ...usage,
+        billing: billingResult ? {
+          totalPrice: billingResult.billablePrice,
+          freeTierUsed: billingResult.freeTierUsed
+        } : null
+      }
     });
   } catch (error) {
     console.error('❌ Claude API chat error:', error.message);

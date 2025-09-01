@@ -381,13 +381,19 @@ router.post('/instagram-comments/reply', async (req, res) => {
       
       if (!isDuplicate) {
         instagramMessages.push(sentMessage);
+        logger.info('✅ Our sent message stored successfully', { 
+          messageId: sentMessage.id,
+          text: sentMessage.text,
+          isOutgoing: sentMessage.isOutgoing,
+          totalMessages: instagramMessages.length
+        });
+      } else {
+        logger.warn('🚫 Sent message not stored due to duplicate detection', {
+          messageId: sentMessage.id,
+          text: sentMessage.text,
+          existingMessages: instagramMessages.map(m => ({ id: m.id, text: m.text?.substring(0, 30), sender: m.sender?.id }))
+        });
       }
-      logger.info('📤 Our sent message stored', { 
-        messageId: sentMessage.id,
-        text: sentMessage.text,
-        isOutgoing: sentMessage.isOutgoing,
-        totalMessages: instagramMessages.length
-      });
       
       res.json({
         success: true,

@@ -527,8 +527,15 @@ const SimpleInstagramWebhook = () => {
                         lineHeight: '1.4',
                         wordWrap: 'break-word'
                       }}>
-                        {message.text || (isOutgoing ? 'Message sent' : 'No text content')}
+                        {message.text || (isOutgoing ? `[DEBUG: No text - ID: ${message.id}]` : 'No text content')}
                       </div>
+
+                      {/* Debug info */}
+                      {process.env.NODE_ENV === 'development' && isOutgoing && (
+                        <div style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.25rem' }}>
+                          ID: {message.id} | Text: "{message.text}" | Outgoing: {message.isOutgoing} | Sender: {message.sender?.id}
+                        </div>
+                      )}
 
                       {/* Timestamp */}
                       <div style={{ 

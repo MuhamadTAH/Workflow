@@ -65,7 +65,10 @@
       "Bash(start http://localhost:5174)",
       "Bash(printenv)",
       "Bash(start http://localhost:10000)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(set PORT=3002)",
+      "Bash(PORT=3002 node index.js)",
+      "Read(D:\\automation/**)"
     ],
     "deny": []
   }
