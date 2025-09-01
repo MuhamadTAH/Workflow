@@ -122,8 +122,17 @@ router.all('/webhooks/instagram/comments', (req, res) => {
               sender: messaging.sender?.id,
               recipient: messaging.recipient?.id,
               hasMessage: !!messaging.message,
-              messageText: messaging.message?.text
+              messageText: messaging.message?.text,
+              hasRead: !!messaging.read,
+              hasDelivery: !!messaging.delivery,
+              isEcho: messaging.message?.is_echo
             });
+
+            // Skip non-message events (read receipts, delivery confirmations, etc.)
+            if (!messaging.message || !messaging.message.text) {
+              logger.info('🔄 Skipping non-message event (read receipt/delivery/etc.)');
+              return;
+            }
 
             const senderId = messaging.sender?.id;
             
