@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CreditCard, DollarSign, TrendingUp, AlertCircle, CheckCircle, Clock, Zap } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 const BillingDashboard = () => {
   const [billingData, setBillingData] = useState({
@@ -26,12 +27,12 @@ const BillingDashboard = () => {
       
       // Load all billing data in parallel
       const [billingRes, spendingRes, freeTierRes, usageRes, historyRes, modelsRes] = await Promise.all([
-        fetch('/api/billing/info', { credentials: 'include' }),
-        fetch('/api/billing/current-spending', { credentials: 'include' }),
-        fetch('/api/billing/free-tier', { credentials: 'include' }),
-        fetch('/api/billing/usage', { credentials: 'include' }),
-        fetch('/api/billing/history', { credentials: 'include' }),
-        fetch('/api/billing/models', { credentials: 'include' })
+        fetch(`${API_BASE_URL}/api/billing/info`, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/api/billing/current-spending`, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/api/billing/free-tier`, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/api/billing/usage`, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/api/billing/history`, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/api/billing/models`, { credentials: 'include' })
       ]);
 
       const [billing, spending, freeTier, usage, history, models] = await Promise.all([
@@ -69,7 +70,7 @@ const BillingDashboard = () => {
         return;
       }
 
-      const response = await fetch('/api/billing/spending-limit', {
+      const response = await fetch(`${API_BASE_URL}/api/billing/spending-limit`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
