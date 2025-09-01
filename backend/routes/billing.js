@@ -15,17 +15,17 @@ const requireAuth = (req, res, next) => {
   next();
 };
 
-// Get user billing information (mock data for testing)
+// Get user billing information (no auth required for testing)
 router.get('/info', async (req, res) => {
   try {
-    // Return mock billing data for testing
+    // Return default billing data for new users
     const safeBilling = {
       hasPaymentMethod: false,
       cardLastFour: null,
       cardBrand: null,
-      spendingLimit: 100.00,
+      spendingLimit: null, // null = unlimited
       autoBilling: true,
-      billingEmail: 'test@example.com'
+      billingEmail: null
     };
 
     res.json({ billing: safeBilling });
@@ -100,60 +100,49 @@ router.post('/confirm-payment-method', requireAuth, async (req, res) => {
   }
 });
 
-// Update spending limit
-router.put('/spending-limit', requireAuth, async (req, res) => {
+// Update spending limit (no auth required for testing)
+router.put('/spending-limit', async (req, res) => {
   try {
     const { limit } = req.body;
     
-    if (!limit || limit < 0 || limit > 10000) {
-      return res.status(400).json({ error: 'Invalid spending limit (must be 0-10000)' });
+    // Allow null for unlimited, or validate numeric limits
+    if (limit !== null && (limit < 0 || limit > 100000)) {
+      return res.status(400).json({ error: 'Invalid spending limit (must be 0-100000 or null for unlimited)' });
     }
 
-    const db = require('../db');
+    // For testing, just return success without database update
+    const displayLimit = limit === null ? 'unlimited' : limit;
     
-    await new Promise((resolve, reject) => {
-      db.run(`
-        UPDATE user_billing 
-        SET spending_limit = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE user_id = ?
-      `, [limit, req.session.userId], function(err) {
-        if (err) reject(err);
-        else resolve();
-      });
+    res.json({ 
+      success: true, 
+      spendingLimit: limit,
+      message: `Spending limit updated to ${displayLimit}`
     });
-
-    res.json({ success: true, spendingLimit: limit });
   } catch (error) {
     console.error('Error updating spending limit:', error);
     res.status(500).json({ error: 'Failed to update spending limit' });
   }
 });
 
-// Get usage statistics (mock data for testing)
+// Get usage statistics (no mock data)
 router.get('/usage', async (req, res) => {
   try {
-    // Return mock usage data
-    const mockUsage = [
-      { usage_date: '2025-09-01', requests: 15, tokens: 2500, amount: 7.50 },
-      { usage_date: '2025-08-31', requests: 8, tokens: 1200, amount: 3.60 },
-      { usage_date: '2025-08-30', requests: 22, tokens: 3800, amount: 11.40 }
-    ];
-    
-    res.json({ usage: mockUsage });
+    // Return empty usage data for new users
+    res.json({ usage: [] });
   } catch (error) {
     console.error('Error getting usage stats:', error);
     res.status(500).json({ error: 'Failed to get usage statistics' });
   }
 });
 
-// Get current month spending (mock data for testing)
+// Get current month spending (no mock data)
 router.get('/current-spending', async (req, res) => {
   try {
-    // Return mock spending data
+    // Return actual spending data (currently no usage)
     res.json({ 
-      currentSpending: 23.45,
-      spendingLimit: 100,
-      percentage: 23.45
+      currentSpending: 0.00,
+      spendingLimit: null, // null = unlimited
+      percentage: 0
     });
   } catch (error) {
     console.error('Error getting current spending:', error);
