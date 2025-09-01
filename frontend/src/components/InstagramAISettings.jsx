@@ -8,7 +8,7 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
     systemPrompt: 'You are a helpful assistant responding to Instagram direct messages. Keep responses friendly, concise, and helpful. Always respond in a conversational tone.',
     knowledgeBase: '',
     autoReply: true,
-    model: 'claude-3-sonnet-20240229',
+    model: 'claude-3-5-sonnet-20241022',
     maxTokens: 1000,
     responseDelay: 2000
   });

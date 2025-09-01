@@ -4,7 +4,7 @@ class ClaudeAI {
   constructor() {
     this.apiKey = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY;
     this.baseUrl = 'https://api.anthropic.com/v1/messages';
-    this.model = 'claude-3-sonnet-20240229'; // Default model
+    this.model = 'claude-3-5-sonnet-20241022'; // Default model
   }
 
   async sendMessage(prompt, systemPrompt = '', knowledgeBase = '') {
