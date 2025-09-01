@@ -5,7 +5,7 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
   // AI Configuration State
   const [config, setConfig] = useState({
     enabled: true, // Enable AI by default
-    systemPrompt: 'You are a helpful assistant responding to Instagram direct messages. Keep responses friendly, concise, and helpful. Always respond in a conversational tone.',
+    systemPrompt: 'You are an AI assistant for Instagram direct messages. Respond naturally and helpfully.',
     knowledgeBase: '',
     autoReply: true,
     model: 'claude-3-5-sonnet-20241022',
@@ -20,7 +20,7 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
   const [claudeStatus, setClaudeStatus] = useState('');
   
   // System Prompt State
-  const [systemPrompt, setSystemPrompt] = useState('You are a helpful assistant responding to Instagram direct messages. Keep responses friendly, concise, and helpful. Always respond in a conversational tone.');
+  const [systemPrompt, setSystemPrompt] = useState('You are an AI assistant for Instagram direct messages. Respond naturally and helpfully.');
   const [isSystemPromptLoading, setIsSystemPromptLoading] = useState(false);
   const [systemPromptStatus, setSystemPromptStatus] = useState('');
   
@@ -340,7 +340,7 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
   };
 
   const resetToDefaultPrompt = () => {
-    setSystemPrompt('You are a helpful AI assistant for Instagram direct messages. Respond in a friendly, professional, and engaging manner. Keep responses concise but informative. Always maintain a conversational tone that reflects the casual nature of Instagram messaging.');
+    setSystemPrompt('You are an AI assistant for Instagram direct messages. Respond naturally and helpfully.');
   };
 
   if (!isVisible) return null;

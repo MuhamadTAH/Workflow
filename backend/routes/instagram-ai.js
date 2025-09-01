@@ -6,7 +6,7 @@ const claudeAI = require('../services/claudeAI');
 // Instagram AI Configuration Storage
 let aiConfig = {
   enabled: true, // Enable AI by default when API key is connected
-  systemPrompt: 'You are a helpful assistant responding to Instagram direct messages. Keep responses friendly, concise, and helpful. Always respond in a conversational tone.',
+  systemPrompt: 'You are an AI assistant for Instagram direct messages. Respond naturally and helpfully.',
   knowledgeBase: '',
   autoReply: true,
   model: 'claude-3-5-sonnet-20241022',
@@ -244,21 +244,10 @@ router.post('/instagram-ai/upload-knowledge', async (req, res) => {
     // and a PDF parser to extract text
     
     const mockPdfInfo = {
-      filename: 'business-info.pdf',
+      filename: 'uploaded-document.pdf',
       size: 1024 * 1024, // 1MB
       uploadedAt: new Date().toISOString(),
-      textContent: `PDF Knowledge Base Content:
-      
-Our Business Information:
-- Company: Instagram Marketing Agency
-- Services: Social media management, content creation, influencer partnerships
-- Hours: Monday-Friday 9AM-6PM PST
-- Contact: support@ourcompany.com
-- Specialization: Instagram growth strategies and engagement optimization
-- Pricing: Custom packages available starting at $500/month
-- Experience: 5+ years helping brands grow their Instagram presence
-
-This information should be used to answer customer questions about our services, pricing, and availability.`
+      textContent: '' // Empty - no mock data
     };
     
     knowledgeBaseInfo = mockPdfInfo;
