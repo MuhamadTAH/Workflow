@@ -23,7 +23,7 @@ const getApiBaseUrl = () => {
   
   // 3. Development fallback - use local backend
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:3002';
+    return 'http://localhost:3001';
   }
   
   // 4. Production fallback - use Render backend
