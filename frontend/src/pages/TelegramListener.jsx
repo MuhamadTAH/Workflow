@@ -418,12 +418,6 @@ const TelegramListener = () => {
     }
   };
 
-
-  // Load system prompt on mount
-  useEffect(() => {
-    loadSystemPrompt();
-  }, []);
-
   const resetToDefaultPrompt = () => {
     setSystemPrompt('You are a helpful and friendly AI assistant. Respond to users in a professional yet warm manner.');
     setSystemPromptStatus('🔄 Reset to default prompt');
