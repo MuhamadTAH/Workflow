@@ -368,7 +368,7 @@ router.get('/messenger-receiver/users', (req, res) => {
 });
 
 // Manual reply endpoint
-router.post('/messenger-receiver/reply', async (req, res) => {
+router.post('/reply', async (req, res) => {
   const { senderId, replyText } = req.body;
   
   logger.info('📤 Manual Messenger reply requested', { senderId, replyText });
