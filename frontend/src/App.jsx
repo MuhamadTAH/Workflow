@@ -25,6 +25,7 @@ import WhatsAppReceiverTest from './pages/WhatsAppReceiverTest';
 import SimpleInstagramWebhook from './pages/SimpleInstagramWebhook';
 import BillingDashboard from './components/BillingDashboard';
 import AdminDashboard from './components/AdminDashboard';
+import APIKeysDashboard from './components/APIKeysDashboard';
 // Import shop components using the modular router
 import { 
   ShopDashboard, 
@@ -211,6 +212,33 @@ function Home() {
               >
                 📊 Admin Dashboard
               </Link>
+              <Link 
+                to="/api-keys" 
+                className="hero-btn apikeys-btn"
+                style={{ 
+                  backgroundColor: '#f59e0b',
+                  color: 'white',
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontWeight: '600',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#d97706';
+                  e.target.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '#f59e0b';
+                  e.target.style.transform = 'translateY(0px)';
+                }}
+              >
+                🔑 API Keys
+              </Link>
             </div>
           </div>
         </header>
@@ -350,6 +378,7 @@ function App() {
         <Route path="/instagram-comments" element={<SimpleInstagramWebhook />} />
         <Route path="/billing" element={<BillingDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/api-keys" element={<APIKeysDashboard />} />
         <Route path="/shop/:shopName" element={<PublicShop />} />
         </Routes>
       </Router>

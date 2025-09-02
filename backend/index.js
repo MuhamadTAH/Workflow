@@ -37,6 +37,10 @@ const billingRoutes = require('./routes/billing');
 const customAIRoutes = require('./routes/customAI');
 // ADMIN ROUTES
 const adminRoutes = require('./routes/admin');
+// API KEYS ROUTES
+const apiKeysRoutes = require('./routes/apikeys');
+// EXTERNAL CLAUDE API ROUTES (for API key customers)
+const externalClaudeRoutes = require('./routes/external-claude');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
@@ -172,6 +176,10 @@ app.use('/api/billing', billingRoutes);
 app.use('/api/custom-ai', customAIRoutes);
 // ADMIN ROUTES
 app.use('/api/admin', adminRoutes);
+// API KEYS ROUTES
+app.use('/api/apikeys', apiKeysRoutes);
+// EXTERNAL CLAUDE API ROUTES (for API key customers)
+app.use('/api/v1', externalClaudeRoutes);
 
 // Chat trigger alias route for frontend compatibility
 app.get('/api/chat/:nodeId', (req, res) => {

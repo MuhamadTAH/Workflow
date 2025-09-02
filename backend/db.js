@@ -916,6 +916,177 @@ Be enthusiastic and helpful while staying accurate.`,
     }
   });
 
+  // =================================================================
+  // TELEGRAM LISTENER PERSISTENCE TABLES - For Telegram Listener Page
+  // =================================================================
+
+  // Create telegram_listener_bots table - Store bot configurations and listener IDs
+  db.run(`
+    CREATE TABLE IF NOT EXISTS telegram_listener_bots (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      bot_token TEXT NOT NULL,
+      listener_id TEXT NOT NULL UNIQUE,
+      webhook_url TEXT NOT NULL,
+      setup_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_activity DATETIME,
+      message_count INTEGER DEFAULT 0,
+      is_active BOOLEAN DEFAULT 1,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating telegram_listener_bots table:', err);
+    } else {
+      console.log('✅ Telegram Listener Bots table ready');
+    }
+  });
+
+  // Create telegram_listener_messages table - Store messages for each listener
+  db.run(`
+    CREATE TABLE IF NOT EXISTS telegram_listener_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      listener_id TEXT NOT NULL,
+      update_id TEXT,
+      message_id TEXT,
+      chat_id TEXT,
+      text TEXT,
+      from_user_id TEXT,
+      from_name TEXT,
+      from_username TEXT,
+      date DATETIME,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      type TEXT DEFAULT 'text',
+      is_bot_message BOOLEAN DEFAULT 0,
+      FOREIGN KEY (listener_id) REFERENCES telegram_listener_bots(listener_id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating telegram_listener_messages table:', err);
+    } else {
+      console.log('✅ Telegram Listener Messages table ready');
+    }
+  });
+
+  // Create telegram_claude_configs table - Store Claude API configurations per user
+  db.run(`
+    CREATE TABLE IF NOT EXISTS telegram_claude_configs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL UNIQUE,
+      api_key TEXT NOT NULL,
+      model TEXT DEFAULT 'claude-3-5-sonnet-20241022',
+      connection_status TEXT DEFAULT 'disconnected',
+      last_used DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating telegram_claude_configs table:', err);
+    } else {
+      console.log('✅ Telegram Claude Configs table ready');
+    }
+  });
+
+  // Create telegram_system_prompts table - Store system prompts per user
+  db.run(`
+    CREATE TABLE IF NOT EXISTS telegram_system_prompts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL UNIQUE,
+      prompt TEXT NOT NULL DEFAULT 'You are a helpful and friendly AI assistant. Respond to users in a professional yet warm manner.',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating telegram_system_prompts table:', err);
+    } else {
+      console.log('✅ Telegram System Prompts table ready');
+    }
+  });
+
+  // Create telegram_knowledge_base table - Store PDF knowledge base per user
+  db.run(`
+    CREATE TABLE IF NOT EXISTS telegram_knowledge_base (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL UNIQUE,
+      filename TEXT NOT NULL,
+      extracted_text TEXT NOT NULL,
+      text_length INTEGER,
+      file_size INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating telegram_knowledge_base table:', err);
+    } else {
+      console.log('✅ Telegram Knowledge Base table ready');
+    }
+  });
+
+  // Create api_keys table - Custom API keys for external customers
+  db.run(`
+    CREATE TABLE IF NOT EXISTS api_keys (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      api_key TEXT NOT NULL UNIQUE,
+      customer_name TEXT,
+      customer_email TEXT,
+      rate_limit_per_minute INTEGER DEFAULT 60,
+      rate_limit_per_hour INTEGER DEFAULT 1000,
+      monthly_spending_limit DECIMAL(10,2) DEFAULT 1000.00,
+      current_month_spending DECIMAL(10,2) DEFAULT 0.00,
+      total_requests INTEGER DEFAULT 0,
+      total_tokens INTEGER DEFAULT 0,
+      total_spent DECIMAL(10,2) DEFAULT 0.00,
+      is_active BOOLEAN DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_used DATETIME,
+      notes TEXT
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating api_keys table:', err);
+    } else {
+      console.log('✅ API Keys table ready');
+    }
+  });
+
+  // Create api_key_usage table - Track usage per API key
+  db.run(`
+    CREATE TABLE IF NOT EXISTS api_key_usage (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      api_key_id INTEGER NOT NULL,
+      ai_model_id INTEGER NOT NULL,
+      input_tokens INTEGER NOT NULL,
+      output_tokens INTEGER NOT NULL,
+      total_tokens INTEGER NOT NULL,
+      total_price DECIMAL(10,4) NOT NULL,
+      total_cost DECIMAL(10,4) NOT NULL,
+      endpoint TEXT NOT NULL,
+      request_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (api_key_id) REFERENCES api_keys(id),
+      FOREIGN KEY (ai_model_id) REFERENCES ai_models(id)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating api_key_usage table:', err);
+    } else {
+      console.log('✅ API Key Usage table ready');
+      
+      // Create indexes for performance
+      db.run(`CREATE INDEX IF NOT EXISTS idx_api_key_usage_key_date ON api_key_usage (api_key_id, request_timestamp)`, (indexErr) => {
+        if (indexErr && !indexErr.message.includes('already exists')) {
+          console.error('⚠️ Warning: Could not create api_key_usage_key_date index:', indexErr.message);
+        }
+      });
+    }
+  });
+
 });
 
 module.exports = db;
