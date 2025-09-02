@@ -1757,16 +1757,29 @@ CONTACT & SOCIAL:
                   </p>
                 </div>
               )}
-              <div style={{ display: 'flex', gap: '0', height: '500px', border: `1px solid ${colors.border}`, borderRadius: '8px', overflow: 'hidden' }}>
+              <div style={{ 
+                display: 'flex', 
+                gap: '0', 
+                height: '500px', 
+                border: `1px solid ${colors.border}`, 
+                borderRadius: '8px', 
+                overflow: 'hidden',
+                width: '100%',
+                maxWidth: '100%'
+              }}>
                 
                 {/* Users Panel */}
                 <div style={{ 
-                  flex: '0 0 300px', 
+                  flex: '0 0 300px',
+                  width: '300px',
+                  minWidth: '300px',
+                  maxWidth: '300px',
                   backgroundColor: colors.cardBg, 
                   padding: '1rem', 
                   borderRight: `1px solid ${colors.border}`,
                   display: 'flex',
-                  flexDirection: 'column'
+                  flexDirection: 'column',
+                  overflow: 'hidden'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                     <h3 style={{ fontWeight: '500', color: colors.primaryText, margin: 0 }}>
@@ -1819,7 +1832,11 @@ CONTACT & SOCIAL:
                               borderRadius: '6px',
                               border: selectedUser?.userId === user.userId ? `2px solid ${colors.brandBlue}` : `1px solid ${colors.borderLight}`,
                               cursor: 'pointer',
-                              transition: 'all 0.2s'
+                              transition: 'all 0.2s',
+                              width: '100%',
+                              maxWidth: '100%',
+                              minWidth: 0,
+                              overflow: 'hidden'
                             }}
                           >
                             <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -1838,11 +1855,22 @@ CONTACT & SOCIAL:
                               }}>
                                 {user.fromName ? user.fromName[0].toUpperCase() : 'U'}
                               </div>
-                              <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: '500', fontSize: '0.875rem', color: colors.primaryText }}>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ 
+                                  fontWeight: '500', 
+                                  fontSize: '0.875rem', 
+                                  color: colors.primaryText,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}>
                                   {user.fromName || 'Unknown User'}
                                   {user.fromUsername && (
-                                    <span style={{ color: colors.mutedText, fontWeight: 'normal', fontSize: '0.75rem' }}>
+                                    <span style={{ 
+                                      color: colors.mutedText, 
+                                      fontWeight: 'normal', 
+                                      fontSize: '0.75rem'
+                                    }}>
                                       {' '}@{user.fromUsername}
                                     </span>
                                   )}
