@@ -418,23 +418,6 @@ const TelegramListener = () => {
     }
   };
 
-  const loadSystemPrompt = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/claude/system-prompt`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success && result.systemPrompt) {
-        setSystemPrompt(result.systemPrompt);
-      }
-    } catch (error) {
-      console.error('Error loading system prompt:', error);
-    }
-  };
 
   // Load system prompt on mount
   useEffect(() => {

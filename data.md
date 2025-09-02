@@ -1,81 +1,61 @@
-==> Cloning from https://github.com/MuhamadTAH/Workflow
-==> Checking out commit 00cb850a14c94f3732224545eb6e07bcd3802d4a in branch mains
-==> Using Node.js version 22.16.0 (default)
-==> Docs on specifying a Node.js version: https://render.com/docs/node-version
-==> Running build command 'npm install'...
-> backend@1.0.0 postinstall
-> npm rebuild sqlite3
-rebuilt dependencies successfully
-added 121 packages, changed 13 packages, and audited 344 packages in 7s
-39 packages are looking for funding
-  run `npm fund` for details
-5 vulnerabilities (3 low, 2 high)
-To address issues that do not require attention, run:
-  npm audit fix
-To address all issues (including breaking changes), run:
-  npm audit fix --force
-Run `npm audit` for details.
-==> Uploading build...
-==> Uploaded in 5.5s. Compression took 2.0s
-==> Build successful 🎉
-==> Deploying...
-==> Running 'npm start'
-> backend@1.0.0 start
-> node index.js
-[dotenv@17.2.1] injecting env (3) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
-✅ Active workflows table initialized
-🚀 Job Queue initialized with config: {
-  maxConcurrentJobs: 3,
-  maxRetries: 3,
-  retryDelay: 2000,
-  jobTimeout: 300000,
-  cleanupInterval: 600000
-}
-[2025-09-02T10:18:24.403Z] INFO: Workflow engine initialized
-✅ WorkflowExecutor singleton loaded successfully
-/opt/render/project/src/backend/routes/instagram-comments.js:220
-              await fetchUserInfo(senderId);
-              ^^^^^
-SyntaxError: await is only valid in async functions and the top level bodies of modules
-    at wrapSafe (node:internal/modules/cjs/loader:1662:18)
-    at Module._compile (node:internal/modules/cjs/loader:1704:20)
-    at Object..js (node:internal/modules/cjs/loader:1895:10)
-    at Module.load (node:internal/modules/cjs/loader:1465:32)
-    at Function._load (node:internal/modules/cjs/loader:1282:12)
-    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
-    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
-    at Module.require (node:internal/modules/cjs/loader:1487:12)
-    at require (node:internal/modules/helpers:135:16)
-    at Object.<anonymous> (/opt/render/project/src/backend/index.js:31:32)
-Node.js v22.16.0
-==> Exited with status 1
-==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
-==> Running 'npm start'
-> backend@1.0.0 start
-> node index.js
-[dotenv@17.2.1] injecting env (3) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
-✅ Active workflows table initialized
-🚀 Job Queue initialized with config: {
-  maxConcurrentJobs: 3,
-  maxRetries: 3,
-  retryDelay: 2000,
-  jobTimeout: 300000,
-  cleanupInterval: 600000
-}
-[2025-09-02T10:18:36.217Z] INFO: Workflow engine initialized
-✅ WorkflowExecutor singleton loaded successfully
-/opt/render/project/src/backend/routes/instagram-comments.js:220
-              await fetchUserInfo(senderId);
-              ^^^^^
-SyntaxError: await is only valid in async functions and the top level bodies of modules
-    at wrapSafe (node:internal/modules/cjs/loader:1662:18)
-    at Module._compile (node:internal/modules/cjs/loader:1704:20)
-    at Object..js (node:internal/modules/cjs/loader:1895:10)
-    at Module.load (node:internal/modules/cjs/loader:1465:32)
-    at Function._load (node:internal/modules/cjs/loader:1282:12)
-    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
-    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
-    at Module.require (node:internal/modules/cjs/loader:1487:12)
-    at require (node:internal/modules/helpers:135:16)
-    at Object.<anonymous> (/opt/render/project/src/backend/index.js:31:32)
-Node.js v22.16.0
+[plugin:vite:react-babel] D:\automation\Workflow\frontend\src\components\APIKeysDashboard.jsx: Expecting Unicode escape sequence \uXXXX. (108:22)
+  111 |           <div className=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6\">
+D:/automation/Workflow/frontend/src/components/APIKeysDashboard.jsx:108:22
+108|        <div className=\"min-h-screen bg-gray-50 p-6\">
+109|          <div className=\"animate-pulse\">
+110|            <div className=\"h-8 bg-gray-200 rounded w-1/3 mb-8\"></div>
+   |                                   ^
+111|            <div className=\"grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6\">
+112|              {[1, 2, 3, 4].map(i => (
+    at constructor (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:367:19)
+    at JSXParserMixin.raise (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:6630:19)
+    at JSXParserMixin.readWord1 (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:6590:16)
+    at JSXParserMixin.readWord (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:6610:23)
+    at JSXParserMixin.getTokenFromCode (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:6329:14)
+    at JSXParserMixin.getTokenFromCode (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:4830:11)
+    at JSXParserMixin.nextToken (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:5813:10)
+    at JSXParserMixin.next (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:5723:10)
+    at JSXParserMixin.eat (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:5727:12)
+    at JSXParserMixin.jsxParseAttribute (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:4686:23)
+    at JSXParserMixin.jsxParseOpeningElementAfterName (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:4700:28)
+    at JSXParserMixin.jsxParseOpeningElementAt (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:4695:17)
+    at JSXParserMixin.jsxParseElementAt (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:4719:33)
+    at JSXParserMixin.jsxParseElement (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:4782:17)
+    at JSXParserMixin.parseExprAtom (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:4792:19)
+    at JSXParserMixin.parseExprSubscripts (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:11081:23)
+    at JSXParserMixin.parseUpdate (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:11066:21)
+    at JSXParserMixin.parseMaybeUnary (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:11046:23)
+    at JSXParserMixin.parseMaybeUnaryOrPrivate (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:10899:61)
+    at JSXParserMixin.parseExprOps (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:10904:23)
+    at JSXParserMixin.parseMaybeConditional (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:10881:23)
+    at JSXParserMixin.parseMaybeAssign (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:10831:21)
+    at D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:10800:39
+    at JSXParserMixin.allowInAnd (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:12432:12)
+    at JSXParserMixin.parseMaybeAssignAllowIn (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:10800:17)
+    at JSXParserMixin.parseMaybeAssignAllowInOrVoidPattern (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:12499:17)
+    at JSXParserMixin.parseParenAndDistinguishExpression (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:11679:28)
+    at JSXParserMixin.parseExprAtom (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:11331:23)
+    at JSXParserMixin.parseExprAtom (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:4797:20)
+    at JSXParserMixin.parseExprSubscripts (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:11081:23)
+    at JSXParserMixin.parseUpdate (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:11066:21)
+    at JSXParserMixin.parseMaybeUnary (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:11046:23)
+    at JSXParserMixin.parseMaybeUnaryOrPrivate (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:10899:61)
+    at JSXParserMixin.parseExprOps (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:10904:23)
+    at JSXParserMixin.parseMaybeConditional (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:10881:23)
+    at JSXParserMixin.parseMaybeAssign (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:10831:21)
+    at JSXParserMixin.parseExpressionBase (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:10784:23)
+    at D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:10780:39
+    at JSXParserMixin.allowInAnd (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:12427:16)
+    at JSXParserMixin.parseExpression (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:10780:17)
+    at JSXParserMixin.parseReturnStatement (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:13147:28)
+    at JSXParserMixin.parseStatementContent (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:12803:21)
+    at JSXParserMixin.parseStatementLike (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:12772:17)
+    at JSXParserMixin.parseStatementListItem (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:12752:17)
+    at JSXParserMixin.parseBlockOrModuleBlockBody (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:13321:61)
+    at JSXParserMixin.parseBlockBody (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:13314:10)
+    at JSXParserMixin.parseBlock (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:13302:10)
+    at JSXParserMixin.parseStatementContent (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:12863:21)
+    at JSXParserMixin.parseStatementLike (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:12772:17)
+    at JSXParserMixin.parseStatementOrSloppyAnnexBFunctionDeclaration (D:\automation\Workflow\frontend\node_modules\@babel\parser\lib\index.js:12762:17
+Click outside, press Esc key, or fix the code to dismiss.
+You can also disable this overlay by setting server.hmr.overlay to false in vite.config.js.
