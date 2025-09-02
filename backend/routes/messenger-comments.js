@@ -320,7 +320,7 @@ let webhookState = {
 };
 
 // Get webhook status
-router.get('/messenger-receiver/status', (req, res) => {
+router.get('/status', (req, res) => {
   logger.info('📊 Messenger webhook status requested');
   res.json({
     success: true,
@@ -333,7 +333,7 @@ router.get('/messenger-receiver/status', (req, res) => {
 });
 
 // Activate webhook (start waiting)
-router.post('/messenger-receiver/activate', (req, res) => {
+router.post('/activate', (req, res) => {
   logger.info('🚀 Activating Messenger webhook receiver');
   
   webhookState.isWaitingForCall = true;
@@ -348,7 +348,7 @@ router.post('/messenger-receiver/activate', (req, res) => {
 });
 
 // Get messages
-router.get('/messenger-receiver/messages', (req, res) => {
+router.get('/messages', (req, res) => {
   logger.info('💬 Messenger messages requested', { count: messengerMessages.length });
   res.json({
     success: true,
@@ -358,7 +358,7 @@ router.get('/messenger-receiver/messages', (req, res) => {
 });
 
 // Get users
-router.get('/messenger-receiver/users', (req, res) => {
+router.get('/users', (req, res) => {
   logger.info('👥 Messenger users requested', { count: Object.keys(messengerUsers).length });
   res.json({
     success: true,
