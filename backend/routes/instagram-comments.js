@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const logger = require('../services/logger');
-const { generateAIReply, getAIConfig } = require('./instagram-ai');
+const { generateAIReply, getAIConfig, handleMessageBatch } = require('./instagram-ai');
 
 // Store for Instagram DM data
 let instagramMessages = [];
@@ -249,25 +249,14 @@ router.all('/webhooks/instagram/comments', async (req, res) => {
               if (messageData.text && !messaging.message?.is_echo && senderId !== 'me') {
                 const aiConfig = getAIConfig();
                 if (aiConfig.enabled && aiConfig.autoReply) {
-                  logger.info('🤖 Triggering AI auto-reply', {
+                  logger.info('🤖 Adding message to batch for AI processing', {
                     senderId,
                     message: messageData.text.substring(0, 50),
-                    delay: aiConfig.responseDelay
+                    batchDelay: '5 seconds'
                   });
                   
-                  // Delay the reply to seem more natural
-                  setTimeout(async () => {
-                    try {
-                      const aiReply = await generateAIReply(messageData.text, senderId);
-                      
-                      if (aiReply) {
-                        // Send the AI reply
-                        await sendInstagramReply(senderId, aiReply, true); // true = isAIReply
-                      }
-                    } catch (error) {
-                      logger.error('💥 AI auto-reply error:', error.message);
-                    }
-                  }, aiConfig.responseDelay || 2000);
+                  // Use message batching system (5-second delay)
+                  handleMessageBatch(senderId, messageData.text, generateAIReply, sendInstagramReply);
                 }
               }
             } else {

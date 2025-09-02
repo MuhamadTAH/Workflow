@@ -20,6 +20,75 @@ let aiConfig = {
 let knowledgeBaseInfo = null;
 let isConnected = false;
 
+// Message batching system for handling multiple quick messages
+let messageBatches = new Map(); // senderId -> { messages: [], timeout: timeoutId }
+
+// Function to handle message batching with 5-second delay
+function handleMessageBatch(senderId, messageText, generateAIReply, sendInstagramReply) {
+  const BATCH_TIMEOUT = 5000; // 5 seconds
+  
+  // Get or create batch for this sender
+  let batch = messageBatches.get(senderId);
+  
+  if (!batch) {
+    batch = { messages: [], timeout: null };
+    messageBatches.set(senderId, batch);
+  }
+  
+  // Add message to batch
+  batch.messages.push(messageText);
+  
+  logger.info('📦 Added message to batch:', {
+    senderId,
+    messageText: messageText.substring(0, 50),
+    batchSize: batch.messages.length,
+    timeoutActive: !!batch.timeout
+  });
+  
+  // Clear existing timeout if any
+  if (batch.timeout) {
+    clearTimeout(batch.timeout);
+  }
+  
+  // Set new timeout
+  batch.timeout = setTimeout(async () => {
+    try {
+      // Combine all messages in the batch
+      const combinedMessage = batch.messages.join(' ');
+      
+      logger.info('🚀 Processing batched messages:', {
+        senderId,
+        messageCount: batch.messages.length,
+        combinedLength: combinedMessage.length,
+        combined: combinedMessage.substring(0, 100) + '...'
+      });
+      
+      // Generate AI reply for combined message
+      const aiReply = await generateAIReply(combinedMessage, senderId);
+      
+      if (aiReply) {
+        // Send the AI reply
+        await sendInstagramReply(senderId, aiReply, true);
+        logger.info('✅ Batched AI reply sent:', {
+          senderId,
+          originalMessages: batch.messages.length,
+          replyLength: aiReply.length
+        });
+      }
+      
+    } catch (error) {
+      logger.error('💥 Batched AI reply error:', {
+        senderId,
+        error: error.message,
+        messageCount: batch.messages.length
+      });
+    } finally {
+      // Clean up the batch
+      messageBatches.delete(senderId);
+    }
+  }, BATCH_TIMEOUT);
+}
+
 // Configure multer for file uploads
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -376,5 +445,6 @@ module.exports = {
   generateAIReply,
   getAIConfig: () => aiConfig,
   isConnected: () => isConnected,
-  getKnowledgeBase: () => knowledgeBaseInfo
+  getKnowledgeBase: () => knowledgeBaseInfo,
+  handleMessageBatch
 };
