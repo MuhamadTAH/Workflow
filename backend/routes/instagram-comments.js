@@ -185,9 +185,9 @@ router.all('/webhooks/instagram/comments', (req, res) => {
       fullBody: JSON.stringify(body, null, 2)
     });
 
-    // Process messages (same as before)
+    // Process messages (fixed async handling - using for...of instead of forEach)
     if (body.entry && body.entry.length > 0) {
-      body.entry.forEach(entry => {
+      for (const entry of body.entry) {
         logger.info('📝 Processing entry:', {
           id: entry.id,
           hasMessaging: !!entry.messaging,
@@ -195,8 +195,9 @@ router.all('/webhooks/instagram/comments', (req, res) => {
         });
 
         if (entry.messaging) {
-          entry.messaging.forEach(async (messaging) => {
-            logger.info('💬 Processing messaging event:', {
+          for (const messaging of entry.messaging) {
+            try {
+              logger.info('💬 Processing messaging event:', {
               sender: messaging.sender?.id,
               recipient: messaging.recipient?.id,
               hasMessage: !!messaging.message,
@@ -282,9 +283,16 @@ router.all('/webhooks/instagram/comments', (req, res) => {
               text: messageData.text ? messageData.text.substring(0, 50) + '...' : 'No text',
               totalMessages: instagramMessages.length
             });
-          });
+            } catch (error) {
+              logger.error('💥 Error processing messaging event:', {
+                error: error.message,
+                senderId: messaging.sender?.id,
+                messageText: messaging.message?.text
+              });
+            }
+          }
         }
-      });
+      }
     }
 
     return res.status(200).send('EVENT_RECEIVED');
