@@ -43,6 +43,11 @@ function LeftSidebar() {
       name: 'Instagram DM Manager',
       path: '/instagram-comments',
       icon: 'fab fa-instagram'
+    },
+    {
+      name: 'Messenger Manager',
+      path: '/messenger-comments',
+      icon: 'fab fa-facebook-messenger'
     }
   ];
 

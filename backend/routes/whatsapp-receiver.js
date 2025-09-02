@@ -27,6 +27,10 @@ router.use((req, res, next) => {
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const logger = require('../services/logger');
+const billingService = require('../services/billingService');
+
+// Your Claude API Key from environment variables
+const CLAUDE_API_KEY = process.env.ANTHROPIC_API_KEY || 'your-claude-api-key-here';
 
 // Database setup
 const dbPath = path.join(__dirname, '..', 'database.sqlite');
@@ -269,6 +273,125 @@ router.get('/status', verifyToken, (req, res) => {
   });
 });
 
+// Function to send message to Claude and track usage
+const sendMessageToClaude = async (messageText, userId = 2) => {
+  try {
+    console.log('🤖 Sending message to Claude AI:', messageText.substring(0, 50) + '...');
+    
+    const axios = require('axios');
+    
+    // Call Claude API
+    const response = await axios.post('https://api.anthropic.com/v1/messages', {
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 1000,
+      messages: [
+        {
+          role: 'user',
+          content: messageText
+        }
+      ]
+    }, {
+      headers: {
+        'x-api-key': CLAUDE_API_KEY,
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01'
+      }
+    });
+
+    const claudeResponse = response.data;
+    const responseText = claudeResponse.content?.[0]?.text || 'No response from Claude';
+    
+    // Get token usage
+    const inputTokens = claudeResponse.usage?.input_tokens || 0;
+    const outputTokens = claudeResponse.usage?.output_tokens || 0;
+    
+    console.log('💰 Claude API Usage:', {
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      total_tokens: inputTokens + outputTokens
+    });
+
+    // Track usage for billing (using user ID 2 - your account)
+    try {
+      // Get Claude model info from database
+      const aiModel = await new Promise((resolve, reject) => {
+        db.get(`
+          SELECT * FROM ai_models 
+          WHERE name = 'claude-3-5-sonnet-20241022' AND is_active = 1
+        `, [], (err, row) => {
+          if (err) reject(err);
+          else resolve(row);
+        });
+      });
+
+      if (aiModel) {
+        const billingResult = await billingService.trackUsage(
+          userId,           // Your user ID
+          aiModel.id,       // Claude model ID
+          inputTokens,      // Input tokens
+          outputTokens,     // Output tokens
+          null,            // conversationId
+          null,            // assistantId
+          'whatsapp_chat'  // usage type
+        );
+        
+        console.log('💳 Usage tracked for billing:', {
+          user_id: userId,
+          tokens: inputTokens + outputTokens,
+          cost: billingResult.total_cost,
+          price: billingResult.total_price
+        });
+      }
+    } catch (billingError) {
+      console.error('❌ Billing tracking error:', billingError.message);
+      // Don't fail the request if billing fails
+    }
+
+    return {
+      response: responseText,
+      usage: {
+        input_tokens: inputTokens,
+        output_tokens: outputTokens,
+        total_tokens: inputTokens + outputTokens
+      }
+    };
+
+  } catch (error) {
+    console.error('❌ Error calling Claude API:', error.response?.data || error.message);
+    return null;
+  }
+};
+
+// Function to send WhatsApp message back to user
+const sendWhatsAppReply = async (phoneNumber, messageText) => {
+  try {
+    if (!receiverState.isActive || !receiverState.accessToken || !receiverState.phoneNumberSendId) {
+      console.log('❌ WhatsApp not configured for sending replies');
+      return false;
+    }
+
+    const axios = require('axios');
+    const whatsappApiUrl = `https://graph.facebook.com/v18.0/${receiverState.phoneNumberSendId}/messages`;
+    
+    const response = await axios.post(whatsappApiUrl, {
+      messaging_product: 'whatsapp',
+      to: phoneNumber,
+      text: { body: messageText }
+    }, {
+      headers: {
+        'Authorization': `Bearer ${receiverState.accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log('✅ WhatsApp reply sent successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ Error sending WhatsApp reply:', error.response?.data || error.message);
+    return false;
+  }
+};
+
 // Function to store received WhatsApp message (called from webhook)
 const storeWhatsAppMessage = (webhookData) => {
   return new Promise((resolve, reject) => {
@@ -325,12 +448,63 @@ const storeWhatsAppMessage = (webhookData) => {
         messageData.messageType,
         messageData.timestamp,
         messageData.rawData
-      ], function(err) {
+      ], async function(err) {
         if (err) {
           console.error('❌ Error storing message:', err);
           reject(err);
         } else {
           console.log('✅ Message stored with ID:', this.lastID);
+          
+          // 🤖 CLAUDE AI INTEGRATION - Process message and auto-reply
+          if (messageData.messageType === 'text' && messageData.messageText && messageData.messageText.trim()) {
+            console.log('🤖 Processing WhatsApp message with Claude AI...');
+            
+            try {
+              // Send message to Claude AI (user ID 2 = your account)
+              const claudeResult = await sendMessageToClaude(messageData.messageText, 2);
+              
+              if (claudeResult) {
+                console.log('✅ Claude response received:', claudeResult.response.substring(0, 100) + '...');
+                console.log('💰 Token usage:', claudeResult.usage);
+                
+                // Send Claude's response back to WhatsApp user
+                const replySent = await sendWhatsAppReply(messageData.phoneNumber, claudeResult.response);
+                
+                if (replySent) {
+                  console.log('✅ AI response sent to WhatsApp user');
+                  
+                  // Store Claude's response as an outgoing message
+                  const replyInsertQuery = `
+                    INSERT INTO whatsapp_receiver_messages 
+                    (phone_number, contact_name, message_text, message_id, message_type, timestamp, direction)
+                    VALUES (?, ?, ?, ?, ?, ?, 'outgoing')
+                  `;
+                  
+                  db.run(replyInsertQuery, [
+                    messageData.phoneNumber,
+                    'Claude AI',
+                    claudeResult.response,
+                    'claude_' + Date.now(),
+                    'ai_response',
+                    new Date().toISOString()
+                  ], (replyErr) => {
+                    if (replyErr) {
+                      console.error('❌ Error storing AI response:', replyErr);
+                    } else {
+                      console.log('✅ AI response stored in conversation history');
+                    }
+                  });
+                } else {
+                  console.log('❌ Failed to send AI response to WhatsApp');
+                }
+              } else {
+                console.log('❌ No response from Claude AI');
+              }
+            } catch (aiError) {
+              console.error('❌ Error processing message with AI:', aiError.message);
+            }
+          }
+          
           resolve({ 
             stored: true, 
             id: this.lastID,

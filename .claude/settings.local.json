@@ -68,7 +68,8 @@
       "WebSearch",
       "Bash(set PORT=3002)",
       "Bash(PORT=3002 node index.js)",
-      "Read(D:\\automation/**)"
+      "Read(D:\\automation/**)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }

@@ -23,6 +23,7 @@ import TelegramListener from './pages/TelegramListener';
 import WhatsAppReceiver from './pages/WhatsAppReceiver';
 import WhatsAppReceiverTest from './pages/WhatsAppReceiverTest';
 import SimpleInstagramWebhook from './pages/SimpleInstagramWebhook';
+import SimpleMessengerWebhook from './pages/SimpleMessengerWebhook';
 import BillingDashboard from './components/BillingDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import APIKeysDashboard from './components/APIKeysDashboard';
@@ -243,6 +244,348 @@ function Home() {
           </div>
         </header>
 
+        {/* Service Cards Section */}
+        <div className="services-section" style={{
+          padding: '2rem',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '1.5rem',
+          marginBottom: '2rem'
+        }}>
+          
+          {/* Instagram DM Manager Card */}
+          <div className="service-card" style={{
+            backgroundColor: colors.secondaryBg,
+            border: `1px solid ${colors.border}`,
+            borderRadius: '12px',
+            padding: '1.5rem',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            transition: 'all 0.3s ease'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              marginBottom: '1rem',
+              gap: '0.75rem'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                backgroundColor: '#E4405F',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem',
+                color: 'white'
+              }}>
+                📷
+              </div>
+              <div>
+                <h3 style={{ 
+                  margin: 0, 
+                  fontSize: '1.1rem', 
+                  fontWeight: '600',
+                  color: colors.primaryText
+                }}>
+                  Instagram DM Manager
+                </h3>
+                <p style={{ 
+                  margin: 0, 
+                  fontSize: '0.875rem', 
+                  color: colors.secondaryText 
+                }}>
+                  AI-powered Instagram messaging
+                </p>
+              </div>
+            </div>
+            <p style={{ 
+              fontSize: '0.875rem', 
+              color: colors.secondaryText, 
+              marginBottom: '1.5rem',
+              lineHeight: '1.4'
+            }}>
+              Manage Instagram direct messages with AI auto-replies, custom knowledge base, and real-time conversation handling.
+            </p>
+            <Link 
+              to="/instagram-comments"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                backgroundColor: '#E4405F',
+                color: 'white',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#C13584';
+                e.target.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = '#E4405F';
+                e.target.style.transform = 'translateY(0px)';
+              }}
+            >
+              <i className="fab fa-instagram"></i>
+              Launch Instagram DM
+            </Link>
+          </div>
+
+          {/* Messenger Manager Card */}
+          <div className="service-card" style={{
+            backgroundColor: colors.secondaryBg,
+            border: `1px solid ${colors.border}`,
+            borderRadius: '12px',
+            padding: '1.5rem',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            transition: 'all 0.3s ease'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              marginBottom: '1rem',
+              gap: '0.75rem'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                backgroundColor: '#0084ff',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem',
+                color: 'white'
+              }}>
+                💬
+              </div>
+              <div>
+                <h3 style={{ 
+                  margin: 0, 
+                  fontSize: '1.1rem', 
+                  fontWeight: '600',
+                  color: colors.primaryText
+                }}>
+                  Messenger Manager
+                </h3>
+                <p style={{ 
+                  margin: 0, 
+                  fontSize: '0.875rem', 
+                  color: colors.secondaryText 
+                }}>
+                  AI-powered Facebook Messenger
+                </p>
+              </div>
+            </div>
+            <p style={{ 
+              fontSize: '0.875rem', 
+              color: colors.secondaryText, 
+              marginBottom: '1.5rem',
+              lineHeight: '1.4'
+            }}>
+              Manage Facebook Messenger conversations with AI auto-replies, custom knowledge base, and real-time message handling.
+            </p>
+            <Link 
+              to="/messenger-comments"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                backgroundColor: '#0084ff',
+                color: 'white',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#0066cc';
+                e.target.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = '#0084ff';
+                e.target.style.transform = 'translateY(0px)';
+              }}
+            >
+              <i className="fab fa-facebook-messenger"></i>
+              Launch Messenger
+            </Link>
+          </div>
+
+          {/* WhatsApp Receiver Card */}
+          <div className="service-card" style={{
+            backgroundColor: colors.secondaryBg,
+            border: `1px solid ${colors.border}`,
+            borderRadius: '12px',
+            padding: '1.5rem',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            transition: 'all 0.3s ease'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              marginBottom: '1rem',
+              gap: '0.75rem'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                backgroundColor: '#25D366',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem',
+                color: 'white'
+              }}>
+                📱
+              </div>
+              <div>
+                <h3 style={{ 
+                  margin: 0, 
+                  fontSize: '1.1rem', 
+                  fontWeight: '600',
+                  color: colors.primaryText
+                }}>
+                  WhatsApp Receiver
+                </h3>
+                <p style={{ 
+                  margin: 0, 
+                  fontSize: '0.875rem', 
+                  color: colors.secondaryText 
+                }}>
+                  WhatsApp webhook integration
+                </p>
+              </div>
+            </div>
+            <p style={{ 
+              fontSize: '0.875rem', 
+              color: colors.secondaryText, 
+              marginBottom: '1.5rem',
+              lineHeight: '1.4'
+            }}>
+              Receive and manage WhatsApp Business API webhooks with real-time message processing and automation.
+            </p>
+            <Link 
+              to="/whatsapp-receiver"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                backgroundColor: '#25D366',
+                color: 'white',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#1DA851';
+                e.target.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = '#25D366';
+                e.target.style.transform = 'translateY(0px)';
+              }}
+            >
+              <i className="fab fa-whatsapp"></i>
+              Launch WhatsApp
+            </Link>
+          </div>
+
+          {/* Telegram Listener Card */}
+          <div className="service-card" style={{
+            backgroundColor: colors.secondaryBg,
+            border: `1px solid ${colors.border}`,
+            borderRadius: '12px',
+            padding: '1.5rem',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            transition: 'all 0.3s ease'
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              marginBottom: '1rem',
+              gap: '0.75rem'
+            }}>
+              <div style={{
+                width: '48px',
+                height: '48px',
+                backgroundColor: '#0088cc',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.5rem',
+                color: 'white'
+              }}>
+                ✈️
+              </div>
+              <div>
+                <h3 style={{ 
+                  margin: 0, 
+                  fontSize: '1.1rem', 
+                  fontWeight: '600',
+                  color: colors.primaryText
+                }}>
+                  Telegram Listener
+                </h3>
+                <p style={{ 
+                  margin: 0, 
+                  fontSize: '0.875rem', 
+                  color: colors.secondaryText 
+                }}>
+                  Telegram bot management
+                </p>
+              </div>
+            </div>
+            <p style={{ 
+              fontSize: '0.875rem', 
+              color: colors.secondaryText, 
+              marginBottom: '1.5rem',
+              lineHeight: '1.4'
+            }}>
+              Create and manage Telegram bots with webhook listening, message processing, and automated responses.
+            </p>
+            <Link 
+              to="/telegram-listener"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                backgroundColor: '#0088cc',
+                color: 'white',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#0066aa';
+                e.target.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = '#0088cc';
+                e.target.style.transform = 'translateY(0px)';
+              }}
+            >
+              <i className="fab fa-telegram"></i>
+              Launch Telegram
+            </Link>
+          </div>
+
+        </div>
 
         {/* Main Content Grid */}
         <div className="content-grid">
@@ -376,6 +719,7 @@ function App() {
         <Route path="/whatsapp-receiver" element={<WhatsAppReceiver />} />
         <Route path="/whatsapp-test" element={<WhatsAppReceiverTest />} />
         <Route path="/instagram-comments" element={<SimpleInstagramWebhook />} />
+        <Route path="/messenger-comments" element={<SimpleMessengerWebhook />} />
         <Route path="/billing" element={<BillingDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/api-keys" element={<APIKeysDashboard />} />

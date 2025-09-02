@@ -31,6 +31,10 @@ const claudeRoutes = require('./routes/claude');
 const instagramCommentRoutes = require('./routes/instagram-comments');
 // INSTAGRAM AI ROUTES
 const { router: instagramAIRoutes } = require('./routes/instagram-ai');
+// MESSENGER COMMENT ROUTES
+const messengerCommentRoutes = require('./routes/messenger-comments');
+// MESSENGER AI ROUTES
+const { router: messengerAIRoutes } = require('./routes/messenger-ai');
 // BILLING ROUTES
 const billingRoutes = require('./routes/billing');
 // CUSTOM AI ROUTES
@@ -150,6 +154,10 @@ app.use('/api', authRoutes);
 app.use('/api', instagramCommentRoutes);
 // INSTAGRAM AI ROUTES
 app.use('/api', instagramAIRoutes);
+// MESSENGER COMMENT ROUTES (must be before webhooks to avoid conflict)
+app.use('/api', messengerCommentRoutes);
+// MESSENGER AI ROUTES
+app.use('/api', messengerAIRoutes);
 app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/workflows', workflowRoutes);
 app.use('/api/agent', agentRoutes);
