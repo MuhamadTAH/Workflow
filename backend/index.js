@@ -35,6 +35,8 @@ const { router: instagramAIRoutes } = require('./routes/instagram-ai');
 const billingRoutes = require('./routes/billing');
 // CUSTOM AI ROUTES
 const customAIRoutes = require('./routes/customAI');
+// ADMIN ROUTES
+const adminRoutes = require('./routes/admin');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
@@ -168,6 +170,8 @@ app.use('/api/claude', claudeRoutes);
 app.use('/api/billing', billingRoutes);
 // CUSTOM AI ROUTES
 app.use('/api/custom-ai', customAIRoutes);
+// ADMIN ROUTES
+app.use('/api/admin', adminRoutes);
 
 // Chat trigger alias route for frontend compatibility
 app.get('/api/chat/:nodeId', (req, res) => {

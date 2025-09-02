@@ -24,6 +24,7 @@ import WhatsAppReceiver from './pages/WhatsAppReceiver';
 import WhatsAppReceiverTest from './pages/WhatsAppReceiverTest';
 import SimpleInstagramWebhook from './pages/SimpleInstagramWebhook';
 import BillingDashboard from './components/BillingDashboard';
+import AdminDashboard from './components/AdminDashboard';
 // Import shop components using the modular router
 import { 
   ShopDashboard, 
@@ -155,7 +156,7 @@ function Home() {
             <p className="hero-subtitle">
               Manage your automated marketing workflows and e-commerce operations
             </p>
-            <div className="hero-actions" style={{ marginTop: '20px' }}>
+            <div className="hero-actions" style={{ marginTop: '20px', display: 'flex', gap: '16px' }}>
               <Link 
                 to="/billing" 
                 className="hero-btn billing-btn"
@@ -182,6 +183,33 @@ function Home() {
                 }}
               >
                 💰 Billing & Usage
+              </Link>
+              <Link 
+                to="/admin" 
+                className="hero-btn admin-btn"
+                style={{ 
+                  backgroundColor: '#6366f1',
+                  color: 'white',
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontWeight: '600',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#4f46e5';
+                  e.target.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '#6366f1';
+                  e.target.style.transform = 'translateY(0px)';
+                }}
+              >
+                📊 Admin Dashboard
               </Link>
             </div>
           </div>
@@ -321,6 +349,7 @@ function App() {
         <Route path="/whatsapp-test" element={<WhatsAppReceiverTest />} />
         <Route path="/instagram-comments" element={<SimpleInstagramWebhook />} />
         <Route path="/billing" element={<BillingDashboard />} />
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/shop/:shopName" element={<PublicShop />} />
         </Routes>
       </Router>
