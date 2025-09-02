@@ -70,4 +70,4 @@ WorkflowBuilder-Platform/*/node_modules/
 
 # Package lock files (keep package-lock.json but ignore yarn.lock)
 yarn.lock
-pnpm-lock.yaml
+pnpm-lock.yamlbackend/.env
