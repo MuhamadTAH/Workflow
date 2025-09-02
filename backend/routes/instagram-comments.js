@@ -138,7 +138,7 @@ async function sendInstagramReply(senderId, replyText, isAIReply = false) {
 }
 
 // Instagram webhook endpoint (handles both GET verification and POST messages like n8n)
-router.all('/webhooks/instagram/comments', (req, res) => {
+router.all('/webhooks/instagram/comments', async (req, res) => {
   logger.info('🔥 INSTAGRAM WEBHOOK RECEIVED!', {
     method: req.method,
     query: req.query,
