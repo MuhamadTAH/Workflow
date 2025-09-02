@@ -124,25 +124,73 @@ router.put('/spending-limit', async (req, res) => {
   }
 });
 
-// Get usage statistics (no mock data)
+// Get usage statistics (real data from ai_usage_tracking)
 router.get('/usage', async (req, res) => {
   try {
-    // Return empty usage data for new users
-    res.json({ usage: [] });
+    const db = require('../db');
+    
+    // Get usage data from ai_usage_tracking table (user_id = 2 is your account)
+    const usage = await new Promise((resolve, reject) => {
+      db.all(`
+        SELECT 
+          DATE(u.created_at) as usage_date,
+          COUNT(*) as requests,
+          SUM(u.total_tokens) as tokens,
+          SUM(u.total_price) as amount,
+          u.usage_type,
+          am.name as model_name
+        FROM ai_usage_tracking u
+        LEFT JOIN ai_models am ON u.ai_model_id = am.id
+        WHERE u.user_id = 2
+        GROUP BY DATE(u.created_at), u.usage_type, am.name
+        ORDER BY usage_date DESC
+        LIMIT 30
+      `, [], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows || []);
+      });
+    });
+
+    res.json({ usage });
   } catch (error) {
     console.error('Error getting usage stats:', error);
     res.status(500).json({ error: 'Failed to get usage statistics' });
   }
 });
 
-// Get current month spending (no mock data)
+// Get current month spending (real data from ai_usage_tracking)
 router.get('/current-spending', async (req, res) => {
   try {
-    // Return actual spending data (currently no usage)
+    const db = require('../db');
+    
+    // Get current month spending for user_id = 2
+    const currentSpending = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT 
+          COALESCE(SUM(total_price), 0) as current_spending,
+          COUNT(*) as total_requests,
+          SUM(total_tokens) as total_tokens
+        FROM ai_usage_tracking 
+        WHERE user_id = 2 
+        AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')
+      `, [], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    // Get user spending limit (if any)
+    const spendingLimit = null; // null = unlimited for now
+
+    const percentage = spendingLimit ? 
+      Math.min((currentSpending.current_spending / spendingLimit) * 100, 100) : 0;
+
     res.json({ 
-      currentSpending: 0.00,
-      spendingLimit: null, // null = unlimited
-      percentage: 0
+      currentSpending: parseFloat(currentSpending.current_spending || 0),
+      spendingLimit: spendingLimit,
+      percentage: percentage,
+      totalRequests: currentSpending.total_requests || 0,
+      totalTokens: currentSpending.total_tokens || 0
     });
   } catch (error) {
     console.error('Error getting current spending:', error);
@@ -187,13 +235,31 @@ router.get('/models', async (req, res) => {
   }
 });
 
-// Get free tier status (no auth required for testing)
+// Get free tier status (based on actual usage)
 router.get('/free-tier', async (req, res) => {
   try {
-    // Return default free tier for testing
+    const db = require('../db');
+    
+    // Calculate used tokens from ai_usage_tracking for user_id = 2
+    const usedTokens = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT COALESCE(SUM(total_tokens), 0) as used_tokens
+        FROM ai_usage_tracking 
+        WHERE user_id = 2
+      `, [], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    const totalLimit = 1000000; // 1 million tokens free tier (example)
+    const usedCount = parseInt(usedTokens.used_tokens || 0);
+    const remaining = Math.max(totalLimit - usedCount, 0);
+
     res.json({ 
-      remainingTokens: 1000,
-      totalLimit: 1000
+      remainingTokens: remaining,
+      totalLimit: totalLimit,
+      usedTokens: usedCount
     });
   } catch (error) {
     console.error('Error getting free tier status:', error);

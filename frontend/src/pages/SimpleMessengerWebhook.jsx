@@ -1,0 +1,716 @@
+import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api.js';
+import MessengerAISettings from '../components/MessengerAISettings.jsx';
+
+const SimpleMessengerWebhook = () => {
+  const [isWaiting, setIsWaiting] = useState(false);
+  const [hasReceivedCall, setHasReceivedCall] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [firstCallAt, setFirstCallAt] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [users, setUsers] = useState({});
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [isReplying, setIsReplying] = useState(false);
+  const [showAISettings, setShowAISettings] = useState(false);
+  const [aiConfig, setAiConfig] = useState({ enabled: false });
+
+  const webhookUrl = `${API_BASE_URL}/api/webhooks/messenger/comments`;
+  const verifyToken = 'muhammad';
+
+  // Check status on load
+  useEffect(() => {
+    checkStatus();
+    loadAIConfig();
+  }, []);
+
+  const loadAIConfig = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/messenger-ai/config`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setAiConfig(data.config);
+      }
+    } catch (error) {
+      console.error('Error loading AI config:', error);
+    }
+  };
+
+  // Poll for webhook status and messages when waiting
+  useEffect(() => {
+    let interval;
+    if (isWaiting) {
+      interval = setInterval(() => {
+        checkStatus();
+        fetchMessages();
+      }, 3000); // Check every 3 seconds
+    }
+    return () => clearInterval(interval);
+  }, [isWaiting]);
+
+  const checkStatus = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/messenger-receiver/status`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setIsWaiting(data.status.isWaitingForCall);
+        setHasReceivedCall(data.status.hasReceivedCall);
+        setFirstCallAt(data.status.firstCallAt);
+      }
+    } catch (error) {
+      console.error('Error checking status:', error);
+    }
+  };
+
+  const handleActivate = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/messenger-receiver/activate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setIsWaiting(true);
+        setHasReceivedCall(false);
+        console.log('✅ Started waiting for webhook call from Meta');
+      } else {
+        setError(data.error || 'Failed to start waiting for webhook');
+      }
+    } catch (error) {
+      setError('Network error: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/messenger-receiver/messages`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setMessages(data.messages || []);
+        // For Messenger, get users separately
+        const usersResponse = await fetch(`${API_BASE_URL}/api/messenger-receiver/users`);
+        const usersData = await usersResponse.json();
+        if (usersData.success) {
+          setUsers(usersData.users || {});
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+  // Get unique conversations (users who have sent messages)
+  const getConversations = () => {
+    const conversations = {};
+    
+    messages.forEach(message => {
+      const senderId = message.sender?.id;
+      const recipientId = message.recipient?.id;
+      
+      // For incoming messages (from users to us)
+      if (senderId && senderId !== 'me') {
+        const user = users[senderId];
+        if (!conversations[senderId] || new Date(message.timestamp) > new Date(conversations[senderId].lastMessage.timestamp)) {
+          conversations[senderId] = {
+            userId: senderId,
+            name: user?.name || 'Messenger User',
+            first_name: user?.first_name || '',
+            last_name: user?.last_name || '',
+            profile_pic: user?.profile_pic,
+            lastMessage: message,
+            unreadCount: 0
+          };
+        }
+      }
+      
+      // For outgoing messages (from us to users), update existing conversation
+      if (senderId === 'me' && recipientId) {
+        const user = users[recipientId];
+        if (!conversations[recipientId] || new Date(message.timestamp) > new Date(conversations[recipientId].lastMessage.timestamp)) {
+          conversations[recipientId] = {
+            userId: recipientId,
+            name: user?.name || 'Messenger User',
+            first_name: user?.first_name || '',
+            last_name: user?.last_name || '',
+            profile_pic: user?.profile_pic,
+            lastMessage: message,
+            unreadCount: 0
+          };
+        }
+      }
+    });
+    
+    // Sort by most recent message
+    return Object.values(conversations).sort((a, b) => 
+      new Date(b.lastMessage.timestamp) - new Date(a.lastMessage.timestamp)
+    );
+  };
+
+  // Get messages for selected user
+  const getMessagesForUser = (userId) => {
+    if (!userId) return messages;
+    return messages.filter(message => 
+      message.sender?.id === userId || 
+      (message.recipient?.id === userId && message.sender?.id === 'me')
+    );
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const formatTimestamp = (timestamp) => {
+    return new Date(timestamp).toLocaleString();
+  };
+
+  const handleReply = async () => {
+    if (!selectedUserId || !replyText.trim()) return;
+
+    setIsReplying(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/messenger-receiver/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          senderId: selectedUserId,
+          replyText: replyText.trim()
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        console.log('✅ Reply sent successfully');
+        setReplyText('');
+        // Don't deselect user - keep conversation open
+        // Don't add message here - backend will store it and next poll will fetch it
+      } else {
+        setError(data.error || 'Failed to send reply');
+      }
+    } catch (error) {
+      setError('Network error: ' + error.message);
+    } finally {
+      setIsReplying(false);
+    }
+  };
+
+  const conversations = getConversations();
+  const currentMessages = getMessagesForUser(selectedUserId);
+
+  return (
+    <div style={{ 
+      height: '100vh', 
+      backgroundColor: '#f0f2f5',
+      display: 'flex'
+    }}>
+      
+      {/* Left Panel - Webhook Setup & Contact List */}
+      <div style={{ 
+        width: '400px',
+        backgroundColor: 'white',
+        borderRight: '1px solid #e5e7eb',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        
+        {/* Header */}
+        <div style={{ 
+          padding: '1rem',
+          backgroundColor: '#0084ff',
+          color: 'white'
+        }}>
+          <div style={{ marginBottom: '1rem' }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '0.5rem'
+            }}>
+              <h1 style={{ 
+                fontSize: '1.25rem', 
+                fontWeight: 'bold',
+                margin: 0
+              }}>
+                💬 Messenger Manager
+              </h1>
+              
+              <button
+                onClick={() => setShowAISettings(true)}
+                style={{
+                  backgroundColor: aiConfig.enabled ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  border: `1px solid ${aiConfig.enabled ? 'rgba(34, 197, 94, 0.5)' : 'rgba(255,255,255,0.3)'}`,
+                  borderRadius: '6px',
+                  padding: '0.5rem 0.75rem',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}
+                title="AI Assistant Settings"
+              >
+                🤖 AI {aiConfig.enabled ? 'ON' : 'OFF'}
+              </button>
+            </div>
+            
+            {aiConfig.enabled && aiConfig.autoReply && (
+              <div style={{ 
+                fontSize: '0.75rem', 
+                color: 'rgba(255,255,255,0.8)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem'
+              }}>
+                <span style={{ color: '#22c55e' }}>●</span>
+                AI Auto-reply Active
+              </div>
+            )}
+          </div>
+
+          {/* Status Display */}
+          {!isWaiting && !hasReceivedCall && (
+            <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+              <button
+                onClick={handleActivate}
+                disabled={isLoading}
+                style={{
+                  backgroundColor: isLoading ? '#9ca3af' : 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  borderRadius: '6px',
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  width: '100%'
+                }}
+              >
+                {isLoading ? 'Activating...' : '🚀 Start Webhook'}
+              </button>
+            </div>
+          )}
+          
+          {isWaiting && (
+            <div style={{ fontSize: '0.8rem', textAlign: 'center', opacity: '0.9' }}>
+              🔴 Live - Listening for messages...
+            </div>
+          )}
+        </div>
+
+        {/* Contact List */}
+        <div style={{ flex: 1, overflowY: 'auto' }}>
+          <div style={{ 
+            padding: '1rem 0.5rem',
+            borderBottom: '1px solid #e5e7eb',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            color: '#374151'
+          }}>
+            Conversations ({conversations.length})
+          </div>
+          
+          {conversations.length === 0 ? (
+            <div style={{ 
+              padding: '2rem 1rem',
+              textAlign: 'center',
+              color: '#9ca3af',
+              fontSize: '0.875rem'
+            }}>
+              No conversations yet.<br/>
+              Send a message to start!
+            </div>
+          ) : (
+            <div>
+              {conversations.map((conversation) => (
+                <div
+                  key={conversation.userId}
+                  onClick={() => setSelectedUserId(conversation.userId)}
+                  style={{
+                    padding: '0.75rem',
+                    borderBottom: '1px solid #f3f4f6',
+                    cursor: 'pointer',
+                    backgroundColor: selectedUserId === conversation.userId ? '#e3f2fd' : 'transparent',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (selectedUserId !== conversation.userId) {
+                      e.target.style.backgroundColor = '#f9fafb';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedUserId !== conversation.userId) {
+                      e.target.style.backgroundColor = 'transparent';
+                    }
+                  }}
+                >
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                    {/* Profile Picture */}
+                    <div style={{
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '50%',
+                      backgroundColor: '#0084ff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1rem',
+                      color: 'white',
+                      fontWeight: 'bold',
+                      backgroundImage: conversation.profile_pic ? `url(${conversation.profile_pic})` : 'none',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    }}>
+                      {!conversation.profile_pic && conversation.name.charAt(0).toUpperCase()}
+                    </div>
+                    
+                    {/* Conversation Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ 
+                        fontSize: '0.875rem', 
+                        fontWeight: '600', 
+                        color: '#111827',
+                        marginBottom: '0.25rem',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        {conversation.name}
+                      </div>
+                      <div style={{ 
+                        fontSize: '0.75rem', 
+                        color: '#9ca3af',
+                        marginTop: '0.25rem',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        {conversation.lastMessage.text || 'No message'}
+                      </div>
+                    </div>
+                    
+                    {/* Timestamp */}
+                    <div style={{ 
+                      fontSize: '0.65rem', 
+                      color: '#9ca3af',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {new Date(conversation.lastMessage.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
+
+      {/* Center Panel - Conversation */}
+      <div style={{ 
+        flex: '1',
+        backgroundColor: 'white',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        
+        {/* Conversation Header */}
+        {selectedUserId ? (
+          <div style={{ 
+            padding: '1rem',
+            backgroundColor: '#f8fafc',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem'
+          }}>
+            {(() => {
+              const selectedUser = users[selectedUserId];
+              return (
+                <>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    backgroundColor: '#0084ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    backgroundImage: selectedUser?.profile_pic ? `url(${selectedUser.profile_pic})` : 'none',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }}>
+                    {!selectedUser?.profile_pic && (selectedUser?.name?.charAt(0).toUpperCase() || 'U')}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '1rem', fontWeight: '600', color: '#111827' }}>
+                      {selectedUser?.name || 'Messenger User'}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        ) : (
+          <div style={{ 
+            padding: '1rem',
+            backgroundColor: '#f8fafc',
+            borderBottom: '1px solid #e5e7eb',
+            textAlign: 'center'
+          }}>
+            <h2 style={{ 
+              fontSize: '1.25rem', 
+              fontWeight: 'bold', 
+              color: '#111827',
+              margin: 0
+            }}>
+              💬 Messenger Manager
+            </h2>
+          </div>
+        )}
+
+        {/* Messages Display */}
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '1rem',
+          backgroundColor: '#f8fafc'
+        }}>
+          {!selectedUserId ? (
+            <div style={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              color: '#9ca3af',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem', color: '#6b7280' }}>
+                Select a conversation
+              </h3>
+              <p style={{ fontSize: '0.875rem' }}>
+                Choose a conversation from the left panel to start messaging
+              </p>
+              {!isWaiting && !hasReceivedCall && (
+                <div style={{ marginTop: '2rem' }}>
+                  <p style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>
+                    Haven't started receiving messages yet?
+                  </p>
+                  <button
+                    onClick={handleActivate}
+                    disabled={isLoading}
+                    style={{
+                      backgroundColor: isLoading ? '#9ca3af' : '#0084ff',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '0.75rem 1.5rem',
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      cursor: isLoading ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    {isLoading ? 'Activating...' : '🚀 Start Webhook'}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : currentMessages.length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              color: '#9ca3af', 
+              padding: '2rem',
+              fontStyle: 'italic'
+            }}>
+              No messages in this conversation yet.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {currentMessages.map((message, index) => {
+                const isOutgoing = message.isOutgoing || message.sender?.id === 'me';
+                
+                return (
+                  <div 
+                    key={message.id || index}
+                    style={{
+                      display: 'flex',
+                      justifyContent: isOutgoing ? 'flex-end' : 'flex-start',
+                      width: '100%'
+                    }}
+                  >
+                    <div style={{
+                      maxWidth: '70%',
+                      minWidth: '120px',
+                      backgroundColor: isOutgoing ? '#0084ff' : 'white',
+                      color: isOutgoing ? 'white' : '#374151',
+                      borderRadius: isOutgoing ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                      padding: '0.75rem 1rem',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                      position: 'relative'
+                    }}>
+                      
+                      {/* AI Reply Badge */}
+                      {message.isAIReply && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '-8px',
+                          left: '8px',
+                          backgroundColor: '#22c55e',
+                          color: 'white',
+                          fontSize: '0.6rem',
+                          padding: '2px 6px',
+                          borderRadius: '10px',
+                          fontWeight: 'bold'
+                        }}>
+                          🤖 AI
+                        </div>
+                      )}
+                      
+                      {/* Message Content */}
+                      <div style={{ 
+                        fontSize: '0.875rem',
+                        lineHeight: '1.4',
+                        wordWrap: 'break-word'
+                      }}>
+                        {message.text || (isOutgoing ? 'Message sent' : 'No text content')}
+                      </div>
+
+                      {/* Timestamp */}
+                      <div style={{ 
+                        fontSize: '0.65rem', 
+                        color: isOutgoing ? 'rgba(255,255,255,0.7)' : '#9ca3af', 
+                        marginTop: '0.25rem',
+                        textAlign: isOutgoing ? 'right' : 'left'
+                      }}>
+                        {formatTimestamp(message.timestamp)}
+                        {isOutgoing && ' ✓'}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Reply Interface */}
+        {selectedUserId && (
+          <div style={{ 
+            padding: '1rem',
+            backgroundColor: 'white',
+            borderTop: '1px solid #e5e7eb'
+          }}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+              <div style={{ flex: 1 }}>
+                <textarea
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Type your message..."
+                  style={{
+                    width: '100%',
+                    minHeight: '60px',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '20px',
+                    fontSize: '0.875rem',
+                    fontFamily: 'inherit',
+                    resize: 'none',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleReply();
+                    }
+                  }}
+                />
+              </div>
+              
+              <button
+                onClick={handleReply}
+                disabled={!replyText.trim() || isReplying}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  backgroundColor: !replyText.trim() || isReplying ? '#9ca3af' : '#0084ff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '50%',
+                  cursor: !replyText.trim() || isReplying ? 'not-allowed' : 'pointer',
+                  transition: 'background-color 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1rem'
+                }}
+                onMouseEnter={(e) => {
+                  if (!(!replyText.trim() || isReplying)) {
+                    e.target.style.backgroundColor = '#0066cc';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!(!replyText.trim() || isReplying)) {
+                    e.target.style.backgroundColor = '#0084ff';
+                  }
+                }}
+              >
+                {isReplying ? '⏳' : '📤'}
+              </button>
+            </div>
+            
+            {error && (
+              <div style={{
+                marginTop: '0.5rem',
+                padding: '0.5rem',
+                backgroundColor: '#fee2e2',
+                border: '1px solid #fecaca',
+                borderRadius: '4px',
+                fontSize: '0.75rem',
+                color: '#dc2626'
+              }}>
+                {error}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* AI Settings Modal */}
+      <MessengerAISettings
+        isVisible={showAISettings}
+        onClose={() => {
+          setShowAISettings(false);
+          loadAIConfig(); // Reload config after closing settings
+        }}
+      />
+
+    </div>
+  );
+};
+
+export default SimpleMessengerWebhook;
