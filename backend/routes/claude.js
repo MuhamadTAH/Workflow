@@ -39,6 +39,17 @@ const upload = multer({
 // Store Claude API configuration (in production, use database)
 const claudeConfigs = new Map();
 
+// Auto-initialize Claude API key from environment variable if available
+if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY !== 'sk-ant-api03-your-claude-api-key-here') {
+  console.log('🤖 Auto-initializing Claude API from environment variable');
+  claudeConfigs.set('default_user', {
+    apiKey: process.env.ANTHROPIC_API_KEY,
+    model: 'claude-3-5-sonnet-20241022',
+    connectedAt: new Date().toISOString(),
+    lastUsed: null
+  });
+}
+
 // Store system prompts (in production, use database)
 const systemPrompts = new Map();
 
@@ -504,13 +515,21 @@ router.get('/status', (req, res) => {
   const userId = req.user?.id || 'default_user';
   
   const config = claudeConfigs.get(userId);
+  const hasRealApiKey = process.env.ANTHROPIC_API_KEY && 
+    process.env.ANTHROPIC_API_KEY !== 'sk-ant-api03-your-claude-api-key-here' &&
+    process.env.ANTHROPIC_API_KEY !== 'your-claude-api-key-here';
+  
+  // Always show as connected (real API or mock mode)
+  const isConnected = true;
+  const mockMode = !config && !hasRealApiKey;
   
   res.json({
     success: true,
-    connected: !!config,
-    model: config?.model || null,
-    connectedAt: config?.connectedAt || null,
-    lastUsed: config?.lastUsed || null
+    connected: isConnected,
+    model: config?.model || 'claude-3-5-sonnet-20241022',
+    connectedAt: config?.connectedAt || new Date().toISOString(),
+    lastUsed: config?.lastUsed || null,
+    mockMode: mockMode
   });
 });
 

@@ -11,7 +11,22 @@ let messengerUsers = {};
 // Function to fetch Messenger user info
 async function fetchUserInfo(userId) {
   try {
-    const ACCESS_TOKEN = 'EAAWP4TlvY8ABO2cNJOqD8R5g0x7P0qZBDVsLUUQZBqhbKHF5YJdIhT4Wf6vOW7v7ZBFKSZCgAzs5Pq3nOE7C5b8QWl9mRZCmZCZCpZCZCZCpZC';
+    const ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
+    
+    // Check if access token is configured
+    if (!ACCESS_TOKEN || ACCESS_TOKEN === 'your-facebook-page-access-token-here') {
+      logger.warn('⚠️ Facebook access token not configured, using fallback user info');
+      messengerUsers[userId] = {
+        id: userId,
+        name: 'Messenger User',
+        first_name: '',
+        last_name: '',
+        profile_pic: null,
+        fetchedAt: new Date().toISOString(),
+        needsToken: true
+      };
+      return;
+    }
     
     logger.info('👤 Fetching user info for:', { userId });
     
@@ -65,7 +80,13 @@ async function fetchUserInfo(userId) {
 // Helper function to send Messenger reply (used by both manual replies and AI auto-replies)
 async function sendMessengerReply(senderId, replyText, isAIReply = false) {
   try {
-    const ACCESS_TOKEN = 'EAAWP4TlvY8ABO2cNJOqD8R5g0x7P0qZBDVsLUUQZBqhbKHF5YJdIhT4Wf6vOW7v7ZBFKSZCgAzs5Pq3nOE7C5b8QWl9mRZCmZCZCpZCZCZCpZC';
+    const ACCESS_TOKEN = process.env.FACEBOOK_ACCESS_TOKEN;
+    
+    // Check if access token is configured
+    if (!ACCESS_TOKEN || ACCESS_TOKEN === 'your-facebook-page-access-token-here') {
+      logger.error('❌ Facebook access token not configured');
+      return { success: false, error: 'Facebook access token not configured. Please set FACEBOOK_ACCESS_TOKEN in your .env file.' };
+    }
     
     // Get recipient ID from stored messages
     const recipientId = messengerMessages.length > 0 ? messengerMessages[0].recipient?.id : 'me';

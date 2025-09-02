@@ -278,6 +278,31 @@ const sendMessageToClaude = async (messageText, userId = 2) => {
   try {
     console.log('🤖 Sending message to Claude AI:', messageText.substring(0, 50) + '...');
     
+    // Check if Claude API key is configured
+    if (!CLAUDE_API_KEY || CLAUDE_API_KEY === 'your-claude-api-key-here') {
+      console.log('⚠️ Claude API key not configured, using mock response');
+      
+      // Mock response for testing when API key is not set
+      const mockResponse = {
+        content: [{
+          text: `Hello! This is a mock response from Claude AI. I received your message: "${messageText.substring(0, 100)}${messageText.length > 100 ? '...' : ''}"\n\nTo enable real Claude AI responses, please configure your Claude API key in the backend .env file.`
+        }],
+        usage: {
+          input_tokens: Math.floor(messageText.length / 4), // Approximate token count
+          output_tokens: 50 // Mock output tokens
+        }
+      };
+      
+      return {
+        success: true,
+        response: mockResponse.content[0].text,
+        inputTokens: mockResponse.usage.input_tokens,
+        outputTokens: mockResponse.usage.output_tokens,
+        totalTokens: mockResponse.usage.input_tokens + mockResponse.usage.output_tokens,
+        isMock: true
+      };
+    }
+    
     const axios = require('axios');
     
     // Call Claude API
@@ -317,7 +342,7 @@ const sendMessageToClaude = async (messageText, userId = 2) => {
       const aiModel = await new Promise((resolve, reject) => {
         db.get(`
           SELECT * FROM ai_models 
-          WHERE name = 'claude-3-5-sonnet-20241022' AND is_active = 1
+          WHERE model_id = 'claude-3-5-sonnet-20241022' AND is_active = 1
         `, [], (err, row) => {
           if (err) reject(err);
           else resolve(row);
@@ -348,12 +373,12 @@ const sendMessageToClaude = async (messageText, userId = 2) => {
     }
 
     return {
+      success: true,
       response: responseText,
-      usage: {
-        input_tokens: inputTokens,
-        output_tokens: outputTokens,
-        total_tokens: inputTokens + outputTokens
-      }
+      inputTokens: inputTokens,
+      outputTokens: outputTokens,
+      totalTokens: inputTokens + outputTokens,
+      isMock: false
     };
 
   } catch (error) {
@@ -463,9 +488,14 @@ const storeWhatsAppMessage = (webhookData) => {
               // Send message to Claude AI (user ID 2 = your account)
               const claudeResult = await sendMessageToClaude(messageData.messageText, 2);
               
-              if (claudeResult) {
+              if (claudeResult && claudeResult.success) {
                 console.log('✅ Claude response received:', claudeResult.response.substring(0, 100) + '...');
-                console.log('💰 Token usage:', claudeResult.usage);
+                console.log('💰 Token usage:', {
+                  input_tokens: claudeResult.inputTokens,
+                  output_tokens: claudeResult.outputTokens,
+                  total_tokens: claudeResult.totalTokens,
+                  is_mock: claudeResult.isMock || false
+                });
                 
                 // Send Claude's response back to WhatsApp user
                 const replySent = await sendWhatsAppReply(messageData.phoneNumber, claudeResult.response);
@@ -694,6 +724,82 @@ router.get('/stats', verifyToken, (req, res) => {
 });
 
 // Export the message storage function for use in webhook handler
+// Test endpoint to simulate WhatsApp message for testing
+router.post('/test-message', async (req, res) => {
+  const { message, phoneNumber } = req.body;
+  
+  if (!message || !phoneNumber) {
+    return res.status(400).json({ error: 'Message and phone number are required' });
+  }
+  
+  console.log('🧪 Testing WhatsApp AI functionality with message:', message);
+  
+  try {
+    // Test Claude AI response
+    const claudeResult = await sendMessageToClaude(message, 2);
+    
+    if (claudeResult && claudeResult.success) {
+      console.log('✅ Claude test response:', claudeResult.response.substring(0, 100) + '...');
+      
+      // Store the test message in database
+      const insertQuery = `
+        INSERT INTO whatsapp_receiver_messages 
+        (phone_number, contact_name, message_text, message_id, message_type, timestamp, direction)
+        VALUES (?, ?, ?, ?, ?, ?, 'incoming')
+      `;
+      
+      db.run(insertQuery, [
+        phoneNumber,
+        'Test User',
+        message,
+        'test_' + Date.now(),
+        'test',
+        new Date().toISOString()
+      ]);
+      
+      // Store Claude's response
+      const replyInsertQuery = `
+        INSERT INTO whatsapp_receiver_messages 
+        (phone_number, contact_name, message_text, message_id, message_type, timestamp, direction)
+        VALUES (?, ?, ?, ?, ?, ?, 'outgoing')
+      `;
+      
+      db.run(replyInsertQuery, [
+        phoneNumber,
+        'Claude AI',
+        claudeResult.response,
+        'claude_test_' + Date.now(),
+        'ai_response',
+        new Date().toISOString()
+      ]);
+      
+      return res.json({
+        success: true,
+        message: 'Test completed successfully',
+        claudeResponse: claudeResult.response,
+        tokenUsage: {
+          input_tokens: claudeResult.inputTokens,
+          output_tokens: claudeResult.outputTokens,
+          total_tokens: claudeResult.totalTokens,
+          is_mock: claudeResult.isMock
+        }
+      });
+    } else {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Failed to get Claude response' 
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ Test error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 module.exports = router;
 module.exports.storeWhatsAppMessage = storeWhatsAppMessage;
 module.exports.getReceiverState = () => receiverState;

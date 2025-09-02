@@ -53,7 +53,7 @@ const SimpleMessengerWebhook = () => {
 
   const checkStatus = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/messenger-receiver/status`);
+      const response = await fetch(`${API_BASE_URL}/api/messenger/status`);
       const data = await response.json();
       
       if (data.success) {
@@ -71,7 +71,7 @@ const SimpleMessengerWebhook = () => {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/messenger-receiver/activate`, {
+      const response = await fetch(`${API_BASE_URL}/api/messenger/activate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -96,13 +96,13 @@ const SimpleMessengerWebhook = () => {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/messenger-receiver/messages`);
+      const response = await fetch(`${API_BASE_URL}/api/messenger/messages`);
       const data = await response.json();
       
       if (data.success) {
         setMessages(data.messages || []);
         // For Messenger, get users separately
-        const usersResponse = await fetch(`${API_BASE_URL}/api/messenger-receiver/users`);
+        const usersResponse = await fetch(`${API_BASE_URL}/api/messenger/users`);
         const usersData = await usersResponse.json();
         if (usersData.success) {
           setUsers(usersData.users || {});
@@ -184,7 +184,7 @@ const SimpleMessengerWebhook = () => {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/messenger-receiver/reply`, {
+      const response = await fetch(`${API_BASE_URL}/api/messenger/reply`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
