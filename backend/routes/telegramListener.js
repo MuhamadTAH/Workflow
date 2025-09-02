@@ -156,8 +156,12 @@ const updateClaudeLastUsed = async (userId) => {
 // Function to send message to Claude and get response using aiService for consistency
 const sendMessageToClaude = async (messageText, userId = 'default_user') => {
   try {
+    console.log('🔍 sendMessageToClaude called with:', { messageText: messageText.substring(0, 50) + '...', userId });
+    
     // Get Claude configuration for this user from database
     const claudeConfig = await getClaudeConfigFromDatabase(userId);
+    console.log('🔍 Claude config result:', { found: !!claudeConfig, hasApiKey: !!claudeConfig?.api_key });
+    
     if (!claudeConfig || !claudeConfig.api_key) {
       console.log('❌ No Claude API configuration found for user:', userId);
       return null;
@@ -391,6 +395,12 @@ router.post('/webhook/:listenerId', asyncHandler(async (req, res) => {
       return;
     }
     
+    console.log('🔍 Bot config found:', {
+      listenerId: botConfig.listener_id,
+      userId: botConfig.user_id,
+      hasUserId: !!botConfig.user_id
+    });
+    
     // Update activity tracking in database
     await updateBotActivity(listenerId);
     
@@ -438,6 +448,7 @@ router.post('/webhook/:listenerId', asyncHandler(async (req, res) => {
     // 🤖 CLAUDE AI INTEGRATION - Process message with AI and auto-respond
     if (messageText && messageText.trim()) {
       console.log('🤖 Processing message with Claude AI...');
+      console.log('📋 Using user_id for Claude:', botConfig.user_id);
       
       // Send message to Claude AI - use botConfig.user_id for personalized AI
       const claudeResponse = await sendMessageToClaude(messageText, botConfig.user_id);
