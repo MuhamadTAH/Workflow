@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../services/logger');
 const claudeAI = require('../services/claudeAI');
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
 
 // Instagram AI Configuration Storage
 let aiConfig = {
@@ -17,6 +19,21 @@ let aiConfig = {
 // Knowledge base storage
 let knowledgeBaseInfo = null;
 let isConnected = false;
+
+// Configure multer for file uploads
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed!'), false);
+    }
+  }
+});
 
 // Get AI configuration
 router.get('/instagram-ai/config', (req, res) => {
@@ -234,43 +251,71 @@ router.get('/instagram-ai/knowledge-info', (req, res) => {
   });
 });
 
-// Upload PDF knowledge base
-router.post('/instagram-ai/upload-knowledge', async (req, res) => {
+// Upload PDF knowledge base with real PDF processing
+router.post('/instagram-ai/upload-knowledge', upload.single('pdf'), async (req, res) => {
   logger.info('📄 PDF knowledge base upload requested');
   
   try {
-    // For now, we'll simulate the upload and store basic info
-    // In a real implementation, you'd use multer for file uploads
-    // and a PDF parser to extract text
-    
-    const mockPdfInfo = {
-      filename: 'uploaded-document.pdf',
-      size: 1024 * 1024, // 1MB
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No PDF file uploaded'
+      });
+    }
+
+    logger.info('📄 Processing PDF file:', {
+      filename: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype
+    });
+
+    // Extract text from PDF buffer
+    const pdfData = await pdfParse(req.file.buffer);
+    const extractedText = pdfData.text.trim();
+
+    if (!extractedText) {
+      return res.status(400).json({
+        success: false,
+        error: 'No text could be extracted from the PDF'
+      });
+    }
+
+    // Store the extracted PDF information
+    knowledgeBaseInfo = {
+      filename: req.file.originalname,
+      size: req.file.size,
       uploadedAt: new Date().toISOString(),
-      textContent: '' // Empty - no mock data
+      textContent: extractedText,
+      pageCount: pdfData.numpages,
+      extractedLength: extractedText.length
     };
     
-    knowledgeBaseInfo = mockPdfInfo;
     // Update the knowledge base in aiConfig for immediate use
-    aiConfig.knowledgeBase = mockPdfInfo.textContent;
+    aiConfig.knowledgeBase = extractedText;
     
-    logger.info('✅ PDF knowledge base uploaded successfully');
+    logger.info('✅ PDF knowledge base processed successfully:', {
+      filename: req.file.originalname,
+      textLength: extractedText.length,
+      pageCount: pdfData.numpages
+    });
     
     res.json({
       success: true,
       message: 'PDF uploaded and processed successfully',
       info: {
-        filename: mockPdfInfo.filename,
-        size: mockPdfInfo.size,
-        uploadedAt: mockPdfInfo.uploadedAt
+        filename: knowledgeBaseInfo.filename,
+        size: knowledgeBaseInfo.size,
+        uploadedAt: knowledgeBaseInfo.uploadedAt,
+        pageCount: knowledgeBaseInfo.pageCount,
+        textLength: knowledgeBaseInfo.extractedLength
       }
     });
     
   } catch (error) {
-    logger.error('💥 PDF upload error:', error.message);
+    logger.error('💥 PDF upload/processing error:', error.message);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: `PDF processing failed: ${error.message}`
     });
   }
 });

@@ -319,13 +319,15 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
       
       if (response.ok && result.success) {
         setHasKnowledgeBase(true);
-        setKnowledgeBaseInfo({
-          filename: file.name,
-          size: file.size,
-          uploadedAt: new Date().toISOString()
+        setKnowledgeBaseInfo(result.info);
+        setUploadStatus(`✅ PDF processed successfully! Extracted ${result.info.textLength} characters from ${result.info.pageCount} pages.`);
+        setTimeout(() => setUploadStatus(''), 5000);
+        
+        console.log('✅ PDF processed:', {
+          filename: result.info.filename,
+          textLength: result.info.textLength,
+          pageCount: result.info.pageCount
         });
-        setUploadStatus('✅ PDF uploaded and processed successfully!');
-        setTimeout(() => setUploadStatus(''), 3000);
       } else {
         setUploadStatus(`❌ Upload failed: ${result.error || 'Unknown error'}`);
       }
@@ -710,6 +712,12 @@ const InstagramAISettings = ({ isVisible, onClose }) => {
               <div style={{ fontSize: '0.75rem', color: '#065f46' }}>
                 <strong>File:</strong> {knowledgeBaseInfo.filename}<br/>
                 <strong>Size:</strong> {(knowledgeBaseInfo.size / 1024 / 1024).toFixed(2)} MB<br/>
+                {knowledgeBaseInfo.pageCount && (
+                  <><strong>Pages:</strong> {knowledgeBaseInfo.pageCount}<br/></>
+                )}
+                {knowledgeBaseInfo.textLength && (
+                  <><strong>Extracted Text:</strong> {knowledgeBaseInfo.textLength} characters<br/></>
+                )}
                 <strong>Uploaded:</strong> {new Date(knowledgeBaseInfo.uploadedAt).toLocaleString()}
               </div>
             </div>
