@@ -657,14 +657,287 @@ router.get('/status', asyncHandler(async (req, res) => {
   }
 }));
 
+// =================================================================
+// CLAUDE CONFIGURATION ENDPOINTS
+// =================================================================
+
+// Save Claude configuration
+router.post('/claude/config', authenticateUser, asyncHandler(async (req, res) => {
+  const { apiKey, model } = req.body;
+  const userId = getUserIdFromToken(req);
+  
+  if (!apiKey) {
+    return res.status(400).json({
+      success: false,
+      error: 'API key is required'
+    });
+  }
+
+  try {
+    await new Promise((resolve, reject) => {
+      db.run(`
+        INSERT OR REPLACE INTO telegram_claude_configs 
+        (user_id, api_key, model, connection_status, updated_at)
+        VALUES (?, ?, ?, 'connected', datetime('now'))
+      `, [userId, apiKey, model || 'claude-3-5-sonnet-20241022'], function(err) {
+        if (err) reject(err);
+        else resolve(this.lastID);
+      });
+    });
+
+    res.json({
+      success: true,
+      message: 'Claude configuration saved successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error saving Claude config:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save Claude configuration'
+    });
+  }
+}));
+
+// Get Claude configuration
+router.get('/claude/config', authenticateUser, asyncHandler(async (req, res) => {
+  const userId = getUserIdFromToken(req);
+  
+  try {
+    const config = await getClaudeConfigFromDatabase(userId);
+    
+    res.json({
+      success: true,
+      config: config ? {
+        hasApiKey: !!config.api_key,
+        model: config.model,
+        connectionStatus: config.connection_status,
+        lastUsed: config.last_used
+      } : null
+    });
+  } catch (error) {
+    console.error('❌ Error fetching Claude config:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch Claude configuration'
+    });
+  }
+}));
+
+// =================================================================
+// SYSTEM PROMPT ENDPOINTS
+// =================================================================
+
+// Save system prompt
+router.post('/system-prompt', authenticateUser, asyncHandler(async (req, res) => {
+  const { prompt } = req.body;
+  const userId = getUserIdFromToken(req);
+  
+  if (!prompt) {
+    return res.status(400).json({
+      success: false,
+      error: 'System prompt is required'
+    });
+  }
+
+  try {
+    await new Promise((resolve, reject) => {
+      db.run(`
+        INSERT OR REPLACE INTO telegram_system_prompts 
+        (user_id, prompt, updated_at)
+        VALUES (?, ?, datetime('now'))
+      `, [userId, prompt], function(err) {
+        if (err) reject(err);
+        else resolve(this.lastID);
+      });
+    });
+
+    res.json({
+      success: true,
+      message: 'System prompt saved successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error saving system prompt:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save system prompt'
+    });
+  }
+}));
+
+// Get system prompt
+router.get('/system-prompt', authenticateUser, asyncHandler(async (req, res) => {
+  const userId = getUserIdFromToken(req);
+  
+  try {
+    const promptData = await getSystemPromptFromDatabase(userId);
+    
+    res.json({
+      success: true,
+      prompt: promptData?.prompt || 'You are a helpful and friendly AI assistant. Respond to users in a professional yet warm manner.'
+    });
+  } catch (error) {
+    console.error('❌ Error fetching system prompt:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch system prompt'
+    });
+  }
+}));
+
+// =================================================================
+// KNOWLEDGE BASE ENDPOINTS
+// =================================================================
+
+// Save knowledge base
+router.post('/knowledge-base', authenticateUser, asyncHandler(async (req, res) => {
+  const { filename, extractedText, fileSize } = req.body;
+  const userId = getUserIdFromToken(req);
+  
+  if (!filename || !extractedText) {
+    return res.status(400).json({
+      success: false,
+      error: 'Filename and extracted text are required'
+    });
+  }
+
+  try {
+    await new Promise((resolve, reject) => {
+      db.run(`
+        INSERT OR REPLACE INTO telegram_knowledge_base 
+        (user_id, filename, extracted_text, text_length, file_size, updated_at)
+        VALUES (?, ?, ?, ?, ?, datetime('now'))
+      `, [userId, filename, extractedText, extractedText.length, fileSize || 0], function(err) {
+        if (err) reject(err);
+        else resolve(this.lastID);
+      });
+    });
+
+    res.json({
+      success: true,
+      message: 'Knowledge base saved successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error saving knowledge base:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save knowledge base'
+    });
+  }
+}));
+
+// Get knowledge base
+router.get('/knowledge-base', authenticateUser, asyncHandler(async (req, res) => {
+  const userId = getUserIdFromToken(req);
+  
+  try {
+    const knowledge = await getKnowledgeBaseFromDatabase(userId);
+    
+    res.json({
+      success: true,
+      knowledgeBase: knowledge ? {
+        filename: knowledge.filename,
+        textLength: knowledge.text_length,
+        fileSize: knowledge.file_size,
+        hasKnowledgeBase: true
+      } : { hasKnowledgeBase: false }
+    });
+  } catch (error) {
+    console.error('❌ Error fetching knowledge base:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch knowledge base'
+    });
+  }
+}));
+
+// Delete knowledge base
+router.delete('/knowledge-base', authenticateUser, asyncHandler(async (req, res) => {
+  const userId = getUserIdFromToken(req);
+  
+  try {
+    await new Promise((resolve, reject) => {
+      db.run(`
+        DELETE FROM telegram_knowledge_base 
+        WHERE user_id = ?
+      `, [userId], function(err) {
+        if (err) reject(err);
+        else resolve(this.changes);
+      });
+    });
+
+    res.json({
+      success: true,
+      message: 'Knowledge base deleted successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error deleting knowledge base:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete knowledge base'
+    });
+  }
+}));
+
+// =================================================================
+// AUTO-LOAD FUNCTIONALITY - Restore webhooks on server startup
+// =================================================================
+
+const restoreActiveWebhooks = async () => {
+  try {
+    console.log('🔄 Restoring active Telegram webhooks from database...');
+    
+    const activeUsers = await new Promise((resolve, reject) => {
+      db.all(`
+        SELECT DISTINCT user_id FROM telegram_listener_bots 
+        WHERE is_active = 1
+      `, [], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows || []);
+      });
+    });
+    
+    console.log(`📊 Found ${activeUsers.length} users with active Telegram bots`);
+    
+    for (const user of activeUsers) {
+      // Check if user has Claude config
+      const claudeConfig = await getClaudeConfigFromDatabase(user.user_id);
+      if (claudeConfig) {
+        console.log(`✅ User ${user.user_id}: Claude config restored`);
+      }
+      
+      // Check if user has system prompt
+      const systemPrompt = await getSystemPromptFromDatabase(user.user_id);
+      if (systemPrompt) {
+        console.log(`✅ User ${user.user_id}: System prompt restored`);
+      }
+      
+      // Check if user has knowledge base
+      const knowledge = await getKnowledgeBaseFromDatabase(user.user_id);
+      if (knowledge) {
+        console.log(`✅ User ${user.user_id}: Knowledge base restored (${knowledge.filename})`);
+      }
+    }
+    
+    console.log('✅ Telegram Listener persistence restored successfully');
+  } catch (error) {
+    console.error('❌ Error restoring active webhooks:', error.message);
+  }
+};
+
+// Auto-restore on module load
+setTimeout(restoreActiveWebhooks, 2000); // Wait 2 seconds after server start
+
 // Test endpoint
 router.get('/test', (req, res) => {
   res.json({
     success: true,
     message: 'Telegram Listener API is running',
     timestamp: new Date().toISOString(),
-    activeListeners: activeBots.size
+    persistenceEnabled: true
   });
 });
+
+// Export restore function for manual use
+router.restoreActiveWebhooks = restoreActiveWebhooks;
 
 module.exports = router;

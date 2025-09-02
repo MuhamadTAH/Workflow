@@ -137,11 +137,11 @@ const TelegramListener = () => {
   };
 
   // Fetch messages for the current listener
-  const fetchMessages = async () => {
-    if (!listenerId) return;
+  const fetchMessages = async (targetListenerId = listenerId) => {
+    if (!targetListenerId) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/messages/${listenerId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/messages/${targetListenerId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -177,10 +177,117 @@ const TelegramListener = () => {
     };
   }, [isPolling, listenerId]);
 
-  // Check Claude connection status on mount
+  // Load all saved configurations on mount
   useEffect(() => {
-    checkClaudeConnectionStatus();
+    loadSavedConfigurations();
   }, []);
+
+  const loadSavedConfigurations = async () => {
+    await Promise.all([
+      loadClaudeConfig(),
+      loadSystemPrompt(),
+      loadKnowledgeBase(),
+      loadBotConfiguration()
+    ]);
+  };
+
+  // Load Claude configuration
+  const loadClaudeConfig = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/claude/config`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const result = await response.json();
+      
+      if (result.success && result.config) {
+        if (result.config.hasApiKey) {
+          setClaudeApiKey('••••••••••••••••'); // Show masked key
+          setClaudeConnectionStatus('connected');
+          setClaudeStatus('✅ Claude API is connected and ready');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading Claude config:', error);
+    }
+  };
+
+  // Load system prompt
+  const loadSystemPrompt = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/system-prompt`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const result = await response.json();
+      
+      if (result.success && result.prompt) {
+        setSystemPrompt(result.prompt);
+      }
+    } catch (error) {
+      console.error('Error loading system prompt:', error);
+    }
+  };
+
+  // Load knowledge base
+  const loadKnowledgeBase = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/knowledge-base`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const result = await response.json();
+      
+      if (result.success && result.knowledgeBase) {
+        const kb = result.knowledgeBase;
+        setHasKnowledgeBase(kb.hasKnowledgeBase);
+        if (kb.hasKnowledgeBase) {
+          setKnowledgeBaseInfo({
+            filename: kb.filename,
+            textLength: kb.textLength,
+            fileSize: kb.fileSize
+          });
+          setUploadStatus(`✅ Knowledge base loaded: ${kb.filename}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading knowledge base:', error);
+    }
+  };
+
+  // Load bot configuration (check if user has active bots)
+  const loadBotConfiguration = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/status`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const result = await response.json();
+      
+      if (result.success && result.activeListeners > 0) {
+        // Set polling to true if there are active listeners
+        setIsPolling(true);
+        setStatus(`✅ Found ${result.activeListeners} active bot(s)`);
+        
+        // Load the first active listener as current
+        const firstListener = result.listeners[0];
+        if (firstListener) {
+          setListenerId(firstListener.listenerId);
+          setWebhookUrl(firstListener.webhookUrl);
+          setBotToken('••••••••••••••••'); // Show masked token
+          
+          // Start fetching messages
+          fetchMessages(firstListener.listenerId);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading bot configuration:', error);
+    }
+  };
 
   const checkClaudeConnectionStatus = async () => {
     try {
@@ -213,14 +320,15 @@ const TelegramListener = () => {
     setClaudeStatus('🔗 Connecting to Claude API...');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/claude/connect`, {
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/claude/config`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          apiKey: claudeApiKey.trim()
+          apiKey: claudeApiKey.trim(),
+          model: 'claude-3-5-sonnet-20241022'
         })
       });
 
@@ -283,14 +391,14 @@ const TelegramListener = () => {
     setSystemPromptStatus('💾 Saving system prompt...');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/claude/system-prompt`, {
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/system-prompt`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          systemPrompt: systemPrompt.trim()
+          prompt: systemPrompt.trim()
         })
       });
 
@@ -371,6 +479,7 @@ const TelegramListener = () => {
       const formData = new FormData();
       formData.append('pdf', selectedFile);
 
+      // First upload and extract text from PDF using existing endpoint
       const response = await fetch(`${API_BASE_URL}/api/claude/upload-knowledge`, {
         method: 'POST',
         headers: {
@@ -382,23 +491,45 @@ const TelegramListener = () => {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        setUploadStatus('✅ PDF processed successfully! Knowledge base updated.');
-        setHasKnowledgeBase(true);
-        setKnowledgeBaseInfo({
-          filename: selectedFile.name,
-          uploadedAt: new Date().toISOString(),
-          textLength: result.textLength || 0,
-          pageCount: result.pageCount || 0
+        // Save to Telegram Listener knowledge base
+        const saveResponse = await fetch(`${API_BASE_URL}/api/telegram-listener/knowledge-base`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            filename: selectedFile.name,
+            extractedText: result.extractedText || 'No text extracted',
+            fileSize: selectedFile.size
+          })
         });
-        setSelectedFile(null);
-        
-        // Clear the file input
-        const fileInput = document.getElementById('pdf-upload');
-        if (fileInput) fileInput.value = '';
-        
-        setTimeout(() => setUploadStatus(''), 5000);
+
+        const saveResult = await saveResponse.json();
+
+        if (saveResponse.ok && saveResult.success) {
+          setUploadStatus('✅ PDF processed successfully! Knowledge base updated.');
+          setHasKnowledgeBase(true);
+          setKnowledgeBaseInfo({
+            filename: selectedFile.name,
+            uploadedAt: new Date().toISOString(),
+            textLength: result.textLength || 0,
+            pageCount: result.pageCount || 0
+          });
+          setSelectedFile(null);
+          
+          // Clear the file input
+          const fileInput = document.getElementById('pdf-upload');
+          if (fileInput) fileInput.value = '';
+          
+          setTimeout(() => setUploadStatus(''), 5000);
+        } else {
+          setUploadStatus(`❌ Save failed: ${saveResult.error || 'Unknown error'}`);
+          setTimeout(() => setUploadStatus(''), 5000);
+        }
       } else {
         setUploadStatus(`❌ Upload failed: ${result.error || 'Unknown error'}`);
+        setTimeout(() => setUploadStatus(''), 5000);
       }
     } catch (error) {
       console.error('PDF upload error:', error);
@@ -436,7 +567,7 @@ const TelegramListener = () => {
     setUploadStatus('🗑️ Deleting knowledge base...');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/claude/delete-knowledge`, {
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/knowledge-base`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
