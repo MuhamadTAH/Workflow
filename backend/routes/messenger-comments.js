@@ -300,7 +300,7 @@ let webhookState = {
 
 // Get webhook status
 router.get('/messenger/status', (req, res) => {
-  logger.info('📊 Messenger webhook status requested');
+  logger.info('📊 Messenger webhook status requested - DEPLOYMENT TEST');
   res.json({
     success: true,
     status: webhookState,
