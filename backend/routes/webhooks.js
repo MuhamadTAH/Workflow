@@ -1345,8 +1345,12 @@ Key guidelines:
                 total_tokens: inputTokens + outputTokens
               });
               
+              console.log('🔍 DEBUG: Starting billing process...');
+              
               // Get Claude model info from database for billing
               const db = require('../db');
+              console.log('🔍 DEBUG: Looking for AI model:', mockWhatsAppAssistant.ai_model);
+              
               const aiModel = await new Promise((resolve, reject) => {
                 db.get(`
                   SELECT * FROM ai_models 
@@ -1357,7 +1361,16 @@ Key guidelines:
                 });
               });
 
-              if (aiModel && (inputTokens > 0 || outputTokens > 0)) {
+              console.log('🔍 DEBUG: AI Model found:', aiModel ? `ID: ${aiModel.id}, Name: ${aiModel.name}` : 'NOT FOUND');
+              
+              if (!aiModel) {
+                console.error('❌ AI model not found in database for billing:', mockWhatsAppAssistant.ai_model);
+                return; // Skip billing if model not found
+              }
+              
+              if (inputTokens > 0 || outputTokens > 0) {
+                console.log('🔍 DEBUG: Calling billingService.trackUsage...');
+                
                 const billingResult = await billingService.trackUsage(
                   2,                // Your user ID
                   aiModel.id,       // Claude model ID
@@ -1374,9 +1387,12 @@ Key guidelines:
                   billable_price: billingResult.billablePrice,
                   free_tier_used: billingResult.freeTierUsed
                 });
+              } else {
+                console.log('🔍 DEBUG: No tokens to bill (inputTokens=0, outputTokens=0)');
               }
             } catch (billingError) {
               console.error('❌ WhatsApp billing tracking error:', billingError.message);
+              console.error('❌ Full billing error:', billingError);
               // Don't fail the request if billing fails
             }
             
