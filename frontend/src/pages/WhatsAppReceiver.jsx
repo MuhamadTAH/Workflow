@@ -195,27 +195,6 @@ const WhatsAppReceiver = () => {
     }
   };
 
-  const handleClaudeDisconnect = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/claude/disconnect`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (response.ok) {
-        setIsClaudeConnected(false);
-        setClaudeApiKey('');
-        setClaudeStatus('✅ Disconnected successfully - Ready to reconnect');
-        console.log('✅ Claude disconnected successfully');
-      }
-    } catch (error) {
-      console.error('❌ Error disconnecting:', error);
-      setClaudeStatus('❌ Disconnect error - Try refreshing the page');
-    }
-  };
-
   const handleClaudeConnect = async () => {
     if (!claudeApiKey.trim()) {
       setClaudeStatus('❌ Please enter your Claude API key');
