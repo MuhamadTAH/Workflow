@@ -542,7 +542,13 @@ router.post('/send-message', verifyToken, async (req, res) => {
     if (!receiverState.isActive) {
       return res.status(400).json({
         success: false,
-        error: 'WhatsApp system is not activated. Please activate first with complete configuration.'
+        error: 'WhatsApp system is not activated. Please activate first with complete configuration.',
+        details: {
+          isActive: receiverState.isActive,
+          hasBusinessId: !!businessId,
+          hasAccessToken: !!accessToken,
+          hasPhoneNumberSendId: !!phoneNumberSendId
+        }
       });
     }
     

@@ -553,7 +553,12 @@ const WhatsAppReceiver = () => {
         setSendStatus(`✅ Message sent! ID: ${data.data.messageId || 'N/A'}`);
         setMessageText('');
       } else {
-        setSendStatus(`❌ Failed to send: ${data.error || 'Unknown error'}`);
+        const errorMsg = data.error || 'Unknown error';
+        if (errorMsg.includes('not activated')) {
+          setSendStatus(`❌ WhatsApp system not activated! Please fill configuration and click "Activate WhatsApp System" first.`);
+        } else {
+          setSendStatus(`❌ Failed to send: ${errorMsg}`);
+        }
       }
     } catch (error) {
       setSendStatus(`❌ Network error: ${error.message}`);
