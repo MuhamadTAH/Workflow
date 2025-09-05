@@ -247,21 +247,8 @@ const SimpleMessengerWebhook = () => {
               <h1 style={{ 
                 fontSize: '1.25rem', 
                 fontWeight: 'bold',
-                margin: 0,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
+                margin: 0
               }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2C6.48 2 2 6.13 2 11.25C2 14.06 3.25 16.58 5.31 18.25V22L8.57 20.32C9.65 20.61 10.8 20.75 12 20.75C17.52 20.75 22 16.62 22 11.25S17.52 2 12 2Z" fill="url(#messengerGrad)"/>
-                  <path d="M13.5 9.75L11 12.75L8 9.75L5 12.75L8.5 8.25L11 11.25L14 8.25L17 11.25L13.5 9.75Z" fill="white"/>
-                  <defs>
-                    <linearGradient id="messengerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#00B4FF"/>
-                      <stop offset="100%" stopColor="#0078FF"/>
-                    </linearGradient>
-                  </defs>
-                </svg>
                 Messenger Manager
               </h1>
               
@@ -774,22 +761,8 @@ const SimpleMessengerWebhook = () => {
               fontSize: '1.25rem', 
               fontWeight: 'bold', 
               color: '#111827',
-              margin: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.5rem'
+              margin: 0
             }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2C6.48 2 2 6.13 2 11.25C2 14.06 3.25 16.58 5.31 18.25V22L8.57 20.32C9.65 20.61 10.8 20.75 12 20.75C17.52 20.75 22 16.62 22 11.25S17.52 2 12 2Z" fill="url(#messengerGrad2)"/>
-                <path d="M13.5 9.75L11 12.75L8 9.75L5 12.75L8.5 8.25L11 11.25L14 8.25L17 11.25L13.5 9.75Z" fill="white"/>
-                <defs>
-                  <linearGradient id="messengerGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#00B4FF"/>
-                    <stop offset="100%" stopColor="#0078FF"/>
-                  </linearGradient>
-                </defs>
-              </svg>
               Messenger Manager
             </h2>
           </div>
