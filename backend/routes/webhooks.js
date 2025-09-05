@@ -9,6 +9,7 @@ const router = express.Router();
 const workflowEngine = require('../workflowEngine');
 const logger = require('../services/logger');
 const { asyncHandler } = require('../middleware/errorHandler');
+const billingService = require('../services/billingService');
 
 // Try to load WorkflowExecutor singleton, but don't fail if it doesn't exist
 let workflowExecutor = null;
@@ -1332,6 +1333,52 @@ Key guidelines:
             
             const aiResponseText = data.content[0].text;
             console.log('✅ Claude API response generated:', aiResponseText?.substring(0, 100));
+            
+            // Track usage for billing (userId = 2 for your account)
+            try {
+              const inputTokens = data.usage?.input_tokens || 0;
+              const outputTokens = data.usage?.output_tokens || 0;
+              
+              console.log('💰 WhatsApp Claude API Usage:', {
+                input_tokens: inputTokens,
+                output_tokens: outputTokens,
+                total_tokens: inputTokens + outputTokens
+              });
+              
+              // Get Claude model info from database for billing
+              const db = require('../db');
+              const aiModel = await new Promise((resolve, reject) => {
+                db.get(`
+                  SELECT * FROM ai_models 
+                  WHERE name = ? AND is_active = 1
+                `, [mockWhatsAppAssistant.ai_model], (err, row) => {
+                  if (err) reject(err);
+                  else resolve(row);
+                });
+              });
+
+              if (aiModel && (inputTokens > 0 || outputTokens > 0)) {
+                const billingResult = await billingService.trackUsage(
+                  2,                // Your user ID
+                  aiModel.id,       // Claude model ID
+                  inputTokens,      // Input tokens
+                  outputTokens,     // Output tokens
+                  null,            // conversationId
+                  null,            // assistantId
+                  'whatsapp_webhook' // usage type
+                );
+                
+                console.log('💳 WhatsApp usage tracked for billing:', {
+                  user_id: 2,
+                  tokens: inputTokens + outputTokens,
+                  billable_price: billingResult.billablePrice,
+                  free_tier_used: billingResult.freeTierUsed
+                });
+              }
+            } catch (billingError) {
+              console.error('❌ WhatsApp billing tracking error:', billingError.message);
+              // Don't fail the request if billing fails
+            }
             
             result = {
               success: true,
