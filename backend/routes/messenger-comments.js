@@ -11,7 +11,7 @@ let messengerUsers = {};
 // Function to fetch Messenger user info
 async function fetchUserInfo(userId) {
   try {
-    const ACCESS_TOKEN = 'EAALAZC7uBACYBPfjNd0CDHiaVG6MA4e7AZBIa9KzXERiY9XuH966IzIxkyUcx4FfTbJEUaqcZCDZBof50chiy1DOhbW9uXyGWH2ASq3ooIestojyKmwV1JrulEFfYHyTAZCifE5ZBI2FRYOydivmZBROLALXJ2jzOdZCVpuq1hPMZBiU0dkRK3n7wexhw2G9WqOrBJTxdOurLCgZDZD';
+    const ACCESS_TOKEN = 'EAALAZC7uBACYBPQZCU17YxWX1z8FnSqN7DhcX3oIZAUGrBk4rO9J2nDsJ0Ta7IZBL9QzX0B8wo2F1CGAZBmCJywwA1cgSgWUEv7LupNM3ZAMAfFSQzjQSMzy8g7ZBTa7BfWZAXZBes6Gxzq0siduMn0VEbAgZALqZBZCKxAYuxfQTA8JfAQOQLUt4wqZAdee8oz1LGpURswYB0NhPSgZDZD';
     
     logger.info('👤 Fetching user info for:', { userId });
     
@@ -65,7 +65,7 @@ async function fetchUserInfo(userId) {
 // Helper function to send Messenger reply (used by both manual replies and AI auto-replies)
 async function sendMessengerReply(senderId, replyText, isAIReply = false) {
   try {
-    const ACCESS_TOKEN = 'EAALAZC7uBACYBPfjNd0CDHiaVG6MA4e7AZBIa9KzXERiY9XuH966IzIxkyUcx4FfTbJEUaqcZCDZBof50chiy1DOhbW9uXyGWH2ASq3ooIestojyKmwV1JrulEFfYHyTAZCifE5ZBI2FRYOydivmZBROLALXJ2jzOdZCVpuq1hPMZBiU0dkRK3n7wexhw2G9WqOrBJTxdOurLCgZDZD';
+    const ACCESS_TOKEN = 'EAALAZC7uBACYBPQZCU17YxWX1z8FnSqN7DhcX3oIZAUGrBk4rO9J2nDsJ0Ta7IZBL9QzX0B8wo2F1CGAZBmCJywwA1cgSgWUEv7LupNM3ZAMAfFSQzjQSMzy8g7ZBTa7BfWZAXZBes6Gxzq0siduMn0VEbAgZALqZBZCKxAYuxfQTA8JfAQOQLUt4wqZAdee8oz1LGpURswYB0NhPSgZDZD';
     
     // Get recipient ID from stored messages
     const recipientId = messengerMessages.length > 0 ? messengerMessages[0].recipient?.id : 'me';
