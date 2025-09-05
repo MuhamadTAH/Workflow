@@ -973,6 +973,95 @@ router.post('/manual-knowledge', async (req, res) => {
   }
 });
 
+// Auto-connect with environment API key
+router.post('/auto-connect', asyncHandler(async (req, res) => {
+  const userId = req.user?.id || 'default_user';
+  const envApiKey = process.env.ANTHROPIC_API_KEY;
+
+  if (!envApiKey || envApiKey === 'your-claude-api-key-here') {
+    return res.status(400).json({
+      success: false,
+      error: 'No Claude API key found in environment variables'
+    });
+  }
+
+  console.log('🔗 Auto-connecting to Claude API for user:', userId);
+
+  try {
+    // Test the API key by making a simple request
+    const axios = require('axios');
+    
+    const testResponse = await axios.post(
+      'https://api.anthropic.com/v1/messages',
+      {
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 50,
+        messages: [
+          {
+            role: 'user',
+            content: 'Hello! Auto-connection test. Please respond with "Auto-connection successful!"'
+          }
+        ]
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': envApiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        timeout: 30000
+      }
+    );
+
+    // Store the configuration
+    claudeConfigs.set(userId, {
+      apiKey: envApiKey,
+      model: 'claude-3-5-sonnet-20241022',
+      connectedAt: new Date().toISOString(),
+      lastUsed: new Date().toISOString()
+    });
+
+    console.log('✅ Claude API auto-connected successfully for user:', userId);
+    
+    logger.info(`Claude API auto-connected successfully`, {
+      userId,
+      model: 'claude-3-5-sonnet-20241022'
+    });
+
+    res.json({
+      success: true,
+      message: 'Claude API auto-connected successfully',
+      model: 'claude-3-5-sonnet-20241022',
+      connectedAt: new Date().toISOString(),
+      testResponse: testResponse.data.content[0]?.text || 'Auto-connection completed'
+    });
+  } catch (error) {
+    console.error('❌ Claude API auto-connect error:', error.message);
+    
+    let errorMessage = 'Auto-connect failed';
+    
+    if (error.response) {
+      if (error.response.status === 401) {
+        errorMessage = 'Environment API key is invalid. Please check ANTHROPIC_API_KEY.';
+      } else if (error.response.status === 429) {
+        errorMessage = 'Rate limit exceeded. Please try again later.';
+      } else {
+        errorMessage = `Claude API error: ${error.response.data?.error?.message || error.message}`;
+      }
+    }
+
+    logger.logError(error, { 
+      context: 'claude-api-auto-connect',
+      userId
+    });
+    
+    res.status(500).json({
+      success: false,
+      error: errorMessage
+    });
+  }
+}));
+
 module.exports = router;
 module.exports.claudeConfigs = claudeConfigs;
 module.exports.systemPrompts = systemPrompts;

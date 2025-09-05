@@ -25,10 +25,10 @@ const WhatsAppReceiver = () => {
   const [hasAutoSelected, setHasAutoSelected] = useState(false);
   
   // Claude AI State
-  const [claudeApiKey, setClaudeApiKey] = useState('sk-ant-api03-************************************-configured');
-  const [isClaudeConnected, setIsClaudeConnected] = useState(true); // Pre-connected with your API key
+  const [claudeApiKey, setClaudeApiKey] = useState('');
+  const [isClaudeConnected, setIsClaudeConnected] = useState(false); // Check actual connection status
   const [isConnectingClaude, setIsConnectingClaude] = useState(false);
-  const [claudeStatus, setClaudeStatus] = useState('✅ Claude API ready for WhatsApp integration');
+  const [claudeStatus, setClaudeStatus] = useState('❌ Not connected - Please enter your Claude API key');
 
   // System Prompt State
   const [systemPrompt, setSystemPrompt] = useState('You are a helpful and friendly AI assistant. Respond to users in a professional yet warm manner.');
@@ -73,7 +73,7 @@ const WhatsAppReceiver = () => {
     }
     
     checkBackendStatus();
-    checkClaudeStatus();
+    autoConnectClaude();
     loadSystemPrompt();
     loadKnowledgeBaseInfo();
   }, []);
@@ -119,6 +119,39 @@ const WhatsAppReceiver = () => {
     } catch (error) {
       console.error('Error checking Claude status:', error);
       setIsClaudeConnected(false);
+    }
+  };
+
+  const autoConnectClaude = async () => {
+    setIsConnectingClaude(true);
+    setClaudeStatus('🔗 Auto-connecting with environment API key...');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/auto-connect`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setClaudeStatus('✅ Claude API auto-connected! Ready for WhatsApp integration');
+        setIsClaudeConnected(true);
+        setClaudeApiKey('••••••••••••••••••••••••••••••••••••••••••••••••• (Environment Key)');
+        console.log('✅ Claude auto-connected:', result.message);
+      } else {
+        setClaudeStatus('❌ Auto-connect failed - Environment API key not configured');
+        setIsClaudeConnected(false);
+        console.error('❌ Claude auto-connect failed:', result.error);
+      }
+    } catch (error) {
+      console.error('❌ Claude auto-connect error:', error);
+      setClaudeStatus('❌ Auto-connect failed - Check environment configuration');
+      setIsClaudeConnected(false);
+    } finally {
+      setIsConnectingClaude(false);
     }
   };
 
@@ -653,17 +686,17 @@ const WhatsAppReceiver = () => {
                     <input
                       type="password"
                       value={claudeApiKey}
-                      readOnly
-                      disabled
+                      onChange={(e) => setClaudeApiKey(e.target.value)}
+                      placeholder="Enter your Claude API key (sk-ant-...)"
                       style={{
                         width: '100%',
                         padding: '0.75rem',
-                        border: '1px solid #10b981',
+                        border: isClaudeConnected ? '1px solid #10b981' : '1px solid #d1d5db',
                         borderRadius: '6px',
                         fontSize: '1rem',
                         outline: 'none',
-                        backgroundColor: '#f0fdf4',
-                        color: '#065f46'
+                        backgroundColor: isClaudeConnected ? '#f0fdf4' : '#ffffff',
+                        color: isClaudeConnected ? '#065f46' : '#374151'
                       }}
                     />
                     <p style={{ 
