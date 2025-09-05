@@ -425,6 +425,283 @@ const SimpleMessengerWebhook = () => {
 
       </div>
 
+      {/* User Information Panel */}
+      {selectedUserId && (
+        <div style={{ 
+          width: '300px',
+          backgroundColor: 'white',
+          borderRight: '1px solid #e5e7eb',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '1rem'
+        }}>
+          {(() => {
+            const selectedUser = users[selectedUserId];
+            return (
+              <>
+                {/* User Info Header */}
+                <div style={{ 
+                  padding: '1rem',
+                  backgroundColor: '#f8fafc',
+                  borderRadius: '8px',
+                  marginBottom: '1rem',
+                  textAlign: 'center'
+                }}>
+                  <h3 style={{ 
+                    fontSize: '1.1rem', 
+                    fontWeight: 'bold', 
+                    color: '#111827',
+                    margin: '0 0 0.5rem 0'
+                  }}>
+                    👤 User Information
+                  </h3>
+                </div>
+
+                {/* Profile Picture */}
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  marginBottom: '1rem' 
+                }}>
+                  <div style={{
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '50%',
+                    backgroundColor: '#0084ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '2rem',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    backgroundImage: selectedUser?.profile_pic ? `url(${selectedUser.profile_pic})` : 'none',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    border: '3px solid #e5e7eb'
+                  }}>
+                    {!selectedUser?.profile_pic && (selectedUser?.name?.charAt(0).toUpperCase() || 'U')}
+                  </div>
+                </div>
+
+                {/* User Details */}
+                <div style={{ flex: 1, overflowY: 'auto' }}>
+                  
+                  {/* Full Name */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ 
+                      fontSize: '0.75rem', 
+                      fontWeight: '600', 
+                      color: '#6b7280',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      marginBottom: '0.25rem'
+                    }}>
+                      Full Name
+                    </div>
+                    <div style={{ 
+                      fontSize: '0.9rem', 
+                      color: '#111827',
+                      fontWeight: '500',
+                      padding: '0.5rem',
+                      backgroundColor: '#f9fafb',
+                      borderRadius: '6px',
+                      border: '1px solid #e5e7eb'
+                    }}>
+                      {selectedUser?.name || 'Not available'}
+                    </div>
+                  </div>
+
+                  {/* First Name */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ 
+                      fontSize: '0.75rem', 
+                      fontWeight: '600', 
+                      color: '#6b7280',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      marginBottom: '0.25rem'
+                    }}>
+                      First Name
+                    </div>
+                    <div style={{ 
+                      fontSize: '0.9rem', 
+                      color: '#111827',
+                      fontWeight: '500',
+                      padding: '0.5rem',
+                      backgroundColor: '#f9fafb',
+                      borderRadius: '6px',
+                      border: '1px solid #e5e7eb'
+                    }}>
+                      {selectedUser?.first_name || 'Not available'}
+                    </div>
+                  </div>
+
+                  {/* Last Name */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ 
+                      fontSize: '0.75rem', 
+                      fontWeight: '600', 
+                      color: '#6b7280',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      marginBottom: '0.25rem'
+                    }}>
+                      Last Name
+                    </div>
+                    <div style={{ 
+                      fontSize: '0.9rem', 
+                      color: '#111827',
+                      fontWeight: '500',
+                      padding: '0.5rem',
+                      backgroundColor: '#f9fafb',
+                      borderRadius: '6px',
+                      border: '1px solid #e5e7eb'
+                    }}>
+                      {selectedUser?.last_name || 'Not available'}
+                    </div>
+                  </div>
+
+                  {/* User ID */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ 
+                      fontSize: '0.75rem', 
+                      fontWeight: '600', 
+                      color: '#6b7280',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      marginBottom: '0.25rem'
+                    }}>
+                      User ID
+                    </div>
+                    <div style={{ 
+                      fontSize: '0.8rem', 
+                      color: '#6b7280',
+                      fontFamily: 'monospace',
+                      padding: '0.5rem',
+                      backgroundColor: '#f9fafb',
+                      borderRadius: '6px',
+                      border: '1px solid #e5e7eb',
+                      wordBreak: 'break-all'
+                    }}>
+                      {selectedUserId}
+                    </div>
+                  </div>
+
+                  {/* Profile Picture URL */}
+                  {selectedUser?.profile_pic && (
+                    <div style={{ marginBottom: '1rem' }}>
+                      <div style={{ 
+                        fontSize: '0.75rem', 
+                        fontWeight: '600', 
+                        color: '#6b7280',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        marginBottom: '0.25rem'
+                      }}>
+                        Profile Picture
+                      </div>
+                      <div style={{ 
+                        fontSize: '0.75rem', 
+                        color: '#6b7280',
+                        padding: '0.5rem',
+                        backgroundColor: '#f9fafb',
+                        borderRadius: '6px',
+                        border: '1px solid #e5e7eb',
+                        wordBreak: 'break-all'
+                      }}>
+                        {selectedUser.profile_pic}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Data Fetched Time */}
+                  {selectedUser?.fetchedAt && (
+                    <div style={{ marginBottom: '1rem' }}>
+                      <div style={{ 
+                        fontSize: '0.75rem', 
+                        fontWeight: '600', 
+                        color: '#6b7280',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        marginBottom: '0.25rem'
+                      }}>
+                        Data Fetched
+                      </div>
+                      <div style={{ 
+                        fontSize: '0.8rem', 
+                        color: '#6b7280',
+                        padding: '0.5rem',
+                        backgroundColor: '#f9fafb',
+                        borderRadius: '6px',
+                        border: '1px solid #e5e7eb'
+                      }}>
+                        {new Date(selectedUser.fetchedAt).toLocaleString()}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Status Indicators */}
+                  <div style={{ marginTop: '1rem' }}>
+                    <div style={{ 
+                      fontSize: '0.75rem', 
+                      fontWeight: '600', 
+                      color: '#6b7280',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.5px',
+                      marginBottom: '0.5rem'
+                    }}>
+                      Status
+                    </div>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      {selectedUser?.failed && (
+                        <div style={{ 
+                          fontSize: '0.75rem', 
+                          color: '#dc2626',
+                          backgroundColor: '#fef2f2',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          border: '1px solid #fecaca'
+                        }}>
+                          ⚠️ API Fetch Failed
+                        </div>
+                      )}
+                      
+                      {selectedUser?.error && (
+                        <div style={{ 
+                          fontSize: '0.75rem', 
+                          color: '#dc2626',
+                          backgroundColor: '#fef2f2',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          border: '1px solid #fecaca'
+                        }}>
+                          ❌ Fetch Error
+                        </div>
+                      )}
+                      
+                      {!selectedUser?.failed && !selectedUser?.error && (
+                        <div style={{ 
+                          fontSize: '0.75rem', 
+                          color: '#059669',
+                          backgroundColor: '#ecfdf5',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          border: '1px solid #a7f3d0'
+                        }}>
+                          ✅ Data Available
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
+
       {/* Center Panel - Conversation */}
       <div style={{ 
         flex: '1',
