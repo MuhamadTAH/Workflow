@@ -1212,14 +1212,41 @@ router.post('/whatsapp', asyncHandler(async (req, res) => {
       console.log('🔧 DEBUG: axios loaded successfully for WhatsApp AI processing');
       const receiverState = getReceiverState();
       
+      console.log('🔍 DEBUG: Receiver state:', {
+        isActive: receiverState.isActive,
+        storeResult: storeResult ? { stored: storeResult.stored, hasMessageData: !!storeResult.messageData } : 'null'
+      });
+      
+      // TEST MODE: Force AI processing for billing debug (even if receiver inactive)
+      const isTestBilling = webhookData.message && (webhookData.message.includes('test billing') || webhookData.message.includes('debug'));
+      
       // Only process AI responses if WhatsApp receiver is active and we have stored a message
-      if (receiverState.isActive && storeResult && storeResult.stored && storeResult.messageData) {
+      // OR if this is a test billing message
+      if ((receiverState.isActive && storeResult && storeResult.stored && storeResult.messageData) || isTestBilling) {
         console.log('🤖 Processing WhatsApp message for Claude AI auto-response...');
         
-        const messageData = storeResult.messageData;
-        const phoneNumber = messageData.phoneNumber;
-        const messageText = messageData.messageText;
-        const contactName = messageData.contactName || 'Unknown Contact';
+        // Use actual messageData if available, otherwise create mock data for testing
+        let messageData, phoneNumber, messageText, contactName;
+        
+        if (storeResult && storeResult.messageData) {
+          messageData = storeResult.messageData;
+          phoneNumber = messageData.phoneNumber;
+          messageText = messageData.messageText;
+          contactName = messageData.contactName || 'Unknown Contact';
+        } else if (isTestBilling) {
+          // Create mock data for test billing
+          console.log('🧪 Creating mock message data for test billing');
+          phoneNumber = webhookData.phone || '+1234567890';
+          messageText = webhookData.message;
+          contactName = 'Test User';
+          messageData = {
+            phoneNumber,
+            messageText,
+            contactName,
+            messageId: 'test_message_' + Date.now(),
+            timestamp: new Date().toISOString()
+          };
+        }
         
         console.log('📱 WhatsApp AI Processing:', {
           from: phoneNumber,
