@@ -122,16 +122,21 @@ const WhatsAppReceiver = () => {
     }
   };
 
-  const autoConnectClaude = async () => {
+  const autoConnectClaude = async (retryCount = 0) => {
+    const maxRetries = 3;
+    const retryDelay = 2000; // 2 seconds
+    
     setIsConnectingClaude(true);
-    setClaudeStatus('🔗 Auto-connecting with environment API key...');
+    const retryText = retryCount > 0 ? ` (Retry ${retryCount}/${maxRetries})` : '';
+    setClaudeStatus(`🔗 Auto-connecting with environment API key...${retryText}`);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/claude/auto-connect`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        },
+        timeout: 15000 // 15 second timeout
       });
 
       const result = await response.json();
@@ -141,17 +146,73 @@ const WhatsAppReceiver = () => {
         setIsClaudeConnected(true);
         setClaudeApiKey('••••••••••••••••••••••••••••••••••••••••••••••••• (Environment Key)');
         console.log('✅ Claude auto-connected:', result.message);
+        return; // Success, exit
       } else {
-        setClaudeStatus('❌ Auto-connect failed - Environment API key not configured');
+        // Check if it's a Claude API overload error and we can retry
+        if (result.error && result.error.includes('Overloaded') && retryCount < maxRetries) {
+          console.log(`🔄 Claude API overloaded, retrying in ${retryDelay/1000}s... (${retryCount + 1}/${maxRetries})`);
+          setClaudeStatus(`⏳ Claude API overloaded, retrying in ${retryDelay/1000}s... (${retryCount + 1}/${maxRetries})`);
+          
+          setTimeout(() => {
+            autoConnectClaude(retryCount + 1);
+          }, retryDelay);
+          return;
+        }
+        
+        // Final failure
+        setClaudeStatus(result.error?.includes('environment') 
+          ? '⚙️ Auto-connect needs environment setup - Use manual connect instead'
+          : `❌ Auto-connect failed: ${result.error || 'Unknown error'}`
+        );
         setIsClaudeConnected(false);
         console.error('❌ Claude auto-connect failed:', result.error);
+        
+        // After auto-connect fails, enable manual connection
+        setClaudeApiKey('');
       }
     } catch (error) {
       console.error('❌ Claude auto-connect error:', error);
-      setClaudeStatus('❌ Auto-connect failed - Check environment configuration');
+      
+      // Network/fetch errors - retry if possible
+      if (retryCount < maxRetries && (error.name === 'TypeError' || error.message.includes('fetch'))) {
+        console.log(`🔄 Network error, retrying in ${retryDelay/1000}s... (${retryCount + 1}/${maxRetries})`);
+        setClaudeStatus(`⏳ Connection retry in ${retryDelay/1000}s... (${retryCount + 1}/${maxRetries})`);
+        
+        setTimeout(() => {
+          autoConnectClaude(retryCount + 1);
+        }, retryDelay);
+        return;
+      }
+      
+      // Final network failure
+      setClaudeStatus('❌ Auto-connect failed - Network issue, try manual connect');
       setIsClaudeConnected(false);
+      setClaudeApiKey('');
     } finally {
-      setIsConnectingClaude(false);
+      if (retryCount === 0 || retryCount >= maxRetries) {
+        setIsConnectingClaude(false);
+      }
+    }
+  };
+
+  const handleClaudeDisconnect = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/claude/disconnect`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (response.ok) {
+        setIsClaudeConnected(false);
+        setClaudeApiKey('');
+        setClaudeStatus('✅ Disconnected successfully - Ready to reconnect');
+        console.log('✅ Claude disconnected successfully');
+      }
+    } catch (error) {
+      console.error('❌ Error disconnecting:', error);
+      setClaudeStatus('❌ Disconnect error - Try refreshing the page');
     }
   };
 
@@ -721,6 +782,71 @@ const WhatsAppReceiver = () => {
                       {claudeStatus}
                     </div>
                   )}
+
+                  {/* Connection Buttons */}
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                    {!isClaudeConnected && (
+                      <>
+                        <button
+                          onClick={() => autoConnectClaude(0)}
+                          disabled={isConnectingClaude}
+                          style={{
+                            flex: '1',
+                            backgroundColor: isConnectingClaude ? '#9ca3af' : '#3b82f6',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '0.75rem 1rem',
+                            fontSize: '0.875rem',
+                            fontWeight: '500',
+                            cursor: isConnectingClaude ? 'not-allowed' : 'pointer',
+                            transition: 'background-color 0.2s'
+                          }}
+                        >
+                          {isConnectingClaude ? '⏳ Connecting...' : '🔄 Retry Auto-Connect'}
+                        </button>
+                        
+                        <button
+                          onClick={handleClaudeConnect}
+                          disabled={isConnectingClaude || !claudeApiKey.trim()}
+                          style={{
+                            flex: '1',
+                            backgroundColor: (isConnectingClaude || !claudeApiKey.trim()) ? '#9ca3af' : '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '0.75rem 1rem',
+                            fontSize: '0.875rem',
+                            fontWeight: '500',
+                            cursor: (isConnectingClaude || !claudeApiKey.trim()) ? 'not-allowed' : 'pointer',
+                            transition: 'background-color 0.2s'
+                          }}
+                        >
+                          🔗 Manual Connect
+                        </button>
+                      </>
+                    )}
+                    
+                    {isClaudeConnected && (
+                      <button
+                        onClick={handleClaudeDisconnect}
+                        style={{
+                          flex: '1',
+                          backgroundColor: '#ef4444',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '0.75rem 1rem',
+                          fontSize: '0.875rem',
+                          fontWeight: '500',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.2s'
+                        }}
+                      >
+                        🔌 Disconnect
+                      </button>
+                    )}
+                  </div>
 
                   {/* Claude AI Ready Status */}
                   <div style={{ 
