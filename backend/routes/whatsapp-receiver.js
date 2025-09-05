@@ -700,6 +700,56 @@ router.get('/stats', verifyToken, (req, res) => {
 });
 
 // Export the message storage function for use in webhook handler
+// Debug endpoint to check billing tracking
+router.get('/debug-billing', verifyToken, async (req, res) => {
+  try {
+    const db = require('../db');
+    
+    // Check recent usage for user ID 2
+    const recentUsage = await new Promise((resolve, reject) => {
+      db.all(`
+        SELECT 
+          user_id,
+          total_tokens,
+          total_price,
+          request_type,
+          created_at
+        FROM ai_usage_tracking 
+        WHERE user_id = 2
+        ORDER BY created_at DESC 
+        LIMIT 10
+      `, [], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+
+    // Check free tier status for user ID 2
+    const freeTier = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT * FROM user_free_tier WHERE user_id = 2
+      `, [], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    res.json({
+      success: true,
+      userId: 2,
+      recentUsage: recentUsage,
+      freeTier: freeTier,
+      usageCount: recentUsage.length,
+      totalTokensUsed: recentUsage.reduce((sum, usage) => sum + usage.total_tokens, 0)
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
 module.exports.storeWhatsAppMessage = storeWhatsAppMessage;
 module.exports.getReceiverState = () => receiverState;
