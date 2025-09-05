@@ -976,12 +976,20 @@ router.post('/manual-knowledge', async (req, res) => {
 // Auto-connect with environment API key
 router.post('/auto-connect', asyncHandler(async (req, res) => {
   const userId = req.user?.id || 'default_user';
-  const envApiKey = process.env.ANTHROPIC_API_KEY;
-
-  if (!envApiKey || envApiKey === 'your-claude-api-key-here') {
+  
+  // Try multiple sources for Claude API key
+  let envApiKey = process.env.ANTHROPIC_API_KEY;
+  
+  // Fallback to CLAUDE_API_KEY if ANTHROPIC_API_KEY not found
+  if (!envApiKey || envApiKey === 'your-claude-api-key-here' || envApiKey === 'sk-ant-api03-your-claude-api-key-here') {
+    envApiKey = process.env.CLAUDE_API_KEY;
+  }
+  
+  // Check if we have a working key
+  if (!envApiKey || envApiKey.includes('your-claude-api-key-here') || envApiKey.length < 20) {
     return res.status(400).json({
       success: false,
-      error: 'No Claude API key found in environment variables'
+      error: 'Auto-connect requires ANTHROPIC_API_KEY environment variable. Please set it in your Render dashboard Environment tab.'
     });
   }
 
