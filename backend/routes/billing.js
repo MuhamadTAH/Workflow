@@ -250,4 +250,57 @@ async function getUserById(userId) {
   });
 }
 
+// Test endpoint to manually trigger billing
+router.post('/test-track-usage', async (req, res) => {
+  try {
+    const billingService = require('../services/billingService');
+    
+    // Get Claude model for testing
+    const db = require('../db');
+    const aiModel = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT * FROM ai_models 
+        WHERE name = 'claude-3-5-sonnet-20241022' AND is_active = 1
+      `, [], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!aiModel) {
+      return res.status(404).json({
+        success: false,
+        error: 'Claude model not found in database'
+      });
+    }
+
+    // Test billing with 50 tokens
+    const billingResult = await billingService.trackUsage(
+      2,           // Your user ID
+      aiModel.id,  // Claude model ID
+      30,          // Input tokens (test)
+      20,          // Output tokens (test)  
+      null,        // conversationId
+      null,        // assistantId
+      'test_usage' // usage type
+    );
+
+    res.json({
+      success: true,
+      message: 'Test billing tracked successfully',
+      billingResult: billingResult,
+      aiModel: {
+        id: aiModel.id,
+        name: aiModel.name
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 module.exports = router;
