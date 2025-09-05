@@ -247,9 +247,26 @@ const SimpleMessengerWebhook = () => {
               <h1 style={{ 
                 fontSize: '1.25rem', 
                 fontWeight: 'bold',
-                margin: 0
+                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
               }}>
-                💬 Messenger Manager
+                <div style={{
+                  width: '24px',
+                  height: '24px',
+                  background: 'linear-gradient(45deg, #00B4FF, #0078FF)',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '12px',
+                  fontWeight: 'bold',
+                  color: 'white'
+                }}>
+                  M
+                </div>
+                Messenger Manager
               </h1>
               
               <button
@@ -761,9 +778,27 @@ const SimpleMessengerWebhook = () => {
               fontSize: '1.25rem', 
               fontWeight: 'bold', 
               color: '#111827',
-              margin: 0
+              margin: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem'
             }}>
-              💬 Messenger Manager
+              <div style={{
+                width: '24px',
+                height: '24px',
+                background: 'linear-gradient(45deg, #00B4FF, #0078FF)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                color: 'white'
+              }}>
+                M
+              </div>
+              Messenger Manager
             </h2>
           </div>
         )}
