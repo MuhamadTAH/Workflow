@@ -425,12 +425,287 @@ const SimpleMessengerWebhook = () => {
 
       </div>
 
-      {/* User Information Panel */}
+      {/* Center Panel - Conversation */}
+      <div style={{ 
+        flex: '1',
+        backgroundColor: 'white',
+        display: 'flex',
+        flexDirection: 'column',
+        borderRight: selectedUserId ? '1px solid #e5e7eb' : 'none'
+      }}>
+        
+        {/* Conversation Header */}
+        {selectedUserId ? (
+          <div style={{ 
+            padding: '1rem',
+            backgroundColor: '#f8fafc',
+            borderBottom: '1px solid #e5e7eb',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1rem'
+          }}>
+            {(() => {
+              const selectedUser = users[selectedUserId];
+              return (
+                <>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    backgroundColor: '#0084ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    backgroundImage: selectedUser?.profile_pic ? `url(${selectedUser.profile_pic})` : 'none',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }}>
+                    {!selectedUser?.profile_pic && (selectedUser?.name?.charAt(0).toUpperCase() || 'U')}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '1rem', fontWeight: '600', color: '#111827' }}>
+                      {selectedUser?.name || 'Messenger User'}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        ) : (
+          <div style={{ 
+            padding: '1rem',
+            backgroundColor: '#f8fafc',
+            borderBottom: '1px solid #e5e7eb',
+            textAlign: 'center'
+          }}>
+            <h2 style={{ 
+              fontSize: '1.25rem', 
+              fontWeight: 'bold', 
+              color: '#111827',
+              margin: 0
+            }}>
+              Messenger Manager
+            </h2>
+          </div>
+        )}
+
+        {/* Messages Display */}
+        <div style={{ 
+          flex: 1, 
+          overflowY: 'auto', 
+          padding: '1rem',
+          backgroundColor: '#f8fafc'
+        }}>
+          {!selectedUserId ? (
+            <div style={{ 
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              color: '#9ca3af',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem', color: '#6b7280' }}>
+                Select a conversation
+              </h3>
+              <p style={{ fontSize: '0.875rem' }}>
+                Choose a conversation from the left panel to start messaging
+              </p>
+              {!isWaiting && !hasReceivedCall && (
+                <div style={{ marginTop: '2rem' }}>
+                  <p style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>
+                    Haven't started receiving messages yet?
+                  </p>
+                  <button
+                    onClick={handleActivate}
+                    disabled={isLoading}
+                    style={{
+                      backgroundColor: isLoading ? '#9ca3af' : '#0084ff',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '0.75rem 1.5rem',
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      cursor: isLoading ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    {isLoading ? 'Activating...' : '🚀 Start Webhook'}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : currentMessages.length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              color: '#9ca3af', 
+              padding: '2rem',
+              fontStyle: 'italic'
+            }}>
+              No messages in this conversation yet.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {currentMessages.map((message, index) => {
+                const isOutgoing = message.isOutgoing || message.sender?.id === 'me';
+                
+                return (
+                  <div 
+                    key={message.id || index}
+                    style={{
+                      display: 'flex',
+                      justifyContent: isOutgoing ? 'flex-end' : 'flex-start',
+                      width: '100%'
+                    }}
+                  >
+                    <div style={{
+                      maxWidth: '70%',
+                      minWidth: '120px',
+                      backgroundColor: isOutgoing ? '#0084ff' : 'white',
+                      color: isOutgoing ? 'white' : '#374151',
+                      borderRadius: isOutgoing ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                      padding: '0.75rem 1rem',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                      position: 'relative'
+                    }}>
+                      
+                      {/* AI Reply Badge */}
+                      {message.isAIReply && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '-8px',
+                          left: '8px',
+                          backgroundColor: '#22c55e',
+                          color: 'white',
+                          fontSize: '0.6rem',
+                          padding: '2px 6px',
+                          borderRadius: '10px',
+                          fontWeight: 'bold'
+                        }}>
+                          🤖 AI
+                        </div>
+                      )}
+                      
+                      {/* Message Content */}
+                      <div style={{ 
+                        fontSize: '0.875rem',
+                        lineHeight: '1.4',
+                        wordWrap: 'break-word'
+                      }}>
+                        {message.text || (isOutgoing ? 'Message sent' : 'No text content')}
+                      </div>
+
+                      {/* Timestamp */}
+                      <div style={{ 
+                        fontSize: '0.65rem', 
+                        color: isOutgoing ? 'rgba(255,255,255,0.7)' : '#9ca3af', 
+                        marginTop: '0.25rem',
+                        textAlign: isOutgoing ? 'right' : 'left'
+                      }}>
+                        {formatTimestamp(message.timestamp)}
+                        {isOutgoing && ' ✓'}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Reply Interface */}
+        {selectedUserId && (
+          <div style={{ 
+            padding: '1rem',
+            backgroundColor: 'white',
+            borderTop: '1px solid #e5e7eb'
+          }}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+              <div style={{ flex: 1 }}>
+                <textarea
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="Type your message..."
+                  style={{
+                    width: '100%',
+                    minHeight: '60px',
+                    padding: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '20px',
+                    fontSize: '0.875rem',
+                    fontFamily: 'inherit',
+                    resize: 'none',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleReply();
+                    }
+                  }}
+                />
+              </div>
+              
+              <button
+                onClick={handleReply}
+                disabled={!replyText.trim() || isReplying}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  backgroundColor: !replyText.trim() || isReplying ? '#9ca3af' : '#0084ff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '50%',
+                  cursor: !replyText.trim() || isReplying ? 'not-allowed' : 'pointer',
+                  transition: 'background-color 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1rem'
+                }}
+                onMouseEnter={(e) => {
+                  if (!(!replyText.trim() || isReplying)) {
+                    e.target.style.backgroundColor = '#0066cc';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!(!replyText.trim() || isReplying)) {
+                    e.target.style.backgroundColor = '#0084ff';
+                  }
+                }}
+              >
+                {isReplying ? '⏳' : '📤'}
+              </button>
+            </div>
+            
+            {error && (
+              <div style={{
+                marginTop: '0.5rem',
+                padding: '0.5rem',
+                backgroundColor: '#fee2e2',
+                border: '1px solid #fecaca',
+                borderRadius: '4px',
+                fontSize: '0.75rem',
+                color: '#dc2626'
+              }}>
+                {error}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Right Panel - User Information */}
       {selectedUserId && (
         <div style={{ 
           width: '300px',
           backgroundColor: 'white',
-          borderRight: '1px solid #e5e7eb',
           display: 'flex',
           flexDirection: 'column',
           padding: '1rem'
@@ -701,281 +976,6 @@ const SimpleMessengerWebhook = () => {
           })()}
         </div>
       )}
-
-      {/* Center Panel - Conversation */}
-      <div style={{ 
-        flex: '1',
-        backgroundColor: 'white',
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
-        
-        {/* Conversation Header */}
-        {selectedUserId ? (
-          <div style={{ 
-            padding: '1rem',
-            backgroundColor: '#f8fafc',
-            borderBottom: '1px solid #e5e7eb',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem'
-          }}>
-            {(() => {
-              const selectedUser = users[selectedUserId];
-              return (
-                <>
-                  <div style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    backgroundColor: '#0084ff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1rem',
-                    color: 'white',
-                    fontWeight: 'bold',
-                    backgroundImage: selectedUser?.profile_pic ? `url(${selectedUser.profile_pic})` : 'none',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
-                  }}>
-                    {!selectedUser?.profile_pic && (selectedUser?.name?.charAt(0).toUpperCase() || 'U')}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '1rem', fontWeight: '600', color: '#111827' }}>
-                      {selectedUser?.name || 'Messenger User'}
-                    </div>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        ) : (
-          <div style={{ 
-            padding: '1rem',
-            backgroundColor: '#f8fafc',
-            borderBottom: '1px solid #e5e7eb',
-            textAlign: 'center'
-          }}>
-            <h2 style={{ 
-              fontSize: '1.25rem', 
-              fontWeight: 'bold', 
-              color: '#111827',
-              margin: 0
-            }}>
-              Messenger Manager
-            </h2>
-          </div>
-        )}
-
-        {/* Messages Display */}
-        <div style={{ 
-          flex: 1, 
-          overflowY: 'auto', 
-          padding: '1rem',
-          backgroundColor: '#f8fafc'
-        }}>
-          {!selectedUserId ? (
-            <div style={{ 
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              color: '#9ca3af',
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem', color: '#6b7280' }}>
-                Select a conversation
-              </h3>
-              <p style={{ fontSize: '0.875rem' }}>
-                Choose a conversation from the left panel to start messaging
-              </p>
-              {!isWaiting && !hasReceivedCall && (
-                <div style={{ marginTop: '2rem' }}>
-                  <p style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>
-                    Haven't started receiving messages yet?
-                  </p>
-                  <button
-                    onClick={handleActivate}
-                    disabled={isLoading}
-                    style={{
-                      backgroundColor: isLoading ? '#9ca3af' : '#0084ff',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      padding: '0.75rem 1.5rem',
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      cursor: isLoading ? 'not-allowed' : 'pointer'
-                    }}
-                  >
-                    {isLoading ? 'Activating...' : '🚀 Start Webhook'}
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : currentMessages.length === 0 ? (
-            <div style={{ 
-              textAlign: 'center', 
-              color: '#9ca3af', 
-              padding: '2rem',
-              fontStyle: 'italic'
-            }}>
-              No messages in this conversation yet.
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {currentMessages.map((message, index) => {
-                const isOutgoing = message.isOutgoing || message.sender?.id === 'me';
-                
-                return (
-                  <div 
-                    key={message.id || index}
-                    style={{
-                      display: 'flex',
-                      justifyContent: isOutgoing ? 'flex-end' : 'flex-start',
-                      width: '100%'
-                    }}
-                  >
-                    <div style={{
-                      maxWidth: '70%',
-                      minWidth: '120px',
-                      backgroundColor: isOutgoing ? '#0084ff' : 'white',
-                      color: isOutgoing ? 'white' : '#374151',
-                      borderRadius: isOutgoing ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                      padding: '0.75rem 1rem',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                      position: 'relative'
-                    }}>
-                      
-                      {/* AI Reply Badge */}
-                      {message.isAIReply && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '-8px',
-                          left: '8px',
-                          backgroundColor: '#22c55e',
-                          color: 'white',
-                          fontSize: '0.6rem',
-                          padding: '2px 6px',
-                          borderRadius: '10px',
-                          fontWeight: 'bold'
-                        }}>
-                          🤖 AI
-                        </div>
-                      )}
-                      
-                      {/* Message Content */}
-                      <div style={{ 
-                        fontSize: '0.875rem',
-                        lineHeight: '1.4',
-                        wordWrap: 'break-word'
-                      }}>
-                        {message.text || (isOutgoing ? 'Message sent' : 'No text content')}
-                      </div>
-
-                      {/* Timestamp */}
-                      <div style={{ 
-                        fontSize: '0.65rem', 
-                        color: isOutgoing ? 'rgba(255,255,255,0.7)' : '#9ca3af', 
-                        marginTop: '0.25rem',
-                        textAlign: isOutgoing ? 'right' : 'left'
-                      }}>
-                        {formatTimestamp(message.timestamp)}
-                        {isOutgoing && ' ✓'}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Reply Interface */}
-        {selectedUserId && (
-          <div style={{ 
-            padding: '1rem',
-            backgroundColor: 'white',
-            borderTop: '1px solid #e5e7eb'
-          }}>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
-              <div style={{ flex: 1 }}>
-                <textarea
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Type your message..."
-                  style={{
-                    width: '100%',
-                    minHeight: '60px',
-                    padding: '0.75rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '20px',
-                    fontSize: '0.875rem',
-                    fontFamily: 'inherit',
-                    resize: 'none',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleReply();
-                    }
-                  }}
-                />
-              </div>
-              
-              <button
-                onClick={handleReply}
-                disabled={!replyText.trim() || isReplying}
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  backgroundColor: !replyText.trim() || isReplying ? '#9ca3af' : '#0084ff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '50%',
-                  cursor: !replyText.trim() || isReplying ? 'not-allowed' : 'pointer',
-                  transition: 'background-color 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1rem'
-                }}
-                onMouseEnter={(e) => {
-                  if (!(!replyText.trim() || isReplying)) {
-                    e.target.style.backgroundColor = '#0066cc';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!(!replyText.trim() || isReplying)) {
-                    e.target.style.backgroundColor = '#0084ff';
-                  }
-                }}
-              >
-                {isReplying ? '⏳' : '📤'}
-              </button>
-            </div>
-            
-            {error && (
-              <div style={{
-                marginTop: '0.5rem',
-                padding: '0.5rem',
-                backgroundColor: '#fee2e2',
-                border: '1px solid #fecaca',
-                borderRadius: '4px',
-                fontSize: '0.75rem',
-                color: '#dc2626'
-              }}>
-                {error}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
 
       {/* AI Settings Modal */}
       <MessengerAISettings
