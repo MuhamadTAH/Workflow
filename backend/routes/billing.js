@@ -170,7 +170,7 @@ router.get('/models', async (req, res) => {
     
     const models = await new Promise((resolve, reject) => {
       db.all(`
-        SELECT id, name, provider, price_per_input_token, price_per_output_token, is_active
+        SELECT id, name, provider, model_id, price_per_input_token, price_per_output_token, is_active
         FROM ai_models
         WHERE is_active = 1
         ORDER BY name
@@ -250,6 +250,35 @@ async function getUserById(userId) {
   });
 }
 
+// Debug endpoint to check model lookup
+router.get('/debug-model-lookup/:modelName', async (req, res) => {
+  try {
+    const { modelName } = req.params;
+    const db = require('../db');
+    
+    const aiModel = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT * FROM ai_models 
+        WHERE (name = ? OR model_id = ?) AND is_active = 1
+      `, [modelName, modelName], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    res.json({
+      searchTerm: modelName,
+      found: !!aiModel,
+      model: aiModel
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      searchTerm: req.params.modelName
+    });
+  }
+});
+
 // Test endpoint to manually trigger billing
 router.post('/test-track-usage', async (req, res) => {
   try {
@@ -260,7 +289,7 @@ router.post('/test-track-usage', async (req, res) => {
     const aiModel = await new Promise((resolve, reject) => {
       db.get(`
         SELECT * FROM ai_models 
-        WHERE name = 'claude-3-5-sonnet-20241022' AND is_active = 1
+        WHERE model_id = 'claude-3-5-sonnet-20241022' AND is_active = 1
       `, [], (err, row) => {
         if (err) reject(err);
         else resolve(row);
