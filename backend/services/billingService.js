@@ -157,9 +157,6 @@ class BillingService {
               `, [freeTierUsage.tokensToDeduct, userId]);
             }
 
-            // Check spending limits and send alerts
-            this.checkSpendingLimits(userId);
-
             resolve({
               usageId: this.lastID,
               totalTokens,
@@ -168,6 +165,12 @@ class BillingService {
             });
           }
         });
+      }).then(result => {
+        // Check spending limits and send alerts (run async without blocking)
+        this.checkSpendingLimits(userId).catch(err => {
+          console.error('Error checking spending limits:', err);
+        });
+        return result;
       });
     } catch (error) {
       throw new Error(`Failed to track usage: ${error.message}`);
