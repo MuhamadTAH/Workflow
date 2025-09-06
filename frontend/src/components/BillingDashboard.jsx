@@ -63,9 +63,6 @@ const BillingDashboard = () => {
       if (currentLimit === null) {
         setSpendingLimitType('unlimited');
         setCustomSpendingLimit('');
-      } else if ([25, 50, 100, 250, 500].includes(currentLimit)) {
-        setSpendingLimitType(currentLimit.toString());
-        setCustomSpendingLimit('');
       } else {
         setSpendingLimitType('custom');
         setCustomSpendingLimit(currentLimit.toString());
@@ -84,16 +81,13 @@ const BillingDashboard = () => {
       
       if (spendingLimitType === 'unlimited') {
         limit = null; // null = unlimited
-      } else if (spendingLimitType === 'custom') {
+      } else {
         // Handle custom amount
         limit = parseFloat(customSpendingLimit);
         if (isNaN(limit) || limit < 0 || limit > 100000) {
           alert('Please enter a valid spending limit between $0 and $100,000');
           return;
         }
-      } else {
-        // Handle preset amounts (25, 50, 100, etc.)
-        limit = parseFloat(spendingLimitType);
       }
 
       const response = await fetch(`${API_BASE_URL}/api/billing/spending-limit`, {
@@ -309,11 +303,6 @@ const BillingDashboard = () => {
                   className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="unlimited">Unlimited</option>
-                  <option value="25">$25</option>
-                  <option value="50">$50</option>
-                  <option value="100">$100</option>
-                  <option value="250">$250</option>
-                  <option value="500">$500</option>
                   <option value="custom">Custom Amount</option>
                 </select>
                 {spendingLimitType === 'custom' && (
@@ -337,9 +326,7 @@ const BillingDashboard = () => {
               <p className="text-xs text-gray-500 mt-1">
                 {spendingLimitType === 'unlimited' 
                   ? 'No spending limit will be enforced'
-                  : spendingLimitType === 'custom' 
-                    ? 'Enter a custom amount between $0-$100,000'
-                    : `Monthly spending will be limited to $${spendingLimitType}`
+                  : 'Enter a custom amount between $0-$100,000'
                 }
               </p>
             </div>
