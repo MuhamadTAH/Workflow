@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCard, DollarSign, TrendingUp, AlertCircle, CheckCircle, Clock, Zap } from 'lucide-react';
+import { CreditCard, DollarSign, TrendingUp, AlertCircle, CheckCircle, Clock, Zap, MessageSquare } from 'lucide-react';
 import { API_BASE_URL } from '../config/api';
 
 const BillingDashboard = () => {
@@ -7,6 +7,7 @@ const BillingDashboard = () => {
     billing: null,
     currentSpending: { currentSpending: 0, spendingLimit: 100, percentage: 0 },
     freeTier: { remainingTokens: 1000, totalLimit: 1000 },
+    responseCount: { totalResponses: 0, monthlyResponses: 0 },
     usage: [],
     history: [],
     models: []
@@ -26,19 +27,21 @@ const BillingDashboard = () => {
       setLoading(true);
       
       // Load all billing data in parallel
-      const [billingRes, spendingRes, freeTierRes, usageRes, historyRes, modelsRes] = await Promise.all([
+      const [billingRes, spendingRes, freeTierRes, responseCountRes, usageRes, historyRes, modelsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/billing/info`, { credentials: 'include' }),
         fetch(`${API_BASE_URL}/api/billing/current-spending`, { credentials: 'include' }),
         fetch(`${API_BASE_URL}/api/billing/free-tier`, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/api/billing/response-count`, { credentials: 'include' }),
         fetch(`${API_BASE_URL}/api/billing/usage`, { credentials: 'include' }),
         fetch(`${API_BASE_URL}/api/billing/history`, { credentials: 'include' }),
         fetch(`${API_BASE_URL}/api/billing/models`, { credentials: 'include' })
       ]);
 
-      const [billing, spending, freeTier, usage, history, models] = await Promise.all([
+      const [billing, spending, freeTier, responseCount, usage, history, models] = await Promise.all([
         billingRes.json(),
         spendingRes.json(),
         freeTierRes.json(),
+        responseCountRes.json(),
         usageRes.json(),
         historyRes.json(),
         modelsRes.json()
@@ -48,6 +51,7 @@ const BillingDashboard = () => {
         billing: billing.billing,
         currentSpending: spending,
         freeTier,
+        responseCount,
         usage: usage.usage || [],
         history: history.history || [],
         models: models.models || []
@@ -256,20 +260,22 @@ const BillingDashboard = () => {
             )}
           </div>
 
-          {/* Total Usage */}
+          {/* AI Responses */}
           <div className="bg-white rounded-lg p-6 shadow-sm border">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
-                <TrendingUp className="h-8 w-8 text-indigo-600" />
+                <MessageSquare className="h-8 w-8 text-indigo-600" />
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-600">Total Requests</p>
+                  <p className="text-sm font-medium text-gray-600">AI Responses</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {billingData.usage.reduce((sum, day) => sum + (day.requests || 0), 0)}
+                    {billingData.responseCount.totalResponses}
                   </p>
                 </div>
               </div>
             </div>
-            <p className="text-xs text-gray-500">Last 30 days</p>
+            <p className="text-xs text-gray-500">
+              {billingData.responseCount.monthlyResponses} this month
+            </p>
           </div>
         </div>
 

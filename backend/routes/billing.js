@@ -187,6 +187,49 @@ router.get('/models', async (req, res) => {
   }
 });
 
+// Get AI response count for user
+router.get('/response-count', async (req, res) => {
+  try {
+    const db = require('../db');
+    const userId = 2; // Default user ID for testing
+    
+    // Count total AI responses for this user
+    const responseCount = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT COUNT(*) as total_responses
+        FROM ai_usage_tracking 
+        WHERE user_id = ?
+      `, [userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row ? row.total_responses : 0);
+      });
+    });
+    
+    // Get response count for current month
+    const currentMonth = new Date().toISOString().slice(0, 7) + '-01';
+    const monthlyCount = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT COUNT(*) as monthly_responses
+        FROM ai_usage_tracking 
+        WHERE user_id = ? 
+        AND DATE(created_at) >= ? 
+        AND DATE(created_at) < DATE(?, '+1 month')
+      `, [userId, currentMonth, currentMonth], (err, row) => {
+        if (err) reject(err);
+        else resolve(row ? row.monthly_responses : 0);
+      });
+    });
+
+    res.json({ 
+      totalResponses: responseCount,
+      monthlyResponses: monthlyCount
+    });
+  } catch (error) {
+    console.error('Error getting AI response count:', error);
+    res.status(500).json({ error: 'Failed to get response count' });
+  }
+});
+
 // Get free tier status (no auth required for testing)
 router.get('/free-tier', async (req, res) => {
   try {
