@@ -317,7 +317,7 @@ const sendMessageToClaude = async (messageText, userId = 2) => {
       const aiModel = await new Promise((resolve, reject) => {
         db.get(`
           SELECT * FROM ai_models 
-          WHERE name = 'claude-3-5-sonnet-20241022' AND is_active = 1
+          WHERE model_id = 'claude-3-5-sonnet-20241022' AND is_active = 1
         `, [], (err, row) => {
           if (err) reject(err);
           else resolve(row);
