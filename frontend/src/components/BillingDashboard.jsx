@@ -16,7 +16,8 @@ const BillingDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddCard, setShowAddCard] = useState(false);
-  const [spendingLimitInput, setSpendingLimitInput] = useState('');
+  const [spendingLimitType, setSpendingLimitType] = useState('unlimited');
+  const [customSpendingLimit, setCustomSpendingLimit] = useState('');
 
   useEffect(() => {
     loadBillingData();
@@ -57,10 +58,18 @@ const BillingDashboard = () => {
         models: models.models || []
       });
 
-      setSpendingLimitInput(
-        billing.billing?.spendingLimit === null ? 'unlimited' : 
-        billing.billing?.spendingLimit?.toString() || 'unlimited'
-      );
+      // Set spending limit state based on current value
+      const currentLimit = billing.billing?.spendingLimit;
+      if (currentLimit === null) {
+        setSpendingLimitType('unlimited');
+        setCustomSpendingLimit('');
+      } else if ([25, 50, 100, 250, 500].includes(currentLimit)) {
+        setSpendingLimitType(currentLimit.toString());
+        setCustomSpendingLimit('');
+      } else {
+        setSpendingLimitType('custom');
+        setCustomSpendingLimit(currentLimit.toString());
+      }
     } catch (err) {
       setError('Failed to load billing data');
       console.error('Billing data error:', err);
@@ -71,16 +80,20 @@ const BillingDashboard = () => {
 
   const updateSpendingLimit = async () => {
     try {
-      // Handle unlimited option
       let limit;
-      if (spendingLimitInput.toLowerCase() === 'unlimited' || spendingLimitInput === '') {
+      
+      if (spendingLimitType === 'unlimited') {
         limit = null; // null = unlimited
-      } else {
-        limit = parseFloat(spendingLimitInput);
+      } else if (spendingLimitType === 'custom') {
+        // Handle custom amount
+        limit = parseFloat(customSpendingLimit);
         if (isNaN(limit) || limit < 0 || limit > 100000) {
-          alert('Please enter a valid spending limit between $0 and $100,000, or "unlimited"');
+          alert('Please enter a valid spending limit between $0 and $100,000');
           return;
         }
+      } else {
+        // Handle preset amounts (25, 50, 100, etc.)
+        limit = parseFloat(spendingLimitType);
       }
 
       const response = await fetch(`${API_BASE_URL}/api/billing/spending-limit`, {
@@ -290,13 +303,30 @@ const BillingDashboard = () => {
                 Monthly Spending Limit
               </label>
               <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={spendingLimitInput}
-                  onChange={(e) => setSpendingLimitInput(e.target.value)}
+                <select
+                  value={spendingLimitType}
+                  onChange={(e) => setSpendingLimitType(e.target.value)}
                   className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="unlimited or 100"
-                />
+                >
+                  <option value="unlimited">Unlimited</option>
+                  <option value="25">$25</option>
+                  <option value="50">$50</option>
+                  <option value="100">$100</option>
+                  <option value="250">$250</option>
+                  <option value="500">$500</option>
+                  <option value="custom">Custom Amount</option>
+                </select>
+                {spendingLimitType === 'custom' && (
+                  <input
+                    type="number"
+                    value={customSpendingLimit}
+                    onChange={(e) => setCustomSpendingLimit(e.target.value)}
+                    className="w-32 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Amount"
+                    min="0"
+                    max="100000"
+                  />
+                )}
                 <button
                   onClick={updateSpendingLimit}
                   className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
@@ -305,7 +335,12 @@ const BillingDashboard = () => {
                 </button>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Set a monthly spending limit ($0-$100,000) or type "unlimited" for no limit
+                {spendingLimitType === 'unlimited' 
+                  ? 'No spending limit will be enforced'
+                  : spendingLimitType === 'custom' 
+                    ? 'Enter a custom amount between $0-$100,000'
+                    : `Monthly spending will be limited to $${spendingLimitType}`
+                }
               </p>
             </div>
 
