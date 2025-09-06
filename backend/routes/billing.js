@@ -476,4 +476,74 @@ router.post('/test-track-usage', async (req, res) => {
   }
 });
 
+// Debug endpoint to check user and usage data
+router.get('/debug-user-data', async (req, res) => {
+  try {
+    const db = require('../db');
+    const userId = 2;
+    
+    // Check if user exists
+    const user = await new Promise((resolve, reject) => {
+      db.get('SELECT * FROM users WHERE id = ?', [userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+    
+    // Get AI usage tracking count
+    const usageCount = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT COUNT(*) as total_records, 
+               MIN(created_at) as oldest_record,
+               MAX(created_at) as newest_record
+        FROM ai_usage_tracking 
+        WHERE user_id = ?
+      `, [userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+    
+    // Get recent usage records
+    const recentUsage = await new Promise((resolve, reject) => {
+      db.all(`
+        SELECT id, ai_model_id, request_type, input_tokens, output_tokens, 
+               created_at, billing_status
+        FROM ai_usage_tracking 
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        LIMIT 5
+      `, [userId], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+    
+    // Get free tier data
+    const freeTier = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT * FROM user_free_tier WHERE user_id = ?
+      `, [userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+    
+    res.json({
+      userId,
+      userExists: !!user,
+      user: user,
+      usageStats: usageCount,
+      recentUsage: recentUsage,
+      freeTier: freeTier,
+      debugTime: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+
 module.exports = router;

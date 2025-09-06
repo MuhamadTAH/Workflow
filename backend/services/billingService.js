@@ -146,15 +146,23 @@ class BillingService {
           totalCost, billablePrice, profit * billableRatio
         ], function(err) {
           if (err) {
+            console.error('❌ Error inserting AI usage tracking record:', err);
             reject(err);
           } else {
+            console.log(`✅ AI usage tracked - User: ${userId}, Model: ${aiModelId}, Tokens: ${totalTokens}, Record ID: ${this.lastID}`);
             // Update free tier usage
             if (freeTierUsage.tokensToDeduct > 0) {
               db.run(`
                 UPDATE user_free_tier 
                 SET free_tokens_used = free_tokens_used + ?, updated_at = CURRENT_TIMESTAMP
                 WHERE user_id = ?
-              `, [freeTierUsage.tokensToDeduct, userId]);
+              `, [freeTierUsage.tokensToDeduct, userId], function(freeErr) {
+                if (freeErr) {
+                  console.error('❌ Error updating free tier usage:', freeErr);
+                } else {
+                  console.log(`✅ Free tier updated - User: ${userId}, Tokens deducted: ${freeTierUsage.tokensToDeduct}`);
+                }
+              });
             }
 
             resolve({
