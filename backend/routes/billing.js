@@ -18,14 +18,26 @@ const requireAuth = (req, res, next) => {
 // Get user billing information (no auth required for testing)
 router.get('/info', async (req, res) => {
   try {
-    // Return default billing data for new users
+    const db = require('../db');
+    const userId = 2; // Default user ID for testing
+    
+    // Get user's billing info from database
+    const billingInfo = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT * FROM user_billing WHERE user_id = ?
+      `, [userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+    
     const safeBilling = {
-      hasPaymentMethod: false,
-      cardLastFour: null,
-      cardBrand: null,
-      spendingLimit: null, // null = unlimited
-      autoBilling: true,
-      billingEmail: null
+      hasPaymentMethod: billingInfo ? !!billingInfo.payment_method_id : false,
+      cardLastFour: billingInfo ? billingInfo.card_last_four : null,
+      cardBrand: billingInfo ? billingInfo.card_brand : null,
+      spendingLimit: billingInfo ? billingInfo.spending_limit : null,
+      autoBilling: billingInfo ? !!billingInfo.auto_billing : true,
+      billingEmail: billingInfo ? billingInfo.billing_email : null
     };
 
     res.json({ billing: safeBilling });
@@ -104,14 +116,27 @@ router.post('/confirm-payment-method', requireAuth, async (req, res) => {
 router.put('/spending-limit', async (req, res) => {
   try {
     const { limit } = req.body;
+    const userId = 2; // Default user ID for testing
     
     // Allow null for unlimited, or validate numeric limits
     if (limit !== null && (limit < 0 || limit > 100000)) {
       return res.status(400).json({ error: 'Invalid spending limit (must be 0-100000 or null for unlimited)' });
     }
 
-    // For testing, just return success without database update
-    const displayLimit = limit === null ? 'unlimited' : limit;
+    const db = require('../db');
+    
+    // Update or insert user billing record
+    await new Promise((resolve, reject) => {
+      db.run(`
+        INSERT OR REPLACE INTO user_billing (user_id, spending_limit, updated_at)
+        VALUES (?, ?, CURRENT_TIMESTAMP)
+      `, [userId, limit], function(err) {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    const displayLimit = limit === null ? 'unlimited' : `$${limit}`;
     
     res.json({ 
       success: true, 
@@ -138,11 +163,27 @@ router.get('/usage', async (req, res) => {
 // Get current month spending (no mock data)
 router.get('/current-spending', async (req, res) => {
   try {
-    // Return actual spending data (currently no usage)
+    const db = require('../db');
+    const userId = 2; // Default user ID for testing
+    
+    // Get user's spending limit from database
+    const billingInfo = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT spending_limit FROM user_billing WHERE user_id = ?
+      `, [userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+    
+    const spendingLimit = billingInfo ? billingInfo.spending_limit : null;
+    const currentSpending = 0.00; // TODO: Calculate actual spending
+    const percentage = spendingLimit ? (currentSpending / spendingLimit) * 100 : 0;
+    
     res.json({ 
-      currentSpending: 0.00,
-      spendingLimit: null, // null = unlimited
-      percentage: 0
+      currentSpending,
+      spendingLimit,
+      percentage: Math.min(percentage, 100)
     });
   } catch (error) {
     console.error('Error getting current spending:', error);
