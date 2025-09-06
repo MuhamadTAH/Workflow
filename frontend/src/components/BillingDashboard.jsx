@@ -31,17 +31,17 @@ const BillingDashboard = () => {
         fetch(`${API_BASE_URL}/api/billing/info`, { credentials: 'include' }),
         fetch(`${API_BASE_URL}/api/billing/current-spending`, { credentials: 'include' }),
         fetch(`${API_BASE_URL}/api/billing/free-tier`, { credentials: 'include' }),
-        fetch(`${API_BASE_URL}/api/billing/response-count`, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/api/billing/response-count`, { credentials: 'include' }).catch(() => ({ ok: false })),
         fetch(`${API_BASE_URL}/api/billing/usage`, { credentials: 'include' }),
         fetch(`${API_BASE_URL}/api/billing/history`, { credentials: 'include' }),
         fetch(`${API_BASE_URL}/api/billing/models`, { credentials: 'include' })
       ]);
 
-      const [billing, spending, freeTier, responseCount, usage, history, models] = await Promise.all([
+      const [billing, spending, freeTier, responseCountResult, usage, history, models] = await Promise.all([
         billingRes.json(),
         spendingRes.json(),
         freeTierRes.json(),
-        responseCountRes.json(),
+        responseCountRes.ok ? responseCountRes.json() : { totalResponses: 0, monthlyResponses: 0 },
         usageRes.json(),
         historyRes.json(),
         modelsRes.json()
@@ -51,7 +51,7 @@ const BillingDashboard = () => {
         billing: billing.billing,
         currentSpending: spending,
         freeTier,
-        responseCount,
+        responseCount: responseCountResult,
         usage: usage.usage || [],
         history: history.history || [],
         models: models.models || []
