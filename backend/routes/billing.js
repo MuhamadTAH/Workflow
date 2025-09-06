@@ -190,10 +190,70 @@ router.get('/models', async (req, res) => {
 // Get free tier status (no auth required for testing)
 router.get('/free-tier', async (req, res) => {
   try {
-    // Return default free tier for testing
+    const db = require('../db');
+    const userId = 2; // Default user ID for testing
+    
+    // Get user's free tier data from database
+    const freeTier = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT free_tokens_used, free_tokens_limit, is_active, reset_date
+        FROM user_free_tier 
+        WHERE user_id = ? AND is_active = 1
+      `, [userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!freeTier) {
+      // Create new free tier record if doesn't exist
+      const resetDate = new Date();
+      resetDate.setMonth(resetDate.getMonth() + 1, 1); // First day of next month
+      
+      await new Promise((resolve, reject) => {
+        db.run(`
+          INSERT INTO user_free_tier (user_id, free_tokens_used, free_tokens_limit, reset_date)
+          VALUES (?, 0, 1000, ?)
+        `, [userId, resetDate.toISOString().split('T')[0]], function(err) {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+      
+      return res.json({ 
+        remainingTokens: 1000,
+        totalLimit: 1000
+      });
+    }
+
+    // Check if free tier has reset (monthly)
+    const now = new Date();
+    const resetDate = new Date(freeTier.reset_date);
+    
+    if (now >= resetDate) {
+      // Reset free tier
+      const nextResetDate = new Date(resetDate);
+      nextResetDate.setMonth(nextResetDate.getMonth() + 1);
+      
+      await new Promise((resolve, reject) => {
+        db.run(`
+          UPDATE user_free_tier 
+          SET free_tokens_used = 0, reset_date = ?, updated_at = CURRENT_TIMESTAMP
+          WHERE user_id = ?
+        `, [nextResetDate.toISOString().split('T')[0], userId], function(err) {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+      
+      freeTier.free_tokens_used = 0;
+    }
+
+    const remainingTokens = Math.max(0, freeTier.free_tokens_limit - freeTier.free_tokens_used);
+    
     res.json({ 
-      remainingTokens: 1000,
-      totalLimit: 1000
+      remainingTokens,
+      totalLimit: freeTier.free_tokens_limit
     });
   } catch (error) {
     console.error('Error getting free tier status:', error);
