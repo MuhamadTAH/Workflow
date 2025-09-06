@@ -10,18 +10,35 @@ const router = express.Router();
 
 // Add CORS headers specifically for this route
 router.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  // Allow specific origins for WhatsApp receiver
+  const allowedOrigins = ['https://fixdai.com', 'https://workflow-lg9z.onrender.com', 'http://localhost:3000', 'http://localhost:5173'];
+  const origin = req.headers.origin;
+  
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
+  }
+  
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, X-Requested-With, X-Api-Key');
   res.header('Access-Control-Allow-Credentials', 'true');
   
   if (req.method === 'OPTIONS') {
     console.log('🔧 WhatsApp Receiver OPTIONS preflight:', {
       origin: req.headers.origin,
-      method: req.headers['access-control-request-method']
+      method: req.headers['access-control-request-method'],
+      headers: req.headers['access-control-request-headers']
     });
     return res.status(200).end();
   }
+  
+  console.log('🌐 WhatsApp Receiver CORS applied:', {
+    origin: req.headers.origin,
+    method: req.method,
+    allowedOrigin: allowedOrigins.includes(origin) ? origin : '*'
+  });
+  
   next();
 });
 const sqlite3 = require('sqlite3').verbose();
