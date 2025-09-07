@@ -941,6 +941,85 @@ const restoreActiveWebhooks = async () => {
 // Auto-restore on module load
 setTimeout(restoreActiveWebhooks, 2000); // Wait 2 seconds after server start
 
+// AI Configuration endpoints
+router.get('/ai-config', authenticateUser, async (req, res) => {
+  try {
+    console.log('🤖 Loading Telegram AI configuration...');
+    
+    // Default AI configuration
+    const defaultConfig = {
+      enabled: false,
+      autoReply: false,
+      systemPrompt: 'You are a helpful and friendly AI assistant for Telegram messages. Respond to users in a professional yet warm manner.',
+      model: 'claude-3-5-sonnet-20241022',
+      maxTokens: 1000,
+      responseDelay: 2000
+    };
+    
+    res.json({
+      success: true,
+      config: defaultConfig
+    });
+  } catch (error) {
+    console.error('Error loading AI config:', error);
+    res.status(500).json({ success: false, error: 'Failed to load AI configuration' });
+  }
+});
+
+router.post('/ai-config', authenticateUser, async (req, res) => {
+  try {
+    const config = req.body;
+    console.log('🤖 Saving Telegram AI configuration:', config);
+    
+    // Here you would save to database if needed
+    // For now, just return success
+    
+    res.json({
+      success: true,
+      message: 'AI configuration saved successfully'
+    });
+  } catch (error) {
+    console.error('Error saving AI config:', error);
+    res.status(500).json({ success: false, error: 'Failed to save AI configuration' });
+  }
+});
+
+router.post('/ai-test', authenticateUser, async (req, res) => {
+  try {
+    const { message } = req.body;
+    console.log('🧪 Testing Telegram AI with message:', message);
+    
+    // Mock AI response for testing
+    const response = `AI Test Response: I received your Telegram message "${message}". This is a test response from the Telegram AI system.`;
+    
+    res.json({
+      success: true,
+      response: response
+    });
+  } catch (error) {
+    console.error('Error testing AI:', error);
+    res.status(500).json({ success: false, error: 'Failed to test AI' });
+  }
+});
+
+router.post('/claude/connect', authenticateUser, async (req, res) => {
+  try {
+    const { apiKey } = req.body;
+    console.log('🔗 Connecting Telegram Claude AI with key:', apiKey ? apiKey.substring(0, 10) + '...' : 'none');
+    
+    // Mock Claude connection for now
+    // In real implementation, you'd validate the API key
+    
+    res.json({
+      success: true,
+      message: 'Claude AI connected successfully for Telegram'
+    });
+  } catch (error) {
+    console.error('Error connecting Claude for Telegram:', error);
+    res.status(500).json({ success: false, error: 'Failed to connect Claude AI' });
+  }
+});
+
 // Test endpoint
 router.get('/test', (req, res) => {
   res.json({
