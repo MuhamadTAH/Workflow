@@ -1,12 +1,103 @@
 const express = require('express');
 const router = express.Router();
 const logger = require('../services/logger');
+const db = require('../db');
 const { generateAIReply, getAIConfig, handleMessageBatch } = require('./messenger-ai');
 
-// Store for Messenger DM data
-let messengerMessages = [];
-// Store for Messenger user profiles
-let messengerUsers = {};
+// Simple auth function for development
+const authenticateUser = (req, res, next) => {
+  req.user = { id: 1 }; // Default to user ID 1 for development
+  next();
+};
+
+// Database helper functions
+const getUserIdFromToken = (req) => {
+  return req.user?.id || 1; // Default to user ID 1 for testing
+};
+
+// Save Messenger bot configuration to database
+const saveBotToDatabase = async (userId, appId, appSecret, accessToken, pageId, webhookToken, webhookUrl) => {
+  return new Promise((resolve, reject) => {
+    db.run(`
+      INSERT OR REPLACE INTO messenger_comment_bots 
+      (user_id, app_id, app_secret, access_token, page_id, webhook_token, webhook_url, setup_at, is_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), 1)
+    `, [userId, appId, appSecret, accessToken, pageId, webhookToken, webhookUrl], function(err) {
+      if (err) reject(err);
+      else resolve(this.lastID);
+    });
+  });
+};
+
+// Get Messenger bot configuration from database
+const getBotFromDatabase = async (userId) => {
+  return new Promise((resolve, reject) => {
+    db.get(`
+      SELECT * FROM messenger_comment_bots 
+      WHERE user_id = ? AND is_active = 1
+    `, [userId], (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
+  });
+};
+
+// Save Messenger message to database
+const saveMessageToDatabase = async (userId, messageData) => {
+  return new Promise((resolve, reject) => {
+    db.run(`
+      INSERT INTO messenger_comment_messages 
+      (user_id, messenger_message_id, messenger_user_id, messenger_name, messenger_first_name, 
+       messenger_last_name, profile_pic, message_text, message_type, post_id, comment_id, timestamp)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      userId,
+      messageData.id,
+      messageData.from?.id,
+      messageData.from?.name,
+      messageData.from?.first_name,
+      messageData.from?.last_name,
+      messageData.from?.profile_pic,
+      messageData.text,
+      messageData.type || 'message',
+      messageData.post_id,
+      messageData.comment_id,
+      new Date().toISOString()
+    ], function(err) {
+      if (err) reject(err);
+      else resolve(this.lastID);
+    });
+  });
+};
+
+// Get messages from database
+const getMessagesFromDatabase = async (userId, limit = 50) => {
+  return new Promise((resolve, reject) => {
+    db.all(`
+      SELECT * FROM messenger_comment_messages 
+      WHERE user_id = ? 
+      ORDER BY received_at DESC 
+      LIMIT ?
+    `, [userId, limit], (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows || []);
+    });
+  });
+};
+
+// Update bot activity
+const updateBotActivity = async (userId) => {
+  return new Promise((resolve, reject) => {
+    db.run(`
+      UPDATE messenger_comment_bots 
+      SET last_activity = datetime('now'), message_count = message_count + 1, updated_at = datetime('now')
+      WHERE user_id = ?
+    `, [userId], (err) => {
+      if (err) reject(err);
+      else resolve();
+    });
+  });
+};
 
 // Function to fetch Messenger user info
 async function fetchUserInfo(userId) {
@@ -115,17 +206,25 @@ async function sendMessengerReply(senderId, replyText, isAIReply = false) {
         messageId: data.message_id
       };
       
-      // Check for duplicates and store
-      const isDuplicate = messengerMessages.some(existingMsg => 
-        existingMsg.id === sentMessage.id ||
-        (existingMsg.text === sentMessage.text && 
-         existingMsg.sender?.id === 'me' &&
-         existingMsg.recipient?.id === senderId &&
-         Math.abs(new Date(existingMsg.timestamp) - new Date(sentMessage.timestamp)) < 30000)
-      );
-      
-      if (!isDuplicate) {
-        messengerMessages.push(sentMessage);
+      // Save sent message to database
+      try {
+        const userId = 1; // Default user ID for development
+        await saveMessageToDatabase(userId, {
+          id: sentMessage.id,
+          from: { id: 'me', name: 'Messenger Bot' },
+          text: sentMessage.text,
+          type: 'sent_message',
+          post_id: null,
+          comment_id: null
+        });
+        
+        logger.info('✅ Sent message saved to database', { 
+          messageId: data.message_id,
+          recipientId: senderId,
+          isAIReply: isAIReply
+        });
+      } catch (dbError) {
+        logger.error('💥 Error saving sent message to database:', dbError);
       }
 
       return { success: true, messageId: data.message_id };
@@ -226,17 +325,20 @@ router.all('/webhooks/messenger/comments', async (req, res) => {
               isEcho: messaging.message?.is_echo
             };
 
-            // Check for duplicates
-            const isDuplicate = messengerMessages.some(existingMsg => 
-              existingMsg.id === messageData.id ||
-              existingMsg.messageId === messageData.messageId ||
-              (existingMsg.text === messageData.text && 
-               existingMsg.sender?.id === messageData.sender?.id &&
-               Math.abs(new Date(existingMsg.timestamp) - new Date(messageData.timestamp)) < 30000)
-            );
-
-            if (!isDuplicate) {
-              messengerMessages.push(messageData);
+            // Save message to database instead of memory array
+            try {
+              const userId = 1; // Default user ID for development
+              await saveMessageToDatabase(userId, {
+                id: messageData.id,
+                from: messageData.sender,
+                text: messageData.text,
+                type: 'messenger_dm',
+                post_id: null,
+                comment_id: null
+              });
+              
+              // Update bot activity
+              await updateBotActivity(userId);
               
               // Trigger AI auto-reply for incoming messages (not echoes)
               if (messageData.text && !messaging.message?.is_echo && senderId !== 'me') {
@@ -252,19 +354,16 @@ router.all('/webhooks/messenger/comments', async (req, res) => {
                   handleMessageBatch(senderId, messageData.text, generateAIReply, sendMessengerReply);
                 }
               }
-            } else {
-              logger.info('🔄 Duplicate message detected, skipping:', { 
+              
+              logger.info('✅ Messenger DM stored to database successfully!', { 
                 messageId: messageData.id,
-                text: messageData.text?.substring(0, 50),
-                senderId: messageData.sender?.id
+                senderId: messageData.sender.id,
+                text: messageData.text ? messageData.text.substring(0, 50) + '...' : 'No text',
+                userId: userId
               });
+            } catch (dbError) {
+              logger.error('💥 Error saving message to database:', dbError);
             }
-            logger.info('✅ Messenger DM stored successfully!', { 
-              messageId: messageData.id,
-              senderId: messageData.sender.id,
-              text: messageData.text ? messageData.text.substring(0, 50) + '...' : 'No text',
-              totalMessages: messengerMessages.length
-            });
             } catch (error) {
               logger.error('💥 Error processing messaging event:', {
                 error: error.message,
@@ -299,67 +398,182 @@ let webhookState = {
 };
 
 // Get webhook status
-router.get('/messenger/status', (req, res) => {
-  logger.info('📊 Messenger webhook status requested');
-  res.json({
-    success: true,
-    status: webhookState,
-    messages: messengerMessages,
-    users: messengerUsers,
-    messageCount: messengerMessages.length,
-    userCount: Object.keys(messengerUsers).length
-  });
+router.get('/messenger/status', authenticateUser, async (req, res) => {
+  try {
+    const userId = getUserIdFromToken(req);
+    const botConfig = await getBotFromDatabase(userId);
+    const messages = await getMessagesFromDatabase(userId);
+    
+    // Get unique users from messages
+    const users = {};
+    messages.forEach(msg => {
+      if (msg.messenger_user_id && !users[msg.messenger_user_id]) {
+        users[msg.messenger_user_id] = {
+          id: msg.messenger_user_id,
+          name: msg.messenger_name,
+          first_name: msg.messenger_first_name,
+          last_name: msg.messenger_last_name,
+          profile_pic: msg.profile_pic
+        };
+      }
+    });
+    
+    logger.info('📊 Messenger webhook status requested', { userId, hasBotConfig: !!botConfig });
+    
+    res.json({
+      success: true,
+      status: {
+        ...webhookState,
+        isActive: !!botConfig,
+        botConfigured: !!botConfig
+      },
+      config: botConfig ? {
+        app_id: botConfig.app_id,
+        page_id: botConfig.page_id,
+        webhook_url: botConfig.webhook_url,
+        setup_at: botConfig.setup_at
+      } : null,
+      messages: messages,
+      users: users,
+      messageCount: messages.length,
+      userCount: Object.keys(users).length
+    });
+  } catch (error) {
+    logger.error('Error getting Messenger status:', error);
+    res.status(500).json({ success: false, error: 'Failed to get status' });
+  }
 });
 
 // Activate webhook (start waiting)
-router.post('/messenger/activate', (req, res) => {
-  logger.info('🚀 Activating Messenger webhook receiver');
-  
-  webhookState.isWaitingForCall = true;
-  webhookState.hasReceivedCall = false;
-  webhookState.activatedAt = new Date().toISOString();
-  
-  res.json({
-    success: true,
-    message: 'Messenger webhook receiver activated',
-    status: webhookState
-  });
+router.post('/messenger/activate', authenticateUser, async (req, res) => {
+  try {
+    const userId = getUserIdFromToken(req);
+    const { appId, appSecret, accessToken, pageId, webhookToken = 'muhammad' } = req.body;
+    
+    logger.info('🚀 Activating Messenger webhook', { userId, appId, pageId });
+
+    // Validate required fields
+    if (!appId || !appSecret || !accessToken || !pageId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: appId, appSecret, accessToken, pageId'
+      });
+    }
+
+    const webhookUrl = `${process.env.BASE_URL || 'https://workflow-lg9z.onrender.com'}/api/webhooks/messenger/comments`;
+    
+    // Save configuration to database
+    await saveBotToDatabase(userId, appId, appSecret, accessToken, pageId, webhookToken, webhookUrl);
+    
+    webhookState.isWaitingForCall = true;
+    webhookState.hasReceivedCall = false;
+    webhookState.activatedAt = new Date().toISOString();
+    
+    logger.info('✅ Messenger bot configuration saved and waiting for webhook call');
+    
+    res.json({
+      success: true,
+      message: 'Messenger bot configured and webhook receiver activated',
+      status: {
+        ...webhookState,
+        botConfigured: true
+      },
+      instructions: {
+        webhookUrl: webhookUrl,
+        verifyToken: webhookToken,
+        nextStep: 'Add this URL and token to your Meta Developer Console'
+      }
+    });
+  } catch (error) {
+    logger.error('Error activating Messenger webhook:', error);
+    res.status(500).json({ success: false, error: 'Failed to activate webhook' });
+  }
 });
 
 // Get messages
-router.get('/messenger/messages', (req, res) => {
-  logger.info('💬 Messenger messages requested', { count: messengerMessages.length });
-  res.json({
-    success: true,
-    messages: messengerMessages.slice(-50), // Last 50 messages
-    totalCount: messengerMessages.length
-  });
+router.get('/messenger/messages', authenticateUser, async (req, res) => {
+  try {
+    const userId = getUserIdFromToken(req);
+    const messages = await getMessagesFromDatabase(userId);
+    
+    logger.info('💬 Messenger messages requested', { userId, count: messages.length });
+    
+    res.json({
+      success: true,
+      messages: messages.map(msg => ({
+        id: msg.messenger_message_id,
+        text: msg.message_text,
+        timestamp: msg.timestamp,
+        from: {
+          id: msg.messenger_user_id,
+          name: msg.messenger_name,
+          first_name: msg.messenger_first_name,
+          last_name: msg.messenger_last_name,
+          profile_pic: msg.profile_pic
+        },
+        type: msg.message_type,
+        post_id: msg.post_id,
+        comment_id: msg.comment_id,
+        is_replied: msg.is_replied,
+        reply_text: msg.reply_text,
+        replied_at: msg.replied_at
+      })),
+      totalCount: messages.length
+    });
+  } catch (error) {
+    logger.error('Error getting Messenger messages:', error);
+    res.status(500).json({ success: false, error: 'Failed to get messages' });
+  }
 });
 
 // Get users
-router.get('/messenger/users', (req, res) => {
-  logger.info('👥 Messenger users requested', { count: Object.keys(messengerUsers).length });
-  res.json({
-    success: true,
-    users: messengerUsers,
-    totalCount: Object.keys(messengerUsers).length
-  });
+router.get('/messenger/users', authenticateUser, async (req, res) => {
+  try {
+    const userId = getUserIdFromToken(req);
+    const messages = await getMessagesFromDatabase(userId);
+    
+    // Get unique users from messages
+    const users = {};
+    messages.forEach(msg => {
+      if (msg.messenger_user_id && !users[msg.messenger_user_id]) {
+        users[msg.messenger_user_id] = {
+          id: msg.messenger_user_id,
+          name: msg.messenger_name,
+          first_name: msg.messenger_first_name,
+          last_name: msg.messenger_last_name,
+          profile_pic: msg.profile_pic
+        };
+      }
+    });
+    
+    logger.info('👥 Messenger users requested', { userId, count: Object.keys(users).length });
+    
+    res.json({
+      success: true,
+      users: users,
+      totalCount: Object.keys(users).length
+    });
+  } catch (error) {
+    logger.error('Error getting Messenger users:', error);
+    res.status(500).json({ success: false, error: 'Failed to get users' });
+  }
 });
 
 // Manual reply endpoint
-router.post('/messenger/reply', async (req, res) => {
-  const { senderId, replyText } = req.body;
-  
-  logger.info('📤 Manual Messenger reply requested', { senderId, replyText });
-
-  if (!senderId || !replyText) {
-    return res.status(400).json({
-      success: false,
-      error: 'Missing senderId or replyText'
-    });
-  }
-
+router.post('/messenger/reply', authenticateUser, async (req, res) => {
   try {
+    const userId = getUserIdFromToken(req);
+    const { senderId, replyText } = req.body;
+    
+    logger.info('📤 Manual Messenger reply requested', { senderId, replyText });
+
+    if (!senderId || !replyText) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing senderId or replyText'
+      });
+    }
+
     const result = await sendMessengerReply(senderId, replyText, false);
     
     if (result.success) {
@@ -385,6 +599,98 @@ router.post('/messenger/reply', async (req, res) => {
       success: false,
       error: error.message
     });
+  }
+});
+
+// Load saved Messenger configurations
+router.get('/messenger/config', authenticateUser, async (req, res) => {
+  try {
+    const userId = getUserIdFromToken(req);
+    const botConfig = await getBotFromDatabase(userId);
+    
+    logger.info('Loading Messenger configuration', { userId, hasBotConfig: !!botConfig });
+    
+    res.json({
+      success: true,
+      config: botConfig ? {
+        appId: botConfig.app_id,
+        appSecret: botConfig.app_secret ? '***hidden***' : '',
+        accessToken: botConfig.access_token ? '***hidden***' : '',
+        pageId: botConfig.page_id,
+        webhookToken: botConfig.webhook_token,
+        webhookUrl: botConfig.webhook_url,
+        isActive: botConfig.is_active,
+        setupAt: botConfig.setup_at
+      } : null
+    });
+  } catch (error) {
+    logger.error('Error loading Messenger configuration:', error);
+    res.status(500).json({ success: false, error: 'Failed to load configuration' });
+  }
+});
+
+// Save Messenger AI configuration
+router.post('/messenger/ai-config', authenticateUser, async (req, res) => {
+  try {
+    const userId = getUserIdFromToken(req);
+    const { claudeApiKey, openaiApiKey, aiProvider = 'claude', model, systemPrompt, autoReply = false } = req.body;
+    
+    logger.info('Saving Messenger AI configuration', { userId, aiProvider, autoReply });
+    
+    await new Promise((resolve, reject) => {
+      db.run(`
+        INSERT OR REPLACE INTO messenger_ai_configs 
+        (user_id, claude_api_key, openai_api_key, ai_provider, model, system_prompt, auto_reply, 
+         connection_status, last_used, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'connected', datetime('now'), datetime('now'))
+      `, [userId, claudeApiKey, openaiApiKey, aiProvider, model, systemPrompt, autoReply], function(err) {
+        if (err) reject(err);
+        else resolve(this.lastID);
+      });
+    });
+    
+    res.json({
+      success: true,
+      message: 'AI configuration saved successfully'
+    });
+  } catch (error) {
+    logger.error('Error saving Messenger AI configuration:', error);
+    res.status(500).json({ success: false, error: 'Failed to save AI configuration' });
+  }
+});
+
+// Get Messenger AI configuration
+router.get('/messenger/ai-config', authenticateUser, async (req, res) => {
+  try {
+    const userId = getUserIdFromToken(req);
+    
+    const aiConfig = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT * FROM messenger_ai_configs 
+        WHERE user_id = ?
+      `, [userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+    
+    logger.info('Loading Messenger AI configuration', { userId, hasAIConfig: !!aiConfig });
+    
+    res.json({
+      success: true,
+      config: aiConfig ? {
+        aiProvider: aiConfig.ai_provider,
+        model: aiConfig.model,
+        systemPrompt: aiConfig.system_prompt,
+        autoReply: aiConfig.auto_reply,
+        connectionStatus: aiConfig.connection_status,
+        hasClaudeKey: !!aiConfig.claude_api_key,
+        hasOpenAIKey: !!aiConfig.openai_api_key
+      } : null
+    });
+  } catch (error) {
+    logger.error('Error loading Messenger AI configuration:', error);
+    res.status(500).json({ success: false, error: 'Failed to load AI configuration' });
   }
 });
 

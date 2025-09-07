@@ -50,9 +50,8 @@ const db = require('../db');
 // Your Claude API Key from environment variables
 const CLAUDE_API_KEY = process.env.ANTHROPIC_API_KEY || 'your-claude-api-key-here';
 
-// Database setup
-const dbPath = path.join(__dirname, '..', 'database.sqlite');
-const whatsappDb = new sqlite3.Database(dbPath);
+// Use the shared database connection from db.js instead of creating a new one
+const whatsappDb = db;
 
 // Initialize whatsapp_receiver_messages table
 whatsappDb.serialize(() => {
