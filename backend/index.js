@@ -50,7 +50,7 @@ const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const logger = require('./services/logger');
 const DatabaseInitializer = require('./services/dbInitializer');
-require('./db'); // Initialize database
+require('./db-smart'); // Initialize smart database (SQLite local, PostgreSQL production)
 
 const app = express();
 

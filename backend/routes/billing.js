@@ -18,18 +18,13 @@ const requireAuth = (req, res, next) => {
 // Get user billing information (no auth required for testing)
 router.get('/info', async (req, res) => {
   try {
-    const db = require('../db');
+    const db = require('../db-smart');
     const userId = 2; // Default user ID for testing
     
     // Get user's billing info from database
-    const billingInfo = await new Promise((resolve, reject) => {
-      db.get(`
-        SELECT * FROM user_billing WHERE user_id = ?
-      `, [userId], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
+    const billingInfo = await db.get(`
+      SELECT * FROM user_billing WHERE user_id = ?
+    `, [userId]);
     
     const safeBilling = {
       hasPaymentMethod: billingInfo ? !!billingInfo.payment_method_id : false,

@@ -1,4 +1,4 @@
-const db = require('../db');
+const db = require('../db-smart');
 
 /**
  * Database Initialization Service
@@ -28,50 +28,51 @@ class DatabaseInitializer {
    * Ensure AI models exist for billing system
    */
   static async ensureAIModelsExist() {
-    return new Promise((resolve, reject) => {
+    try {
       // Check if Claude model exists
-      db.get(`
+      const row = await db.get(`
         SELECT id FROM ai_models 
-        WHERE model_id = 'claude-3-5-sonnet-20241022' AND is_active = 1
-      `, [], (err, row) => {
-        if (err) {
-          console.error('❌ Error checking AI models:', err);
-          return reject(err);
-        }
+        WHERE model_id = ? AND is_active = ?
+      `, ['claude-3-5-sonnet-20241022', true]);
 
-        if (row) {
-          console.log('✅ Claude AI model already exists');
-          return resolve();
-        }
+      if (row) {
+        console.log('✅ Claude AI model already exists');
+        return;
+      }
 
-        console.log('⚠️ Claude AI model missing, inserting...');
-        
-        // Insert Claude model
-        db.run(`
-          INSERT OR REPLACE INTO ai_models 
-          (name, provider, model_id, cost_per_input_token, cost_per_output_token, 
-           price_per_input_token, price_per_output_token, markup_percentage, is_active) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
-        `, [
-          'Claude Sonnet',
-          'claude', 
-          'claude-3-5-sonnet-20241022',
-          0.000003, // $3 per 1M input tokens
-          0.000015, // $15 per 1M output tokens  
-          0.000006, // $6 per 1M input tokens (2x markup)
-          0.000030, // $30 per 1M output tokens (2x markup)
-          100.00    // 100% markup
-        ], function(insertErr) {
-          if (insertErr) {
-            console.error('❌ Error inserting Claude AI model:', insertErr);
-            return reject(insertErr);
-          }
-          
-          console.log(`✅ Claude AI model inserted successfully (ID: ${this.lastID})`);
-          resolve();
-        });
-      });
-    });
+      console.log('⚠️ Claude AI model missing, inserting...');
+      
+      // Insert Claude model (using upsert for both SQLite and PostgreSQL)
+      const insertSql = process.env.NODE_ENV === 'production' 
+        ? `INSERT INTO ai_models 
+           (name, provider, model_id, cost_per_input_token, cost_per_output_token, 
+            price_per_input_token, price_per_output_token, markup_percentage, is_active) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+           ON CONFLICT (model_id) DO UPDATE SET
+           name = EXCLUDED.name, is_active = EXCLUDED.is_active`
+        : `INSERT OR REPLACE INTO ai_models 
+           (name, provider, model_id, cost_per_input_token, cost_per_output_token, 
+            price_per_input_token, price_per_output_token, markup_percentage, is_active) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      
+      const params = [
+        'Claude Sonnet',
+        'claude', 
+        'claude-3-5-sonnet-20241022',
+        0.000003, // $3 per 1M input tokens
+        0.000015, // $15 per 1M output tokens  
+        0.000006, // $6 per 1M input tokens (2x markup)
+        0.000030, // $30 per 1M output tokens (2x markup)
+        100.00,   // 100% markup
+        true      // is_active
+      ];
+      
+      const result = await db.run(insertSql, params);
+      console.log(`✅ Claude AI model inserted successfully (ID: ${result.lastID})`);
+    } catch (error) {
+      console.error('❌ Error with AI models:', error);
+      throw error;
+    }
   }
 
   /**
