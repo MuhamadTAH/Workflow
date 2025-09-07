@@ -49,6 +49,7 @@ const externalClaudeRoutes = require('./routes/external-claude');
 const nodesRoutes = require('./routes/nodes');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const logger = require('./services/logger');
+const DatabaseInitializer = require('./services/dbInitializer');
 require('./db'); // Initialize database
 
 const app = express();
@@ -408,6 +409,16 @@ const server = http.createServer(app);
 server.listen(PORT, async () => {
   console.log(`🚀 Backend server started on port ${PORT}`);
   logger.info(`Backend server started on port ${PORT}`, { port: PORT });
+  
+  // Initialize critical database data after startup
+  try {
+    console.log('🔄 Initializing database...');
+    await DatabaseInitializer.initialize();
+    console.log('✅ Database initialization completed');
+  } catch (initError) {
+    console.error('❌ Database initialization failed:', initError);
+    console.log('⚠️ Server will continue running, but some features may not work properly');
+  }
   
   // Initialize scheduler and job queue with workflow executor
   try {

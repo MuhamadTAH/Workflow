@@ -527,6 +527,26 @@ router.post('/fix-missing-models', async (req, res) => {
   }
 });
 
+// Database health check endpoint
+router.get('/db-health', async (req, res) => {
+  try {
+    const DatabaseInitializer = require('../services/dbInitializer');
+    const healthCheck = await DatabaseInitializer.healthCheck();
+    
+    res.json({
+      success: true,
+      ...healthCheck,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      healthy: false,
+      error: error.message
+    });
+  }
+});
+
 // Debug endpoint to check user and usage data
 router.get('/debug-user-data', async (req, res) => {
   try {
