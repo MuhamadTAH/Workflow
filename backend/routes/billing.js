@@ -476,6 +476,57 @@ router.post('/test-track-usage', async (req, res) => {
   }
 });
 
+// Manual endpoint to insert missing AI models
+router.post('/fix-missing-models', async (req, res) => {
+  try {
+    const db = require('../db');
+    
+    // Insert the Claude model that's being used for WhatsApp
+    await new Promise((resolve, reject) => {
+      db.run(`
+        INSERT OR REPLACE INTO ai_models 
+        (name, provider, model_id, cost_per_input_token, cost_per_output_token, 
+         price_per_input_token, price_per_output_token, markup_percentage, is_active) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+      `, [
+        'Claude Sonnet',
+        'claude', 
+        'claude-3-5-sonnet-20241022',
+        0.000003, // $3 per 1M input tokens
+        0.000015, // $15 per 1M output tokens  
+        0.000006, // $6 per 1M input tokens (2x markup)
+        0.000030, // $30 per 1M output tokens (2x markup)
+        100.00
+      ], function(err) {
+        if (err) reject(err);
+        else resolve(this.lastID);
+      });
+    });
+    
+    // Verify the model was inserted
+    const insertedModel = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT * FROM ai_models 
+        WHERE model_id = 'claude-3-5-sonnet-20241022'
+      `, [], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+    
+    res.json({
+      success: true,
+      message: 'Claude model inserted successfully',
+      model: insertedModel
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Debug endpoint to check user and usage data
 router.get('/debug-user-data', async (req, res) => {
   try {
