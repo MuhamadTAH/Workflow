@@ -676,48 +676,10 @@ const WhatsAppReceiver = () => {
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', position: 'relative' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <span>
-              <i className="fab fa-whatsapp" style={{ color: '#25D366', marginRight: '0.5rem' }}></i>
-              WhatsApp Business Integration
-            </span>
-            
-            <button
-              onClick={() => setShowAISettings(true)}
-              style={{
-                backgroundColor: aiConfig.enabled ? 'rgba(34, 197, 94, 0.2)' : 'rgba(156, 163, 175, 0.2)',
-                color: aiConfig.enabled ? '#15803d' : '#6b7280',
-                border: `1px solid ${aiConfig.enabled ? 'rgba(34, 197, 94, 0.5)' : 'rgba(156, 163, 175, 0.3)'}`,
-                borderRadius: '6px',
-                padding: '0.5rem 0.75rem',
-                fontSize: '0.75rem',
-                fontWeight: '600',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem'
-              }}
-              title="AI Assistant Settings"
-            >
-              🤖 AI {aiConfig.enabled ? 'ON' : 'OFF'}
-            </button>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827' }}>
+            <i className="fab fa-whatsapp" style={{ color: '#25D366', marginRight: '0.5rem' }}></i>
+            WhatsApp Business Integration
           </h1>
-          
-          {aiConfig.enabled && aiConfig.autoReply && (
-            <div style={{ 
-              position: 'absolute',
-              top: '100%',
-              fontSize: '0.75rem', 
-              color: '#059669',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.25rem',
-              marginTop: '0.25rem'
-            }}>
-              <span style={{ color: '#22c55e' }}>●</span>
-              AI Auto-reply Active
-            </div>
-          )}
         </div>
         
         <div style={{ display: 'flex', gap: '0', alignItems: 'flex-start', position: 'relative' }}>
@@ -747,9 +709,45 @@ const WhatsAppReceiver = () => {
                 padding: '1rem 1.5rem',
                 borderRadius: '0'
               }}>
-                <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
-                  ⚙️ WhatsApp Configuration
+                <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span>⚙️ WhatsApp Configuration</span>
+                  
+                  <button
+                    onClick={() => setShowAISettings(true)}
+                    style={{
+                      backgroundColor: aiConfig.enabled ? 'rgba(34, 197, 94, 0.2)' : 'rgba(156, 163, 175, 0.2)',
+                      color: aiConfig.enabled ? '#15803d' : '#6b7280',
+                      border: `1px solid ${aiConfig.enabled ? 'rgba(34, 197, 94, 0.5)' : 'rgba(156, 163, 175, 0.3)'}`,
+                      borderRadius: '6px',
+                      padding: '0.4rem 0.6rem',
+                      fontSize: '0.7rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem'
+                    }}
+                    title="AI Assistant Settings"
+                  >
+                    🤖 AI {aiConfig.enabled ? 'ON' : 'OFF'}
+                  </button>
                 </h2>
+                
+                {/* AI Status Indicator */}
+                {aiConfig.enabled && aiConfig.autoReply && (
+                  <div style={{ 
+                    fontSize: '0.65rem', 
+                    color: '#059669',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    marginTop: '0.5rem',
+                    paddingLeft: '0.25rem'
+                  }}>
+                    <span style={{ color: '#22c55e' }}>●</span>
+                    AI Auto-reply Active
+                  </div>
+                )}
               </div>
               
               {/* Sidebar Content */}
