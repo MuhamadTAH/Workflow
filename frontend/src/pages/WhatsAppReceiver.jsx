@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
+import WhatsAppAISettings from '../components/WhatsAppAISettings.jsx';
 
 const WhatsAppReceiver = () => {
   // Unified WhatsApp Configuration State
@@ -53,9 +54,11 @@ const WhatsAppReceiver = () => {
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
   
   // Left sidebar collapse states
-  const [isClaudeConfigCollapsed, setIsClaudeConfigCollapsed] = useState(false);
-  const [isSystemPromptCollapsed, setIsSystemPromptCollapsed] = useState(false);
   const [isWhatsAppSettingsCollapsed, setIsWhatsAppSettingsCollapsed] = useState(false);
+  
+  // AI Settings Modal state
+  const [showAISettings, setShowAISettings] = useState(false);
+  const [aiConfig, setAiConfig] = useState({ enabled: false });
   
   // Right sidebar collapse states
   const [isContactInfoCollapsed, setIsContactInfoCollapsed] = useState(false);
@@ -73,10 +76,56 @@ const WhatsAppReceiver = () => {
     }
     
     checkBackendStatus();
+    loadSavedConfigurations();
     autoConnectClaude();
     loadSystemPrompt();
     loadKnowledgeBaseInfo();
+    loadAIConfig();
   }, []);
+
+  // Load all saved configurations on mount
+  const loadSavedConfigurations = async () => {
+    try {
+      const configResponse = await fetch(`${API_BASE_URL}/api/whatsapp-receiver/config`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (configResponse.ok) {
+        const configData = await configResponse.json();
+        if (configData.success && configData.config) {
+          setAppId(configData.config.appId || '');
+          setBusinessId(configData.config.businessId || '');
+          setAccessToken(configData.config.accessToken || '');
+          setPhoneNumberSendId(configData.config.phoneNumberSendId || '');
+          setIsActive(configData.config.isActive || false);
+          
+          console.log('✅ WhatsApp configuration loaded successfully');
+        }
+        
+        // Load AI configuration
+        if (configData.aiConfig) {
+          setIsClaudeConnected(!!configData.aiConfig.hasClaudeKey);
+          setSystemPrompt(configData.aiConfig.systemPrompt || '');
+          setClaudeStatus(configData.aiConfig.hasClaudeKey ? '✅ Claude AI connected' : '❌ Not connected');
+        }
+        
+        // Load knowledge base info
+        if (configData.knowledgeBase) {
+          setHasKnowledgeBase(true);
+          setKnowledgeBaseInfo({
+            filename: configData.knowledgeBase.filename,
+            textLength: configData.knowledgeBase.textLength,
+            fileSize: configData.knowledgeBase.fileSize,
+            uploadedAt: configData.knowledgeBase.uploadedAt
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading saved configurations:', error);
+    }
+  };
 
   const checkBackendStatus = async () => {
     try {
@@ -205,14 +254,15 @@ const WhatsAppReceiver = () => {
     setClaudeStatus('🔗 Connecting to Claude AI...');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/claude/connect`, {
+      const response = await fetch(`${API_BASE_URL}/api/whatsapp-receiver/claude/connect`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          apiKey: claudeApiKey.trim()
+          claudeApiKey: claudeApiKey.trim(),
+          systemPrompt: systemPrompt
         })
       });
 
@@ -274,7 +324,7 @@ const WhatsAppReceiver = () => {
     setSystemPromptStatus('💾 Saving system prompt...');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/claude/system-prompt`, {
+      const response = await fetch(`${API_BASE_URL}/api/whatsapp-receiver/system-prompt`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -335,6 +385,19 @@ const WhatsAppReceiver = () => {
       }
     } catch (error) {
       console.error('Error loading knowledge base info:', error);
+    }
+  };
+
+  const loadAIConfig = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/whatsapp-receiver/ai-config`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setAiConfig(data.config);
+      }
+    } catch (error) {
+      console.error('Error loading AI config:', error);
     }
   };
 
@@ -613,10 +676,48 @@ const WhatsAppReceiver = () => {
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', position: 'relative' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827' }}>
-            <i className="fab fa-whatsapp" style={{ color: '#25D366', marginRight: '0.5rem' }}></i>
-            WhatsApp Business Integration
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span>
+              <i className="fab fa-whatsapp" style={{ color: '#25D366', marginRight: '0.5rem' }}></i>
+              WhatsApp Business Integration
+            </span>
+            
+            <button
+              onClick={() => setShowAISettings(true)}
+              style={{
+                backgroundColor: aiConfig.enabled ? 'rgba(34, 197, 94, 0.2)' : 'rgba(156, 163, 175, 0.2)',
+                color: aiConfig.enabled ? '#15803d' : '#6b7280',
+                border: `1px solid ${aiConfig.enabled ? 'rgba(34, 197, 94, 0.5)' : 'rgba(156, 163, 175, 0.3)'}`,
+                borderRadius: '6px',
+                padding: '0.5rem 0.75rem',
+                fontSize: '0.75rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem'
+              }}
+              title="AI Assistant Settings"
+            >
+              🤖 AI {aiConfig.enabled ? 'ON' : 'OFF'}
+            </button>
           </h1>
+          
+          {aiConfig.enabled && aiConfig.autoReply && (
+            <div style={{ 
+              position: 'absolute',
+              top: '100%',
+              fontSize: '0.75rem', 
+              color: '#059669',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.25rem',
+              marginTop: '0.25rem'
+            }}>
+              <span style={{ color: '#22c55e' }}>●</span>
+              AI Auto-reply Active
+            </div>
+          )}
         </div>
         
         <div style={{ display: 'flex', gap: '0', alignItems: 'flex-start', position: 'relative' }}>
@@ -654,194 +755,18 @@ const WhatsAppReceiver = () => {
               {/* Sidebar Content */}
               <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
                 
-                {/* Claude AI Configuration Section */}
-                <div style={{ marginBottom: isClaudeConfigCollapsed ? '0' : '2rem' }}>
-                  <h3 
-                    onClick={() => setIsClaudeConfigCollapsed(!isClaudeConfigCollapsed)}
-                    style={{ 
-                      fontSize: '1rem', 
-                      fontWeight: '600', 
-                      color: '#1f2937', 
-                      marginBottom: '1rem', 
-                      borderBottom: '2px solid #e5e7eb', 
-                      paddingBottom: '0.5rem',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      userSelect: 'none'
-                    }}
-                  >
-                    <span>🤖 Claude AI Configuration</span>
-                    <span style={{ 
-                      transform: isClaudeConfigCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.2s ease',
-                      fontSize: '0.8rem',
-                      color: '#6b7280'
-                    }}>
-                      ▼
-                    </span>
-                  </h3>
-
-                  {/* Collapsible Content */}
-                  <div style={{
-                    maxHeight: isClaudeConfigCollapsed ? '0' : '2000px',
-                    overflow: 'hidden',
-                    transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
-                    opacity: isClaudeConfigCollapsed ? 0 : 1
-                  }}>
-                    <div>
-                  
-                      {/* Claude Connection Status */}
-                  <div style={{
-                    padding: '1rem',
-                    borderRadius: '8px',
-                    backgroundColor: isClaudeConnected ? '#f0fdf4' : '#fef2f2',
-                    border: `1px solid ${isClaudeConnected ? '#bbf7d0' : '#fecaca'}`,
-                    marginBottom: '1rem'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <div style={{
-                        width: '12px',
-                        height: '12px',
-                        borderRadius: '50%',
-                        backgroundColor: isClaudeConnected ? '#10b981' : '#ef4444',
-                        marginRight: '0.75rem'
-                      }}></div>
-                      <span style={{
-                        fontWeight: '500',
-                        color: isClaudeConnected ? '#065f46' : '#991b1b'
-                      }}>
-                        {isClaudeConnected ? 'Connected to Claude API' : 'Not Connected'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Claude API Key Display (Pre-configured) */}
-                  <div style={{ marginBottom: '1rem' }}>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#374151',
-                      marginBottom: '0.5rem'
-                    }}>
-                      Claude API Key
-                    </label>
-                    <input
-                      type="password"
-                      value={claudeApiKey}
-                      onChange={(e) => setClaudeApiKey(e.target.value)}
-                      placeholder="Enter your Claude API key (sk-ant-...)"
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        border: isClaudeConnected ? '1px solid #10b981' : '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        backgroundColor: isClaudeConnected ? '#f0fdf4' : '#ffffff',
-                        color: isClaudeConnected ? '#065f46' : '#374151'
-                      }}
-                    />
-                    <p style={{ 
-                      marginTop: '0.25rem', 
-                      fontSize: '0.875rem', 
-                      color: '#10b981',
-                      fontWeight: '500'
-                    }}>
-                      ✅ Pre-configured with system API key - Ready for WhatsApp integration
-                    </p>
-                  </div>
-
-                  {/* Claude Status */}
-                  {claudeStatus && (
-                    <div style={{ 
-                      padding: '1rem', 
-                      borderRadius: '6px', 
-                      backgroundColor: claudeStatus.includes('✅') ? '#f0fdf4' : claudeStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
-                      color: claudeStatus.includes('✅') ? '#15803d' : claudeStatus.includes('❌') ? '#dc2626' : '#1d4ed8',
-                      marginBottom: '1rem'
-                    }}>
-                      {claudeStatus}
-                    </div>
-                  )}
-
-                  {/* Connection Buttons */}
-                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                    {!isClaudeConnected && (
-                      <>
-                        <button
-                          onClick={() => autoConnectClaude(0)}
-                          disabled={isConnectingClaude}
-                          style={{
-                            flex: '1',
-                            backgroundColor: isConnectingClaude ? '#9ca3af' : '#3b82f6',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            padding: '0.75rem 1rem',
-                            fontSize: '0.875rem',
-                            fontWeight: '500',
-                            cursor: isConnectingClaude ? 'not-allowed' : 'pointer',
-                            transition: 'background-color 0.2s'
-                          }}
-                        >
-                          {isConnectingClaude ? '⏳ Connecting...' : '🔄 Retry Auto-Connect'}
-                        </button>
-                        
-                        <button
-                          onClick={handleClaudeConnect}
-                          disabled={isConnectingClaude || !claudeApiKey.trim()}
-                          style={{
-                            flex: '1',
-                            backgroundColor: (isConnectingClaude || !claudeApiKey.trim()) ? '#9ca3af' : '#10b981',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            padding: '0.75rem 1rem',
-                            fontSize: '0.875rem',
-                            fontWeight: '500',
-                            cursor: (isConnectingClaude || !claudeApiKey.trim()) ? 'not-allowed' : 'pointer',
-                            transition: 'background-color 0.2s'
-                          }}
-                        >
-                          🔗 Manual Connect
-                        </button>
-                      </>
-                    )}
-                    
-                    {isClaudeConnected && (
-                      <button
-                        onClick={handleClaudeDisconnect}
-                        style={{
-                          flex: '1',
-                          backgroundColor: '#ef4444',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '6px',
-                          padding: '0.75rem 1rem',
-                          fontSize: '0.875rem',
-                          fontWeight: '500',
-                          cursor: 'pointer',
-                          transition: 'background-color 0.2s'
-                        }}
-                      >
-                        🔌 Disconnect
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Claude AI Ready Status */}
+                {/* AI Status Info */}
+                {isClaudeConnected && (
                   <div style={{ 
                     padding: '1rem',
                     backgroundColor: '#f0fdf4',
                     border: '1px solid #10b981',
                     borderRadius: '8px',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    marginBottom: '2rem'
                   }}>
                     <div style={{
-                      fontSize: '1.125rem',
+                      fontSize: '1rem',
                       fontWeight: '600',
                       color: '#065f46',
                       marginBottom: '0.5rem'
@@ -856,152 +781,7 @@ const WhatsAppReceiver = () => {
                       WhatsApp messages will automatically receive AI-powered responses
                     </p>
                   </div>
-                    </div>
-                  </div> {/* End Collapsible Content */}
-                </div>
-
-                {/* System Prompt Configuration Section */}
-                <div style={{ marginBottom: isSystemPromptCollapsed ? '0' : '2rem' }}>
-                  <h3 
-                    onClick={() => setIsSystemPromptCollapsed(!isSystemPromptCollapsed)}
-                    style={{ 
-                      fontSize: '1rem', 
-                      fontWeight: '600', 
-                      color: '#1f2937', 
-                      marginBottom: '1rem', 
-                      borderBottom: '2px solid #e5e7eb', 
-                      paddingBottom: '0.5rem',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      userSelect: 'none'
-                    }}
-                  >
-                    <span>🎭 System Prompt</span>
-                    <span style={{ 
-                      transform: isSystemPromptCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
-                      transition: 'transform 0.2s ease',
-                      fontSize: '0.8rem',
-                      color: '#6b7280'
-                    }}>
-                      ▼
-                    </span>
-                  </h3>
-
-                  {/* Collapsible Content */}
-                  <div style={{
-                    maxHeight: isSystemPromptCollapsed ? '0' : '2000px',
-                    overflow: 'hidden',
-                    transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
-                    opacity: isSystemPromptCollapsed ? 0 : 1
-                  }}>
-                    <div>
-
-                      {/* Warning when Claude not connected */}
-                  {!isClaudeConnected && (
-                    <div style={{
-                      backgroundColor: '#fef2f2',
-                      padding: '0.75rem',
-                      borderRadius: '6px',
-                      marginBottom: '1rem',
-                      border: '1px solid #fecaca'
-                    }}>
-                      <p style={{ color: '#991b1b', fontSize: '0.875rem', margin: 0 }}>
-                        ⚠️ Connect to Claude API first to configure system prompt
-                      </p>
-                    </div>
-                  )}
-
-                  {/* System Prompt Text Area */}
-                  <div style={{ marginBottom: '1rem', opacity: isClaudeConnected ? 1 : 0.6 }}>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#374151',
-                      marginBottom: '0.5rem'
-                    }}>
-                      System Prompt
-                    </label>
-                    <textarea
-                      value={systemPrompt}
-                      onChange={(e) => setSystemPrompt(e.target.value)}
-                      placeholder="Enter how Claude should behave..."
-                      rows={4}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '6px',
-                        fontSize: '0.875rem',
-                        outline: 'none',
-                        resize: 'vertical',
-                        fontFamily: 'inherit',
-                        opacity: isSystemPromptLoading ? '0.5' : '1'
-                      }}
-                      disabled={isSystemPromptLoading}
-                    />
-                    <p style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: '#6b7280' }}>
-                      Character count: {systemPrompt.length}/2000
-                    </p>
-                  </div>
-
-                  {/* System Prompt Action Buttons */}
-                  <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
-                    <button
-                      onClick={handleSystemPromptSave}
-                      disabled={isSystemPromptLoading || !systemPrompt.trim() || systemPrompt.length > 2000 || !isClaudeConnected}
-                      style={{
-                        flex: '1',
-                        backgroundColor: isSystemPromptLoading || !systemPrompt.trim() || systemPrompt.length > 2000 || !isClaudeConnected ? '#9ca3af' : '#10b981',
-                        color: 'white',
-                        padding: '0.75rem 1rem',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: isSystemPromptLoading || !systemPrompt.trim() || systemPrompt.length > 2000 || !isClaudeConnected ? 'not-allowed' : 'pointer',
-                        fontSize: '1rem',
-                        fontWeight: '500'
-                      }}
-                    >
-                      {isSystemPromptLoading ? '⏳ Saving...' : '💾 Save System Prompt'}
-                    </button>
-                    
-                    <button
-                      onClick={resetToDefaultPrompt}
-                      disabled={isSystemPromptLoading}
-                      style={{
-                        flex: '0 0 auto',
-                        backgroundColor: isSystemPromptLoading ? '#9ca3af' : '#6b7280',
-                        color: 'white',
-                        padding: '0.75rem 1rem',
-                        border: 'none',
-                        borderRadius: '6px',
-                        cursor: isSystemPromptLoading ? 'not-allowed' : 'pointer',
-                        fontSize: '1rem',
-                        fontWeight: '500'
-                      }}
-                    >
-                      🔄 Reset
-                    </button>
-                  </div>
-
-                  {/* System Prompt Status Message */}
-                  {systemPromptStatus && (
-                    <div style={{
-                      padding: '1rem',
-                      borderRadius: '6px',
-                      backgroundColor: systemPromptStatus.includes('✅') ? '#f0fdf4' : systemPromptStatus.includes('❌') ? '#fef2f2' : '#eff6ff',
-                      color: systemPromptStatus.includes('✅') ? '#15803d' : systemPromptStatus.includes('❌') ? '#dc2626' : '#1d4ed8',
-                      fontSize: '0.875rem',
-                      marginBottom: '1rem'
-                    }}>
-                      {systemPromptStatus}
-                    </div>
-                  )}
-                    </div>
-                  </div> {/* End Collapsible Content */}
-                </div>
+                )}
 
                 {/* WhatsApp Configuration Section */}
                 <div style={{ marginBottom: isWhatsAppSettingsCollapsed ? '0' : '2rem' }}>
@@ -1930,6 +1710,15 @@ const WhatsAppReceiver = () => {
             ⚠️ WhatsApp system is inactive. Configure and activate to start receiving messages.
           </div>
         )}
+
+        {/* AI Settings Modal */}
+        <WhatsAppAISettings
+          isVisible={showAISettings}
+          onClose={() => {
+            setShowAISettings(false);
+            loadAIConfig(); // Reload config after closing settings
+          }}
+        />
 
       </div>
     </div>
