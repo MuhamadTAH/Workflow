@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api.js';
 import { useTheme } from '../contexts/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
+import TelegramAISettings from '../components/TelegramAISettings.jsx';
 
 const TelegramListener = () => {
   const { theme, colors } = useTheme();
@@ -19,6 +20,10 @@ const TelegramListener = () => {
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
+  
+  // AI Settings Modal state
+  const [showAISettings, setShowAISettings] = useState(false);
+  const [aiConfig, setAiConfig] = useState({ enabled: false });
   
   // Configuration panel collapse states
   const [isBotConfigCollapsed, setIsBotConfigCollapsed] = useState(false);
@@ -187,7 +192,8 @@ const TelegramListener = () => {
       loadClaudeConfig(),
       loadSystemPrompt(),
       loadKnowledgeBase(),
-      loadBotConfiguration()
+      loadBotConfiguration(),
+      loadAIConfig()
     ]);
   };
 
@@ -286,6 +292,19 @@ const TelegramListener = () => {
       }
     } catch (error) {
       console.error('Error loading bot configuration:', error);
+    }
+  };
+
+  const loadAIConfig = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/ai-config`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setAiConfig(data.config);
+      }
+    } catch (error) {
+      console.error('Error loading AI config:', error);
     }
   };
 
@@ -871,6 +890,26 @@ CONTACT & SOCIAL:
                     }}
                   >
                     <span>🤖 Bot Configuration</span>
+                    
+                    <button
+                      onClick={() => setShowAISettings(true)}
+                      style={{
+                        backgroundColor: aiConfig.enabled ? 'rgba(34, 197, 94, 0.2)' : 'rgba(156, 163, 175, 0.2)',
+                        color: aiConfig.enabled ? '#15803d' : '#6b7280',
+                        border: `1px solid ${aiConfig.enabled ? 'rgba(34, 197, 94, 0.5)' : 'rgba(156, 163, 175, 0.3)'}`,
+                        borderRadius: '6px',
+                        padding: '0.4rem 0.6rem',
+                        fontSize: '0.7rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem'
+                      }}
+                      title="AI Assistant Settings"
+                    >
+                      🤖 AI {aiConfig.enabled ? 'ON' : 'OFF'}
+                    </button>
                     <span style={{ 
                       transform: isBotConfigCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
                       transition: 'transform 0.2s ease',
@@ -996,8 +1035,49 @@ CONTACT & SOCIAL:
                   </div> {/* End Collapsible Content */}
                 </div>
 
-                {/* Claude AI Configuration Section */}
-                <div style={{ marginBottom: isClaudeConfigCollapsed ? '0' : '2rem' }}>
+                {/* AI Status Info */}
+                {claudeConnectionStatus === 'connected' && (
+                  <div style={{ 
+                    padding: '1rem',
+                    backgroundColor: colors.success + '20',
+                    border: `1px solid ${colors.success}`,
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    marginBottom: '2rem'
+                  }}>
+                    <div style={{
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      color: colors.success,
+                      marginBottom: '0.5rem'
+                    }}>
+                      🤖 Claude AI Integration Active
+                    </div>
+                    <p style={{
+                      fontSize: '0.875rem',
+                      color: colors.success,
+                      margin: 0
+                    }}>
+                      Telegram messages will automatically receive AI-powered responses
+                    </p>
+                  </div>
+                )}
+
+                {/* AI Status Info */}
+                {aiConfig.enabled && aiConfig.autoReply && (
+                  <div style={{ 
+                    fontSize: '0.65rem', 
+                    color: '#059669',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    marginBottom: '1rem',
+                    paddingLeft: '0.25rem'
+                  }}>
+                    <span style={{ color: '#22c55e' }}>●</span>
+                    AI Auto-reply Active
+                  </div>
+                )}
                   <h3 
                     onClick={() => setIsClaudeConfigCollapsed(!isClaudeConfigCollapsed)}
                     style={{ 
@@ -2403,6 +2483,16 @@ CONTACT & SOCIAL:
           </div>
           
         </div>
+
+        {/* AI Settings Modal */}
+        <TelegramAISettings
+          isVisible={showAISettings}
+          onClose={() => {
+            setShowAISettings(false);
+            loadAIConfig(); // Reload config after closing settings
+          }}
+        />
+
       </div>
     </div>
   );
