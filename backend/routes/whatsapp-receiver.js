@@ -52,11 +52,11 @@ const CLAUDE_API_KEY = process.env.ANTHROPIC_API_KEY || 'your-claude-api-key-her
 
 // Database setup
 const dbPath = path.join(__dirname, '..', 'database.sqlite');
-const db = new sqlite3.Database(dbPath);
+const whatsappDb = new sqlite3.Database(dbPath);
 
 // Initialize whatsapp_receiver_messages table
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS whatsapp_receiver_messages (
+whatsappDb.serialize(() => {
+  whatsappDb.run(`CREATE TABLE IF NOT EXISTS whatsapp_receiver_messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     phone_number TEXT NOT NULL,
     contact_name TEXT,
@@ -70,7 +70,7 @@ db.serialize(() => {
   )`);
   
   // Add direction column if it doesn't exist (for existing databases)
-  db.run(`ALTER TABLE whatsapp_receiver_messages ADD COLUMN direction TEXT DEFAULT 'incoming'`, (err) => {
+  whatsappDb.run(`ALTER TABLE whatsapp_receiver_messages ADD COLUMN direction TEXT DEFAULT 'incoming'`, (err) => {
     if (err && !err.message.includes('duplicate column')) {
       console.error('Error adding direction column:', err);
     }
@@ -98,7 +98,7 @@ const getUserIdFromToken = (req) => {
 // Save WhatsApp bot configuration to database
 const saveBotToDatabase = async (userId, appId, clientSecret, businessId, accessToken, phoneNumberSendId, webhookUrl) => {
   return new Promise((resolve, reject) => {
-    db.run(`
+    whatsappDb.run(`
       INSERT OR REPLACE INTO whatsapp_receiver_bots 
       (user_id, app_id, client_secret, business_id, access_token, phone_number_send_id, webhook_url, setup_at, is_active)
       VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), 1)
@@ -112,7 +112,7 @@ const saveBotToDatabase = async (userId, appId, clientSecret, businessId, access
 // Get WhatsApp bot configuration from database
 const getBotFromDatabase = async (userId) => {
   return new Promise((resolve, reject) => {
-    db.get(`
+    whatsappDb.get(`
       SELECT * FROM whatsapp_receiver_bots 
       WHERE user_id = ? AND is_active = 1
     `, [userId], (err, row) => {
@@ -125,7 +125,7 @@ const getBotFromDatabase = async (userId) => {
 // Update bot activity
 const updateBotActivity = async (userId) => {
   return new Promise((resolve, reject) => {
-    db.run(`
+    whatsappDb.run(`
       UPDATE whatsapp_receiver_bots 
       SET last_activity = datetime('now'), message_count = message_count + 1, updated_at = datetime('now')
       WHERE user_id = ?
@@ -139,7 +139,7 @@ const updateBotActivity = async (userId) => {
 // Save AI configuration to database
 const saveAIConfigToDatabase = async (userId, claudeApiKey, systemPrompt) => {
   return new Promise((resolve, reject) => {
-    db.run(`
+    whatsappDb.run(`
       INSERT OR REPLACE INTO whatsapp_receiver_ai_configs 
       (user_id, claude_api_key, system_prompt, connection_status, updated_at)
       VALUES (?, ?, ?, 'connected', datetime('now'))
@@ -153,7 +153,7 @@ const saveAIConfigToDatabase = async (userId, claudeApiKey, systemPrompt) => {
 // Get AI configuration from database
 const getAIConfigFromDatabase = async (userId) => {
   return new Promise((resolve, reject) => {
-    db.get(`
+    whatsappDb.get(`
       SELECT * FROM whatsapp_receiver_ai_configs 
       WHERE user_id = ?
     `, [userId], (err, row) => {
@@ -166,7 +166,7 @@ const getAIConfigFromDatabase = async (userId) => {
 // Save knowledge base to database
 const saveKnowledgeBaseToDatabase = async (userId, filename, extractedText, fileSize) => {
   return new Promise((resolve, reject) => {
-    db.run(`
+    whatsappDb.run(`
       INSERT OR REPLACE INTO whatsapp_receiver_knowledge_base 
       (user_id, filename, extracted_text, text_length, file_size, updated_at)
       VALUES (?, ?, ?, ?, ?, datetime('now'))
@@ -180,7 +180,7 @@ const saveKnowledgeBaseToDatabase = async (userId, filename, extractedText, file
 // Get knowledge base from database
 const getKnowledgeBaseFromDatabase = async (userId) => {
   return new Promise((resolve, reject) => {
-    db.get(`
+    whatsappDb.get(`
       SELECT * FROM whatsapp_receiver_knowledge_base 
       WHERE user_id = ?
     `, [userId], (err, row) => {
@@ -249,7 +249,7 @@ router.post('/activate', verifyToken, async (req, res) => {
     }
 
     // Clear previous messages when activating
-    db.run('DELETE FROM whatsapp_receiver_messages', [], (err) => {
+    whatsappDb.run('DELETE FROM whatsapp_receiver_messages', [], (err) => {
       if (err) {
         console.error('❌ Error clearing previous messages:', err);
       } else {
@@ -364,7 +364,7 @@ router.get('/messages', verifyToken, (req, res) => {
     LIMIT 100
   `;
 
-  db.all(query, [], (err, messages) => {
+  whatsappDb.all(query, [], (err, messages) => {
     if (err) {
       console.error('❌ Error fetching messages:', err);
       logger.logError(err, { context: 'getWhatsAppReceiverMessages' });
@@ -447,7 +447,7 @@ const sendMessageToClaude = async (messageText, userId = 2) => {
     try {
       // Get Claude model info from database
       const aiModel = await new Promise((resolve, reject) => {
-        db.get(`
+        whatsappDb.get(`
           SELECT * FROM ai_models 
           WHERE model_id = 'claude-3-5-sonnet-20241022' AND is_active = 1
         `, [], (err, row) => {
@@ -572,7 +572,7 @@ const storeWhatsAppMessage = (webhookData) => {
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `;
       
-      db.run(insertQuery, [
+      whatsappDb.run(insertQuery, [
         messageData.phoneNumber,
         messageData.contactName,
         messageData.messageText,
@@ -612,7 +612,7 @@ const storeWhatsAppMessage = (webhookData) => {
                     VALUES (?, ?, ?, ?, ?, ?, 'outgoing')
                   `;
                   
-                  db.run(replyInsertQuery, [
+                  whatsappDb.run(replyInsertQuery, [
                     messageData.phoneNumber,
                     'Claude AI',
                     claudeResult.response,
@@ -751,7 +751,7 @@ router.post('/send-message', verifyToken, async (req, res) => {
       const messageId = data.messages?.[0]?.id || `sent_${Date.now()}`;
       
       const insertResult = await new Promise((resolve, reject) => {
-        db.run(insertQuery, [
+        whatsappDb.run(insertQuery, [
           recipientPhoneNumber,
           'Unknown Contact', // We don't know the contact name for outgoing
           messageText,
@@ -813,7 +813,7 @@ router.get('/stats', verifyToken, (req, res) => {
     FROM whatsapp_receiver_messages
   `;
   
-  db.get(statsQuery, [], (err, stats) => {
+  whatsappDb.get(statsQuery, [], (err, stats) => {
     if (err) {
       console.error('❌ Error fetching receiver stats:', err);
       return res.status(500).json({ error: 'Database error' });
@@ -839,7 +839,7 @@ router.get('/debug-billing', verifyToken, async (req, res) => {
     
     // Check recent usage for user ID 2
     const recentUsage = await new Promise((resolve, reject) => {
-      db.all(`
+      whatsappDb.all(`
         SELECT 
           user_id,
           total_tokens,
@@ -858,7 +858,7 @@ router.get('/debug-billing', verifyToken, async (req, res) => {
 
     // Check free tier status for user ID 2
     const freeTier = await new Promise((resolve, reject) => {
-      db.get(`
+      whatsappDb.get(`
         SELECT * FROM user_free_tier WHERE user_id = 2
       `, [], (err, row) => {
         if (err) reject(err);
