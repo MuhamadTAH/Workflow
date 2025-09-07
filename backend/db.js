@@ -1,7 +1,32 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
-const dbPath = path.join(__dirname, 'database.sqlite');
+// Use persistent disk in production, local file in development
+const isProduction = process.env.NODE_ENV === 'production';
+const persistentDir = '/opt/render/project/src/data';
+const localDir = __dirname;
+
+let dbPath;
+
+if (isProduction) {
+  // Production: Use persistent disk
+  try {
+    // Ensure persistent directory exists
+    if (!fs.existsSync(persistentDir)) {
+      fs.mkdirSync(persistentDir, { recursive: true });
+    }
+    dbPath = path.join(persistentDir, 'database.sqlite');
+    console.log(`📁 Using persistent database: ${dbPath}`);
+  } catch (error) {
+    console.warn(`⚠️ Persistent disk not available, falling back to local: ${error.message}`);
+    dbPath = path.join(localDir, 'database.sqlite');
+  }
+} else {
+  // Development: Use local file
+  dbPath = path.join(localDir, 'database.sqlite');
+  console.log(`📁 Using local database: ${dbPath}`);
+}
 
 // Create and connect to SQLite database
 const db = new sqlite3.Database(dbPath, (err) => {
@@ -1026,6 +1051,249 @@ Be enthusiastic and helpful while staying accurate.`,
       console.error('❌ Error creating telegram_knowledge_base table:', err);
     } else {
       console.log('✅ Telegram Knowledge Base table ready');
+    }
+  });
+
+  // INSTAGRAM COMMENT MANAGER PERSISTENCE TABLES - For Instagram Comment Page
+  // ========================================================================
+
+  // Create instagram_comment_bots table - Store Instagram app configurations
+  db.run(`
+    CREATE TABLE IF NOT EXISTS instagram_comment_bots (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      app_id TEXT NOT NULL,
+      app_secret TEXT NOT NULL,
+      access_token TEXT NOT NULL,
+      instagram_business_id TEXT NOT NULL,
+      webhook_token TEXT DEFAULT 'muhammad',
+      webhook_url TEXT NOT NULL,
+      setup_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_activity DATETIME,
+      message_count INTEGER DEFAULT 0,
+      is_active BOOLEAN DEFAULT 1,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating instagram_comment_bots table:', err);
+    } else {
+      console.log('✅ Instagram Comment Bots table ready');
+    }
+  });
+
+  // Create instagram_comment_messages table - Store Instagram comments and DMs
+  db.run(`
+    CREATE TABLE IF NOT EXISTS instagram_comment_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      instagram_message_id TEXT,
+      instagram_user_id TEXT,
+      instagram_username TEXT,
+      instagram_name TEXT,
+      profile_picture_url TEXT,
+      message_text TEXT,
+      message_type TEXT DEFAULT 'comment',
+      post_id TEXT,
+      comment_id TEXT,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      received_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      is_replied BOOLEAN DEFAULT 0,
+      reply_text TEXT,
+      replied_at DATETIME,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating instagram_comment_messages table:', err);
+    } else {
+      console.log('✅ Instagram Comment Messages table ready');
+    }
+  });
+
+  // Create instagram_ai_configs table - Store AI configurations for Instagram
+  db.run(`
+    CREATE TABLE IF NOT EXISTS instagram_ai_configs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL UNIQUE,
+      claude_api_key TEXT,
+      openai_api_key TEXT,
+      ai_provider TEXT DEFAULT 'claude',
+      model TEXT DEFAULT 'claude-3-5-sonnet-20241022',
+      system_prompt TEXT DEFAULT 'You are a helpful Instagram assistant. Respond to comments professionally.',
+      auto_reply BOOLEAN DEFAULT 0,
+      connection_status TEXT DEFAULT 'disconnected',
+      last_used DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating instagram_ai_configs table:', err);
+    } else {
+      console.log('✅ Instagram AI Configs table ready');
+    }
+  });
+
+  // MESSENGER COMMENTS PERSISTENCE TABLES - For Messenger Comments Page
+  // =====================================================================
+
+  // Create messenger_comment_bots table - Store Messenger app configurations
+  db.run(`
+    CREATE TABLE IF NOT EXISTS messenger_comment_bots (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      app_id TEXT NOT NULL,
+      app_secret TEXT NOT NULL,
+      access_token TEXT NOT NULL,
+      page_id TEXT NOT NULL,
+      webhook_token TEXT DEFAULT 'muhammad',
+      webhook_url TEXT NOT NULL,
+      setup_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_activity DATETIME,
+      message_count INTEGER DEFAULT 0,
+      is_active BOOLEAN DEFAULT 1,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating messenger_comment_bots table:', err);
+    } else {
+      console.log('✅ Messenger Comment Bots table ready');
+    }
+  });
+
+  // Create messenger_comment_messages table - Store Messenger messages and comments
+  db.run(`
+    CREATE TABLE IF NOT EXISTS messenger_comment_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      messenger_message_id TEXT,
+      messenger_user_id TEXT,
+      messenger_name TEXT,
+      messenger_first_name TEXT,
+      messenger_last_name TEXT,
+      profile_pic TEXT,
+      message_text TEXT,
+      message_type TEXT DEFAULT 'message',
+      post_id TEXT,
+      comment_id TEXT,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      received_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      is_replied BOOLEAN DEFAULT 0,
+      reply_text TEXT,
+      replied_at DATETIME,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating messenger_comment_messages table:', err);
+    } else {
+      console.log('✅ Messenger Comment Messages table ready');
+    }
+  });
+
+  // Create messenger_ai_configs table - Store AI configurations for Messenger
+  db.run(`
+    CREATE TABLE IF NOT EXISTS messenger_ai_configs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL UNIQUE,
+      claude_api_key TEXT,
+      openai_api_key TEXT,
+      ai_provider TEXT DEFAULT 'claude',
+      model TEXT DEFAULT 'claude-3-5-sonnet-20241022',
+      system_prompt TEXT DEFAULT 'You are a helpful Messenger assistant. Respond to messages professionally.',
+      auto_reply BOOLEAN DEFAULT 0,
+      connection_status TEXT DEFAULT 'disconnected',
+      last_used DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating messenger_ai_configs table:', err);
+    } else {
+      console.log('✅ Messenger AI Configs table ready');
+    }
+  });
+
+  // WHATSAPP RECEIVER PERSISTENCE TABLES - For WhatsApp Receiver Page
+  // ==================================================================
+
+  // Create whatsapp_receiver_bots table - Store WhatsApp app configurations
+  db.run(`
+    CREATE TABLE IF NOT EXISTS whatsapp_receiver_bots (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      app_id TEXT NOT NULL,
+      client_secret TEXT NOT NULL,
+      business_id TEXT NOT NULL,
+      access_token TEXT NOT NULL,
+      phone_number_send_id TEXT NOT NULL,
+      webhook_url TEXT,
+      setup_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_activity DATETIME,
+      message_count INTEGER DEFAULT 0,
+      is_active BOOLEAN DEFAULT 1,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating whatsapp_receiver_bots table:', err);
+    } else {
+      console.log('✅ WhatsApp Receiver Bots table ready');
+    }
+  });
+
+  // Create whatsapp_receiver_ai_configs table - Store AI configurations for WhatsApp
+  db.run(`
+    CREATE TABLE IF NOT EXISTS whatsapp_receiver_ai_configs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL UNIQUE,
+      claude_api_key TEXT,
+      openai_api_key TEXT,
+      ai_provider TEXT DEFAULT 'claude',
+      model TEXT DEFAULT 'claude-3-5-sonnet-20241022',
+      system_prompt TEXT DEFAULT 'You are a helpful WhatsApp assistant. Respond to messages professionally.',
+      auto_reply BOOLEAN DEFAULT 0,
+      connection_status TEXT DEFAULT 'disconnected',
+      last_used DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating whatsapp_receiver_ai_configs table:', err);
+    } else {
+      console.log('✅ WhatsApp Receiver AI Configs table ready');
+    }
+  });
+
+  // Create whatsapp_receiver_knowledge_base table - Store knowledge base for WhatsApp
+  db.run(`
+    CREATE TABLE IF NOT EXISTS whatsapp_receiver_knowledge_base (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL UNIQUE,
+      filename TEXT NOT NULL,
+      extracted_text TEXT NOT NULL,
+      text_length INTEGER,
+      file_size INTEGER,
+      upload_method TEXT DEFAULT 'pdf',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating whatsapp_receiver_knowledge_base table:', err);
+    } else {
+      console.log('✅ WhatsApp Receiver Knowledge Base table ready');
     }
   });
 
