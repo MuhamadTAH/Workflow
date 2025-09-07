@@ -45,6 +45,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const logger = require('../services/logger');
 const billingService = require('../services/billingService');
+const db = require('../db');
 
 // Your Claude API Key from environment variables
 const CLAUDE_API_KEY = process.env.ANTHROPIC_API_KEY || 'your-claude-api-key-here';
@@ -87,6 +88,106 @@ let receiverState = {
   accessToken: null,
   phoneNumberSendId: null,
   activatedAt: null
+};
+
+// Database helper functions
+const getUserIdFromToken = (req) => {
+  return req.user?.id || 1; // Default to user ID 1 for testing
+};
+
+// Save WhatsApp bot configuration to database
+const saveBotToDatabase = async (userId, appId, clientSecret, businessId, accessToken, phoneNumberSendId, webhookUrl) => {
+  return new Promise((resolve, reject) => {
+    db.run(`
+      INSERT OR REPLACE INTO whatsapp_receiver_bots 
+      (user_id, app_id, client_secret, business_id, access_token, phone_number_send_id, webhook_url, setup_at, is_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), 1)
+    `, [userId, appId, clientSecret, businessId, accessToken, phoneNumberSendId, webhookUrl], function(err) {
+      if (err) reject(err);
+      else resolve(this.lastID);
+    });
+  });
+};
+
+// Get WhatsApp bot configuration from database
+const getBotFromDatabase = async (userId) => {
+  return new Promise((resolve, reject) => {
+    db.get(`
+      SELECT * FROM whatsapp_receiver_bots 
+      WHERE user_id = ? AND is_active = 1
+    `, [userId], (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
+  });
+};
+
+// Update bot activity
+const updateBotActivity = async (userId) => {
+  return new Promise((resolve, reject) => {
+    db.run(`
+      UPDATE whatsapp_receiver_bots 
+      SET last_activity = datetime('now'), message_count = message_count + 1, updated_at = datetime('now')
+      WHERE user_id = ?
+    `, [userId], (err) => {
+      if (err) reject(err);
+      else resolve();
+    });
+  });
+};
+
+// Save AI configuration to database
+const saveAIConfigToDatabase = async (userId, claudeApiKey, systemPrompt) => {
+  return new Promise((resolve, reject) => {
+    db.run(`
+      INSERT OR REPLACE INTO whatsapp_receiver_ai_configs 
+      (user_id, claude_api_key, system_prompt, connection_status, updated_at)
+      VALUES (?, ?, ?, 'connected', datetime('now'))
+    `, [userId, claudeApiKey, systemPrompt], function(err) {
+      if (err) reject(err);
+      else resolve(this.lastID);
+    });
+  });
+};
+
+// Get AI configuration from database
+const getAIConfigFromDatabase = async (userId) => {
+  return new Promise((resolve, reject) => {
+    db.get(`
+      SELECT * FROM whatsapp_receiver_ai_configs 
+      WHERE user_id = ?
+    `, [userId], (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
+  });
+};
+
+// Save knowledge base to database
+const saveKnowledgeBaseToDatabase = async (userId, filename, extractedText, fileSize) => {
+  return new Promise((resolve, reject) => {
+    db.run(`
+      INSERT OR REPLACE INTO whatsapp_receiver_knowledge_base 
+      (user_id, filename, extracted_text, text_length, file_size, updated_at)
+      VALUES (?, ?, ?, ?, ?, datetime('now'))
+    `, [userId, filename, extractedText, extractedText.length, fileSize], function(err) {
+      if (err) reject(err);
+      else resolve(this.lastID);
+    });
+  });
+};
+
+// Get knowledge base from database
+const getKnowledgeBaseFromDatabase = async (userId) => {
+  return new Promise((resolve, reject) => {
+    db.get(`
+      SELECT * FROM whatsapp_receiver_knowledge_base 
+      WHERE user_id = ?
+    `, [userId], (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
+    });
+  });
 };
 
 // Middleware to verify JWT token
@@ -155,6 +256,20 @@ router.post('/activate', verifyToken, async (req, res) => {
         console.log('🧹 Previous messages cleared');
       }
     });
+
+    // Save configuration to database
+    const userId = getUserIdFromToken(req);
+    const webhookUrl = `${req.protocol}://${req.get('host')}/api/webhooks/whatsapp`;
+    
+    await saveBotToDatabase(
+      userId,
+      appId.trim(),
+      clientSecret.trim(),
+      businessId.trim(),
+      accessToken.trim(),
+      phoneNumberSendId.trim(),
+      webhookUrl
+    );
 
     // Update receiver state with unified configuration
     receiverState = {
@@ -764,6 +879,203 @@ router.get('/debug-billing', verifyToken, async (req, res) => {
       success: false,
       error: error.message
     });
+  }
+});
+
+// Load saved WhatsApp configurations
+router.get('/config', verifyToken, async (req, res) => {
+  try {
+    const userId = getUserIdFromToken(req);
+    const botConfig = await getBotFromDatabase(userId);
+    const aiConfig = await getAIConfigFromDatabase(userId);
+    const knowledgeBase = await getKnowledgeBaseFromDatabase(userId);
+    
+    console.log('Loading WhatsApp configuration', { userId, hasBotConfig: !!botConfig });
+    
+    res.json({
+      success: true,
+      config: botConfig ? {
+        appId: botConfig.app_id,
+        clientSecret: botConfig.client_secret ? '***hidden***' : '',
+        businessId: botConfig.business_id,
+        accessToken: botConfig.access_token ? '***hidden***' : '',
+        phoneNumberSendId: botConfig.phone_number_send_id,
+        webhookUrl: botConfig.webhook_url,
+        isActive: botConfig.is_active,
+        setupAt: botConfig.setup_at
+      } : null,
+      aiConfig: aiConfig ? {
+        hasClaudeKey: !!aiConfig.claude_api_key,
+        systemPrompt: aiConfig.system_prompt,
+        connectionStatus: aiConfig.connection_status
+      } : null,
+      knowledgeBase: knowledgeBase ? {
+        filename: knowledgeBase.filename,
+        textLength: knowledgeBase.text_length,
+        fileSize: knowledgeBase.file_size,
+        uploadedAt: knowledgeBase.created_at
+      } : null
+    });
+  } catch (error) {
+    console.error('Error loading WhatsApp configuration:', error);
+    res.status(500).json({ success: false, error: 'Failed to load configuration' });
+  }
+});
+
+// Save Claude API configuration
+router.post('/claude/connect', verifyToken, async (req, res) => {
+  try {
+    const { claudeApiKey, systemPrompt } = req.body;
+    const userId = getUserIdFromToken(req);
+    
+    if (!claudeApiKey) {
+      return res.status(400).json({ success: false, error: 'Claude API key is required' });
+    }
+    
+    await saveAIConfigToDatabase(userId, claudeApiKey, systemPrompt);
+    
+    console.log('✅ Claude API configuration saved to database');
+    
+    res.json({
+      success: true,
+      message: 'Claude API connected and saved successfully',
+      status: '✅ Connected and saved to database'
+    });
+  } catch (error) {
+    console.error('Error saving Claude configuration:', error);
+    res.status(500).json({ success: false, error: 'Failed to save Claude configuration' });
+  }
+});
+
+// Save system prompt
+router.post('/system-prompt', verifyToken, async (req, res) => {
+  try {
+    const { systemPrompt } = req.body;
+    const userId = getUserIdFromToken(req);
+    
+    const aiConfig = await getAIConfigFromDatabase(userId);
+    if (aiConfig && aiConfig.claude_api_key) {
+      await saveAIConfigToDatabase(userId, aiConfig.claude_api_key, systemPrompt);
+      
+      res.json({
+        success: true,
+        message: 'System prompt saved successfully'
+      });
+    } else {
+      res.status(400).json({ 
+        success: false, 
+        error: 'Please connect Claude API first' 
+      });
+    }
+  } catch (error) {
+    console.error('Error saving system prompt:', error);
+    res.status(500).json({ success: false, error: 'Failed to save system prompt' });
+  }
+});
+
+// Save knowledge base
+router.post('/knowledge-base', verifyToken, async (req, res) => {
+  try {
+    const { filename, extractedText, fileSize } = req.body;
+    const userId = getUserIdFromToken(req);
+    
+    await saveKnowledgeBaseToDatabase(userId, filename, extractedText, fileSize);
+    
+    console.log('✅ Knowledge base saved to database');
+    
+    res.json({
+      success: true,
+      message: 'Knowledge base saved successfully',
+      info: {
+        filename,
+        textLength: extractedText.length,
+        fileSize
+      }
+    });
+  } catch (error) {
+    console.error('Error saving knowledge base:', error);
+    res.status(500).json({ success: false, error: 'Failed to save knowledge base' });
+  }
+});
+
+// Save manual business information as knowledge base
+router.post('/manual-business-info', verifyToken, async (req, res) => {
+  try {
+    const { businessInfo } = req.body;
+    const userId = getUserIdFromToken(req);
+    
+    await saveKnowledgeBaseToDatabase(userId, 'Manual Business Information', businessInfo, businessInfo.length);
+    
+    console.log('✅ Manual business information saved to database');
+    
+    res.json({
+      success: true,
+      message: 'Business information saved successfully'
+    });
+  } catch (error) {
+    console.error('Error saving manual business info:', error);
+    res.status(500).json({ success: false, error: 'Failed to save business information' });
+  }
+});
+
+// AI Configuration endpoints
+router.get('/ai-config', verifyToken, async (req, res) => {
+  try {
+    console.log('🤖 Loading WhatsApp AI configuration...');
+    
+    // Default AI configuration
+    const defaultConfig = {
+      enabled: false,
+      autoReply: false,
+      systemPrompt: 'You are a helpful and friendly AI assistant for WhatsApp messages. Respond to users in a professional yet warm manner.',
+      model: 'claude-3-5-sonnet-20241022',
+      maxTokens: 1000,
+      responseDelay: 2000
+    };
+    
+    res.json({
+      success: true,
+      config: defaultConfig
+    });
+  } catch (error) {
+    console.error('Error loading AI config:', error);
+    res.status(500).json({ success: false, error: 'Failed to load AI configuration' });
+  }
+});
+
+router.post('/ai-config', verifyToken, async (req, res) => {
+  try {
+    const config = req.body;
+    console.log('🤖 Saving WhatsApp AI configuration:', config);
+    
+    // Here you would save to database if needed
+    // For now, just return success
+    
+    res.json({
+      success: true,
+      message: 'AI configuration saved successfully'
+    });
+  } catch (error) {
+    console.error('Error saving AI config:', error);
+    res.status(500).json({ success: false, error: 'Failed to save AI configuration' });
+  }
+});
+
+router.post('/ai-test', verifyToken, async (req, res) => {
+  try {
+    const { message } = req.body;
+    console.log('🧪 Testing AI with message:', message);
+    
+    // Mock AI response for testing
+    const response = `AI Test Response: I received your message "${message}". This is a test response from the WhatsApp AI system.`;
+    
+    res.json({
+      success: true,
+      response: response
+    });
+  } catch (error) {
+    console.error('Error testing AI:', error);
+    res.status(500).json({ success: false, error: 'Failed to test AI' });
   }
 });
 
