@@ -4,11 +4,44 @@ const { asyncHandler } = require('../middleware/errorHandler');
 const logger = require('../services/logger');
 const db = require('../db');
 
-// Simple auth function for development
-const authenticateUser = (req, res, next) => {
-  req.user = { id: 1 }; // Default to user ID 1 for development
-  next();
+// Middleware to verify JWT token - same as WhatsApp for consistency
+const verifyToken = (req, res, next) => {
+  console.log('🔐 Telegram Listener Token Verification:', {
+    origin: req.headers.origin,
+    hasAuth: !!req.headers.authorization,
+    method: req.method,
+    path: req.path
+  });
+  
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  
+  if (!token) {
+    console.log('❌ No token provided');
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  try {
+    // Allow mock token for testing/development
+    if (token.startsWith('MOCK_TOKEN_FOR_TESTING_')) {
+      console.log('✅ Using mock token for development');
+      req.user = { userId: 'test-user-1', email: 'mhamadtah548@gmail.com', mock: true };
+      return next();
+    }
+    
+    // Regular JWT validation for production
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    req.user = decoded;
+    console.log('✅ Token verified successfully');
+    next();
+  } catch (error) {
+    console.log('❌ Token verification failed:', error.message);
+    return res.status(401).json({ error: 'Invalid token' });
+  }
 };
+
+// Simple auth function for development (keeping for backward compatibility)
+const authenticateUser = verifyToken;
 
 // Database helper functions
 const getUserIdFromToken = (req) => {
@@ -942,7 +975,7 @@ const restoreActiveWebhooks = async () => {
 setTimeout(restoreActiveWebhooks, 2000); // Wait 2 seconds after server start
 
 // AI Configuration endpoints
-router.get('/ai-config', authenticateUser, async (req, res) => {
+router.get('/ai-config', verifyToken, async (req, res) => {
   try {
     console.log('🤖 Loading Telegram AI configuration...');
     
@@ -966,7 +999,7 @@ router.get('/ai-config', authenticateUser, async (req, res) => {
   }
 });
 
-router.post('/ai-config', authenticateUser, async (req, res) => {
+router.post('/ai-config', verifyToken, async (req, res) => {
   try {
     const config = req.body;
     console.log('🤖 Saving Telegram AI configuration:', config);
@@ -984,7 +1017,7 @@ router.post('/ai-config', authenticateUser, async (req, res) => {
   }
 });
 
-router.post('/ai-test', authenticateUser, async (req, res) => {
+router.post('/ai-test', verifyToken, async (req, res) => {
   try {
     const { message } = req.body;
     console.log('🧪 Testing Telegram AI with message:', message);

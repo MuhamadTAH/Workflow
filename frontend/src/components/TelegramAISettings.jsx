@@ -51,7 +51,11 @@ const TelegramAISettings = ({ isVisible, onClose }) => {
 
   const loadConfig = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/ai-config`);
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/ai-config`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       const data = await response.json();
       
       if (data.success) {
@@ -70,7 +74,8 @@ const TelegramAISettings = ({ isVisible, onClose }) => {
       const response = await fetch(`${API_BASE_URL}/api/telegram-listener/ai-config`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify(config)
       });
@@ -100,7 +105,8 @@ const TelegramAISettings = ({ isVisible, onClose }) => {
       const response = await fetch(`${API_BASE_URL}/api/telegram-listener/ai-test`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({ message: testMessage })
       });
@@ -121,7 +127,11 @@ const TelegramAISettings = ({ isVisible, onClose }) => {
 
   const checkClaudeStatus = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/claude/status`);
+      const response = await fetch(`${API_BASE_URL}/api/claude/status`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       const data = await response.json();
       
       const isConnected = data.connected || false;
@@ -150,7 +160,8 @@ const TelegramAISettings = ({ isVisible, onClose }) => {
       const response = await fetch(`${API_BASE_URL}/api/telegram-listener/claude/connect`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
           apiKey: claudeApiKey.trim()
@@ -176,7 +187,8 @@ const TelegramAISettings = ({ isVisible, onClose }) => {
         await fetch(`${API_BASE_URL}/api/telegram-listener/ai-config`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
           body: JSON.stringify(autoEnabledConfig)
         });
@@ -203,7 +215,8 @@ const TelegramAISettings = ({ isVisible, onClose }) => {
       const response = await fetch(`${API_BASE_URL}/api/claude/disconnect`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
 
@@ -237,7 +250,8 @@ const TelegramAISettings = ({ isVisible, onClose }) => {
       const response = await fetch(`${API_BASE_URL}/api/telegram-listener/system-prompt`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
           systemPrompt: systemPrompt.trim()
@@ -265,7 +279,11 @@ const TelegramAISettings = ({ isVisible, onClose }) => {
 
   const loadSystemPrompt = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/claude/system-prompt`);
+      const response = await fetch(`${API_BASE_URL}/api/claude/system-prompt`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       const result = await response.json();
 
       if (response.ok && result.success && result.systemPrompt) {
@@ -281,7 +299,11 @@ const TelegramAISettings = ({ isVisible, onClose }) => {
 
   const loadKnowledgeBaseInfo = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/claude/knowledge-info`);
+      const response = await fetch(`${API_BASE_URL}/api/claude/knowledge-info`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       const result = await response.json();
 
       if (response.ok && result.success && result.hasKnowledge) {
@@ -312,6 +334,9 @@ const TelegramAISettings = ({ isVisible, onClose }) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/claude/upload-knowledge`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: formData
       });
       
