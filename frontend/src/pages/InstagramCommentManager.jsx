@@ -899,8 +899,9 @@ const InstagramCommentManager = () => {
             border: '1px solid #e2e8f0',
             overflow: 'hidden',
             transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
-            transform: isRightSidebarCollapsed ? 'translateX(320px)' : 'translateX(0)',
+            transform: isRightSidebarCollapsed ? 'translateX(100%)' : 'translateX(0)',
             opacity: isRightSidebarCollapsed ? 0 : 1,
+            visibility: isRightSidebarCollapsed ? 'hidden' : 'visible',
             zIndex: 1000
           }}>
             {/* Right Sidebar Header */}
