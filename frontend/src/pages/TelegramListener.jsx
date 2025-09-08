@@ -2498,4 +2498,4 @@ CONTACT & SOCIAL:
   );
 };
 
-export default TelegramListener
+export default TelegramListener;
