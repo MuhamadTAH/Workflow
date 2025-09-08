@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import '../styles.css';
+import '../styles/DashboardDark.css';
 
 function Settings() {
   const { theme, colors } = useTheme();
@@ -16,58 +17,76 @@ function Settings() {
   ];
 
   return (
-    <div className={`settings-page ${theme === 'dark' ? 'dark-theme' : 'light-theme'}`} 
-         style={{ backgroundColor: colors.primaryBg, color: colors.primaryText, minHeight: '100vh', paddingLeft: '80px' }}>
+    <div className={`professional-dashboard ${theme === 'dark' ? 'variant-1' : 'light-theme'}`} 
+         style={{ backgroundColor: '#1a1a1a', color: '#E0E0E0', minHeight: '100vh', paddingLeft: '80px' }}>
       
       {/* Header */}
-      <div className="settings-header" style={{ 
-        backgroundColor: colors.secondaryBg, 
-        borderBottom: `1px solid ${colors.border}`,
+      <div className="dashboard-hero" style={{ 
+        backgroundColor: '#323232', 
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         padding: '2rem',
         marginBottom: '2rem'
       }}>
-        <h1 style={{ 
-          fontSize: '2rem', 
-          fontWeight: '600', 
-          margin: '0 0 0.5rem 0',
-          color: colors.primaryText 
-        }}>
-          ⚙️ Settings
-        </h1>
-        <p style={{ 
-          color: colors.secondaryText, 
-          fontSize: '1rem',
-          margin: 0 
-        }}>
-          Manage your account preferences and application settings
-        </p>
+        <div className="hero-content">
+          <h1 className="hero-title" style={{ 
+            fontSize: '2.5rem', 
+            fontWeight: '600', 
+            margin: '0 0 0.5rem 0',
+            color: '#E0E0E0'
+          }}>
+            ⚙️ Settings
+          </h1>
+          <p className="hero-subtitle" style={{ 
+            color: '#a0a0a0', 
+            fontSize: '1.1rem',
+            margin: 0 
+          }}>
+            Manage your account preferences and application settings
+          </p>
+        </div>
       </div>
 
-      <div className="settings-container" style={{ 
-        maxWidth: '1200px',
+      <div className="dashboard-content" style={{ 
+        maxWidth: '1400px',
         margin: '0 auto',
-        padding: '0 2rem 2rem 2rem',
-        display: 'grid',
-        gridTemplateColumns: '250px 1fr',
-        gap: '2rem'
+        padding: '0 2rem 2rem 2rem'
       }}>
+        <div className="content-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: '280px 1fr',
+          gap: '2rem'
+        }}>
         
         {/* Settings Navigation */}
-        <div className="settings-nav" style={{
-          backgroundColor: colors.secondaryBg,
-          border: `1px solid ${colors.border}`,
-          borderRadius: '12px',
+        <div className="dashboard-card" style={{
+          backgroundColor: '#323232',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '16px',
           padding: '1.5rem',
-          height: 'fit-content'
+          height: 'fit-content',
+          boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)'
         }}>
-          <h3 style={{ 
-            color: colors.primaryText,
-            fontSize: '1.1rem',
-            fontWeight: '600',
-            margin: '0 0 1rem 0'
+          <div className="card-header" style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1.5rem',
+            paddingBottom: '1rem',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
           }}>
-            Categories
-          </h3>
+            <h3 style={{ 
+              color: '#E0E0E0',
+              fontSize: '1.1rem',
+              fontWeight: '600',
+              margin: '0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <i className="fas fa-list" style={{ color: '#4a90e2' }}></i>
+              Categories
+            </h3>
+          </div>
           <nav>
             {tabs.map((tab) => (
               <button
@@ -81,26 +100,28 @@ function Settings() {
                   width: '100%',
                   padding: '0.75rem 1rem',
                   margin: '0.25rem 0',
-                  backgroundColor: activeTab === tab.id ? colors.accent + '20' : 'transparent',
-                  color: activeTab === tab.id ? colors.accent : colors.secondaryText,
-                  border: 'none',
-                  borderRadius: '8px',
+                  backgroundColor: activeTab === tab.id ? 'rgba(74, 144, 226, 0.2)' : '#262626',
+                  color: activeTab === tab.id ? '#4a90e2' : '#E0E0E0',
+                  border: activeTab === tab.id ? '1px solid rgba(74, 144, 226, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '10px',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  fontSize: '0.95rem'
+                  fontSize: '0.95rem',
+                  fontWeight: '500',
+                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.3)'
                 }}
                 onMouseEnter={(e) => {
                   if (activeTab !== tab.id) {
-                    e.target.style.backgroundColor = colors.border;
+                    e.target.style.backgroundColor = '#424242';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (activeTab !== tab.id) {
-                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.backgroundColor = '#262626';
                   }
                 }}
               >
-                <i className={tab.icon}></i>
+                <i className={tab.icon} style={{ color: activeTab === tab.id ? '#4a90e2' : '#a0a0a0' }}></i>
                 {tab.name}
               </button>
             ))}
@@ -108,22 +129,44 @@ function Settings() {
         </div>
 
         {/* Settings Content */}
-        <div className="settings-content" style={{
-          backgroundColor: colors.secondaryBg,
-          border: `1px solid ${colors.border}`,
-          borderRadius: '12px',
-          padding: '2rem'
+        <div className="dashboard-card" style={{
+          backgroundColor: '#323232',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '16px',
+          padding: '2rem',
+          boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)'
         }}>
           {activeTab === 'general' && (
             <div className="settings-section">
-              <h2 style={{ color: colors.primaryText, marginBottom: '1.5rem' }}>General Settings</h2>
+              <div className="card-header" style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1.5rem',
+                paddingBottom: '1rem',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <h2 style={{ 
+                  color: '#E0E0E0', 
+                  fontSize: '1.3rem', 
+                  fontWeight: '600',
+                  margin: '0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <i className="fas fa-cog" style={{ color: '#4a90e2' }}></i>
+                  General Settings
+                </h2>
+              </div>
               
               <div className="setting-group" style={{ marginBottom: '2rem' }}>
                 <label style={{ 
                   display: 'block',
-                  color: colors.primaryText,
-                  fontWeight: '600',
-                  marginBottom: '0.5rem'
+                  color: '#E0E0E0',
+                  fontWeight: '500',
+                  marginBottom: '0.5rem',
+                  fontSize: '0.9rem'
                 }}>
                   Application Name
                 </label>
@@ -133,32 +176,41 @@ function Settings() {
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    backgroundColor: colors.primaryBg,
-                    border: `1px solid ${colors.border}`,
-                    borderRadius: '8px',
-                    color: colors.primaryText,
-                    fontSize: '1rem'
+                    backgroundColor: '#262626',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '10px',
+                    color: '#E0E0E0',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease',
+                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)'
                   }}
+                  onFocus={(e) => e.target.style.borderColor = 'rgba(74, 144, 226, 0.5)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
                 />
               </div>
 
               <div className="setting-group" style={{ marginBottom: '2rem' }}>
                 <label style={{ 
                   display: 'block',
-                  color: colors.primaryText,
-                  fontWeight: '600',
-                  marginBottom: '0.5rem'
+                  color: '#E0E0E0',
+                  fontWeight: '500',
+                  marginBottom: '0.5rem',
+                  fontSize: '0.9rem'
                 }}>
                   Default Language
                 </label>
                 <select style={{
                   width: '100%',
                   padding: '0.75rem',
-                  backgroundColor: colors.primaryBg,
-                  border: `1px solid ${colors.border}`,
-                  borderRadius: '8px',
-                  color: colors.primaryText,
-                  fontSize: '1rem'
+                  backgroundColor: '#262626',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '10px',
+                  color: '#E0E0E0',
+                  fontSize: '1rem',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)'
                 }}>
                   <option>English</option>
                   <option>Spanish</option>
@@ -172,10 +224,16 @@ function Settings() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.75rem',
-                  color: colors.primaryText,
-                  cursor: 'pointer'
+                  color: '#E0E0E0',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: '500'
                 }}>
-                  <input type="checkbox" defaultChecked />
+                  <input type="checkbox" defaultChecked style={{
+                    width: '18px',
+                    height: '18px',
+                    accentColor: '#4a90e2'
+                  }} />
                   Enable auto-save for workflows
                 </label>
               </div>
@@ -184,14 +242,35 @@ function Settings() {
 
           {activeTab === 'account' && (
             <div className="settings-section">
-              <h2 style={{ color: colors.primaryText, marginBottom: '1.5rem' }}>Account Settings</h2>
+              <div className="card-header" style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1.5rem',
+                paddingBottom: '1rem',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <h2 style={{ 
+                  color: '#E0E0E0', 
+                  fontSize: '1.3rem', 
+                  fontWeight: '600',
+                  margin: '0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <i className="fas fa-user" style={{ color: '#4a90e2' }}></i>
+                  Account Settings
+                </h2>
+              </div>
               
               <div className="setting-group" style={{ marginBottom: '2rem' }}>
                 <label style={{ 
                   display: 'block',
-                  color: colors.primaryText,
-                  fontWeight: '600',
-                  marginBottom: '0.5rem'
+                  color: '#E0E0E0',
+                  fontWeight: '500',
+                  marginBottom: '0.5rem',
+                  fontSize: '0.9rem'
                 }}>
                   Full Name
                 </label>
@@ -201,21 +280,27 @@ function Settings() {
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    backgroundColor: colors.primaryBg,
-                    border: `1px solid ${colors.border}`,
-                    borderRadius: '8px',
-                    color: colors.primaryText,
-                    fontSize: '1rem'
+                    backgroundColor: '#262626',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '10px',
+                    color: '#E0E0E0',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease',
+                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)'
                   }}
+                  onFocus={(e) => e.target.style.borderColor = 'rgba(74, 144, 226, 0.5)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
                 />
               </div>
 
               <div className="setting-group" style={{ marginBottom: '2rem' }}>
                 <label style={{ 
                   display: 'block',
-                  color: colors.primaryText,
-                  fontWeight: '600',
-                  marginBottom: '0.5rem'
+                  color: '#E0E0E0',
+                  fontWeight: '500',
+                  marginBottom: '0.5rem',
+                  fontSize: '0.9rem'
                 }}>
                   Email Address
                 </label>
@@ -225,68 +310,139 @@ function Settings() {
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    backgroundColor: colors.primaryBg,
-                    border: `1px solid ${colors.border}`,
-                    borderRadius: '8px',
-                    color: colors.primaryText,
-                    fontSize: '1rem'
+                    backgroundColor: '#262626',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '10px',
+                    color: '#E0E0E0',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease',
+                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)'
                   }}
+                  onFocus={(e) => e.target.style.borderColor = 'rgba(74, 144, 226, 0.5)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
                 />
               </div>
 
               <button style={{
-                backgroundColor: '#3B82F6',
+                backgroundColor: '#4a90e2',
                 color: 'white',
                 padding: '0.75rem 1.5rem',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '12px',
                 fontWeight: '600',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                fontSize: '0.95rem',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 4px 12px rgba(74, 144, 226, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#357abd';
+                e.target.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = '#4a90e2';
+                e.target.style.transform = 'translateY(0px)';
               }}>
-                Save Changes
+                💾 Save Changes
               </button>
             </div>
           )}
 
           {activeTab === 'notifications' && (
             <div className="settings-section">
-              <h2 style={{ color: colors.primaryText, marginBottom: '1.5rem' }}>Notification Settings</h2>
+              <div className="card-header" style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1.5rem',
+                paddingBottom: '1rem',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <h2 style={{ 
+                  color: '#E0E0E0', 
+                  fontSize: '1.3rem', 
+                  fontWeight: '600',
+                  margin: '0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <i className="fas fa-bell" style={{ color: '#4a90e2' }}></i>
+                  Notification Settings
+                </h2>
+              </div>
               
-              <div className="setting-group" style={{ marginBottom: '1.5rem' }}>
+              <div className="setting-group" style={{ 
+                marginBottom: '1.5rem',
+                padding: '1rem',
+                backgroundColor: '#262626',
+                borderRadius: '10px',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
                 <label style={{ 
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.75rem',
-                  color: colors.primaryText,
-                  cursor: 'pointer'
+                  color: '#E0E0E0',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: '500'
                 }}>
-                  <input type="checkbox" defaultChecked />
+                  <input type="checkbox" defaultChecked style={{
+                    width: '18px',
+                    height: '18px',
+                    accentColor: '#4a90e2'
+                  }} />
                   Email notifications for workflow completions
                 </label>
               </div>
 
-              <div className="setting-group" style={{ marginBottom: '1.5rem' }}>
+              <div className="setting-group" style={{ 
+                marginBottom: '1.5rem',
+                padding: '1rem',
+                backgroundColor: '#262626',
+                borderRadius: '10px',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
                 <label style={{ 
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.75rem',
-                  color: colors.primaryText,
-                  cursor: 'pointer'
+                  color: '#E0E0E0',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: '500'
                 }}>
-                  <input type="checkbox" defaultChecked />
+                  <input type="checkbox" defaultChecked style={{
+                    width: '18px',
+                    height: '18px',
+                    accentColor: '#4a90e2'
+                  }} />
                   Push notifications for system alerts
                 </label>
               </div>
 
-              <div className="setting-group">
+              <div className="setting-group" style={{
+                padding: '1rem',
+                backgroundColor: '#262626',
+                borderRadius: '10px',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
                 <label style={{ 
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.75rem',
-                  color: colors.primaryText,
-                  cursor: 'pointer'
+                  color: '#E0E0E0',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: '500'
                 }}>
-                  <input type="checkbox" />
+                  <input type="checkbox" style={{
+                    width: '18px',
+                    height: '18px',
+                    accentColor: '#4a90e2'
+                  }} />
                   SMS notifications for critical errors
                 </label>
               </div>
@@ -295,10 +451,40 @@ function Settings() {
 
           {activeTab === 'security' && (
             <div className="settings-section">
-              <h2 style={{ color: colors.primaryText, marginBottom: '1.5rem' }}>Security Settings</h2>
+              <div className="card-header" style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1.5rem',
+                paddingBottom: '1rem',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <h2 style={{ 
+                  color: '#E0E0E0', 
+                  fontSize: '1.3rem', 
+                  fontWeight: '600',
+                  margin: '0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <i className="fas fa-shield-alt" style={{ color: '#4a90e2' }}></i>
+                  Security Settings
+                </h2>
+              </div>
               
               <div className="setting-group" style={{ marginBottom: '2rem' }}>
-                <h3 style={{ color: colors.primaryText, marginBottom: '1rem' }}>Change Password</h3>
+                <h3 style={{ 
+                  color: '#E0E0E0', 
+                  marginBottom: '1rem',
+                  fontSize: '1.1rem',
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  🔒 Change Password
+                </h3>
                 
                 <input
                   type="password"
@@ -306,13 +492,18 @@ function Settings() {
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    backgroundColor: colors.primaryBg,
-                    border: `1px solid ${colors.border}`,
-                    borderRadius: '8px',
-                    color: colors.primaryText,
+                    backgroundColor: '#262626',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '10px',
+                    color: '#E0E0E0',
                     fontSize: '1rem',
-                    marginBottom: '1rem'
+                    marginBottom: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease',
+                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)'
                   }}
+                  onFocus={(e) => e.target.style.borderColor = 'rgba(74, 144, 226, 0.5)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
                 />
                 
                 <input
@@ -321,13 +512,18 @@ function Settings() {
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    backgroundColor: colors.primaryBg,
-                    border: `1px solid ${colors.border}`,
-                    borderRadius: '8px',
-                    color: colors.primaryText,
+                    backgroundColor: '#262626',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '10px',
+                    color: '#E0E0E0',
                     fontSize: '1rem',
-                    marginBottom: '1rem'
+                    marginBottom: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease',
+                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)'
                   }}
+                  onFocus={(e) => e.target.style.borderColor = 'rgba(74, 144, 226, 0.5)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
                 />
                 
                 <input
@@ -336,37 +532,64 @@ function Settings() {
                   style={{
                     width: '100%',
                     padding: '0.75rem',
-                    backgroundColor: colors.primaryBg,
-                    border: `1px solid ${colors.border}`,
-                    borderRadius: '8px',
-                    color: colors.primaryText,
+                    backgroundColor: '#262626',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '10px',
+                    color: '#E0E0E0',
                     fontSize: '1rem',
-                    marginBottom: '1rem'
+                    marginBottom: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease',
+                    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)'
                   }}
+                  onFocus={(e) => e.target.style.borderColor = 'rgba(74, 144, 226, 0.5)'}
+                  onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
                 />
                 
                 <button style={{
-                  backgroundColor: '#10B981',
+                  backgroundColor: '#10b981',
                   color: 'white',
                   padding: '0.75rem 1.5rem',
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '12px',
                   fontWeight: '600',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#059669';
+                  e.target.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '#10b981';
+                  e.target.style.transform = 'translateY(0px)';
                 }}>
-                  Update Password
+                  🔄 Update Password
                 </button>
               </div>
 
-              <div className="setting-group">
+              <div className="setting-group" style={{
+                padding: '1rem',
+                backgroundColor: '#262626',
+                borderRadius: '10px',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
                 <label style={{ 
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.75rem',
-                  color: colors.primaryText,
-                  cursor: 'pointer'
+                  color: '#E0E0E0',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: '500'
                 }}>
-                  <input type="checkbox" />
+                  <input type="checkbox" style={{
+                    width: '18px',
+                    height: '18px',
+                    accentColor: '#4a90e2'
+                  }} />
                   Enable two-factor authentication
                 </label>
               </div>
@@ -375,45 +598,138 @@ function Settings() {
 
           {activeTab === 'api' && (
             <div className="settings-section">
-              <h2 style={{ color: colors.primaryText, marginBottom: '1.5rem' }}>API Keys</h2>
-              <p style={{ color: colors.secondaryText, marginBottom: '2rem' }}>
-                Manage your API keys for external integrations and services.
-              </p>
-              
-              <button style={{
-                backgroundColor: '#F59E0B',
-                color: 'white',
-                padding: '0.75rem 1.5rem',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: '600',
-                cursor: 'pointer'
+              <div className="card-header" style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1.5rem',
+                paddingBottom: '1rem',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
               }}>
-                🔑 Manage API Keys
-              </button>
+                <h2 style={{ 
+                  color: '#E0E0E0', 
+                  fontSize: '1.3rem', 
+                  fontWeight: '600',
+                  margin: '0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <i className="fas fa-key" style={{ color: '#4a90e2' }}></i>
+                  API Keys
+                </h2>
+              </div>
+              
+              <div style={{
+                padding: '1.5rem',
+                backgroundColor: '#262626',
+                borderRadius: '10px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                marginBottom: '2rem'
+              }}>
+                <p style={{ 
+                  color: '#a0a0a0', 
+                  marginBottom: '1rem',
+                  fontSize: '0.9rem',
+                  lineHeight: '1.5'
+                }}>
+                  Manage your API keys for external integrations and services. These keys allow 
+                  third-party applications to access your WorkflowPro account securely.
+                </p>
+                
+                <button style={{
+                  backgroundColor: '#f59e0b',
+                  color: 'white',
+                  padding: '0.75rem 1.5rem',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#d97706';
+                  e.target.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '#f59e0b';
+                  e.target.style.transform = 'translateY(0px)';
+                }}>
+                  🔑 Manage API Keys
+                </button>
+              </div>
             </div>
           )}
 
           {activeTab === 'billing' && (
             <div className="settings-section">
-              <h2 style={{ color: colors.primaryText, marginBottom: '1.5rem' }}>Billing & Usage</h2>
-              <p style={{ color: colors.secondaryText, marginBottom: '2rem' }}>
-                View your billing information, usage statistics, and manage your subscription.
-              </p>
-              
-              <button style={{
-                backgroundColor: '#10B981',
-                color: 'white',
-                padding: '0.75rem 1.5rem',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: '600',
-                cursor: 'pointer'
+              <div className="card-header" style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1.5rem',
+                paddingBottom: '1rem',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
               }}>
-                💰 View Billing Dashboard
-              </button>
+                <h2 style={{ 
+                  color: '#E0E0E0', 
+                  fontSize: '1.3rem', 
+                  fontWeight: '600',
+                  margin: '0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <i className="fas fa-credit-card" style={{ color: '#4a90e2' }}></i>
+                  Billing & Usage
+                </h2>
+              </div>
+              
+              <div style={{
+                padding: '1.5rem',
+                backgroundColor: '#262626',
+                borderRadius: '10px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                marginBottom: '2rem'
+              }}>
+                <p style={{ 
+                  color: '#a0a0a0', 
+                  marginBottom: '1rem',
+                  fontSize: '0.9rem',
+                  lineHeight: '1.5'
+                }}>
+                  View your billing information, usage statistics, and manage your subscription. 
+                  Monitor your workflow executions, API calls, and service usage.
+                </p>
+                
+                <button style={{
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  padding: '0.75rem 1.5rem',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#059669';
+                  e.target.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = '#10b981';
+                  e.target.style.transform = 'translateY(0px)';
+                }}>
+                  💰 View Billing Dashboard
+                </button>
+              </div>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>
