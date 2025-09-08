@@ -3,6 +3,14 @@ import { API_BASE_URL } from '../config/api.js';
 import MessengerAISettings from '../components/MessengerAISettings.jsx';
 
 const SimpleMessengerWebhook = () => {
+  // Configuration state
+  const [appId, setAppId] = useState('');
+  const [appSecret, setAppSecret] = useState('');
+  const [accessToken, setAccessToken] = useState('');
+  const [pageId, setPageId] = useState('');
+  const [webhookToken, setWebhookToken] = useState('muhammad');
+  
+  // UI state
   const [isWaiting, setIsWaiting] = useState(false);
   const [hasReceivedCall, setHasReceivedCall] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +32,34 @@ const SimpleMessengerWebhook = () => {
   useEffect(() => {
     checkStatus();
     loadAIConfig();
+    loadSavedConfigurations();
   }, []);
+
+  // Load all saved configurations on mount
+  const loadSavedConfigurations = async () => {
+    try {
+      // Load Messenger bot configuration
+      const configResponse = await fetch(`${API_BASE_URL}/api/messenger/config`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || 'MOCK_TOKEN'}`
+        }
+      });
+      
+      if (configResponse.ok) {
+        const configData = await configResponse.json();
+        if (configData.success && configData.config) {
+          setAppId(configData.config.appId || '');
+          setPageId(configData.config.pageId || '');
+          setWebhookToken(configData.config.webhookToken || 'muhammad');
+          setIsWaiting(configData.config.isActive || false);
+          
+          console.log('✅ Messenger configuration loaded successfully');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading saved configurations:', error);
+    }
+  };
 
   const loadAIConfig = async () => {
     try {
@@ -70,12 +105,27 @@ const SimpleMessengerWebhook = () => {
     setIsLoading(true);
     setError('');
 
+    // Validate required fields
+    if (!appId || !appSecret || !accessToken || !pageId) {
+      setError('Please fill in all required fields: App ID, App Secret, Access Token, and Page ID');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/messenger/activate`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || 'MOCK_TOKEN'}`
+        },
+        body: JSON.stringify({
+          appId,
+          appSecret,
+          accessToken,
+          pageId,
+          webhookToken
+        })
       });
 
       const data = await response.json();
@@ -286,6 +336,118 @@ const SimpleMessengerWebhook = () => {
               </div>
             )}
           </div>
+
+          {/* Configuration Fields */}
+          {!isWaiting && !hasReceivedCall && (
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gap: '0.75rem', fontSize: '0.875rem' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.25rem', opacity: '0.9' }}>
+                    App ID *
+                  </label>
+                  <input
+                    type="text"
+                    value={appId}
+                    onChange={(e) => setAppId(e.target.value)}
+                    placeholder="Enter your Facebook App ID"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      borderRadius: '4px',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      color: 'white',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.25rem', opacity: '0.9' }}>
+                    App Secret *
+                  </label>
+                  <input
+                    type="password"
+                    value={appSecret}
+                    onChange={(e) => setAppSecret(e.target.value)}
+                    placeholder="Enter your Facebook App Secret"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      borderRadius: '4px',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      color: 'white',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.25rem', opacity: '0.9' }}>
+                    Access Token *
+                  </label>
+                  <input
+                    type="password"
+                    value={accessToken}
+                    onChange={(e) => setAccessToken(e.target.value)}
+                    placeholder="Enter your Page Access Token"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      borderRadius: '4px',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      color: 'white',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.25rem', opacity: '0.9' }}>
+                    Page ID *
+                  </label>
+                  <input
+                    type="text"
+                    value={pageId}
+                    onChange={(e) => setPageId(e.target.value)}
+                    placeholder="Enter your Facebook Page ID"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      borderRadius: '4px',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      color: 'white',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '0.25rem', opacity: '0.9' }}>
+                    Webhook Verify Token
+                  </label>
+                  <input
+                    type="text"
+                    value={webhookToken}
+                    onChange={(e) => setWebhookToken(e.target.value)}
+                    placeholder="Webhook verify token"
+                    style={{
+                      width: '100%',
+                      padding: '0.5rem',
+                      borderRadius: '4px',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      backgroundColor: 'rgba(255,255,255,0.1)',
+                      color: 'white',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Status Display */}
           {!isWaiting && !hasReceivedCall && (

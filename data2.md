@@ -1,61 +1,47 @@
-==> Cloning from https://github.com/MuhamadTAH/Workflow
-==> Checking out commit 6ee1bd611c673ff1bfd26f23bf9016c7b9778972 in branch mains
-==> Installing dependencies with npm...
-==> Requesting Node.js version >=18.0.0
-==> Using Node.js version 24.7.0 via /opt/render/project/src/frontend/package.json
-==> Docs on specifying a Node.js version: https://render.com/docs/node-version
-added 335 packages, and audited 336 packages in 7s
-54 packages are looking for funding
-  run `npm fund` for details
-found 0 vulnerabilities
-up to date, audited 336 packages in 589ms
-54 packages are looking for funding
-  run `npm fund` for details
-found 0 vulnerabilities
-==> Running build command 'npm install --legacy-peer-deps && npm run build'...
-up to date, audited 336 packages in 621ms
-54 packages are looking for funding
-  run `npm fund` for details
-found 0 vulnerabilities
-> frontend@0.0.0 prebuild
-> npm install --legacy-peer-deps
-up to date, audited 336 packages in 671ms
-54 packages are looking for funding
-  run `npm fund` for details
-found 0 vulnerabilities
-> frontend@0.0.0 build
-> npm install --legacy-peer-deps && vite build
-up to date, audited 336 packages in 698ms
-54 packages are looking for funding
-  run `npm fund` for details
-found 0 vulnerabilities
-vite v6.3.5 building for production...
-transforming...
-✓ 31 modules transformed.
-✗ Build failed in 1.14s
-error during build:
-[vite:esbuild] Transform failed with 1 error:
-/opt/render/project/src/frontend/src/components/APIKeysDashboard.jsx:130:19: ERROR: Expected "{" but found "\\"
-file: /opt/render/project/src/frontend/src/components/APIKeysDashboard.jsx:130:19
-Expected "{" but found "\\"
-128|  
-129|    return (
-130|      <div className=\"min-h-screen bg-gray-50 p-6\">
-   |                     ^
-131|        <div className=\"max-w-7xl mx-auto\">
-132|          {/* Header */}
-    at failureErrorWithLog (/opt/render/project/src/frontend/node_modules/esbuild/lib/main.js:1467:15)
-    at /opt/render/project/src/frontend/node_modules/esbuild/lib/main.js:736:50
-    at responseCallbacks.<computed> (/opt/render/project/src/frontend/node_modules/esbuild/lib/main.js:603:9)
-    at handleIncomingPacket (/opt/render/project/src/frontend/node_modules/esbuild/lib/main.js:658:12)
-    at Socket.readFromStdout (/opt/render/project/src/frontend/node_modules/esbuild/lib/main.js:581:7)
-    at Socket.emit (node:events:508:28)
-    at addChunk (node:internal/streams/readable:559:12)
-    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
-    at Readable.push (node:internal/streams/readable:390:5)
-    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
-==> Build failed 😞
-==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
-==> Requesting Node.js version >=18.0.0
-==> Using Node.js version 24.7.0 via /opt/render/project/src/frontend/package.json
-==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+index-CUgzgBbK.js:74  GET https://workflow-lg9z.onrender.com/api/whatsapp-receiver/ai-config 401 (Unauthorized)
+qt @ index-CUgzgBbK.js:74
+(anonymous) @ index-CUgzgBbK.js:74
+al @ vendor-CsChfltt.js:32
+Ln @ vendor-CsChfltt.js:32
+(anonymous) @ vendor-CsChfltt.js:32
+Ge @ vendor-CsChfltt.js:17
+ut @ vendor-CsChfltt.js:17
+index-CUgzgBbK.js:74  GET https://workflow-lg9z.onrender.com/api/whatsapp-receiver/config 500 (Internal Server Error)
+Kt @ index-CUgzgBbK.js:74
+(anonymous) @ index-CUgzgBbK.js:74
+al @ vendor-CsChfltt.js:32
+Ln @ vendor-CsChfltt.js:32
+(anonymous) @ vendor-CsChfltt.js:32
+Ge @ vendor-CsChfltt.js:17
+ut @ vendor-CsChfltt.js:17
+index-CUgzgBbK.js:74 ✅ Claude auto-connected: Claude API auto-connected successfully
+index-CUgzgBbK.js:74 🚀 WhatsAppAISettings is rendering with new design!
+index-CUgzgBbK.js:74 🔄 WhatsApp AI Settings modal opened - loading current settings...
+index-CUgzgBbK.js:74 🚀 WhatsAppAISettings is rendering with new design!
+index-CUgzgBbK.js:74  GET https://workflow-lg9z.onrender.com/api/whatsapp-receiver/ai-config 401 (Unauthorized)
+E @ index-CUgzgBbK.js:74
+(anonymous) @ index-CUgzgBbK.js:74
+al @ vendor-CsChfltt.js:32
+Ln @ vendor-CsChfltt.js:32
+sc @ vendor-CsChfltt.js:32
+nn @ vendor-CsChfltt.js:32
+la @ vendor-CsChfltt.js:32
+Ot @ vendor-CsChfltt.js:30
+(anonymous) @ vendor-CsChfltt.js:32
+index-CUgzgBbK.js:74 ✅ Loaded system prompt: You are a helpful and friendly AI assistant. Respond to users in a professional yet warm manner....
+index-CUgzgBbK.js:74 🚀 WhatsAppAISettings is rendering with new design!
+index-CUgzgBbK.js:74  GET https://workflow-lg9z.onrender.com/api/whatsapp-receiver/ai-config 401 (Unauthorized)
+qt @ index-CUgzgBbK.js:74
+onClose @ index-CUgzgBbK.js:74
+Pa @ vendor-CsChfltt.js:29
+za @ vendor-CsChfltt.js:29
+Ta @ vendor-CsChfltt.js:29
+Do @ vendor-CsChfltt.js:29
+Oo @ vendor-CsChfltt.js:29
+(anonymous) @ vendor-CsChfltt.js:29
+ai @ vendor-CsChfltt.js:32
+Vi @ vendor-CsChfltt.js:29
+au @ vendor-CsChfltt.js:29
+Ql @ vendor-CsChfltt.js:29
+Qa @ vendor-CsChfltt.js:29
+index-CUgzgBbK.js:74  POST https://workflow-lg9z.onrender.com/api/whatsapp-receiver/activate 500 (Internal Server Error)

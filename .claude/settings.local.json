@@ -69,7 +69,9 @@
       "Bash(set PORT=3002)",
       "Bash(PORT=3002 node index.js)",
       "Read(D:\\automation/**)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "WebFetch(domain:fixdai.com)",
+      "Bash(start https://frontend-dpcg.onrender.com)"
     ],
     "deny": []
   }
