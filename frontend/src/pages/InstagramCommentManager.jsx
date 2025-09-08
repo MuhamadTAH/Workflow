@@ -998,45 +998,96 @@ const InstagramCommentManager = () => {
                       </div>
                     </div>
                     
-                    {/* AI Toggle Button for Selected User */}
+                    {/* AI Control Button for Selected User */}
                     <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                      <div style={{ marginBottom: '0.75rem' }}>
+                        <div style={{ color: '#6b7280', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500' }}>
+                          AI Response Control
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                          <div style={{
+                            width: '12px',
+                            height: '12px',
+                            borderRadius: '50%',
+                            backgroundColor: userAIStatus[selectedMessage.sender?.id] !== false ? '#10b981' : '#ef4444'
+                          }}></div>
+                          <span style={{ 
+                            fontSize: '0.75rem', 
+                            color: userAIStatus[selectedMessage.sender?.id] !== false ? '#10b981' : '#ef4444',
+                            fontWeight: '600'
+                          }}>
+                            {userAIStatus[selectedMessage.sender?.id] !== false ? 'AI Active' : 'AI Inactive'}
+                          </span>
+                        </div>
+                      </div>
+                      
                       <button
                         onClick={() => toggleUserAI(selectedMessage.sender?.id)}
                         disabled={isTogglingAI || !selectedMessage.sender?.id}
                         style={{
                           width: '100%',
                           backgroundColor: isTogglingAI ? '#9ca3af' : 
-                            (userAIStatus[selectedMessage.sender?.id] !== false ? '#dc2626' : '#10b981'),
+                            (userAIStatus[selectedMessage.sender?.id] !== false ? '#ef4444' : '#10b981'),
                           color: 'white',
-                          padding: '0.75rem 1rem',
+                          padding: '1rem',
                           border: 'none',
-                          borderRadius: '6px',
+                          borderRadius: '8px',
                           cursor: isTogglingAI || !selectedMessage.sender?.id ? 'not-allowed' : 'pointer',
                           fontSize: '0.875rem',
-                          fontWeight: '500',
+                          fontWeight: '600',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '0.5rem'
+                          gap: '0.75rem',
+                          transition: 'all 0.2s ease',
+                          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isTogglingAI && selectedMessage.sender?.id) {
+                            e.target.style.transform = 'translateY(-1px)';
+                            e.target.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.transform = 'translateY(0)';
+                          e.target.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
                         }}
                       >
                         {isTogglingAI ? (
-                          <>⏳ Updating...</>
+                          <>
+                            <div style={{
+                              width: '16px',
+                              height: '16px',
+                              border: '2px solid #ffffff',
+                              borderTop: '2px solid transparent',
+                              borderRadius: '50%',
+                              animation: 'spin 1s linear infinite'
+                            }}></div>
+                            Updating...
+                          </>
                         ) : userAIStatus[selectedMessage.sender?.id] !== false ? (
-                          <>🚫 Deactivate AI for {selectedMessage.sender?.id?.substring(0, 10)}...</>
+                          <>
+                            🚫
+                            <span>Deactivate AI</span>
+                          </>
                         ) : (
-                          <>🤖 Activate AI for {selectedMessage.sender?.id?.substring(0, 10)}...</>
+                          <>
+                            🤖
+                            <span>Activate AI</span>
+                          </>
                         )}
                       </button>
+                      
                       <p style={{ 
                         fontSize: '0.75rem', 
                         color: '#6b7280', 
                         textAlign: 'center', 
-                        marginTop: '0.5rem',
-                        margin: '0.5rem 0 0 0'
+                        marginTop: '0.75rem',
+                        margin: '0.75rem 0 0 0',
+                        lineHeight: '1.4'
                       }}>
                         {userAIStatus[selectedMessage.sender?.id] !== false 
-                          ? 'AI will automatically respond to this user\'s comments'
+                          ? 'AI will automatically respond to this user\'s DMs'
                           : 'AI responses are disabled for this user'
                         }
                       </p>
