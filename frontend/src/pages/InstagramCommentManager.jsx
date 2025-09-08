@@ -21,6 +21,10 @@ const InstagramCommentManager = () => {
   const [replyText, setReplyText] = useState('');
   const [isReplying, setIsReplying] = useState(false);
   
+  // Per-user AI Management State
+  const [userAIStatus, setUserAIStatus] = useState({});
+  const [isTogglingAI, setIsTogglingAI] = useState(false);
+  
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
@@ -179,6 +183,45 @@ const InstagramCommentManager = () => {
       setError('Network error: ' + error.message);
     } finally {
       setIsReplying(false);
+    }
+  };
+
+  const toggleUserAI = async (userId) => {
+    if (!userId || isTogglingAI) return;
+    
+    setIsTogglingAI(true);
+    setError('');
+    
+    const currentStatus = userAIStatus[userId] !== false; // Default to true if not set
+    const newStatus = !currentStatus;
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/instagram-comments/user-ai/toggle`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          userId: userId,
+          isActive: newStatus
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setUserAIStatus(prev => ({
+          ...prev,
+          [userId]: newStatus
+        }));
+      } else {
+        setError(data.error || 'Failed to toggle AI status for user');
+      }
+    } catch (error) {
+      setError('Network error: ' + error.message);
+    } finally {
+      setIsTogglingAI(false);
     }
   };
 
@@ -929,9 +972,13 @@ const InstagramCommentManager = () => {
                         </div>
                       </div>
                       <div>
-                        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Status</div>
-                        <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem' }}>
-                          New
+                        <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>AI Status</div>
+                        <div style={{ 
+                          fontWeight: '600', 
+                          color: userAIStatus[selectedMessage.sender?.id] !== false ? '#15803d' : '#dc2626',
+                          fontSize: '0.75rem'
+                        }}>
+                          {userAIStatus[selectedMessage.sender?.id] !== false ? '🤖 Active' : '🚫 Inactive'}
                         </div>
                       </div>
                     </div>
@@ -948,6 +995,50 @@ const InstagramCommentManager = () => {
                       }}>
                         {selectedMessage.text || 'No text content'}
                       </div>
+                    </div>
+                    
+                    {/* AI Toggle Button for Selected User */}
+                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                      <button
+                        onClick={() => toggleUserAI(selectedMessage.sender?.id)}
+                        disabled={isTogglingAI || !selectedMessage.sender?.id}
+                        style={{
+                          width: '100%',
+                          backgroundColor: isTogglingAI ? '#9ca3af' : 
+                            (userAIStatus[selectedMessage.sender?.id] !== false ? '#dc2626' : '#10b981'),
+                          color: 'white',
+                          padding: '0.75rem 1rem',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: isTogglingAI || !selectedMessage.sender?.id ? 'not-allowed' : 'pointer',
+                          fontSize: '0.875rem',
+                          fontWeight: '500',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.5rem'
+                        }}
+                      >
+                        {isTogglingAI ? (
+                          <>⏳ Updating...</>
+                        ) : userAIStatus[selectedMessage.sender?.id] !== false ? (
+                          <>🚫 Deactivate AI for {selectedMessage.sender?.id?.substring(0, 10)}...</>
+                        ) : (
+                          <>🤖 Activate AI for {selectedMessage.sender?.id?.substring(0, 10)}...</>
+                        )}
+                      </button>
+                      <p style={{ 
+                        fontSize: '0.75rem', 
+                        color: '#6b7280', 
+                        textAlign: 'center', 
+                        marginTop: '0.5rem',
+                        margin: '0.5rem 0 0 0'
+                      }}>
+                        {userAIStatus[selectedMessage.sender?.id] !== false 
+                          ? 'AI will automatically respond to this user\'s comments'
+                          : 'AI responses are disabled for this user'
+                        }
+                      </p>
                     </div>
                   </div>
                 ) : (

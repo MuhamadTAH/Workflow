@@ -7,6 +7,8 @@ const { generateAIReply, getAIConfig, handleMessageBatch } = require('./instagra
 let instagramMessages = [];
 // Store for Instagram user profiles
 let instagramUsers = {};
+// Store for per-user AI status (true = AI active, false = AI disabled)
+let userAIStatus = {};
 
 // Function to fetch Instagram user info
 async function fetchUserInfo(userId) {
@@ -248,15 +250,24 @@ router.all('/webhooks/instagram/comments', async (req, res) => {
               // Trigger AI auto-reply for incoming messages (not echoes)
               if (messageData.text && !messaging.message?.is_echo && senderId !== 'me') {
                 const aiConfig = getAIConfig();
-                if (aiConfig.enabled && aiConfig.autoReply) {
+                const userAIEnabled = userAIStatus[senderId] !== false; // Default to true if not set
+                
+                if (aiConfig.enabled && aiConfig.autoReply && userAIEnabled) {
                   logger.info('🤖 Adding message to batch for AI processing', {
                     senderId,
                     message: messageData.text.substring(0, 50),
-                    batchDelay: '5 seconds'
+                    batchDelay: '5 seconds',
+                    userAIEnabled
                   });
                   
                   // Use message batching system (5-second delay)
                   handleMessageBatch(senderId, messageData.text, generateAIReply, sendInstagramReply);
+                } else if (!userAIEnabled) {
+                  logger.info('🚫 AI disabled for user, skipping auto-reply', {
+                    senderId,
+                    userAIEnabled,
+                    globalAIEnabled: aiConfig.enabled && aiConfig.autoReply
+                  });
                 }
               }
             } else {
@@ -458,6 +469,75 @@ router.post('/instagram-comments/reply', async (req, res) => {
       error: 'Internal server error: ' + error.message
     });
   }
+});
+
+// Toggle AI status for specific user
+router.post('/instagram-comments/user-ai/toggle', async (req, res) => {
+  const { userId, isActive } = req.body;
+
+  logger.info('🤖 User AI toggle requested', {
+    userId,
+    isActive,
+    currentStatus: userAIStatus[userId]
+  });
+
+  if (!userId) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing userId'
+    });
+  }
+
+  if (typeof isActive !== 'boolean') {
+    return res.status(400).json({
+      success: false,
+      error: 'isActive must be a boolean'
+    });
+  }
+
+  try {
+    // Update user AI status
+    userAIStatus[userId] = isActive;
+    
+    logger.info('✅ User AI status updated', {
+      userId,
+      newStatus: isActive,
+      action: isActive ? 'AI activated' : 'AI deactivated'
+    });
+
+    res.json({
+      success: true,
+      message: `AI ${isActive ? 'activated' : 'deactivated'} for user ${userId}`,
+      data: {
+        userId,
+        isActive,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    logger.error('💥 User AI toggle error', { 
+      error: error.message, 
+      userId, 
+      isActive 
+    });
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error: ' + error.message
+    });
+  }
+});
+
+// Get AI status for all users
+router.get('/instagram-comments/user-ai/status', (req, res) => {
+  logger.info('User AI status requested', {
+    userCount: Object.keys(userAIStatus).length
+  });
+
+  res.json({
+    success: true,
+    userAIStatus: userAIStatus,
+    defaultStatus: true // Default is AI active for new users
+  });
 });
 
 module.exports = router;
