@@ -922,7 +922,7 @@ const InstagramCommentManager = () => {
               {/* Selected Comment Info Section */}
               <div style={{ marginBottom: '2rem' }}>
                 <h3 style={{ fontSize: '1rem', fontWeight: '600', color: '#1f2937', marginBottom: '1rem', borderBottom: '2px solid #e5e7eb', paddingBottom: '0.5rem' }}>
-                  🎯 Selected Comment
+                  🎯 Selected User
                 </h3>
                 
                 {selectedMessage ? (
