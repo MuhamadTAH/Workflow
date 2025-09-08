@@ -509,124 +509,143 @@ function Settings() {
 
   return (
     <div className={`professional-dashboard ${theme === 'dark' ? 'variant-1' : 'light-theme'}`} 
-         style={{ backgroundColor: '#1a1a1a', color: '#E0E0E0', minHeight: '100vh', paddingLeft: '80px' }}>
+         style={{ backgroundColor: '#1a1a1a', color: '#E0E0E0', minHeight: '100vh' }}>
       
-      {/* Header */}
-      <div className="dashboard-hero" style={{ 
-        backgroundColor: '#323232', 
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        padding: '2rem',
-        marginBottom: '2rem'
+      {/* Settings Navigation - Fixed Left Sidebar */}
+      <div style={{
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        width: '280px',
+        height: '100vh',
+        backgroundColor: '#1E1E1E',
+        borderRight: '1px solid #333333',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '1rem 0',
+        zIndex: 1000,
+        overflowY: 'auto'
       }}>
-        <div className="hero-content">
-          <h1 className="hero-title" style={{ 
-            fontSize: '2.5rem', 
-            fontWeight: '600', 
-            margin: '0 0 0.5rem 0',
-            color: '#E0E0E0'
-          }}>
-            ⚙️ Settings
-          </h1>
-          <p className="hero-subtitle" style={{ 
-            color: '#a0a0a0', 
-            fontSize: '1.1rem',
-            margin: 0 
-          }}>
-            Manage your account preferences and application settings
-          </p>
-        </div>
-      </div>
-
-      <div className="dashboard-content" style={{ 
-        maxWidth: '1400px',
-        margin: '0 auto',
-        padding: '0 2rem 2rem 2rem'
-      }}>
-        <div className="content-grid" style={{
-          display: 'grid',
-          gridTemplateColumns: '280px 1fr',
-          gap: '2rem'
+        {/* Sidebar Logo/Header */}
+        <div style={{
+          padding: '0 1rem',
+          marginBottom: '1.5rem'
         }}>
-        
-        {/* Settings Navigation */}
-        <div className="dashboard-card" style={{
-          backgroundColor: '#323232',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '16px',
-          padding: '1.5rem',
-          height: 'fit-content',
-          boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)'
-        }}>
-          <div className="card-header" style={{
+          <div style={{
             display: 'flex',
-            justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: '1.5rem',
-            paddingBottom: '1rem',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+            gap: '0.5rem',
+            color: '#E0E0E0',
+            fontSize: '1.1rem',
+            fontWeight: '600'
           }}>
-            <h3 style={{ 
-              color: '#E0E0E0',
-              fontSize: '1.1rem',
-              fontWeight: '600',
-              margin: '0',
+            <div style={{
+              width: '40px',
+              height: '40px',
+              backgroundColor: '#D4AF37',
+              borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem'
+              justifyContent: 'center',
+              color: '#000',
+              fontWeight: 'bold',
+              fontSize: '1.25rem'
             }}>
-              <i className="fas fa-list" style={{ color: '#4a90e2' }}></i>
-              Categories
-            </h3>
+              ⚙️
+            </div>
+            <span>Settings</span>
           </div>
-          <nav>
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`settings-nav-item ${activeTab === tab.id ? 'active' : ''}`}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  width: '100%',
-                  padding: '0.75rem 1rem',
-                  margin: '0.25rem 0',
-                  backgroundColor: activeTab === tab.id ? 'rgba(74, 144, 226, 0.2)' : '#262626',
-                  color: activeTab === tab.id ? '#4a90e2' : '#E0E0E0',
-                  border: activeTab === tab.id ? '1px solid rgba(74, 144, 226, 0.3)' : '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '10px',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  fontSize: '0.95rem',
-                  fontWeight: '500',
-                  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  if (activeTab !== tab.id) {
-                    e.target.style.backgroundColor = '#424242';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (activeTab !== tab.id) {
-                    e.target.style.backgroundColor = '#262626';
-                  }
-                }}
-              >
-                <i className={tab.icon} style={{ color: activeTab === tab.id ? '#4a90e2' : '#a0a0a0' }}></i>
-                {tab.name}
-              </button>
-            ))}
-          </nav>
         </div>
 
-        {/* Settings Content */}
-        <div className="dashboard-card" style={{
-          backgroundColor: '#323232',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          borderRadius: '16px',
+        {/* Navigation Tabs */}
+        <nav style={{ padding: '0 1rem', flex: 1 }}>
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                width: '100%',
+                padding: '0.75rem 1rem',
+                margin: '0.25rem 0',
+                backgroundColor: activeTab === tab.id ? '#2C2C2C' : 'transparent',
+                color: activeTab === tab.id ? '#D4AF37' : '#A0A0A0',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                fontSize: '0.95rem',
+                fontWeight: '500',
+                textAlign: 'left'
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== tab.id) {
+                  e.target.style.backgroundColor = '#2C2C2C';
+                  e.target.style.color = '#D4AF37';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== tab.id) {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.color = '#A0A0A0';
+                }
+              }}
+            >
+              <i className={tab.icon} style={{ 
+                color: activeTab === tab.id ? '#D4AF37' : '#A0A0A0',
+                fontSize: '1.1rem',
+                width: '20px',
+                textAlign: 'center'
+              }}></i>
+              {tab.name}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Main Content - Adjusted for sidebar */}
+      <div style={{ marginLeft: '280px' }}>
+        {/* Header */}
+        <div className="dashboard-hero" style={{ 
+          backgroundColor: '#323232', 
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
           padding: '2rem',
-          boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)'
+          marginBottom: '2rem'
         }}>
+          <div className="hero-content">
+            <h1 className="hero-title" style={{ 
+              fontSize: '2.5rem', 
+              fontWeight: '600', 
+              margin: '0 0 0.5rem 0',
+              color: '#E0E0E0'
+            }}>
+              ⚙️ Settings
+            </h1>
+            <p className="hero-subtitle" style={{ 
+              color: '#a0a0a0', 
+              fontSize: '1.1rem',
+              margin: 0 
+            }}>
+              Manage your account preferences and application settings
+            </p>
+          </div>
+        </div>
+
+        <div className="dashboard-content" style={{ 
+          maxWidth: '1400px',
+          margin: '0 auto',
+          padding: '0 2rem 2rem 2rem'
+        }}>
+          {/* Settings Content */}
+          <div className="dashboard-card" style={{
+            backgroundColor: '#323232',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '16px',
+            padding: '2rem',
+            boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.2)'
+          }}>
           {activeTab === 'billing' ? <BillingContent /> : (
             <div className="settings-section">
               <div className="card-header" style={{
