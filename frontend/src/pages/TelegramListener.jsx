@@ -54,11 +54,6 @@ const TelegramListener = () => {
   const [hasKnowledgeBase, setHasKnowledgeBase] = useState(false);
   const [knowledgeBaseInfo, setKnowledgeBaseInfo] = useState(null);
   
-  // Manual text input states
-  const [showManualInput, setShowManualInput] = useState(false);
-  const [manualBusinessInfo, setManualBusinessInfo] = useState('');
-  const [isManualSaving, setIsManualSaving] = useState(false);
-  const [manualInputStatus, setManualInputStatus] = useState('');
 
   const handleSetupWebhook = async () => {
     if (!botToken.trim()) {
@@ -594,89 +589,6 @@ const TelegramListener = () => {
     loadKnowledgeBaseInfo();
   }, []);
 
-  // Manual business info functions
-  const handleSaveManualInfo = async () => {
-    if (!manualBusinessInfo.trim()) {
-      setManualInputStatus('❌ Please enter your business information');
-      return;
-    }
-
-    setIsManualSaving(true);
-    setManualInputStatus('💾 Saving business information...');
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/claude/manual-knowledge`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          businessInfo: manualBusinessInfo.trim()
-        })
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        setManualInputStatus('✅ Business information saved successfully!');
-        setHasKnowledgeBase(true);
-        setKnowledgeBaseInfo({
-          filename: 'Manual Input',
-          uploadedAt: new Date().toISOString(),
-          textLength: manualBusinessInfo.trim().length,
-          pageCount: 1,
-          method: 'manual-input'
-        });
-        setShowManualInput(false);
-        setTimeout(() => setManualInputStatus(''), 3000);
-      } else {
-        setManualInputStatus(`❌ Save failed: ${result.error || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Manual info save error:', error);
-      setManualInputStatus(`❌ Network error: ${error.message}`);
-    } finally {
-      setIsManualSaving(false);
-    }
-  };
-
-  const loadBusinessTemplate = () => {
-    const template = `BUSINESS DETAILS:
-- Business Name: [Your business name]
-- Business Type: [Restaurant, Store, Service, etc.]
-- Address: [Your address]
-- Phone: [Your phone number]
-- Email: [Your email]
-
-OPERATING HOURS:
-- Monday: [Hours]
-- Tuesday: [Hours]
-- Wednesday: [Hours]
-- Thursday: [Hours]
-- Friday: [Hours]
-- Saturday: [Hours]
-- Sunday: [Hours]
-
-SERVICES/PRODUCTS:
-- [List your main services or products]
-- [Include prices if relevant]
-- [Special offers or features]
-
-POLICIES:
-- [Return/refund policy]
-- [Payment methods accepted]
-- [Special terms or conditions]
-
-CONTACT & SOCIAL:
-- Website: [Your website]
-- Social Media: [Your social accounts]
-- Additional Contact Methods: [Any other ways to reach you]`;
-
-    setManualBusinessInfo(template);
-    setManualInputStatus('📋 Template loaded! Please fill in your information.');
-    setTimeout(() => setManualInputStatus(''), 3000);
-  };
 
   // Get unique users from messages (exclude bot messages)
   const getUniqueUsers = () => {
@@ -1055,111 +967,10 @@ CONTACT & SOCIAL:
                     AI Auto-reply is Active - Click the AI button above to configure settings
                   </div>
                 )}
-                          color: 'white',
-                          padding: '0.5rem 0.75rem',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontSize: '0.75rem'
-                        }}
-                      >
-                        🗑️ Clear
-                      </button>
-                    </div>
-
-                    {/* Manual Input Textarea */}
-                    <textarea
-                      value={manualBusinessInfo}
-                      onChange={(e) => setManualBusinessInfo(e.target.value)}
-                      placeholder="Enter your business information here... (business name, hours, services, contact info, etc.)"
-                      rows={12}
-                      style={{
-                        width: '100%',
-                        padding: '1rem',
-                        border: `1px solid ${colors.border}`,
-                        borderRadius: '6px',
-                        fontSize: '0.875rem',
-                        fontFamily: 'monospace',
-                        resize: 'vertical',
-                        minHeight: '200px',
-                        maxHeight: '400px',
-                        opacity: isManualSaving ? '0.5' : '1'
-                      }}
-                      disabled={isManualSaving}
-                    />
-                    
-                    <p style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: colors.mutedText }}>
-                      Character count: {manualBusinessInfo.length} • Enter detailed information about your business
-                    </p>
-
-                    {/* Manual Input Actions */}
-                    <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                      <button
-                        onClick={handleSaveManualInfo}
-                        disabled={isManualSaving || !manualBusinessInfo.trim()}
-                        style={{
-                          flex: '1',
-                          backgroundColor: isManualSaving || !manualBusinessInfo.trim() ? colors.mutedText : colors.brandBlue,
-                          color: 'white',
-                          padding: '0.75rem 1rem',
-                          border: 'none',
-                          borderRadius: '6px',
-                          cursor: isManualSaving || !manualBusinessInfo.trim() ? 'not-allowed' : 'pointer',
-                          fontSize: '1rem',
-                          fontWeight: '500'
-                        }}
-                      >
-                        {isManualSaving ? '⏳ Saving...' : '💾 Save Business Information'}
-                      </button>
-                    </div>
-
-                    {/* Manual Input Status */}
-                    {manualInputStatus && (
-                      <div style={{
-                        padding: '1rem',
-                        borderRadius: '6px',
-                        backgroundColor: manualInputStatus.includes('✅') ? 'rgba(16, 185, 129, 0.1)' : manualInputStatus.includes('❌') ? 'rgba(244, 67, 54, 0.1)' : colors.overlay,
-                        color: manualInputStatus.includes('✅') ? colors.success : manualInputStatus.includes('❌') ? colors.error : colors.brandBlue,
-                        fontSize: '0.875rem',
-                        marginTop: '1rem'
-                      }}>
-                        {manualInputStatus}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Instructions */}
-                <div style={{
-                  backgroundColor: colors.cardBg,
-                  padding: '1rem',
-                  borderRadius: '6px',
-                  fontSize: '0.875rem'
-                }}>
-                  <h4 style={{ fontWeight: '500', color: colors.brandBlue, marginBottom: '0.5rem', margin: '0 0 0.5rem 0' }}>
-                    💡 How Knowledge Base Works:
-                  </h4>
-                  <ul style={{ color: colors.brandBlueDark, lineHeight: '1.5', margin: '0', paddingLeft: '1.2rem' }}>
-                    <li><strong>Upload your PDF</strong> - Business info, menu, services, FAQ, etc.</li>
-                    <li><strong>Automatic processing</strong> - Text is extracted and stored</li>
-                    <li><strong>Smart responses</strong> - Claude references your PDF for accurate answers</li>
-                    <li><strong>Context-aware</strong> - Generic questions use normal AI, specific questions use your data</li>
-                  </ul>
-                  
-                  <div style={{ marginTop: '0.75rem', padding: '0.75rem', backgroundColor: colors.overlay, borderRadius: '4px' }}>
-                    <p style={{ color: colors.brandBlue, fontSize: '0.75rem', margin: 0 }}>
-                      <strong>Example:</strong> User asks "What are your opening hours?" → Claude checks your PDF → Responds with your actual hours!
-                    </p>
-                  </div>
-                </div>
-                      </div>
-                    </div>
-                  </div> {/* End Collapsible Content */}
-                </div>
                 
               </div>
             </div>
-          
+
           {/* MIDDLE COLUMN - Chat Interface */}
           <div style={{ 
             position: 'fixed',
