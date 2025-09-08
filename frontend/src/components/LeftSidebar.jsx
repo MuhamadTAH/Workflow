@@ -48,6 +48,11 @@ function LeftSidebar() {
       name: 'Messenger Manager',
       path: '/messenger-comments',
       icon: 'fab fa-facebook-messenger'
+    },
+    {
+      name: 'Settings',
+      path: '/settings',
+      icon: 'fas fa-cog'
     }
   ];
 

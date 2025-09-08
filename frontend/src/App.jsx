@@ -27,6 +27,7 @@ import SimpleMessengerWebhook from './pages/SimpleMessengerWebhook';
 import BillingDashboard from './components/BillingDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import APIKeysDashboard from './components/APIKeysDashboard';
+import Settings from './pages/Settings';
 // Import shop components using the modular router
 import { 
   ShopDashboard, 
@@ -381,6 +382,7 @@ function App() {
         <Route path="/billing" element={<BillingDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/api-keys" element={<APIKeysDashboard />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/shop/:shopName" element={<PublicShop />} />
         </Routes>
       </Router>
