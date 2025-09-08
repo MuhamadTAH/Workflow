@@ -193,7 +193,8 @@ const InstagramCommentManager = () => {
     setIsTogglingAI(true);
     setError('');
     
-    const currentStatus = userAIStatus[userId] !== false; // Default to true if not set
+    // Check if user has explicit status set, otherwise default to true (active)
+    const currentStatus = userAIStatus.hasOwnProperty(userId) ? userAIStatus[userId] : true;
     const newStatus = !currentStatus;
     
     try {
@@ -1025,16 +1026,19 @@ const InstagramCommentManager = () => {
                             height: '12px',
                             borderRadius: '50%',
                             backgroundColor: aiActivatingUsers[selectedMessage.sender?.id] ? '#f59e0b' : 
-                              (userAIStatus[selectedMessage.sender?.id] !== false ? '#10b981' : '#ef4444')
+                              (userAIStatus.hasOwnProperty(selectedMessage.sender?.id) ? 
+                                (userAIStatus[selectedMessage.sender?.id] ? '#10b981' : '#ef4444') : '#10b981')
                           }}></div>
                           <span style={{ 
                             fontSize: '0.75rem', 
                             color: aiActivatingUsers[selectedMessage.sender?.id] ? '#f59e0b' : 
-                              (userAIStatus[selectedMessage.sender?.id] !== false ? '#10b981' : '#ef4444'),
+                              (userAIStatus.hasOwnProperty(selectedMessage.sender?.id) ? 
+                                (userAIStatus[selectedMessage.sender?.id] ? '#10b981' : '#ef4444') : '#10b981'),
                             fontWeight: '600'
                           }}>
                             {aiActivatingUsers[selectedMessage.sender?.id] ? 'AI Activating...' : 
-                              (userAIStatus[selectedMessage.sender?.id] !== false ? 'AI Active' : 'AI Inactive')}
+                              (userAIStatus.hasOwnProperty(selectedMessage.sender?.id) ? 
+                                (userAIStatus[selectedMessage.sender?.id] ? 'AI Active' : 'AI Inactive') : 'AI Active')}
                           </span>
                         </div>
                       </div>
@@ -1046,7 +1050,8 @@ const InstagramCommentManager = () => {
                           width: '100%',
                           backgroundColor: isTogglingAI ? '#9ca3af' : 
                             aiActivatingUsers[selectedMessage.sender?.id] ? '#f59e0b' :
-                            (userAIStatus[selectedMessage.sender?.id] !== false ? '#ef4444' : '#10b981'),
+                            (userAIStatus.hasOwnProperty(selectedMessage.sender?.id) ? 
+                              (userAIStatus[selectedMessage.sender?.id] ? '#ef4444' : '#10b981') : '#ef4444'),
                           color: 'white',
                           padding: '1rem',
                           border: 'none',
@@ -1089,16 +1094,23 @@ const InstagramCommentManager = () => {
                             ⏳
                             <span>AI Starting... (Please wait)</span>
                           </>
-                        ) : userAIStatus[selectedMessage.sender?.id] !== false ? (
-                          <>
-                            🚫
-                            <span>Deactivate AI</span>
-                          </>
-                        ) : (
-                          <>
-                            🤖
-                            <span>Activate AI</span>
-                          </>
+                        ) : (userAIStatus.hasOwnProperty(selectedMessage.sender?.id) ? 
+                            (userAIStatus[selectedMessage.sender?.id] ? (
+                              <>
+                                🚫
+                                <span>Deactivate AI</span>
+                              </>
+                            ) : (
+                              <>
+                                🤖
+                                <span>Activate AI</span>
+                              </>
+                            )) : (
+                              <>
+                                🚫
+                                <span>Deactivate AI</span>
+                              </>
+                            )
                         )}
                       </button>
                       
@@ -1112,9 +1124,11 @@ const InstagramCommentManager = () => {
                       }}>
                         {aiActivatingUsers[selectedMessage.sender?.id] 
                           ? 'AI is starting up for this user. Please wait 5 seconds before sending messages.'
-                          : userAIStatus[selectedMessage.sender?.id] !== false 
-                          ? 'AI will automatically respond to this user\'s DMs'
-                          : 'AI responses are disabled for this user'
+                          : userAIStatus.hasOwnProperty(selectedMessage.sender?.id) 
+                          ? (userAIStatus[selectedMessage.sender?.id] 
+                            ? 'AI will automatically respond to this user\'s DMs'
+                            : 'AI responses are disabled for this user')
+                          : 'AI will automatically respond to this user\'s DMs'
                         }
                       </p>
                     </div>
