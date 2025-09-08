@@ -2486,14 +2486,15 @@ CONTACT & SOCIAL:
         </div>
 
         {/* AI Settings Modal */}
-        <TelegramAISettings
-          isVisible={showAISettings}
-          onClose={() => {
-            setShowAISettings(false);
-            loadAIConfig(); // Reload config after closing settings
-          }}
-        />
-
+        {showAISettings && (
+          <TelegramAISettings
+            isVisible={showAISettings}
+            onClose={() => {
+              setShowAISettings(false);
+              loadAIConfig();
+            }}
+          />
+        )}
       </div>
     </div>
   );
