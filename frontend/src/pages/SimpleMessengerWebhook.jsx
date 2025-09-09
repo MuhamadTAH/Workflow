@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api.js';
 import { useTheme } from '../contexts/ThemeContext';
-import ThemeToggle from '../components/ThemeToggle';
 import MessengerAISettings from '../components/MessengerAISettings.jsx';
 
 const SimpleMessengerWebhook = () => {
@@ -422,7 +421,6 @@ const SimpleMessengerWebhook = () => {
                   <i className="fab fa-facebook-messenger" style={{ marginRight: '0.5rem' }}></i>
                   Messenger Manager
                 </h2>
-                <ThemeToggle />
               </div>
               
               {/* Sidebar Content */}
