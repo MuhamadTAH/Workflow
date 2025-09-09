@@ -778,281 +778,436 @@ const SimpleMessengerWebhook = () => {
           )}
         </div>
 
-          {/* Center Panel - Conversation */}
+          {/* MIDDLE COLUMN - Chat Interface */}
           <div style={{ 
-        flex: '1',
-        backgroundColor: 'white',
-        display: 'flex',
-        flexDirection: 'column',
-        borderRight: selectedUserId ? '1px solid #e5e7eb' : 'none'
-      }}>
-        
-        {/* Conversation Header */}
-        {selectedUserId ? (
-          <div style={{ 
-            padding: '1rem',
-            backgroundColor: '#f8fafc',
-            borderBottom: '1px solid #e5e7eb',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem'
+            position: 'fixed',
+            top: '0',
+            left: isSidebarCollapsed ? '0' : '400px',
+            right: isRightSidebarCollapsed ? '0' : '300px',
+            height: '100vh',
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '0',
+            transition: 'left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            padding: '2rem 1rem',
+            backgroundColor: colors.primaryBg,
+            borderTop: `1px solid ${colors.border}`,
+            borderBottom: `1px solid ${colors.border}`,
+            zIndex: 999,
+            overflowY: 'auto'
           }}>
-            {(() => {
-              const selectedUser = users[selectedUserId];
-              return (
-                <>
-                  <div style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    backgroundColor: '#0084ff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1rem',
-                    color: 'white',
-                    fontWeight: 'bold',
-                    backgroundImage: selectedUser?.profile_pic ? `url(${selectedUser.profile_pic})` : 'none',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
-                  }}>
-                    {!selectedUser?.profile_pic && (selectedUser?.name?.charAt(0).toUpperCase() || 'U')}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '1rem', fontWeight: '600', color: '#111827' }}>
-                      {selectedUser?.name || 'Messenger User'}
-                    </div>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        ) : (
-          <div style={{ 
-            padding: '1rem',
-            backgroundColor: '#f8fafc',
-            borderBottom: '1px solid #e5e7eb',
-            textAlign: 'center'
-          }}>
-            <h2 style={{ 
-              fontSize: '1.25rem', 
-              fontWeight: 'bold', 
-              color: '#111827',
-              margin: 0
-            }}>
-              Messenger Manager
-            </h2>
-          </div>
-        )}
 
-        {/* Messages Display */}
-        <div style={{ 
-          flex: 1, 
-          overflowY: 'auto', 
-          padding: '1rem',
-          backgroundColor: '#f8fafc'
-        }}>
-          {!selectedUserId ? (
-            <div style={{ 
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              color: '#9ca3af',
-              textAlign: 'center'
+            {/* Two Panel Layout */}
+            <div style={{
+              opacity: isWaiting ? 1 : 0.6
             }}>
-              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem', color: '#6b7280' }}>
-                Select a conversation
-              </h3>
-              <p style={{ fontSize: '0.875rem' }}>
-                Choose a conversation from the left panel to start messaging
-              </p>
               {!isWaiting && !hasReceivedCall && (
-                <div style={{ marginTop: '2rem' }}>
-                  <p style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>
-                    Haven't started receiving messages yet?
+                <div style={{
+                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                  padding: '1rem',
+                  borderRadius: '6px',
+                  marginBottom: '1rem',
+                  border: `1px solid ${colors.error}`
+                }}>
+                  <p style={{ color: colors.error, fontSize: '0.875rem', margin: 0 }}>
+                    ⚠️ Setup and activate webhook first to start receiving messages
                   </p>
-                  <button
-                    onClick={handleActivate}
-                    disabled={isLoading}
-                    style={{
-                      backgroundColor: isLoading ? '#9ca3af' : '#0084ff',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      padding: '0.75rem 1.5rem',
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      cursor: isLoading ? 'not-allowed' : 'pointer'
-                    }}
-                  >
-                    {isLoading ? 'Activating...' : '🚀 Start Webhook'}
-                  </button>
                 </div>
               )}
-            </div>
-          ) : currentMessages.length === 0 ? (
-            <div style={{ 
-              textAlign: 'center', 
-              color: '#9ca3af', 
-              padding: '2rem',
-              fontStyle: 'italic'
-            }}>
-              No messages in this conversation yet.
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {currentMessages.map((message, index) => {
-                const isOutgoing = message.isOutgoing || message.sender?.id === 'me';
+              <div style={{ 
+                display: 'flex', 
+                gap: '0', 
+                height: '500px', 
+                border: `1px solid ${colors.border}`, 
+                borderRadius: '8px', 
+                overflow: 'hidden',
+                width: '100%',
+                maxWidth: '100%'
+              }}>
                 
-                return (
-                  <div 
-                    key={message.id || index}
-                    style={{
-                      display: 'flex',
-                      justifyContent: isOutgoing ? 'flex-end' : 'flex-start',
-                      width: '100%'
-                    }}
-                  >
-                    <div style={{
-                      maxWidth: '70%',
-                      minWidth: '120px',
-                      backgroundColor: isOutgoing ? '#0084ff' : 'white',
-                      color: isOutgoing ? 'white' : '#374151',
-                      borderRadius: isOutgoing ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                      padding: '0.75rem 1rem',
-                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                      position: 'relative'
-                    }}>
-                      
-                      {/* AI Reply Badge */}
-                      {message.isAIReply && (
-                        <div style={{
-                          position: 'absolute',
-                          top: '-8px',
-                          left: '8px',
-                          backgroundColor: '#22c55e',
-                          color: 'white',
-                          fontSize: '0.6rem',
-                          padding: '2px 6px',
-                          borderRadius: '10px',
-                          fontWeight: 'bold'
+                {/* Users Panel */}
+                <div style={{ 
+                  flex: '0 0 300px',
+                  width: '300px',
+                  minWidth: '300px',
+                  maxWidth: '300px',
+                  backgroundColor: colors.cardBg, 
+                  padding: '1rem', 
+                  borderRight: `1px solid ${colors.border}`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <h3 style={{ fontWeight: '500', color: colors.primaryText, margin: 0 }}>
+                      💬 Conversations
+                      {isWaiting && (
+                        <span style={{ 
+                          marginLeft: '0.5rem', 
+                          fontSize: '0.75rem', 
+                          color: colors.success,
+                          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px'
                         }}>
-                          🤖 AI
+                          🟢 Live
+                        </span>
+                      )}
+                    </h3>
+                    <span style={{ fontSize: '0.875rem', color: colors.mutedText }}>
+                      {conversations.length} chat{conversations.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  <div style={{ 
+                    flex: 1,
+                    overflowY: 'auto', 
+                    backgroundColor: colors.inputBg, 
+                    borderRadius: '4px',
+                    border: `1px solid ${colors.border}`
+                  }}>
+                    {conversations.length === 0 ? (
+                      <div style={{ 
+                        padding: '2rem', 
+                        textAlign: 'center', 
+                        color: colors.mutedText,
+                        fontSize: '0.875rem'
+                      }}>
+                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💬</div>
+                        <p>No conversations yet. Send a message to start!</p>
+                      </div>
+                    ) : (
+                      <div style={{ padding: '0.5rem' }}>
+                        {conversations.map((conversation) => (
+                          <div
+                            key={conversation.userId}
+                            onClick={() => setSelectedUserId(conversation.userId)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '0.75rem',
+                              borderRadius: '6px',
+                              marginBottom: '0.5rem',
+                              cursor: 'pointer',
+                              backgroundColor: selectedUserId === conversation.userId ? colors.brandBlue : 'transparent',
+                              color: selectedUserId === conversation.userId ? 'white' : colors.primaryText,
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <div style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              backgroundColor: selectedUserId === conversation.userId ? 'rgba(255,255,255,0.2)' : colors.brandBlue,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginRight: '0.75rem',
+                              fontSize: '1rem',
+                              color: 'white',
+                              fontWeight: 'bold'
+                            }}>
+                              {conversation.name ? conversation.name.charAt(0).toUpperCase() : '?'}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ 
+                                fontWeight: '500', 
+                                fontSize: '0.875rem',
+                                marginBottom: '0.25rem',
+                                color: selectedUserId === conversation.userId ? 'white' : colors.primaryText
+                              }}>
+                                {conversation.name || `User ${conversation.userId.slice(-4)}`}
+                              </div>
+                              <div style={{ 
+                                fontSize: '0.75rem', 
+                                color: selectedUserId === conversation.userId ? 'rgba(255,255,255,0.8)' : colors.mutedText,
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap',
+                                textOverflow: 'ellipsis'
+                              }}>
+                                {conversation.lastMessage?.text || 'No messages'}
+                              </div>
+                            </div>
+                            <div style={{ 
+                              fontSize: '0.7rem', 
+                              color: selectedUserId === conversation.userId ? 'rgba(255,255,255,0.7)' : colors.mutedText,
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {new Date(conversation.lastMessage?.timestamp || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Messages Panel */}
+                <div style={{ 
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  backgroundColor: colors.inputBg
+                }}>
+        
+                  {/* Conversation Header */}
+                  {selectedUserId ? (
+                    <div style={{ 
+                      padding: '1rem',
+                      backgroundColor: colors.secondaryBg,
+                      borderBottom: `1px solid ${colors.border}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '1rem'
+                    }}>
+                      {(() => {
+                        const selectedUser = users[selectedUserId];
+                        return (
+                          <>
+                            <div style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              backgroundColor: colors.brandBlue,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '1rem',
+                              color: 'white',
+                              fontWeight: 'bold',
+                              backgroundImage: selectedUser?.profile_pic ? `url(${selectedUser.profile_pic})` : 'none',
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center'
+                            }}>
+                              {!selectedUser?.profile_pic && (selectedUser?.name?.charAt(0).toUpperCase() || 'U')}
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '1rem', fontWeight: '600', color: colors.primaryText }}>
+                                {selectedUser?.name || 'Messenger User'}
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  ) : (
+                    <div style={{ 
+                      padding: '2rem',
+                      backgroundColor: colors.cardBg,
+                      textAlign: 'center',
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexDirection: 'column'
+                    }}>
+                      <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>💬</div>
+                      <h2 style={{ 
+                        fontSize: '1.25rem', 
+                        fontWeight: '600',
+                        color: colors.primaryText,
+                        margin: '0 0 0.5rem 0'
+                      }}>
+                        Select a Conversation
+                      </h2>
+                      <p style={{ fontSize: '0.875rem', color: colors.mutedText, margin: 0 }}>
+                        Choose a conversation from the left panel to start messaging
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Messages Display */}
+                  {selectedUserId && (
+                    <div style={{ 
+                      flex: 1, 
+                      overflowY: 'auto', 
+                      padding: '1rem',
+                      backgroundColor: colors.primaryBg
+                    }}>
+                      {currentMessages.length === 0 ? (
+                        <div style={{ 
+                          textAlign: 'center', 
+                          color: colors.mutedText, 
+                          padding: '2rem',
+                          fontStyle: 'italic'
+                        }}>
+                          No messages in this conversation yet.
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          {currentMessages.map((message, index) => {
+                            const isOutgoing = message.isOutgoing || message.sender?.id === 'me';
+                            
+                            return (
+                              <div 
+                                key={message.id || index}
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: isOutgoing ? 'flex-end' : 'flex-start',
+                                  width: '100%',
+                                  marginBottom: '0.5rem'
+                                }}
+                              >
+                                <div style={{
+                                  maxWidth: '70%',
+                                  padding: '0.75rem 1rem',
+                                  borderRadius: isOutgoing ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                                  backgroundColor: isOutgoing ? colors.brandBlue : colors.cardBg,
+                                  color: isOutgoing ? 'white' : colors.primaryText,
+                                  fontSize: '0.875rem',
+                                  lineHeight: '1.4',
+                                  wordWrap: 'break-word',
+                                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+                                  position: 'relative'
+                                }}>
+                      
+                                  {/* AI Reply Badge */}
+                                  {message.isAIReply && (
+                                    <div style={{
+                                      position: 'absolute',
+                                      top: '-8px',
+                                      left: '8px',
+                                      backgroundColor: colors.success,
+                                      color: 'white',
+                                      fontSize: '0.6rem',
+                                      padding: '2px 6px',
+                                      borderRadius: '10px',
+                                      fontWeight: 'bold'
+                                    }}>
+                                      🤖 AI
+                                    </div>
+                                  )}
+                                  
+                                  {/* Message Content */}
+                                  <div style={{ marginBottom: '0.25rem' }}>
+                                    {message.text || (isOutgoing ? 'Message sent' : 'No text content')}
+                                  </div>
+
+                                  {/* Timestamp */}
+                                  <div style={{ 
+                                    fontSize: '0.65rem',
+                                    opacity: 0.7,
+                                    color: isOutgoing ? 'rgba(255,255,255,0.7)' : colors.mutedText,
+                                    marginTop: '0.25rem',
+                                    textAlign: isOutgoing ? 'right' : 'left'
+                                  }}>
+                                    {formatTimestamp(message.timestamp)}
+                                    {isOutgoing && ' ✓'}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
-                      
-                      {/* Message Content */}
-                      <div style={{ 
-                        fontSize: '0.875rem',
-                        lineHeight: '1.4',
-                        wordWrap: 'break-word'
-                      }}>
-                        {message.text || (isOutgoing ? 'Message sent' : 'No text content')}
-                      </div>
-
-                      {/* Timestamp */}
-                      <div style={{ 
-                        fontSize: '0.65rem', 
-                        color: isOutgoing ? 'rgba(255,255,255,0.7)' : '#9ca3af', 
-                        marginTop: '0.25rem',
-                        textAlign: isOutgoing ? 'right' : 'left'
-                      }}>
-                        {formatTimestamp(message.timestamp)}
-                        {isOutgoing && ' ✓'}
-                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  )}
 
-        {/* Reply Interface */}
-        {selectedUserId && (
-          <div style={{ 
-            padding: '1rem',
-            backgroundColor: 'white',
-            borderTop: '1px solid #e5e7eb'
-          }}>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
-              <div style={{ flex: 1 }}>
-                <textarea
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Type your message..."
-                  style={{
-                    width: '100%',
-                    minHeight: '60px',
-                    padding: '0.75rem',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '20px',
-                    fontSize: '0.875rem',
-                    fontFamily: 'inherit',
-                    resize: 'none',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleReply();
-                    }
-                  }}
-                />
+                  {/* Reply Interface */}
+                  {selectedUserId && (
+                    <div style={{ 
+                      padding: '1rem',
+                      backgroundColor: colors.secondaryBg,
+                      borderTop: `1px solid ${colors.border}`
+                    }}>
+                      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end' }}>
+                        <div style={{ flex: 1 }}>
+                          <textarea
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            placeholder="Type your message..."
+                            style={{
+                              width: '100%',
+                              minHeight: '44px',
+                              maxHeight: '120px',
+                              padding: '0.75rem 1rem',
+                              border: `1px solid ${colors.border}`,
+                              borderRadius: '20px',
+                              backgroundColor: colors.inputBg,
+                              color: colors.primaryText,
+                              fontSize: '0.875rem',
+                              resize: 'none',
+                              outline: 'none',
+                              fontFamily: 'inherit',
+                              boxSizing: 'border-box'
+                            }}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleReply();
+                              }
+                            }}
+                          />
+                        </div>
+                        
+                        <button
+                          onClick={handleReply}
+                          disabled={!replyText.trim() || isReplying}
+                          style={{
+                            width: '44px',
+                            height: '44px',
+                            backgroundColor: !replyText.trim() || isReplying ? colors.mutedText : colors.brandBlue,
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '50%',
+                            cursor: !replyText.trim() || isReplying ? 'not-allowed' : 'pointer',
+                            transition: 'background-color 0.2s',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '1rem',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!(!replyText.trim() || isReplying)) {
+                              e.target.style.backgroundColor = colors.brandBlueDark;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!(!replyText.trim() || isReplying)) {
+                              e.target.style.backgroundColor = colors.brandBlue;
+                            }
+                          }}
+                        >
+                          {isReplying ? '⏳' : '📤'}
+                        </button>
+                      </div>
+                      
+                      {error && (
+                        <div style={{
+                          marginTop: '0.5rem',
+                          padding: '0.75rem',
+                          backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                          border: `1px solid ${colors.error}`,
+                          borderRadius: '6px',
+                          fontSize: '0.875rem',
+                          color: colors.error
+                        }}>
+                          {error}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-              
-              <button
-                onClick={handleReply}
-                disabled={!replyText.trim() || isReplying}
-                style={{
-                  width: '44px',
-                  height: '44px',
-                  backgroundColor: !replyText.trim() || isReplying ? '#9ca3af' : '#0084ff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '50%',
-                  cursor: !replyText.trim() || isReplying ? 'not-allowed' : 'pointer',
-                  transition: 'background-color 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1rem'
-                }}
-                onMouseEnter={(e) => {
-                  if (!(!replyText.trim() || isReplying)) {
-                    e.target.style.backgroundColor = '#0066cc';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!(!replyText.trim() || isReplying)) {
-                    e.target.style.backgroundColor = '#0084ff';
-                  }
-                }}
-              >
-                {isReplying ? '⏳' : '📤'}
-              </button>
             </div>
-            
-            {error && (
-              <div style={{
-                marginTop: '0.5rem',
-                padding: '0.5rem',
-                backgroundColor: '#fee2e2',
-                border: '1px solid #fecaca',
-                borderRadius: '4px',
-                fontSize: '0.75rem',
-                color: '#dc2626'
+
+            {/* Message Input Field for No Conversation Selected */}
+            <div style={{
+              padding: '1rem',
+              textAlign: 'center'
+            }}>
+              <div style={{ 
+                padding: '1rem',
+                backgroundColor: colors.overlay,
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                color: colors.mutedText
               }}>
-                {error}
+                💡 Complete setup → Select a conversation → Start chatting!
               </div>
-            )}
+            </div>
           </div>
-        )}
-      </div>
 
       {/* Right Panel - User Information */}
       {selectedUserId && (
