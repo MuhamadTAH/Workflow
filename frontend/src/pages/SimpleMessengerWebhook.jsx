@@ -1062,15 +1062,6 @@ const SimpleMessengerWebhook = () => {
               padding: '1rem',
               textAlign: 'center'
             }}>
-              <div style={{ 
-                padding: '1rem',
-                backgroundColor: colors.overlay,
-                borderRadius: '8px',
-                fontSize: '0.875rem',
-                color: colors.mutedText
-              }}>
-                💡 Complete setup → Select a conversation → Start chatting!
-              </div>
             </div>
           </div>
         
