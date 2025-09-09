@@ -173,31 +173,6 @@ function Settings() {
 
       {/* Main Content - Adjusted for sidebar */}
       <div style={{ marginLeft: '280px' }}>
-        {/* Header */}
-        <div className="dashboard-hero" style={{ 
-          backgroundColor: '#323232', 
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          padding: '2rem',
-          marginBottom: '2rem'
-        }}>
-          <div className="hero-content">
-            <h1 className="hero-title" style={{ 
-              fontSize: '2.5rem', 
-              fontWeight: '600', 
-              margin: '0 0 0.5rem 0',
-              color: '#E0E0E0'
-            }}>
-              ⚙️ Settings
-            </h1>
-            <p className="hero-subtitle" style={{ 
-              color: '#a0a0a0', 
-              fontSize: '1.1rem',
-              margin: 0 
-            }}>
-              Manage your account preferences and application settings
-            </p>
-          </div>
-        </div>
 
         <div className="dashboard-content" style={{ 
           maxWidth: '1400px',
