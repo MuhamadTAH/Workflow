@@ -1135,7 +1135,7 @@ const WhatsAppReceiver = () => {
               )}
               
               {/* Two Panel Layout */}
-              <div style={{ display: 'flex', gap: '0', height: '500px', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', gap: '0', height: 'calc(100vh - 100px)', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
                 
                 {/* Conversations Panel */}
                 <div style={{ 
