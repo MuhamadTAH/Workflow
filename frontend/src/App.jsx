@@ -161,7 +161,7 @@ function Home() {
             </p>
             <div className="hero-actions" style={{ marginTop: '20px', display: 'flex', gap: '16px' }}>
               <Link 
-                to="/billing" 
+                to="/settings/billing" 
                 className="hero-btn billing-btn"
                 style={{ 
                   backgroundColor: '#10b981',
@@ -379,7 +379,6 @@ function App() {
         <Route path="/whatsapp-test" element={<WhatsAppReceiverTest />} />
         <Route path="/instagram-comments" element={<SimpleInstagramWebhook />} />
         <Route path="/messenger-comments" element={<SimpleMessengerWebhook />} />
-        <Route path="/billing" element={<BillingDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/api-keys" element={<APIKeysDashboard />} />
         <Route path="/settings/*" element={<Settings />} />

@@ -319,13 +319,13 @@ const SimpleInstagramWebhook = () => {
           </h1>
         </div>
         
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', position: 'relative' }}>
+        <div style={{ display: 'flex', gap: '0', alignItems: 'flex-start', position: 'relative' }}>
           
           {/* LEFT SIDEBAR - Webhook Setup & Contact List */}
           <div style={{ 
             width: '400px',
             backgroundColor: '#f8fafc',
-            borderRadius: '8px 8px 0 0',
+            borderRadius: '8px 0 0 8px',
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
             padding: '0',
             height: '100vh',
@@ -513,10 +513,7 @@ const SimpleInstagramWebhook = () => {
             display: 'flex', 
             flexDirection: 'column', 
             gap: '1.5rem',
-            minWidth: '500px',
-            marginLeft: isLeftSidebarCollapsed ? '0' : '400px',
-            marginRight: isRightSidebarCollapsed ? '0' : '300px',
-            transition: 'margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), margin-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+            minWidth: '500px'
           }}>
             {/* Two Panel Layout - Messenger Style */}
             <div style={{
@@ -527,7 +524,8 @@ const SimpleInstagramWebhook = () => {
                 gap: '0', 
                 height: 'calc(100vh - 60px)', 
                 border: '1px solid #e2e8f0', 
-                borderRadius: '8px', 
+                borderLeft: 'none',
+                borderRight: 'none',
                 overflow: 'hidden',
                 width: '100%',
                 maxWidth: '100%'
@@ -891,7 +889,7 @@ const SimpleInstagramWebhook = () => {
           <div style={{ 
             width: '300px',
             backgroundColor: '#f8fafc', 
-            borderRadius: '8px 0 0 8px', 
+            borderRadius: '0 8px 8px 0', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
             padding: '0',
             height: '100vh',
