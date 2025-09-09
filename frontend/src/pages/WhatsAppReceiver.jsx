@@ -1120,22 +1120,9 @@ const WhatsAppReceiver = () => {
             <div style={{
               opacity: isActive ? 1 : 0.6
             }}>
-              {!isActive && (
-                <div style={{
-                  backgroundColor: '#fef2f2',
-                  padding: '1rem',
-                  borderRadius: '6px',
-                  marginBottom: '1rem',
-                  border: '1px solid #fecaca'
-                }}>
-                  <p style={{ color: '#991b1b', fontSize: '0.875rem', margin: 0 }}>
-                    ⚠️ Configure and activate WhatsApp integration to start receiving messages
-                  </p>
-                </div>
-              )}
               
               {/* Two Panel Layout */}
-              <div style={{ display: 'flex', gap: '0', height: 'calc(100vh - 100px)', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', gap: '0', height: 'calc(100vh - 60px)', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
                 
                 {/* Conversations Panel */}
                 <div style={{ 
