@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import BillingDashboard from '../components/BillingDashboard';
@@ -53,6 +54,82 @@ const AccountSettings = () => {
     name: "Muhammad tarq", 
     email: "mhamadtah548@gmail.com",
     created_at: "2024-01-15T08:30:00Z" // Mock creation date
+  };
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordStrength, setPasswordStrength] = useState(0);
+  const [errors, setErrors] = useState({});
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const checkPasswordStrength = (password) => {
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    return strength;
+  };
+
+  const validatePasswords = () => {
+    const newErrors = {};
+    
+    if (!passwordData.currentPassword) {
+      newErrors.currentPassword = 'Current password is required';
+    }
+    
+    if (!passwordData.newPassword) {
+      newErrors.newPassword = 'New password is required';
+    } else if (passwordData.newPassword.length < 8) {
+      newErrors.newPassword = 'Password must be at least 8 characters';
+    } else if (passwordData.newPassword === passwordData.currentPassword) {
+      newErrors.newPassword = 'New password must be different from current password';
+    }
+    
+    if (!passwordData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your new password';
+    } else if (passwordData.newPassword !== passwordData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handlePasswordUpdate = async () => {
+    if (!validatePasswords()) return;
+    
+    setIsUpdating(true);
+    try {
+      // TODO: Replace with actual API call
+      // const response = await fetch(`${API_BASE_URL}/api/user/change-password`, {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   credentials: 'include',
+      //   body: JSON.stringify({
+      //     currentPassword: passwordData.currentPassword,
+      //     newPassword: passwordData.newPassword
+      //   })
+      // });
+      
+      // Mock API delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Mock success
+      alert('Password updated successfully!');
+      setShowPasswordModal(false);
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setErrors({});
+    } catch (error) {
+      alert('Failed to update password. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
@@ -184,22 +261,25 @@ const AccountSettings = () => {
             Edit Profile
           </button>
           
-          <button style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            width: '100%',
-            padding: '0.75rem 1rem',
-            backgroundColor: '#1a1a1a',
-            color: '#E0E0E0',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            fontSize: '0.95rem',
-            fontWeight: '500',
-            textAlign: 'left'
-          }}>
+          <button 
+            onClick={() => setShowPasswordModal(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              width: '100%',
+              padding: '0.75rem 1rem',
+              backgroundColor: '#1a1a1a',
+              color: '#E0E0E0',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              fontSize: '0.95rem',
+              fontWeight: '500',
+              textAlign: 'left'
+            }}
+          >
             <i className="fas fa-key" style={{ color: '#D4AF37', width: '20px', textAlign: 'center' }}></i>
             Change Password
           </button>
@@ -225,6 +305,255 @@ const AccountSettings = () => {
           </button>
         </div>
       </div>
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 2000
+        }}>
+          <div style={{
+            backgroundColor: '#323232',
+            borderRadius: '12px',
+            padding: '2rem',
+            width: '100%',
+            maxWidth: '500px',
+            margin: '1rem',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)'
+          }}>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h3 style={{ 
+                color: '#E0E0E0', 
+                margin: '0 0 0.5rem 0', 
+                fontSize: '1.2rem',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                <i className="fas fa-key" style={{ color: '#D4AF37' }}></i>
+                Change Password
+              </h3>
+              <p style={{ color: '#A0A0A0', margin: '0', fontSize: '0.9rem' }}>
+                Enter your current password and choose a new secure password
+              </p>
+            </div>
+
+            {/* Current Password */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ color: '#E0E0E0', fontSize: '0.9rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                Current Password
+              </label>
+              <input
+                type="password"
+                value={passwordData.currentPassword}
+                onChange={(e) => {
+                  setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }));
+                  if (errors.currentPassword) setErrors(prev => ({ ...prev, currentPassword: '' }));
+                }}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  backgroundColor: '#1a1a1a',
+                  border: errors.currentPassword ? '1px solid #f44336' : '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  color: '#E0E0E0',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Enter your current password"
+              />
+              {errors.currentPassword && (
+                <p style={{ color: '#f44336', fontSize: '0.8rem', margin: '0.25rem 0 0 0' }}>
+                  {errors.currentPassword}
+                </p>
+              )}
+            </div>
+
+            {/* New Password */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ color: '#E0E0E0', fontSize: '0.9rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                New Password
+              </label>
+              <input
+                type="password"
+                value={passwordData.newPassword}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setPasswordData(prev => ({ ...prev, newPassword: value }));
+                  setPasswordStrength(checkPasswordStrength(value));
+                  if (errors.newPassword) setErrors(prev => ({ ...prev, newPassword: '' }));
+                }}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  backgroundColor: '#1a1a1a',
+                  border: errors.newPassword ? '1px solid #f44336' : '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  color: '#E0E0E0',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Enter your new password"
+              />
+              
+              {/* Password Strength Indicator */}
+              {passwordData.newPassword && (
+                <div style={{ marginTop: '0.5rem' }}>
+                  <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '0.25rem' }}>
+                    {[1, 2, 3, 4, 5].map(level => (
+                      <div
+                        key={level}
+                        style={{
+                          flex: 1,
+                          height: '4px',
+                          borderRadius: '2px',
+                          backgroundColor: level <= passwordStrength 
+                            ? passwordStrength <= 2 ? '#f44336' 
+                              : passwordStrength <= 3 ? '#ff9800' 
+                              : '#4caf50'
+                            : '#1a1a1a'
+                        }}
+                      ></div>
+                    ))}
+                  </div>
+                  <p style={{ 
+                    color: passwordStrength <= 2 ? '#f44336' : passwordStrength <= 3 ? '#ff9800' : '#4caf50',
+                    fontSize: '0.8rem',
+                    margin: '0'
+                  }}>
+                    {passwordStrength <= 2 ? 'Weak' : passwordStrength <= 3 ? 'Medium' : 'Strong'} password
+                  </p>
+                </div>
+              )}
+              
+              {errors.newPassword && (
+                <p style={{ color: '#f44336', fontSize: '0.8rem', margin: '0.25rem 0 0 0' }}>
+                  {errors.newPassword}
+                </p>
+              )}
+            </div>
+
+            {/* Confirm Password */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ color: '#E0E0E0', fontSize: '0.9rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                Confirm New Password
+              </label>
+              <input
+                type="password"
+                value={passwordData.confirmPassword}
+                onChange={(e) => {
+                  setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }));
+                  if (errors.confirmPassword) setErrors(prev => ({ ...prev, confirmPassword: '' }));
+                }}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  backgroundColor: '#1a1a1a',
+                  border: errors.confirmPassword ? '1px solid #f44336' : '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  color: '#E0E0E0',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+                placeholder="Confirm your new password"
+              />
+              {errors.confirmPassword && (
+                <p style={{ color: '#f44336', fontSize: '0.8rem', margin: '0.25rem 0 0 0' }}>
+                  {errors.confirmPassword}
+                </p>
+              )}
+            </div>
+
+            {/* Password Requirements */}
+            <div style={{ 
+              backgroundColor: '#1a1a1a', 
+              padding: '1rem', 
+              borderRadius: '8px', 
+              marginBottom: '1.5rem',
+              border: '1px solid rgba(255, 255, 255, 0.05)'
+            }}>
+              <p style={{ color: '#A0A0A0', fontSize: '0.8rem', margin: '0 0 0.5rem 0', fontWeight: '500' }}>
+                Password must contain:
+              </p>
+              <ul style={{ margin: '0', paddingLeft: '1rem', color: '#8E8E8E', fontSize: '0.8rem' }}>
+                <li>At least 8 characters</li>
+                <li>One lowercase letter (a-z)</li>
+                <li>One uppercase letter (A-Z)</li>
+                <li>One number (0-9)</li>
+                <li>One special character (!@#$%^&*)</li>
+              </ul>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                  setErrors({});
+                  setPasswordStrength(0);
+                }}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: 'transparent',
+                  color: '#A0A0A0',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePasswordUpdate}
+                disabled={isUpdating}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  backgroundColor: isUpdating ? '#1a1a1a' : '#D4AF37',
+                  color: isUpdating ? '#8E8E8E' : '#000',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: isUpdating ? 'not-allowed' : 'pointer',
+                  fontSize: '0.95rem',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                {isUpdating && (
+                  <div style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid #8E8E8E',
+                    borderTop: '2px solid transparent',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }}></div>
+                )}
+                {isUpdating ? 'Updating...' : 'Update Password'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
