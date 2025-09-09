@@ -172,7 +172,7 @@ function Settings() {
       </div>
 
       {/* Main Content - Adjusted for sidebar */}
-      <div style={{ marginLeft: '280px' }}>
+      <div style={{ marginLeft: '0px' }}>
 
         <div className="dashboard-content" style={{ 
           maxWidth: '1400px',
