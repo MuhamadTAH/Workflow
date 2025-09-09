@@ -519,7 +519,7 @@ const SimpleInstagramWebhook = () => {
             transition: 'margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), margin-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
           }}>
             {/* DM Management Interface */}
-            <div style={{ display: 'flex', gap: '1rem', height: '500px' }}>
+            <div style={{ display: 'flex', gap: '1rem', height: 'calc(100vh - 60px)' }}>
               
               {/* Messages Display */}
               <div style={{ 
