@@ -215,7 +215,10 @@ async function sendMessengerReply(senderId, replyText, isAIReply = false) {
         const userId = 1; // Default user ID for development
         await saveMessageToDatabase(userId, {
           id: sentMessage.id,
-          from: { id: 'me', name: 'Messenger Bot' },
+          from: { 
+            id: senderId, // Use the recipient's ID so it groups with their conversation
+            name: 'Messenger Bot' 
+          },
           text: sentMessage.text,
           type: 'sent_message',
           post_id: null,
@@ -509,8 +512,8 @@ router.get('/messenger/messages', authenticateUser, async (req, res) => {
         text: msg.message_text,
         timestamp: msg.timestamp,
         sender: {
-          id: msg.messenger_user_id || (msg.message_type === 'sent_message' ? 'me' : msg.messenger_user_id),
-          name: msg.messenger_name,
+          id: msg.message_type === 'sent_message' ? 'me' : msg.messenger_user_id,
+          name: msg.message_type === 'sent_message' ? 'Messenger Bot' : msg.messenger_name,
           first_name: msg.messenger_first_name,
           last_name: msg.messenger_last_name,
           profile_pic: msg.profile_pic
