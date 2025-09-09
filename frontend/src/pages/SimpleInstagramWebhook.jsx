@@ -258,10 +258,10 @@ const SimpleInstagramWebhook = () => {
     <div style={{ 
       minHeight: '100vh', 
       backgroundColor: '#f9fafb', 
-      padding: '2rem 0',
+      padding: '0',
       position: 'relative'
     }}>
-      <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0 1rem' }}>
+      <div style={{ width: '100%', margin: '0 auto', padding: '0' }}>
         
         {/* Fixed Toggle Buttons */}
         <button
@@ -408,7 +408,7 @@ const SimpleInstagramWebhook = () => {
             </div>
 
             {/* Sidebar Content */}
-            <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
+            <div style={{ padding: '1.5rem', height: '100vh', overflowY: 'auto' }}>
               <div style={{ 
                 padding: '0 0 1rem 0',
                 borderBottom: '1px solid #e5e7eb',
@@ -516,7 +516,7 @@ const SimpleInstagramWebhook = () => {
               <div style={{ 
                 display: 'flex', 
                 gap: '0', 
-                height: 'calc(100vh - 60px)', 
+                height: '100vh', 
                 border: '1px solid #e2e8f0', 
                 borderLeft: 'none',
                 borderRight: 'none',
@@ -910,7 +910,7 @@ const SimpleInstagramWebhook = () => {
             </div>
             
             {/* Right Sidebar Content */}
-            <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
+            <div style={{ padding: '1.5rem', height: '100vh', overflowY: 'auto' }}>
               
               {/* Selected User Info Section */}
               <div style={{ marginBottom: '2rem' }}>

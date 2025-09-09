@@ -105,14 +105,14 @@ const APIKeysDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-8"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div style={{ minHeight: '100vh', backgroundColor: '#1a1a1a', padding: '1.5rem' }}>
+        <div style={{ animation: 'pulse 2s infinite' }}>
+          <div style={{ height: '2rem', backgroundColor: '#323232', borderRadius: '0.375rem', width: '33.333333%', marginBottom: '2rem' }}></div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="bg-white rounded-lg p-6 shadow">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+              <div key={i} style={{ backgroundColor: '#262626', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.5)' }}>
+                <div style={{ height: '1rem', backgroundColor: '#323232', borderRadius: '0.375rem', width: '75%', marginBottom: '1rem' }}></div>
+                <div style={{ height: '2rem', backgroundColor: '#323232', borderRadius: '0.375rem', width: '50%' }}></div>
               </div>
             ))}
           </div>
@@ -127,17 +127,30 @@ const APIKeysDashboard = () => {
   const totalTokens = apiKeys.reduce((sum, k) => sum + parseInt(k.total_tokens || 0), 0);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div style={{ minHeight: '100vh', backgroundColor: '#1a1a1a', padding: '1.5rem' }}>
+      <div style={{ maxWidth: '80rem', margin: '0 auto' }}>
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">API Keys Management</h1>
-            <p className="text-gray-600">Manage customer API keys and monitor usage</p>
+            <h1 style={{ fontSize: '1.875rem', fontWeight: 'bold', color: '#E0E0E0', marginBottom: '0.5rem' }}>API Keys Management</h1>
+            <p style={{ color: '#A0A0A0' }}>Manage customer API keys and monitor usage</p>
           </div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.5rem', 
+              backgroundColor: '#4a90e2', 
+              color: 'white', 
+              padding: '0.5rem 1rem', 
+              borderRadius: '0.5rem', 
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.backgroundColor = '#3a7bc8'}
+            onMouseLeave={(e) => e.target.style.backgroundColor = '#4a90e2'}
           >
             <Plus className="h-4 w-4" />
             <span>Create API Key</span>
@@ -145,52 +158,52 @@ const APIKeysDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <div className="flex items-center justify-between">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+          <div style={{ backgroundColor: '#262626', borderRadius: '0.5rem', padding: '1.5rem', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Keys</p>
-                <p className="text-2xl font-bold text-gray-900">{totalKeys}</p>
+                <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#A0A0A0', marginBottom: '0.5rem' }}>Total Keys</p>
+                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#E0E0E0' }}>{totalKeys}</p>
               </div>
-              <Key className="h-8 w-8 text-blue-600" />
+              <Key className="h-8 w-8" style={{ color: '#4a90e2' }} />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <div className="flex items-center justify-between">
+          <div style={{ backgroundColor: '#262626', borderRadius: '0.5rem', padding: '1.5rem', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Keys</p>
-                <p className="text-2xl font-bold text-gray-900">{activeKeys}</p>
+                <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#A0A0A0', marginBottom: '0.5rem' }}>Active Keys</p>
+                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#E0E0E0' }}>{activeKeys}</p>
               </div>
-              <Users className="h-8 w-8 text-green-600" />
+              <Users className="h-8 w-8" style={{ color: '#10b981' }} />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <div className="flex items-center justify-between">
+          <div style={{ backgroundColor: '#262626', borderRadius: '0.5rem', padding: '1.5rem', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalRevenue)}</p>
+                <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#A0A0A0', marginBottom: '0.5rem' }}>Total Revenue</p>
+                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#E0E0E0' }}>{formatCurrency(totalRevenue)}</p>
               </div>
-              <DollarSign className="h-8 w-8 text-emerald-600" />
+              <DollarSign className="h-8 w-8" style={{ color: '#D4AF37' }} />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <div className="flex items-center justify-between">
+          <div style={{ backgroundColor: '#262626', borderRadius: '0.5rem', padding: '1.5rem', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Tokens</p>
-                <p className="text-2xl font-bold text-gray-900">{totalTokens.toLocaleString()}</p>
+                <p style={{ fontSize: '0.875rem', fontWeight: '500', color: '#A0A0A0', marginBottom: '0.5rem' }}>Total Tokens</p>
+                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#E0E0E0' }}>{totalTokens.toLocaleString()}</p>
               </div>
-              <Activity className="h-8 w-8 text-purple-600" />
+              <Activity className="h-8 w-8" style={{ color: '#8b5cf6' }} />
             </div>
           </div>
         </div>
 
         {/* API Keys Table */}
-        <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">API Keys</h2>
+        <div style={{ backgroundColor: '#262626', borderRadius: '0.5rem', border: '1px solid rgba(255, 255, 255, 0.1)', overflow: 'hidden' }}>
+          <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <h2 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#E0E0E0', margin: '0' }}>API Keys</h2>
           </div>
           
           <div className="overflow-x-auto">
