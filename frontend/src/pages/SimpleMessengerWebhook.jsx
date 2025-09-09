@@ -1082,9 +1082,73 @@ const SimpleMessengerWebhook = () => {
             padding: '1rem 1.5rem',
             borderRadius: '0'
           }}>
-            <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
-              👤 User Information
-            </h2>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'center' }}>
+              <button
+                onClick={() => window.location.href = '/instagram-comments'}
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  cursor: 'pointer',
+                  color: 'white',
+                  fontSize: '1.25rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.3)'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.2)'}
+                title="Switch to Instagram"
+              >
+                <i className="fab fa-instagram"></i>
+              </button>
+              
+              <button
+                onClick={() => window.location.href = '/telegram-listener'}
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  cursor: 'pointer',
+                  color: 'white',
+                  fontSize: '1.25rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.3)'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.2)'}
+                title="Switch to Telegram"
+              >
+                <i className="fab fa-telegram"></i>
+              </button>
+              
+              <button
+                onClick={() => window.location.href = '/whatsapp-receiver'}
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  cursor: 'pointer',
+                  color: 'white',
+                  fontSize: '1.25rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.3)'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.2)'}
+                title="Switch to WhatsApp"
+              >
+                <i className="fab fa-whatsapp"></i>
+              </button>
+            </div>
           </div>
           
           {/* Right Sidebar Content */}
