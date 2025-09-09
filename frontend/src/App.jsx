@@ -161,33 +161,6 @@ function Home() {
             </p>
             <div className="hero-actions" style={{ marginTop: '20px', display: 'flex', gap: '16px' }}>
               <Link 
-                to="/settings/billing" 
-                className="hero-btn billing-btn"
-                style={{ 
-                  backgroundColor: '#10b981',
-                  color: 'white',
-                  padding: '12px 24px',
-                  borderRadius: '8px',
-                  textDecoration: 'none',
-                  fontWeight: '600',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#059669';
-                  e.target.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = '#10b981';
-                  e.target.style.transform = 'translateY(0px)';
-                }}
-              >
-                💰 Billing & Usage
-              </Link>
-              <Link 
                 to="/admin" 
                 className="hero-btn admin-btn"
                 style={{ 
@@ -213,33 +186,6 @@ function Home() {
                 }}
               >
                 📊 Admin Dashboard
-              </Link>
-              <Link 
-                to="/settings/api" 
-                className="hero-btn apikeys-btn"
-                style={{ 
-                  backgroundColor: '#f59e0b',
-                  color: 'white',
-                  padding: '12px 24px',
-                  borderRadius: '8px',
-                  textDecoration: 'none',
-                  fontWeight: '600',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.backgroundColor = '#d97706';
-                  e.target.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.backgroundColor = '#f59e0b';
-                  e.target.style.transform = 'translateY(0px)';
-                }}
-              >
-                🔑 API Keys
               </Link>
             </div>
           </div>
