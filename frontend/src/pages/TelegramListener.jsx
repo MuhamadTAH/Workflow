@@ -738,8 +738,8 @@ const TelegramListener = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: colors.primaryBg, padding: '2rem 0' }}>
-      <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: colors.primaryBg, padding: '0' }}>
+      <div style={{ width: '100%', margin: '0 auto', padding: '0' }}>
         {/* Fixed Toggle Buttons */}
         <button
           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
@@ -789,43 +789,24 @@ const TelegramListener = () => {
           {isRightSidebarCollapsed ? '☰' : '✕'}
         </button>
 
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          marginBottom: '1.5rem', 
-          position: 'relative',
-          backgroundColor: colors.secondaryBg,
-          padding: '1rem 2rem',
-          borderBottom: `1px solid ${colors.border}`
-        }}>
-          
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: colors.primaryText, margin: 0 }}>
-            <i className="fab fa-telegram" style={{ color: '#0088cc', marginRight: '0.5rem' }}></i>
-            Telegram Bot Listener
-          </h1>
-          <ThemeToggle />
-        </div>
         
         <div style={{ display: 'flex', gap: '0', alignItems: 'flex-start', position: 'relative' }}>
           
           {/* LEFT SIDEBAR - Sliding Configuration Panel */}
           <div style={{ 
-            width: '400px',
+            width: isSidebarCollapsed ? '0' : '400px',
+            minWidth: isSidebarCollapsed ? '0' : '400px',
+            maxWidth: isSidebarCollapsed ? '0' : '400px',
             backgroundColor: colors.secondaryBg, 
-            borderRadius: '0', 
+            borderRadius: '8px 0 0 8px', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
             padding: '0',
             height: '100vh',
-            position: 'fixed',
-            top: '0',
-            left: '0',
             borderRight: `1px solid ${colors.border}`,
             overflow: 'hidden',
-            transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
-            transform: isSidebarCollapsed ? 'translateX(-420px)' : 'translateX(0)',
-            opacity: isSidebarCollapsed ? 0 : 1,
-            zIndex: 1000
+            transition: 'width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), min-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), max-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            display: isSidebarCollapsed ? 'none' : 'flex',
+            flexDirection: 'column'
           }}>
               {/* Sidebar Header */}
               <div style={{ 
@@ -1031,21 +1012,11 @@ const TelegramListener = () => {
 
           {/* MIDDLE COLUMN - Chat Interface */}
           <div style={{ 
-            position: 'fixed',
-            top: '0',
-            left: isSidebarCollapsed ? '0' : '400px',
-            right: isRightSidebarCollapsed ? '0' : '300px',
-            height: '100vh',
+            flex: '1',
             display: 'flex', 
             flexDirection: 'column', 
-            gap: '0',
-            transition: 'left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-            padding: '2rem 1rem',
-            backgroundColor: colors.primaryBg,
-            borderTop: `1px solid ${colors.border}`,
-            borderBottom: `1px solid ${colors.border}`,
-            zIndex: 999,
-            overflowY: 'auto'
+            gap: '1.5rem',
+            minWidth: '500px'
           }}>
 
             {/* Two Panel Layout */}
@@ -1068,9 +1039,10 @@ const TelegramListener = () => {
               <div style={{ 
                 display: 'flex', 
                 gap: '0', 
-                height: '500px', 
+                height: '100vh', 
                 border: `1px solid ${colors.border}`, 
-                borderRadius: '8px', 
+                borderLeft: 'none',
+                borderRight: 'none',
                 overflow: 'hidden',
                 width: '100%',
                 maxWidth: '100%'
@@ -1378,21 +1350,19 @@ const TelegramListener = () => {
           
           {/* RIGHT SIDEBAR - Sliding User Information Panel */}
           <div style={{ 
-            width: '300px',
+            width: isRightSidebarCollapsed ? '0' : '300px',
+            minWidth: isRightSidebarCollapsed ? '0' : '300px',
+            maxWidth: isRightSidebarCollapsed ? '0' : '300px',
             backgroundColor: colors.cardBg, 
-            borderRadius: '0', 
+            borderRadius: '0 8px 8px 0', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
             padding: '0',
             height: '100vh',
-            position: 'fixed',
-            top: '0',
-            right: '0',
             borderLeft: `1px solid ${colors.border}`,
             overflow: 'hidden',
-            transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
-            transform: isRightSidebarCollapsed ? 'translateX(320px)' : 'translateX(0)',
-            opacity: isRightSidebarCollapsed ? 0 : 1,
-            zIndex: 1000
+            transition: 'width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), min-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), max-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            display: isRightSidebarCollapsed ? 'none' : 'flex',
+            flexDirection: 'column'
           }}>
             {/* Right Sidebar Header */}
             <div style={{ 
