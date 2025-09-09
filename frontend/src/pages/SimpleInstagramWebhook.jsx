@@ -518,51 +518,331 @@ const SimpleInstagramWebhook = () => {
             marginRight: isRightSidebarCollapsed ? '0' : '300px',
             transition: 'margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), margin-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
           }}>
-            {/* DM Management Interface */}
-            <div style={{ display: 'flex', gap: '1rem', height: 'calc(100vh - 60px)' }}>
-              
-              {/* Messages Display */}
+            {/* Two Panel Layout - Messenger Style */}
+            <div style={{
+              opacity: isWaiting ? 1 : 0.6
+            }}>
               <div style={{ 
-                flex: '1', 
-                backgroundColor: '#f8fafc', 
-                padding: '1rem', 
-                borderRadius: '6px', 
-                border: '1px solid #e2e8f0',
-                display: 'flex',
-                flexDirection: 'column'
+                display: 'flex', 
+                gap: '0', 
+                height: 'calc(100vh - 60px)', 
+                border: '1px solid #e2e8f0', 
+                borderRadius: '8px', 
+                overflow: 'hidden',
+                width: '100%',
+                maxWidth: '100%'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <h3 style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
-                    💬 Messages
-                    {selectedUserId && isWaiting && (
-                      <span style={{ 
-                        marginLeft: '0.5rem', 
-                        fontSize: '0.75rem', 
-                        color: '#E4405F',
-                        backgroundColor: '#fef2f2',
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '4px'
-                      }}>
-                        🔴 Live
-                      </span>
-                    )}
-                  </h3>
-                  {selectedUserId && (
+                
+                {/* Conversations Panel */}
+                <div style={{ 
+                  flex: '0 0 300px',
+                  width: '300px',
+                  minWidth: '300px',
+                  maxWidth: '300px',
+                  backgroundColor: '#f8fafc', 
+                  padding: '1rem', 
+                  borderRight: '1px solid #e2e8f0',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <h3 style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
+                      💬 Conversations
+                      {isWaiting && (
+                        <span style={{ 
+                          marginLeft: '0.5rem', 
+                          fontSize: '0.75rem', 
+                          color: '#E4405F',
+                          backgroundColor: 'rgba(228, 64, 95, 0.1)',
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px'
+                        }}>
+                          🟢 Live
+                        </span>
+                      )}
+                    </h3>
                     <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                      {currentMessages.length} message{currentMessages.length !== 1 ? 's' : ''}
+                      {conversations.length} chat{conversations.length !== 1 ? 's' : ''}
                     </span>
-                  )}
+                  </div>
+
+                  <div style={{ 
+                    flex: 1,
+                    overflowY: 'auto', 
+                    backgroundColor: 'white', 
+                    borderRadius: '4px',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    {conversations.length === 0 ? (
+                      <div style={{ 
+                        padding: '2rem', 
+                        textAlign: 'center', 
+                        color: '#9ca3af',
+                        fontSize: '0.875rem'
+                      }}>
+                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📷</div>
+                        No conversations yet.<br/>
+                        Send a DM to start!
+                      </div>
+                    ) : (
+                      <div>
+                        {conversations.map((conversation) => (
+                          <div
+                            key={conversation.userId}
+                            onClick={() => setSelectedUserId(conversation.userId)}
+                            style={{
+                              padding: '0.75rem',
+                              borderBottom: '1px solid #f3f4f6',
+                              cursor: 'pointer',
+                              backgroundColor: selectedUserId === conversation.userId ? '#fef2f2' : 'transparent',
+                              transition: 'background-color 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (selectedUserId !== conversation.userId) {
+                                e.target.style.backgroundColor = '#f9fafb';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (selectedUserId !== conversation.userId) {
+                                e.target.style.backgroundColor = 'transparent';
+                              }
+                            }}
+                          >
+                            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                              {/* Profile Picture */}
+                              <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                backgroundColor: '#E4405F',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '1rem',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                backgroundImage: conversation.profile_picture_url ? `url(${conversation.profile_picture_url})` : 'none',
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center'
+                              }}>
+                                {!conversation.profile_picture_url && conversation.name.charAt(0).toUpperCase()}
+                              </div>
+                              
+                              {/* Conversation Info */}
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ 
+                                  fontSize: '0.875rem', 
+                                  fontWeight: '600', 
+                                  color: '#111827',
+                                  marginBottom: '0.25rem',
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis'
+                                }}>
+                                  {conversation.name}
+                                </div>
+                                <div style={{ 
+                                  fontSize: '0.75rem', 
+                                  color: '#9ca3af',
+                                  marginTop: '0.25rem',
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis'
+                                }}>
+                                  {conversation.lastMessage.text || 'No message'}
+                                </div>
+                              </div>
+                              
+                              {/* Timestamp */}
+                              <div style={{ 
+                                fontSize: '0.65rem', 
+                                color: '#9ca3af',
+                                whiteSpace: 'nowrap'
+                              }}>
+                                {formatTimestamp(conversation.lastMessage.timestamp)}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
+                {/* Messages Area */}
                 <div style={{ 
                   flex: 1,
-                  overflowY: 'auto', 
-                  backgroundColor: 'white', 
-                  borderRadius: '4px 4px 0 0',
-                  border: '1px solid #e5e7eb',
-                  borderBottom: 'none'
+                  backgroundColor: '#f8fafc', 
+                  display: 'flex',
+                  flexDirection: 'column'
                 }}>
-                  {!selectedUserId ? (
+                  {selectedUserId ? (
+                    <>
+                      {/* Chat Header */}
+                      <div style={{ 
+                        padding: '1rem',
+                        borderBottom: '1px solid #e5e7eb',
+                        backgroundColor: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem'
+                      }}>
+                        {(() => {
+                          const selectedUser = conversations.find(c => c.userId === selectedUserId);
+                          return (
+                            <>
+                              <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                backgroundColor: '#E4405F',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '1rem',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                backgroundImage: selectedUser?.profile_picture_url ? `url(${selectedUser.profile_picture_url})` : 'none',
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center'
+                              }}>
+                                {!selectedUser?.profile_picture_url && (selectedUser?.name?.charAt(0).toUpperCase() || 'U')}
+                              </div>
+                              <div>
+                                <div style={{ fontSize: '1rem', fontWeight: '600', color: '#111827' }}>
+                                  {selectedUser?.name || 'Instagram User'}
+                                </div>
+                                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                                  {currentMessages.length} message{currentMessages.length !== 1 ? 's' : ''}
+                                </div>
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+
+                      {/* Messages Display */}
+                      <div style={{ 
+                        flex: 1,
+                        overflowY: 'auto',
+                        padding: '1rem',
+                        backgroundColor: '#f9fafb',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.5rem'
+                      }}>
+                        {currentMessages.length === 0 ? (
+                          <div style={{ 
+                            padding: '2rem', 
+                            textAlign: 'center', 
+                            color: '#9ca3af',
+                            fontSize: '0.875rem'
+                          }}>
+                            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📷</div>
+                            No messages in this conversation yet.
+                          </div>
+                        ) : (
+                          currentMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)).map((message, index) => {
+                            const isOutgoing = message.from_id === 'me' || message.sender?.id === 'me';
+                            
+                            return (
+                              <div 
+                                key={message.id || index}
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: isOutgoing ? 'flex-end' : 'flex-start',
+                                  width: '100%',
+                                  marginBottom: '0.5rem'
+                                }}
+                              >
+                                <div style={{
+                                  maxWidth: '70%',
+                                  padding: '0.75rem 1rem',
+                                  borderRadius: isOutgoing ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                                  backgroundColor: isOutgoing ? '#E4405F' : 'white',
+                                  color: isOutgoing ? 'white' : '#111827',
+                                  fontSize: '0.875rem',
+                                  lineHeight: '1.4',
+                                  wordWrap: 'break-word',
+                                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+                                  position: 'relative'
+                                }}>
+                                  <div>{message.text}</div>
+                                  <div style={{ 
+                                    fontSize: '0.65rem', 
+                                    marginTop: '0.25rem',
+                                    opacity: 0.7,
+                                    display: 'flex',
+                                    justifyContent: 'flex-end',
+                                    alignItems: 'center',
+                                    gap: '0.25rem'
+                                  }}>
+                                    {formatTimestamp(message.timestamp)}
+                                    {isOutgoing && ' ✓'}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+
+                      {/* Message Input */}
+                      <div style={{
+                        padding: '1rem',
+                        backgroundColor: 'white',
+                        borderTop: '1px solid #e5e7eb',
+                        display: 'flex',
+                        gap: '0.5rem',
+                        alignItems: 'flex-end'
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <input
+                            type="text"
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter' && !isReplying && replyText.trim()) {
+                                handleReply();
+                              }
+                            }}
+                            placeholder="Type a message..."
+                            disabled={isReplying}
+                            style={{
+                              width: '100%',
+                              padding: '0.75rem 1rem',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '20px',
+                              fontSize: '0.875rem',
+                              outline: 'none',
+                              backgroundColor: '#f9fafb'
+                            }}
+                          />
+                        </div>
+                        <button
+                          onClick={handleReply}
+                          disabled={isReplying || !replyText.trim()}
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            backgroundColor: replyText.trim() ? '#E4405F' : '#d1d5db',
+                            color: 'white',
+                            border: 'none',
+                            cursor: replyText.trim() ? 'pointer' : 'default',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '1rem',
+                            transition: 'background-color 0.2s'
+                          }}
+                        >
+                          {isReplying ? '...' : '📤'}
+                        </button>
+                      </div>
+                    </>
+                  ) : (
                     <div style={{ 
                       padding: '2rem', 
                       textAlign: 'center', 
@@ -578,7 +858,7 @@ const SimpleInstagramWebhook = () => {
                       <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem', color: '#6b7280' }}>
                         Select a conversation
                       </h3>
-                      <p>Choose a conversation from the left panel to start messaging</p>
+                      <p>Choose a conversation from the conversations panel to start messaging</p>
                       {!isWaiting && !hasReceivedCall && (
                         <button
                           onClick={handleActivate}
