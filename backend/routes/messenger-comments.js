@@ -508,12 +508,15 @@ router.get('/messenger/messages', authenticateUser, async (req, res) => {
         id: msg.messenger_message_id,
         text: msg.message_text,
         timestamp: msg.timestamp,
-        from: {
-          id: msg.messenger_user_id,
+        sender: {
+          id: msg.messenger_user_id || (msg.message_type === 'sent_message' ? 'me' : msg.messenger_user_id),
           name: msg.messenger_name,
           first_name: msg.messenger_first_name,
           last_name: msg.messenger_last_name,
           profile_pic: msg.profile_pic
+        },
+        recipient: {
+          id: msg.message_type === 'sent_message' ? msg.messenger_user_id : 'me'
         },
         type: msg.message_type,
         post_id: msg.post_id,
