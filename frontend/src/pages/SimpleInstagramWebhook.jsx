@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api.js';
-import { useTheme } from '../contexts/ThemeContext';
-import ThemeToggle from '../components/ThemeToggle';
 import InstagramAISettings from '../components/InstagramAISettings.jsx';
 
 const SimpleInstagramWebhook = () => {
-  const { theme, colors } = useTheme();
   const [isWaiting, setIsWaiting] = useState(false);
   const [hasReceivedCall, setHasReceivedCall] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -383,9 +380,6 @@ const SimpleInstagramWebhook = () => {
                     {isLoading ? 'Activating...' : '🚀 Start'}
                   </button>
                 )}
-              </div>
-              <div style={{ marginTop: '0.5rem' }}>
-                <ThemeToggle />
               </div>
               
               {aiConfig.enabled && aiConfig.autoReply && (
