@@ -1452,7 +1452,9 @@ const SimpleMessengerWebhook = () => {
                       color: colors.mutedText,
                       padding: '2rem'
                     }}>
-                      <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>👤</div>
+                      <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>
+                        {String.fromCharCode(128100)}
+                      </div>
                       <p>Select a user to view details</p>
                     </div>
                   )}
