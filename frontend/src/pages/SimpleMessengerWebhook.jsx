@@ -1209,86 +1209,139 @@ const SimpleMessengerWebhook = () => {
             </div>
           </div>
 
-      {/* Right Panel - User Information */}
-      {selectedUserId && (
+        </div>
+        
+        {/* RIGHT SIDEBAR - Sliding User Information Panel */}
         <div style={{ 
           width: '300px',
-          backgroundColor: 'white',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '1rem'
+          backgroundColor: colors.cardBg, 
+          borderRadius: '0', 
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
+          padding: '0',
+          height: '100vh',
+          position: 'fixed',
+          top: '0',
+          right: '0',
+          borderLeft: `1px solid ${colors.border}`,
+          overflow: 'hidden',
+          transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
+          transform: isRightSidebarCollapsed ? 'translateX(320px)' : 'translateX(0)',
+          opacity: isRightSidebarCollapsed ? 0 : 1,
+          zIndex: 1000
         }}>
-          {(() => {
-            const selectedUser = users[selectedUserId];
-            return (
-              <>
-                {/* User Info Header */}
-                <div style={{ 
-                  padding: '1rem',
-                  backgroundColor: '#f8fafc',
-                  borderRadius: '8px',
-                  marginBottom: '1rem',
-                  textAlign: 'center'
+          {/* Right Sidebar Header */}
+          <div style={{ 
+            backgroundColor: colors.success, 
+            color: 'white', 
+            padding: '1rem 1.5rem',
+            borderRadius: '0'
+          }}>
+            <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
+              👤 User Information
+            </h2>
+          </div>
+          
+          {/* Right Sidebar Content */}
+          <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
+            
+            {/* Selected User Info Section */}
+            <div style={{ marginBottom: isRightSidebarCollapsed ? '0' : '2rem' }}>
+              <h3 
+                onClick={() => setIsRightSidebarCollapsed(!isRightSidebarCollapsed)}
+                style={{ 
+                  fontSize: '1rem', 
+                  fontWeight: '600', 
+                  color: colors.primaryText, 
+                  marginBottom: '1rem', 
+                  borderBottom: `2px solid ${colors.border}`, 
+                  paddingBottom: '0.5rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  userSelect: 'none'
+                }}
+              >
+                <span>👤 Selected User</span>
+                <span style={{ 
+                  transform: isRightSidebarCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.2s ease',
+                  fontSize: '0.8rem',
+                  color: colors.mutedText
                 }}>
-                  <h3 style={{ 
-                    fontSize: '1.1rem', 
-                    fontWeight: 'bold', 
-                    color: '#111827',
-                    margin: '0 0 0.5rem 0'
-                  }}>
-                    👤 User Information
-                  </h3>
-                </div>
+                  ▼
+                </span>
+              </h3>
 
-                {/* Profile Picture */}
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  marginBottom: '1rem' 
-                }}>
-                  <div style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    backgroundColor: '#0084ff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '2rem',
-                    color: 'white',
-                    fontWeight: 'bold',
-                    backgroundImage: selectedUser?.profile_pic ? `url(${selectedUser.profile_pic})` : 'none',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    border: '3px solid #e5e7eb'
-                  }}>
-                    {!selectedUser?.profile_pic && (selectedUser?.name?.charAt(0).toUpperCase() || 'U')}
-                  </div>
-                </div>
+              {/* Collapsible Content */}
+              <div style={{
+                maxHeight: isRightSidebarCollapsed ? '0' : '2000px',
+                overflow: 'hidden',
+                transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                opacity: isRightSidebarCollapsed ? 0 : 1
+              }}>
+              
+                {selectedUserId ? (() => {
+                  const selectedUser = users[selectedUserId];
+                  return (
+                    <div>
+                      {/* Profile Picture */}
+                      <div style={{ 
+                        textAlign: 'center', 
+                        marginBottom: '1.5rem' 
+                      }}>
+                        <div style={{
+                          width: '80px',
+                          height: '80px',
+                          borderRadius: '50%',
+                          backgroundColor: colors.brandBlue,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '2rem',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          backgroundImage: selectedUser?.profile_pic ? `url(${selectedUser.profile_pic})` : 'none',
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          border: `3px solid ${colors.border}`,
+                          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+                        }}>
+                          {!selectedUser?.profile_pic && (selectedUser?.name?.charAt(0).toUpperCase() || 'U')}
+                        </div>
+                        <div style={{ 
+                          marginTop: '0.75rem', 
+                          fontSize: '1.1rem', 
+                          fontWeight: '600', 
+                          color: colors.primaryText 
+                        }}>
+                          {selectedUser?.name || 'Messenger User'}
+                        </div>
+                      </div>
 
-                {/* User Details */}
-                <div style={{ flex: 1, overflowY: 'auto' }}>
-                  
-                  {/* Full Name */}
-                  <div style={{ marginBottom: '1rem' }}>
-                    <div style={{ 
-                      fontSize: '0.75rem', 
-                      fontWeight: '600', 
-                      color: '#6b7280',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      marginBottom: '0.25rem'
-                    }}>
-                      Full Name
-                    </div>
-                    <div style={{ 
-                      fontSize: '0.9rem', 
-                      color: '#111827',
-                      fontWeight: '500',
-                      padding: '0.5rem',
-                      backgroundColor: '#f9fafb',
-                      borderRadius: '6px',
-                      border: '1px solid #e5e7eb'
+                      {/* User Details */}
+                      <div style={{ marginBottom: '1.5rem' }}>
+                        
+                        {/* Full Name */}
+                        <div style={{ marginBottom: '1rem' }}>
+                          <div style={{ 
+                            fontSize: '0.75rem', 
+                            fontWeight: '600', 
+                            color: colors.mutedText,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            marginBottom: '0.5rem'
+                          }}>
+                            Full Name
+                          </div>
+                          <div style={{ 
+                            fontSize: '0.875rem', 
+                            color: colors.primaryText,
+                            fontWeight: '500',
+                            padding: '0.75rem',
+                            backgroundColor: colors.inputBg,
+                            borderRadius: '8px',
+                            border: `1px solid ${colors.border}`
                     }}>
                       {selectedUser?.name || 'Not available'}
                     </div>

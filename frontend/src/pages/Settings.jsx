@@ -46,7 +46,188 @@ const SettingsSection = ({ title, icon, description }) => (
 );
 
 const GeneralSettings = () => <SettingsSection title="General" icon="fas fa-cog" description="General application settings and preferences" />;
-const AccountSettings = () => <SettingsSection title="Account" icon="fas fa-user" description="Manage your account information and profile" />;
+const AccountSettings = () => {
+  // Mock user data (same as in main dashboard)
+  const user = {
+    id: 2,
+    name: "Muhammad tarq", 
+    email: "mhamadtah548@gmail.com",
+    created_at: "2024-01-15T08:30:00Z" // Mock creation date
+  };
+
+  return (
+    <div className="settings-section">
+      <div className="card-header" style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '1.5rem',
+        paddingBottom: '1rem',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+      }}>
+        <h2 style={{ 
+          color: '#E0E0E0', 
+          fontSize: '1.3rem', 
+          fontWeight: '600',
+          margin: '0',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem'
+        }}>
+          <i className="fas fa-user" style={{ color: '#4a90e2' }}></i>
+          Account Information
+        </h2>
+      </div>
+      
+      {/* Profile Information */}
+      <div style={{
+        backgroundColor: '#262626',
+        borderRadius: '10px',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        padding: '1.5rem',
+        marginBottom: '2rem'
+      }}>
+        <h3 style={{ color: '#E0E0E0', marginBottom: '1rem', fontSize: '1.1rem', fontWeight: '600' }}>
+          Profile Details
+        </h3>
+        
+        <div style={{ display: 'grid', gap: '1rem' }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '0.75rem',
+            backgroundColor: '#1a1a1a',
+            borderRadius: '8px',
+            border: '1px solid rgba(255, 255, 255, 0.05)'
+          }}>
+            <span style={{ color: '#A0A0A0', fontWeight: '500' }}>User ID</span>
+            <span style={{ color: '#E0E0E0', fontWeight: '600' }}>#{user.id}</span>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '0.75rem',
+            backgroundColor: '#1a1a1a',
+            borderRadius: '8px',
+            border: '1px solid rgba(255, 255, 255, 0.05)'
+          }}>
+            <span style={{ color: '#A0A0A0', fontWeight: '500' }}>Full Name</span>
+            <span style={{ color: '#E0E0E0', fontWeight: '600' }}>{user.name || 'Not provided'}</span>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '0.75rem',
+            backgroundColor: '#1a1a1a',
+            borderRadius: '8px',
+            border: '1px solid rgba(255, 255, 255, 0.05)'
+          }}>
+            <span style={{ color: '#A0A0A0', fontWeight: '500' }}>Email</span>
+            <span style={{ color: '#E0E0E0', fontWeight: '600' }}>{user.email}</span>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '0.75rem',
+            backgroundColor: '#1a1a1a',
+            borderRadius: '8px',
+            border: '1px solid rgba(255, 255, 255, 0.05)'
+          }}>
+            <span style={{ color: '#A0A0A0', fontWeight: '500' }}>Member Since</span>
+            <span style={{ color: '#E0E0E0', fontWeight: '600' }}>
+              {new Date(user.created_at).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Account Actions */}
+      <div style={{
+        backgroundColor: '#262626',
+        borderRadius: '10px',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        padding: '1.5rem'
+      }}>
+        <h3 style={{ color: '#E0E0E0', marginBottom: '1rem', fontSize: '1.1rem', fontWeight: '600' }}>
+          Account Actions
+        </h3>
+        
+        <div style={{ display: 'grid', gap: '0.75rem' }}>
+          <button style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            width: '100%',
+            padding: '0.75rem 1rem',
+            backgroundColor: '#1a1a1a',
+            color: '#E0E0E0',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            fontSize: '0.95rem',
+            fontWeight: '500',
+            textAlign: 'left'
+          }}>
+            <i className="fas fa-edit" style={{ color: '#4a90e2', width: '20px', textAlign: 'center' }}></i>
+            Edit Profile
+          </button>
+          
+          <button style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            width: '100%',
+            padding: '0.75rem 1rem',
+            backgroundColor: '#1a1a1a',
+            color: '#E0E0E0',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            fontSize: '0.95rem',
+            fontWeight: '500',
+            textAlign: 'left'
+          }}>
+            <i className="fas fa-key" style={{ color: '#D4AF37', width: '20px', textAlign: 'center' }}></i>
+            Change Password
+          </button>
+          
+          <button style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            width: '100%',
+            padding: '0.75rem 1rem',
+            backgroundColor: '#1a1a1a',
+            color: '#E0E0E0',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            fontSize: '0.95rem',
+            fontWeight: '500',
+            textAlign: 'left'
+          }}>
+            <i className="fas fa-download" style={{ color: '#10b981', width: '20px', textAlign: 'center' }}></i>
+            Export Account Data
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 const NotificationSettings = () => <SettingsSection title="Notifications" icon="fas fa-bell" description="Configure notification preferences and alerts" />;
 const SecuritySettings = () => <SettingsSection title="Security" icon="fas fa-shield-alt" description="Security settings and two-factor authentication" />;
 const APISettings = () => <SettingsSection title="API Keys" icon="fas fa-key" description="Manage your API keys and integrations" />;
