@@ -682,7 +682,7 @@ const SimpleMessengerWebhook = () => {
               <div style={{ 
                 display: 'flex', 
                 gap: '0', 
-                height: '500px', 
+                height: 'calc(100vh - 150px)', 
                 border: `1px solid ${colors.border}`, 
                 borderRadius: '8px', 
                 overflow: 'hidden',
