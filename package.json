@@ -1,15 +1,23 @@
 {
-  "name": "workflow-platform",
+  "name": "simple-website",
   "version": "1.0.0",
-  "description": "n8n workflow automation platform with iframe integration",
+  "description": "A simple one-page website",
+  "main": "server.js",
   "scripts": {
-    "build": "echo 'n8n build complete'",
-    "start": "N8N_EDITOR_BASE_URL=https://workflow-lg9z.onrender.com npx n8n start",
-    "dev": "N8N_EDITOR_BASE_URL=https://workflow-lg9z.onrender.com npx n8n start"
+    "start": "node server.js",
+    "build": "echo 'Build complete'",
+    "dev": "node server.js"
   },
   "dependencies": {
-    "n8n": "^1.108.0"
+    "express": "^4.21.2"
   },
+  "keywords": [
+    "website",
+    "html",
+    "css"
+  ],
+  "author": "",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/MuhamadTAH/Workflow.git"
