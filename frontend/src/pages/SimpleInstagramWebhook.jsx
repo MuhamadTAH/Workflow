@@ -317,22 +317,18 @@ const SimpleInstagramWebhook = () => {
           
           {/* LEFT SIDEBAR - Webhook Setup & Contact List */}
           <div style={{ 
-            width: '400px',
+            width: isLeftSidebarCollapsed ? '0' : '400px',
+            minWidth: isLeftSidebarCollapsed ? '0' : '400px',
+            maxWidth: isLeftSidebarCollapsed ? '0' : '400px',
             backgroundColor: '#f8fafc',
             borderRadius: '8px 0 0 8px',
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
             padding: '0',
             height: '100vh',
-            position: 'fixed',
-            top: '0',
-            left: '0',
             border: '1px solid #e2e8f0',
             overflow: 'hidden',
-            transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
-            transform: isLeftSidebarCollapsed ? 'translateX(-420px)' : 'translateX(0)',
-            opacity: isLeftSidebarCollapsed ? 0 : 1,
-            zIndex: 1000,
-            display: 'flex',
+            transition: 'width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), min-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), max-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            display: isLeftSidebarCollapsed ? 'none' : 'flex',
             flexDirection: 'column'
           }}>
             {/* Sidebar Header */}
@@ -881,21 +877,19 @@ const SimpleInstagramWebhook = () => {
 
           {/* RIGHT SIDEBAR - Analytics & User Info */}
           <div style={{ 
-            width: '300px',
+            width: isRightSidebarCollapsed ? '0' : '300px',
+            minWidth: isRightSidebarCollapsed ? '0' : '300px',
+            maxWidth: isRightSidebarCollapsed ? '0' : '300px',
             backgroundColor: '#f8fafc', 
             borderRadius: '0 8px 8px 0', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
             padding: '0',
             height: '100vh',
-            position: 'fixed',
-            top: '0',
-            right: '0',
             border: '1px solid #e2e8f0',
             overflow: 'hidden',
-            transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
-            transform: isRightSidebarCollapsed ? 'translateX(320px)' : 'translateX(0)',
-            opacity: isRightSidebarCollapsed ? 0 : 1,
-            zIndex: 1000
+            transition: 'width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), min-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), max-width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            display: isRightSidebarCollapsed ? 'none' : 'flex',
+            flexDirection: 'column'
           }}>
             {/* Right Sidebar Header */}
             <div style={{ 
