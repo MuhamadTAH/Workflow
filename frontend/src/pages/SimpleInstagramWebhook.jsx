@@ -879,14 +879,111 @@ const SimpleInstagramWebhook = () => {
                         </button>
                       )}
                     </div>
+                  )}
+                </div>
+
+                {/* Close the main messages area div */}
+              </div>
+            </div>
+
+          {/* MIDDLE PANEL - Conversation (OLD STRUCTURE TO REMOVE) */}
+          <div style={{ 
+            flex: '1',
+            display: 'flex', 
+            flexDirection: 'column', 
+            marginLeft: isLeftSidebarCollapsed ? '0' : '400px',
+            marginRight: isRightSidebarCollapsed ? '0' : '300px',
+            transition: 'margin-left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), margin-right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+          }}>
+            {/* DM Management Interface */}
+            <div style={{ display: 'flex', gap: '1rem', height: 'calc(100vh - 60px)' }}>
+              
+              {/* Messages Display */}
+              <div style={{ 
+                flex: '1', 
+                backgroundColor: '#f8fafc', 
+                padding: '1rem', 
+                borderRadius: '6px', 
+                border: '1px solid #e2e8f0',
+                display: 'flex',
+                flexDirection: 'column'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                  <h3 style={{ fontWeight: '500', color: '#1f2937', margin: 0 }}>
+                    💬 Messages
+                    {selectedUserId && isWaiting && (
+                      <span style={{ 
+                        marginLeft: '0.5rem', 
+                        fontSize: '0.75rem', 
+                        color: '#E4405F',
+                        backgroundColor: '#fef2f2',
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '4px'
+                      }}>
+                        🔴 Live
+                      </span>
+                    )}
+                  </h3>
+                  {selectedUserId && (
+                    <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                      {currentMessages.length} message{currentMessages.length !== 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ 
+                  flex: 1,
+                  overflowY: 'auto', 
+                  backgroundColor: 'white', 
+                  borderRadius: '4px 4px 0 0',
+                  border: '1px solid #e5e7eb',
+                  borderBottom: 'none'
+                }}>
+                  {!selectedUserId ? (
+                    <div style={{ 
+                      padding: '2rem', 
+                      textAlign: 'center', 
+                      color: '#9ca3af',
+                      fontSize: '0.875rem',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💬</div>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: '600', marginBottom: '0.5rem', color: '#6b7280' }}>
+                        Select a conversation
+                      </h3>
+                      <p>Choose a conversation from the left panel to start messaging</p>
+                      {!isWaiting && !hasReceivedCall && (
+                        <button
+                          onClick={handleActivate}
+                          disabled={isLoading}
+                          style={{
+                            backgroundColor: isLoading ? '#9ca3af' : '#E4405F',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '0.75rem 1.5rem',
+                            fontSize: '0.875rem',
+                            fontWeight: '600',
+                            cursor: isLoading ? 'not-allowed' : 'pointer',
+                            marginTop: '1rem'
+                          }}
+                        >
+                          {isLoading ? 'Activating...' : '🚀 Start Webhook'}
+                        </button>
+                      )}
+                    </div>
                   ) : currentMessages.length === 0 ? (
                     <div style={{ 
+                      padding: '2rem', 
                       textAlign: 'center', 
-                      color: '#9ca3af', 
-                      padding: '2rem',
+                      color: '#9ca3af',
                       fontSize: '0.875rem'
                     }}>
-                      <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👈</div>
+                      <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📷</div>
                       <p>No messages in this conversation yet.</p>
                     </div>
                   ) : (
