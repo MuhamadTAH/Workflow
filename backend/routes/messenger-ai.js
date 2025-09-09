@@ -450,8 +450,18 @@ async function generateAIReply(message, senderId) {
 
   // Check per-user AI status (default to true if not set)
   const userAIEnabled = userAIStatus.hasOwnProperty(senderId) ? userAIStatus[senderId] : true;
+  
+  logger.info('🔍 Checking user AI status', {
+    senderId,
+    userAIEnabled,
+    hasExplicitStatus: userAIStatus.hasOwnProperty(senderId),
+    allUserStatuses: userAIStatus,
+    globalAIEnabled: aiConfig.enabled,
+    autoReply: aiConfig.autoReply
+  });
+  
   if (!userAIEnabled) {
-    logger.info('🚫 AI disabled for user', { senderId });
+    logger.info('🚫 AI disabled for user - skipping reply', { senderId });
     return null;
   }
 

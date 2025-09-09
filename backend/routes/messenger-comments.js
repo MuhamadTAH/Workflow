@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../services/logger');
 const db = require('../db');
-const { generateAIReply, getAIConfig, handleMessageBatch } = require('./messenger-ai');
+const { generateAIReply, getAIConfig, handleMessageBatch, getUserAIStatus } = require('./messenger-ai');
 
 // In-memory storage for user info cache and messages
 const messengerUsers = {};
@@ -350,15 +350,27 @@ router.all('/webhooks/messenger/comments', async (req, res) => {
               // Trigger AI auto-reply for incoming messages (not echoes)
               if (messageData.text && !messaging.message?.is_echo && senderId !== 'me') {
                 const aiConfig = getAIConfig();
-                if (aiConfig.enabled && aiConfig.autoReply) {
+                const userAIStatus = getUserAIStatus();
+                const userAIEnabled = userAIStatus.hasOwnProperty(senderId) ? userAIStatus[senderId] : true;
+                
+                if (aiConfig.enabled && aiConfig.autoReply && userAIEnabled) {
                   logger.info('🤖 Adding message to batch for AI processing', {
                     senderId,
                     message: messageData.text.substring(0, 50),
-                    batchDelay: '5 seconds'
+                    batchDelay: '5 seconds',
+                    userAIEnabled,
+                    hasExplicitStatus: userAIStatus.hasOwnProperty(senderId)
                   });
                   
                   // Use message batching system (5-second delay)
                   handleMessageBatch(senderId, messageData.text, generateAIReply, sendMessengerReply);
+                } else if (!userAIEnabled) {
+                  logger.info('🚫 AI disabled for user, skipping auto-reply', {
+                    senderId,
+                    userAIEnabled,
+                    hasExplicitStatus: userAIStatus.hasOwnProperty(senderId),
+                    globalAIEnabled: aiConfig.enabled && aiConfig.autoReply
+                  });
                 }
               }
               
