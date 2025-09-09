@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api.js';
+import { useTheme } from '../contexts/ThemeContext';
+import ThemeToggle from '../components/ThemeToggle';
 import MessengerAISettings from '../components/MessengerAISettings.jsx';
 
 const SimpleMessengerWebhook = () => {
+  const { theme, colors } = useTheme();
+  
   // Configuration state
   const [appId, setAppId] = useState('');
   const [appSecret, setAppSecret] = useState('');
@@ -29,6 +33,13 @@ const SimpleMessengerWebhook = () => {
   const [userAIStatus, setUserAIStatus] = useState({});
   const [isTogglingAI, setIsTogglingAI] = useState(false);
   const [aiActivatingUsers, setAiActivatingUsers] = useState({}); // Track which users are still activating
+  
+  // Sidebar states
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
+  
+  // Configuration panel collapse states
+  const [isMessengerConfigCollapsed, setIsMessengerConfigCollapsed] = useState(false);
 
   const webhookUrl = `${API_BASE_URL}/api/webhooks/messenger/comments`;
   const verifyToken = 'muhammad';
@@ -324,101 +335,194 @@ const SimpleMessengerWebhook = () => {
   const currentMessages = getMessagesForUser(selectedUserId);
 
   return (
-    <div style={{ 
-      height: '100vh', 
-      backgroundColor: '#f0f2f5',
-      display: 'flex'
-    }}>
-      
-      {/* Left Panel - Webhook Setup & Contact List */}
-      <div style={{ 
-        width: '400px',
-        backgroundColor: 'white',
-        borderRight: '1px solid #e5e7eb',
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
+    <div style={{ minHeight: '100vh', backgroundColor: colors.primaryBg, padding: '2rem 0' }}>
+      <div style={{ maxWidth: '90rem', margin: '0 auto', padding: '0' }}>
+        {/* Fixed Toggle Buttons */}
+        <button
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          style={{
+            position: 'fixed',
+            top: '20px',
+            left: isSidebarCollapsed ? '20px' : '400px',
+            backgroundColor: '#0084ff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '0.75rem 1rem',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            zIndex: 1001
+          }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = '#0066cc'}
+          onMouseLeave={(e) => e.target.style.backgroundColor = '#0084ff'}
+        >
+          {isSidebarCollapsed ? '☰' : '✕'}
+        </button>
         
-        {/* Header */}
+        <button
+          onClick={() => setIsRightSidebarCollapsed(!isRightSidebarCollapsed)}
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: isRightSidebarCollapsed ? '20px' : '300px',
+            backgroundColor: colors.success,
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '0.75rem 1rem',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            zIndex: 1001
+          }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = colors.brandBlueDark}
+          onMouseLeave={(e) => e.target.style.backgroundColor = colors.success}
+        >
+          {isRightSidebarCollapsed ? '☰' : '✕'}
+        </button>
+
         <div style={{ 
-          padding: '1rem',
-          backgroundColor: '#0084ff',
-          color: 'white'
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between', 
+          marginBottom: '1.5rem', 
+          position: 'relative',
+          backgroundColor: colors.secondaryBg,
+          padding: '1rem 2rem',
+          borderBottom: `1px solid ${colors.border}`
         }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '0.5rem'
-            }}>
-              <h1 style={{ 
-                fontSize: '1.25rem', 
-                fontWeight: 'bold',
-                margin: 0
-              }}>
-                Messenger Manager
-              </h1>
-              
-              <button
-                onClick={() => setShowAISettings(true)}
-                style={{
-                  backgroundColor: aiConfig.enabled ? 'rgba(34, 197, 94, 0.2)' : 'rgba(255,255,255,0.2)',
-                  color: 'white',
-                  border: `1px solid ${aiConfig.enabled ? 'rgba(34, 197, 94, 0.5)' : 'rgba(255,255,255,0.3)'}`,
-                  borderRadius: '6px',
-                  padding: '0.5rem 0.75rem',
-                  fontSize: '0.75rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.25rem'
-                }}
-                title="AI Assistant Settings"
-              >
-                🤖 AI {aiConfig.enabled ? 'ON' : 'OFF'}
-              </button>
-            </div>
-            
-            {aiConfig.enabled && aiConfig.autoReply && (
+          
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: colors.primaryText, margin: 0 }}>
+            <i className="fab fa-facebook-messenger" style={{ color: '#0084ff', marginRight: '0.5rem' }}></i>
+            Messenger Manager
+          </h1>
+          <ThemeToggle />
+        </div>
+        
+        <div style={{ display: 'flex', gap: '0', alignItems: 'flex-start', position: 'relative' }}>
+          
+          {/* LEFT SIDEBAR - Sliding Configuration Panel */}
+          <div style={{ 
+            width: '400px',
+            backgroundColor: colors.secondaryBg, 
+            borderRadius: '0', 
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
+            padding: '0',
+            height: '100vh',
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            borderRight: `1px solid ${colors.border}`,
+            overflow: 'hidden',
+            transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
+            transform: isSidebarCollapsed ? 'translateX(-420px)' : 'translateX(0)',
+            opacity: isSidebarCollapsed ? 0 : 1,
+            zIndex: 1000
+          }}>
+              {/* Sidebar Header */}
               <div style={{ 
-                fontSize: '0.75rem', 
-                color: 'rgba(255,255,255,0.8)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem'
+                backgroundColor: '#0084ff', 
+                color: 'white', 
+                padding: '1rem 1.5rem',
+                borderRadius: '0'
               }}>
-                <span style={{ color: '#22c55e' }}>●</span>
-                AI Auto-reply Active
+                <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
+                  ⚙️ Configuration Panel
+                </h2>
               </div>
-            )}
-          </div>
+              
+              {/* Sidebar Content */}
+              <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
+                
+                {/* Messenger Configuration Section */}
+                <div style={{ marginBottom: isMessengerConfigCollapsed ? '0' : '2rem' }}>
+                  <h3 
+                    onClick={() => setIsMessengerConfigCollapsed(!isMessengerConfigCollapsed)}
+                    style={{ 
+                      fontSize: '1rem', 
+                      fontWeight: '600', 
+                      color: colors.primaryText, 
+                      marginBottom: '1rem', 
+                      borderBottom: `2px solid ${colors.border}`, 
+                      paddingBottom: '0.5rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <span>💬 Messenger Configuration</span>
+                    
+                    <button
+                      onClick={() => setShowAISettings(true)}
+                      style={{
+                        backgroundColor: aiConfig.enabled ? 'rgba(34, 197, 94, 0.2)' : 'rgba(156, 163, 175, 0.2)',
+                        color: aiConfig.enabled ? '#15803d' : '#6b7280',
+                        border: `1px solid ${aiConfig.enabled ? 'rgba(34, 197, 94, 0.5)' : 'rgba(156, 163, 175, 0.3)'}`,
+                  borderRadius: '6px',
+                        padding: '0.4rem 0.6rem',
+                        fontSize: '0.7rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.25rem'
+                      }}
+                      title="AI Assistant Settings"
+                    >
+                      🤖 AI {aiConfig.enabled ? 'ON' : 'OFF'}
+                    </button>
+                    <span style={{ 
+                      transform: isMessengerConfigCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease',
+                      fontSize: '0.8rem',
+                      color: colors.mutedText
+                    }}>
+                      ▼
+                    </span>
+                  </h3>
+                  
+                  {/* Collapsible Content */}
+                  <div style={{
+                    maxHeight: isMessengerConfigCollapsed ? '0' : '1000px',
+                    overflow: 'hidden',
+                    transition: 'max-height 0.3s ease-in-out',
+                    opacity: isMessengerConfigCollapsed ? 0 : 1
+                  }}>
 
           {/* Configuration Fields */}
-          {!isWaiting && !hasReceivedCall && (
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{ display: 'grid', gap: '0.75rem', fontSize: '0.875rem' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '0.25rem', opacity: '0.9' }}>
-                    App ID *
-                  </label>
-                  <input
-                    type="text"
-                    value={appId}
-                    onChange={(e) => setAppId(e.target.value)}
-                    placeholder="Enter your Facebook App ID"
-                    style={{
-                      width: '100%',
-                      padding: '0.5rem',
-                      borderRadius: '4px',
-                      border: '1px solid rgba(255,255,255,0.3)',
-                      backgroundColor: 'rgba(255,255,255,0.1)',
-                      color: 'white',
-                      fontSize: '0.875rem'
-                    }}
-                  />
-                </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: colors.secondaryText, marginBottom: '0.5rem' }}>
+                App ID *
+              </label>
+              <input
+                type="text"
+                value={appId}
+                onChange={(e) => setAppId(e.target.value)}
+                placeholder="Enter your Facebook App ID"
+                style={{ 
+                  width: '100%', 
+                  padding: '0.75rem', 
+                  border: `1px solid ${colors.border}`, 
+                  borderRadius: '6px', 
+                  fontSize: '0.875rem',
+                  outline: 'none',
+                  opacity: isLoading ? '0.5' : '1',
+                  backgroundColor: colors.inputBg,
+                  color: colors.primaryText
+                }}
+                disabled={isLoading}
+              />
+              <p style={{ marginTop: '0.25rem', fontSize: '0.75rem', color: colors.mutedText }}>
+                Get from Meta Developer Console → Your App → App ID
+              </p>
+            </div>
                 
                 <div>
                   <label style={{ display: 'block', marginBottom: '0.25rem', opacity: '0.9' }}>
@@ -531,11 +635,42 @@ const SimpleMessengerWebhook = () => {
           )}
           
           {isWaiting && (
-            <div style={{ fontSize: '0.8rem', textAlign: 'center', opacity: '0.9' }}>
+            <div style={{ 
+              padding: '1rem', 
+              borderRadius: '6px', 
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              color: colors.success,
+              textAlign: 'center',
+              fontSize: '0.875rem'
+            }}>
               🔴 Live - Listening for messages...
             </div>
           )}
-        </div>
+                  </div> {/* End Collapsible Content */}
+                </div>
+
+                {/* AI Status Info - Simple indicator when AI is active */}
+                {aiConfig.enabled && aiConfig.autoReply && (
+                  <div style={{ 
+                    fontSize: '0.875rem', 
+                    color: '#059669',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    marginBottom: '1rem',
+                    paddingLeft: '0.5rem',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    padding: '0.75rem',
+                    borderRadius: '6px',
+                    border: '1px solid rgba(34, 197, 94, 0.3)'
+                  }}>
+                    <span style={{ color: '#22c55e' }}>🤖</span>
+                    AI Auto-reply is Active - Click the AI button above to configure settings
+                  </div>
+                )}
+                
+              </div>
+            </div>
 
         {/* Contact List */}
         <div style={{ flex: 1, overflowY: 'auto' }}>
