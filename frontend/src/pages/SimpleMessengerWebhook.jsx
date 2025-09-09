@@ -778,10 +778,8 @@ const SimpleMessengerWebhook = () => {
           )}
         </div>
 
-      </div>
-
-      {/* Center Panel - Conversation */}
-      <div style={{ 
+          {/* Center Panel - Conversation */}
+          <div style={{ 
         flex: '1',
         backgroundColor: 'white',
         display: 'flex',
