@@ -387,23 +387,6 @@ const SimpleMessengerWebhook = () => {
           {isRightSidebarCollapsed ? '☰' : '✕'}
         </button>
 
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          marginBottom: '1.5rem', 
-          position: 'relative',
-          backgroundColor: colors.secondaryBg,
-          padding: '1rem 2rem',
-          borderBottom: `1px solid ${colors.border}`
-        }}>
-          
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: colors.primaryText, margin: 0 }}>
-            <i className="fab fa-facebook-messenger" style={{ color: '#0084ff', marginRight: '0.5rem' }}></i>
-            Messenger Manager
-          </h1>
-          <ThemeToggle />
-        </div>
         
         <div style={{ display: 'flex', gap: '0', alignItems: 'flex-start', position: 'relative' }}>
           
@@ -430,11 +413,16 @@ const SimpleMessengerWebhook = () => {
                 backgroundColor: '#0084ff', 
                 color: 'white', 
                 padding: '1rem 1.5rem',
-                borderRadius: '0'
+                borderRadius: '0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
               }}>
                 <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
-                  ⚙️ Configuration Panel
+                  <i className="fab fa-facebook-messenger" style={{ marginRight: '0.5rem' }}></i>
+                  Messenger Manager
                 </h2>
+                <ThemeToggle />
               </div>
               
               {/* Sidebar Content */}
