@@ -24,6 +24,11 @@ const SimpleMessengerWebhook = () => {
   const [isReplying, setIsReplying] = useState(false);
   const [showAISettings, setShowAISettings] = useState(false);
   const [aiConfig, setAiConfig] = useState({ enabled: false });
+  
+  // Per-user AI Management State
+  const [userAIStatus, setUserAIStatus] = useState({});
+  const [isTogglingAI, setIsTogglingAI] = useState(false);
+  const [aiActivatingUsers, setAiActivatingUsers] = useState({}); // Track which users are still activating
 
   const webhookUrl = `${API_BASE_URL}/api/webhooks/messenger/comments`;
   const verifyToken = 'muhammad';
@@ -259,6 +264,59 @@ const SimpleMessengerWebhook = () => {
       setError('Network error: ' + error.message);
     } finally {
       setIsReplying(false);
+    }
+  };
+
+  const toggleUserAI = async (userId) => {
+    if (!userId || isTogglingAI) return;
+    
+    setIsTogglingAI(true);
+    
+    // Check if user has explicit status set, otherwise default to true (active)
+    const currentStatus = userAIStatus.hasOwnProperty(userId) ? userAIStatus[userId] : true;
+    const newStatus = !currentStatus;
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/messenger/user-ai/toggle`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          userId: userId,
+          isActive: newStatus
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        // If activating AI, mark user as "activating" for 5 seconds
+        if (newStatus) {
+          setAiActivatingUsers(prev => ({ ...prev, [userId]: true }));
+          
+          // Clear activating status after 5 seconds
+          setTimeout(() => {
+            setAiActivatingUsers(prev => {
+              const updated = { ...prev };
+              delete updated[userId];
+              return updated;
+            });
+          }, 5000);
+        }
+        
+        setUserAIStatus(prev => ({
+          ...prev,
+          [userId]: newStatus
+        }));
+      } else {
+        console.error('Failed to toggle AI status for user:', data.error);
+      }
+    } catch (error) {
+      console.error('Network error:', error.message);
+    } finally {
+      setIsTogglingAI(false);
     }
   };
 
@@ -1130,6 +1188,132 @@ const SimpleMessengerWebhook = () => {
                         </div>
                       )}
                     </div>
+                  </div>
+
+                  {/* AI Control Button for Selected User */}
+                  <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                    <div style={{ marginBottom: '0.75rem' }}>
+                      <div style={{ 
+                        fontSize: '0.75rem', 
+                        fontWeight: '600', 
+                        color: '#6b7280',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        marginBottom: '0.5rem'
+                      }}>
+                        AI Response Control
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                        <div style={{
+                          width: '12px',
+                          height: '12px',
+                          borderRadius: '50%',
+                          backgroundColor: aiActivatingUsers[selectedUserId] ? '#f59e0b' : 
+                            (userAIStatus.hasOwnProperty(selectedUserId) ? 
+                              (userAIStatus[selectedUserId] ? '#10b981' : '#ef4444') : '#10b981')
+                        }}></div>
+                        <span style={{ 
+                          fontSize: '0.75rem', 
+                          color: aiActivatingUsers[selectedUserId] ? '#f59e0b' : 
+                            (userAIStatus.hasOwnProperty(selectedUserId) ? 
+                              (userAIStatus[selectedUserId] ? '#10b981' : '#ef4444') : '#10b981'),
+                          fontWeight: '600'
+                        }}>
+                          {aiActivatingUsers[selectedUserId] ? 'AI Activating...' : 
+                            (userAIStatus.hasOwnProperty(selectedUserId) ? 
+                              (userAIStatus[selectedUserId] ? 'AI Active' : 'AI Inactive') : 'AI Active')}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => toggleUserAI(selectedUserId)}
+                      disabled={isTogglingAI || !selectedUserId || aiActivatingUsers[selectedUserId]}
+                      style={{
+                        width: '100%',
+                        backgroundColor: isTogglingAI ? '#9ca3af' : 
+                          aiActivatingUsers[selectedUserId] ? '#f59e0b' :
+                          (userAIStatus.hasOwnProperty(selectedUserId) ? 
+                            (userAIStatus[selectedUserId] ? '#ef4444' : '#0084ff') : '#ef4444'),
+                        color: 'white',
+                        padding: '1rem',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: isTogglingAI || !selectedUserId || aiActivatingUsers[selectedUserId] ? 'not-allowed' : 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.75rem',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isTogglingAI && selectedUserId && !aiActivatingUsers[selectedUserId]) {
+                          e.target.style.transform = 'translateY(-1px)';
+                          e.target.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
+                      }}
+                    >
+                      {isTogglingAI ? (
+                        <>
+                          <div style={{
+                            width: '16px',
+                            height: '16px',
+                            border: '2px solid #ffffff',
+                            borderTop: '2px solid transparent',
+                            borderRadius: '50%',
+                            animation: 'spin 1s linear infinite'
+                          }}></div>
+                          Updating...
+                        </>
+                      ) : aiActivatingUsers[selectedUserId] ? (
+                        <>
+                          ⏳
+                          <span>AI Starting... (Please wait)</span>
+                        </>
+                      ) : (userAIStatus.hasOwnProperty(selectedUserId) ? 
+                          (userAIStatus[selectedUserId] ? (
+                            <>
+                              🚫
+                              <span>Deactivate AI</span>
+                            </>
+                          ) : (
+                            <>
+                              🤖
+                              <span>Activate AI</span>
+                            </>
+                          )) : (
+                            <>
+                              🚫
+                              <span>Deactivate AI</span>
+                            </>
+                          )
+                      )}
+                    </button>
+                    
+                    <p style={{ 
+                      fontSize: '0.75rem', 
+                      color: '#6b7280', 
+                      textAlign: 'center', 
+                      marginTop: '0.75rem',
+                      margin: '0.75rem 0 0 0',
+                      lineHeight: '1.4'
+                    }}>
+                      {aiActivatingUsers[selectedUserId] 
+                        ? 'AI is starting up for this user. Please wait 5 seconds before sending messages.'
+                        : userAIStatus.hasOwnProperty(selectedUserId) 
+                        ? (userAIStatus[selectedUserId] 
+                          ? 'AI will automatically respond to this user\'s messages'
+                          : 'AI responses are disabled for this user')
+                        : 'AI will automatically respond to this user\'s messages'
+                      }
+                    </p>
                   </div>
 
                 </div>
