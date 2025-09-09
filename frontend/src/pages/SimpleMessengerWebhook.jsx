@@ -1244,9 +1244,9 @@ const SimpleMessengerWebhook = () => {
           <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
             
             {/* Selected User Info Section */}
-            <div style={{ marginBottom: isRightSidebarCollapsed ? '0' : '2rem' }}>
+            <div style={{ marginBottom: isSelectedUserCollapsed ? '0' : '2rem' }}>
               <h3 
-                onClick={() => setIsRightSidebarCollapsed(!isRightSidebarCollapsed)}
+                onClick={() => setIsSelectedUserCollapsed(!isSelectedUserCollapsed)}
                 style={{ 
                   fontSize: '1rem', 
                   fontWeight: '600', 
@@ -1263,7 +1263,7 @@ const SimpleMessengerWebhook = () => {
               >
                 <span>👤 Selected User</span>
                 <span style={{ 
-                  transform: isRightSidebarCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                  transform: isSelectedUserCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
                   transition: 'transform 0.2s ease',
                   fontSize: '0.8rem',
                   color: colors.mutedText
@@ -1274,10 +1274,10 @@ const SimpleMessengerWebhook = () => {
 
               {/* Collapsible Content */}
               <div style={{
-                maxHeight: isRightSidebarCollapsed ? '0' : '2000px',
+                maxHeight: isSelectedUserCollapsed ? '0' : '2000px',
                 overflow: 'hidden',
                 transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
-                opacity: isRightSidebarCollapsed ? 0 : 1
+                opacity: isSelectedUserCollapsed ? 0 : 1
               }}>
               
                 {selectedUserId ? (() => {
