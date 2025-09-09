@@ -233,7 +233,7 @@ const SimpleMessengerWebhook = () => {
     return messages.filter(message => 
       message.sender?.id === userId || 
       (message.recipient?.id === userId && message.sender?.id === 'me')
-    );
+    ).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)); // Sort oldest first
   };
 
   const copyToClipboard = (text) => {
