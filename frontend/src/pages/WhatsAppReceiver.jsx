@@ -1865,26 +1865,6 @@ const WhatsAppReceiver = () => {
           
         </div>
 
-        {/* Status indicator for WhatsApp system */}
-        {!isActive && (
-          <div style={{
-            position: 'fixed',
-            top: '20px',
-            right: isRightSidebarCollapsed ? '80px' : '320px',
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '8px',
-            padding: '12px 16px',
-            color: '#991b1b',
-            fontSize: '14px',
-            fontWeight: '500',
-            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-            zIndex: 1000,
-            transition: 'right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-          }}>
-            ⚠️ WhatsApp system is inactive. Configure and activate to start receiving messages.
-          </div>
-        )}
 
         {/* AI Settings Modal */}
         <WhatsAppAISettings
