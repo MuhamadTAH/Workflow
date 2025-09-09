@@ -638,25 +638,6 @@ const SimpleMessengerWebhook = () => {
                   </div> {/* End Collapsible Content */}
                 </div>
 
-                {/* AI Status Info - Simple indicator when AI is active */}
-                {aiConfig.enabled && aiConfig.autoReply && (
-                  <div style={{ 
-                    fontSize: '0.875rem', 
-                    color: '#059669',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    marginBottom: '1rem',
-                    paddingLeft: '0.5rem',
-                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                    padding: '0.75rem',
-                    borderRadius: '6px',
-                    border: '1px solid rgba(34, 197, 94, 0.3)'
-                  }}>
-                    <span style={{ color: '#22c55e' }}>🤖</span>
-                    AI Auto-reply is Active - Click the AI button above to configure settings
-                  </div>
-                )}
                 
               </div>
             </div>
