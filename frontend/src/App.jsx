@@ -382,7 +382,7 @@ function App() {
         <Route path="/billing" element={<BillingDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/api-keys" element={<APIKeysDashboard />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route path="/settings/*" element={<Settings />} />
         <Route path="/shop/:shopName" element={<PublicShop />} />
         </Routes>
       </Router>
