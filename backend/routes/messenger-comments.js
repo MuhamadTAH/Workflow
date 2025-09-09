@@ -4,6 +4,10 @@ const logger = require('../services/logger');
 const db = require('../db');
 const { generateAIReply, getAIConfig, handleMessageBatch } = require('./messenger-ai');
 
+// In-memory storage for user info cache and messages
+const messengerUsers = {};
+const messengerMessages = [];
+
 // Simple auth function for development
 const authenticateUser = (req, res, next) => {
   req.user = { id: 1 }; // Default to user ID 1 for development
