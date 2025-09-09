@@ -127,15 +127,15 @@ const BillingDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div style={{ minHeight: '100vh', backgroundColor: '#1a1a1a', padding: '24px' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ animation: 'pulse 2s infinite' }}>
+            <div style={{ height: '32px', backgroundColor: '#323232', borderRadius: '8px', width: '25%', marginBottom: '32px' }}></div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px', marginBottom: '32px' }}>
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="bg-white rounded-lg p-6 shadow">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                  <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+                <div key={i} style={{ backgroundColor: '#323232', borderRadius: '12px', padding: '24px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                  <div style={{ height: '16px', backgroundColor: '#262626', borderRadius: '8px', width: '75%', marginBottom: '16px' }}></div>
+                  <div style={{ height: '32px', backgroundColor: '#262626', borderRadius: '8px', width: '50%' }}></div>
                 </div>
               ))}
             </div>
@@ -147,15 +147,17 @@ const BillingDashboard = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-red-800 mb-2">Error Loading Billing Data</h2>
-            <p className="text-red-600 mb-4">{error}</p>
+      <div style={{ minHeight: '100vh', backgroundColor: '#1a1a1a', padding: '24px' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+          <div style={{ backgroundColor: '#323232', border: '1px solid rgba(255, 0, 0, 0.3)', borderRadius: '12px', padding: '24px', textAlign: 'center' }}>
+            <AlertCircle className="h-12 w-12" style={{ color: '#ef4444', margin: '0 auto 16px' }} />
+            <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#E0E0E0', marginBottom: '8px' }}>Error Loading Billing Data</h2>
+            <p style={{ color: '#A0A0A0', marginBottom: '16px' }}>{error}</p>
             <button 
               onClick={loadBillingData}
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              style={{ backgroundColor: '#ef4444', color: 'white', padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#dc2626'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#ef4444'}
             >
               Try Again
             </button>
@@ -169,40 +171,42 @@ const BillingDashboard = () => {
   const freeTokensPercentage = (freeTokensUsed / billingData.freeTier.totalLimit) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div style={{ minHeight: '100vh', backgroundColor: '#1a1a1a', padding: '24px' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Billing & Usage</h1>
-          <p className="text-gray-600">Manage your AI usage and billing preferences</p>
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{ fontSize: '30px', fontWeight: 'bold', color: '#E0E0E0', marginBottom: '8px' }}>Billing & Usage</h1>
+          <p style={{ color: '#A0A0A0' }}>Manage your AI usage and billing preferences</p>
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px', marginBottom: '32px' }}>
           {/* Current Spending */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <DollarSign className="h-8 w-8 text-blue-600" />
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-600">This Month</p>
-                  <p className="text-2xl font-bold text-gray-900">
+          <div style={{ backgroundColor: '#323232', borderRadius: '12px', padding: '24px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <DollarSign className="h-8 w-8" style={{ color: '#4a90e2' }} />
+                <div style={{ marginLeft: '12px' }}>
+                  <p style={{ fontSize: '14px', fontWeight: '500', color: '#A0A0A0' }}>This Month</p>
+                  <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#E0E0E0' }}>
                     {formatCurrency(billingData.currentSpending.currentSpending)}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div style={{ width: '100%', backgroundColor: '#262626', borderRadius: '9999px', height: '8px' }}>
               <div 
-                className="bg-blue-600 h-2 rounded-full" 
                 style={{ 
+                  backgroundColor: '#4a90e2',
+                  height: '8px',
+                  borderRadius: '9999px',
                   width: billingData.currentSpending.spendingLimit === null 
                     ? '5px' // Small indicator for unlimited
                     : `${Math.min(billingData.currentSpending.percentage, 100)}%` 
                 }}
               ></div>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
+            <p style={{ fontSize: '12px', color: '#8E8E8E', marginTop: '8px' }}>
               {billingData.currentSpending.spendingLimit === null 
                 ? 'No spending limit (unlimited)' 
                 : `${billingData.currentSpending.percentage.toFixed(1)}% of ${formatCurrency(billingData.currentSpending.spendingLimit)} limit`
@@ -211,45 +215,49 @@ const BillingDashboard = () => {
           </div>
 
           {/* Free Tier */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <Zap className="h-8 w-8 text-green-600" />
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-600">Free Tokens</p>
-                  <p className="text-2xl font-bold text-gray-900">
+          <div style={{ backgroundColor: '#323232', borderRadius: '12px', padding: '24px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Zap className="h-8 w-8" style={{ color: '#10b981' }} />
+                <div style={{ marginLeft: '12px' }}>
+                  <p style={{ fontSize: '14px', fontWeight: '500', color: '#A0A0A0' }}>Free Tokens</p>
+                  <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#E0E0E0' }}>
                     {billingData.freeTier.remainingTokens}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div style={{ width: '100%', backgroundColor: '#262626', borderRadius: '9999px', height: '8px' }}>
               <div 
-                className="bg-green-600 h-2 rounded-full" 
-                style={{ width: `${100 - freeTokensPercentage}%` }}
+                style={{ 
+                  backgroundColor: '#10b981',
+                  height: '8px',
+                  borderRadius: '9999px',
+                  width: `${100 - freeTokensPercentage}%`
+                }}
               ></div>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
+            <p style={{ fontSize: '12px', color: '#8E8E8E', marginTop: '8px' }}>
               {freeTokensUsed} of {billingData.freeTier.totalLimit} used
             </p>
           </div>
 
           {/* Payment Method */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <CreditCard className="h-8 w-8 text-purple-600" />
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-600">Payment Method</p>
-                  <p className="text-lg font-bold text-gray-900">
+          <div style={{ backgroundColor: '#323232', borderRadius: '12px', padding: '24px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <CreditCard className="h-8 w-8" style={{ color: '#D4AF37' }} />
+                <div style={{ marginLeft: '12px' }}>
+                  <p style={{ fontSize: '14px', fontWeight: '500', color: '#A0A0A0' }}>Payment Method</p>
+                  <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#E0E0E0' }}>
                     {billingData.billing?.hasPaymentMethod ? (
-                      <span className="flex items-center">
-                        <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
+                      <span style={{ display: 'flex', alignItems: 'center' }}>
+                        <CheckCircle className="h-4 w-4" style={{ color: '#10b981', marginRight: '4px' }} />
                         •••• {billingData.billing.cardLastFour}
                       </span>
                     ) : (
-                      <span className="flex items-center text-orange-600">
-                        <Clock className="h-4 w-4 mr-1" />
+                      <span style={{ display: 'flex', alignItems: 'center', color: '#f59e0b' }}>
+                        <Clock className="h-4 w-4" style={{ marginRight: '4px' }} />
                         Not Set
                       </span>
                     )}
@@ -260,7 +268,9 @@ const BillingDashboard = () => {
             {!billingData.billing?.hasPaymentMethod && (
               <button 
                 onClick={() => setShowAddCard(true)}
-                className="w-full bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700 transition-colors"
+                style={{ width: '100%', backgroundColor: '#D4AF37', color: 'white', padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#B8941F'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#D4AF37'}
               >
                 Add Card
               </button>
@@ -268,39 +278,39 @@ const BillingDashboard = () => {
           </div>
 
           {/* AI Responses */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <MessageSquare className="h-8 w-8 text-indigo-600" />
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-600">AI Responses</p>
-                  <p className="text-2xl font-bold text-gray-900">
+          <div style={{ backgroundColor: '#323232', borderRadius: '12px', padding: '24px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <MessageSquare className="h-8 w-8" style={{ color: '#4a90e2' }} />
+                <div style={{ marginLeft: '12px' }}>
+                  <p style={{ fontSize: '14px', fontWeight: '500', color: '#A0A0A0' }}>AI Responses</p>
+                  <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#E0E0E0' }}>
                     {billingData.responseCount.totalResponses}
                   </p>
                 </div>
               </div>
             </div>
-            <p className="text-xs text-gray-500">
+            <p style={{ fontSize: '12px', color: '#8E8E8E' }}>
               {billingData.responseCount.monthlyResponses} this month
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '32px' }}>
           {/* Settings */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Billing Settings</h2>
+          <div style={{ backgroundColor: '#323232', borderRadius: '12px', padding: '24px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#E0E0E0', marginBottom: '24px' }}>Billing Settings</h2>
             
             {/* Spending Limit */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#E0E0E0', marginBottom: '8px' }}>
                 Monthly Spending Limit
               </label>
-              <div className="flex items-center space-x-2">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <select
                   value={spendingLimitType}
                   onChange={(e) => setSpendingLimitType(e.target.value)}
-                  className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  style={{ flex: '1', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '8px 12px', backgroundColor: '#262626', color: '#E0E0E0', outline: 'none' }}
                 >
                   <option value="unlimited">Unlimited</option>
                   <option value="custom">Custom Amount</option>
@@ -310,7 +320,7 @@ const BillingDashboard = () => {
                     type="number"
                     value={customSpendingLimit}
                     onChange={(e) => setCustomSpendingLimit(e.target.value)}
-                    className="w-32 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    style={{ width: '128px', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '8px 12px', backgroundColor: '#262626', color: '#E0E0E0', outline: 'none' }}
                     placeholder="Amount"
                     min="0"
                     max="100000"
@@ -318,12 +328,14 @@ const BillingDashboard = () => {
                 )}
                 <button
                   onClick={updateSpendingLimit}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                  style={{ backgroundColor: '#4a90e2', color: 'white', padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#357abd'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = '#4a90e2'}
                 >
                   Update
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p style={{ fontSize: '12px', color: '#8E8E8E', marginTop: '4px' }}>
                 {spendingLimitType === 'unlimited' 
                   ? 'No spending limit will be enforced'
                   : 'Enter a custom amount between $0-$100,000'
@@ -333,19 +345,19 @@ const BillingDashboard = () => {
 
             {/* AI Models & Pricing */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">AI Models & Pricing</h3>
-              <div className="space-y-3">
+              <h3 style={{ fontSize: '18px', fontWeight: '500', color: '#E0E0E0', marginBottom: '16px' }}>AI Models & Pricing</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {billingData.models.map((model) => (
-                  <div key={model.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <div key={model.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', backgroundColor: '#262626', borderRadius: '8px' }}>
                     <div>
-                      <p className="font-medium text-gray-900">{model.name}</p>
-                      <p className="text-sm text-gray-600 capitalize">{model.provider}</p>
+                      <p style={{ fontWeight: '500', color: '#E0E0E0' }}>{model.name}</p>
+                      <p style={{ fontSize: '14px', color: '#A0A0A0', textTransform: 'capitalize' }}>{model.provider}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">
+                    <div style={{ textAlign: 'right' }}>
+                      <p style={{ fontSize: '14px', fontWeight: '500', color: '#E0E0E0' }}>
                         ${(model.price_per_input_token * 1000000).toFixed(2)}/1M input
                       </p>
-                      <p className="text-xs text-gray-600">
+                      <p style={{ fontSize: '12px', color: '#A0A0A0' }}>
                         ${(model.price_per_output_token * 1000000).toFixed(2)}/1M output
                       </p>
                     </div>
@@ -356,27 +368,27 @@ const BillingDashboard = () => {
           </div>
 
           {/* Recent Usage */}
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Usage</h2>
+          <div style={{ backgroundColor: '#323232', borderRadius: '12px', padding: '24px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#E0E0E0', marginBottom: '24px' }}>Recent Usage</h2>
             
             {billingData.usage.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Zap className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <div style={{ textAlign: 'center', padding: '32px 0', color: '#8E8E8E' }}>
+                <Zap className="h-12 w-12" style={{ margin: '0 auto 16px', opacity: '0.5' }} />
                 <p>No usage data yet</p>
-                <p className="text-sm">Start using AI features to see your usage here</p>
+                <p style={{ fontSize: '14px' }}>Start using AI features to see your usage here</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {billingData.usage.slice(0, 10).map((day, index) => (
-                  <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', backgroundColor: '#262626', borderRadius: '8px' }}>
                     <div>
-                      <p className="font-medium text-gray-900">{formatDate(day.usage_date)}</p>
-                      <p className="text-sm text-gray-600">
+                      <p style={{ fontWeight: '500', color: '#E0E0E0' }}>{formatDate(day.usage_date)}</p>
+                      <p style={{ fontSize: '14px', color: '#A0A0A0' }}>
                         {day.requests} requests • {day.tokens} tokens
                       </p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium text-gray-900">{formatCurrency(day.amount || 0)}</p>
+                    <div style={{ textAlign: 'right' }}>
+                      <p style={{ fontWeight: '500', color: '#E0E0E0' }}>{formatCurrency(day.amount || 0)}</p>
                     </div>
                   </div>
                 ))}
@@ -387,55 +399,67 @@ const BillingDashboard = () => {
 
         {/* Billing History */}
         {billingData.history.length > 0 && (
-          <div className="mt-8 bg-white rounded-lg p-6 shadow-sm border">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Billing History</h2>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+          <div style={{ marginTop: '32px', backgroundColor: '#323232', borderRadius: '12px', padding: '24px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#E0E0E0', marginBottom: '24px' }}>Billing History</h2>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ minWidth: '100%', borderCollapse: 'collapse' }}>
+                <thead style={{ backgroundColor: '#262626' }}>
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '12px', fontWeight: '500', color: '#8E8E8E', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       Billing Period
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '12px', fontWeight: '500', color: '#8E8E8E', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       Usage
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '12px', fontWeight: '500', color: '#8E8E8E', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       Amount
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '12px', fontWeight: '500', color: '#8E8E8E', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th style={{ padding: '12px 24px', textAlign: 'left', fontSize: '12px', fontWeight: '500', color: '#8E8E8E', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       Invoice
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody style={{ backgroundColor: '#323232' }}>
                   {billingData.history.map((bill, index) => (
-                    <tr key={index}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <tr key={index} style={{ borderTop: index > 0 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none' }}>
+                      <td style={{ padding: '16px 24px', whiteSpace: 'nowrap', fontSize: '14px', fontWeight: '500', color: '#E0E0E0' }}>
                         {formatDate(bill.billing_month)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td style={{ padding: '16px 24px', whiteSpace: 'nowrap', fontSize: '14px', color: '#A0A0A0' }}>
                         {bill.total_requests} requests • {bill.total_tokens} tokens
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td style={{ padding: '16px 24px', whiteSpace: 'nowrap', fontSize: '14px', color: '#E0E0E0' }}>
                         {formatCurrency(bill.total_amount)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          bill.billing_status === 'paid' 
-                            ? 'bg-green-100 text-green-800'
+                      <td style={{ padding: '16px 24px', whiteSpace: 'nowrap' }}>
+                        <span style={{
+                          display: 'inline-flex',
+                          padding: '4px 8px',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          borderRadius: '9999px',
+                          backgroundColor: bill.billing_status === 'paid' 
+                            ? 'rgba(16, 185, 129, 0.2)'
                             : bill.billing_status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
+                            ? 'rgba(245, 158, 11, 0.2)' 
+                            : 'rgba(239, 68, 68, 0.2)',
+                          color: bill.billing_status === 'paid' 
+                            ? '#10b981'
+                            : bill.billing_status === 'pending'
+                            ? '#f59e0b' 
+                            : '#ef4444'
+                        }}>
                           {bill.billing_status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                      <td style={{ padding: '16px 24px', whiteSpace: 'nowrap', fontSize: '14px', color: '#4a90e2' }}>
                         {bill.invoice_url && (
-                          <a href={bill.invoice_url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                          <a href={bill.invoice_url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: '#4a90e2' }}
+                             onMouseOver={(e) => e.target.style.textDecoration = 'underline'}
+                             onMouseOut={(e) => e.target.style.textDecoration = 'none'}>
                             View Invoice
                           </a>
                         )}
@@ -450,53 +474,55 @@ const BillingDashboard = () => {
 
         {/* Add Payment Method Modal */}
         {showAddCard && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Payment Method</h3>
-              <p className="text-gray-600 mb-6">
+          <div style={{ position: 'fixed', inset: '0', backgroundColor: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: '50' }}>
+            <div style={{ backgroundColor: '#323232', borderRadius: '12px', padding: '24px', maxWidth: '448px', width: '100%', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#E0E0E0', marginBottom: '16px' }}>Add Payment Method</h3>
+              <p style={{ color: '#A0A0A0', marginBottom: '24px' }}>
                 Add a credit card to enable automatic billing for AI usage beyond your free tier.
               </p>
               
-              <div className="space-y-4">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#E0E0E0', marginBottom: '8px' }}>
                     Card Number
                   </label>
                   <input
                     type="text"
                     placeholder="4242 4242 4242 4242"
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    style={{ width: '100%', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '8px 12px', backgroundColor: '#262626', color: '#E0E0E0', outline: 'none' }}
                   />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#E0E0E0', marginBottom: '8px' }}>
                       Expiry
                     </label>
                     <input
                       type="text"
                       placeholder="MM/YY"
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      style={{ width: '100%', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '8px 12px', backgroundColor: '#262626', color: '#E0E0E0', outline: 'none' }}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', color: '#E0E0E0', marginBottom: '8px' }}>
                       CVC
                     </label>
                     <input
                       type="text"
                       placeholder="123"
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      style={{ width: '100%', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '8px', padding: '8px 12px', backgroundColor: '#262626', color: '#E0E0E0', outline: 'none' }}
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="flex space-x-4 mt-6">
+              <div style={{ display: 'flex', gap: '16px', marginTop: '24px' }}>
                 <button
                   onClick={() => setShowAddCard(false)}
-                  className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300 transition-colors"
+                  style={{ flex: '1', backgroundColor: '#262626', color: '#E0E0E0', padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#1a1a1a'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = '#262626'}
                 >
                   Cancel
                 </button>
@@ -506,7 +532,9 @@ const BillingDashboard = () => {
                     alert('Payment method integration coming soon!');
                     setShowAddCard(false);
                   }}
-                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors"
+                  style={{ flex: '1', backgroundColor: '#4a90e2', color: 'white', padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#357abd'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = '#4a90e2'}
                 >
                   Add Card
                 </button>
