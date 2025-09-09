@@ -815,9 +815,12 @@ const TelegramListener = () => {
                 padding: '1rem 1.5rem',
                 borderRadius: '0'
               }}>
-                <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
-                  ⚙️ Configuration Panel
-                </h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
+                    ⚙️ Configuration Panel
+                  </h2>
+                  <ThemeToggle />
+                </div>
               </div>
               
               {/* Sidebar Content */}
