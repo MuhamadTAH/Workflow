@@ -125,9 +125,10 @@ function Settings() {
               gap: '0.75rem',
               width: '100%',
               padding: '0.75rem 1rem',
+              margin: '0.25rem 0',
               backgroundColor: 'transparent',
               color: '#A0A0A0',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              border: 'none',
               borderRadius: '8px',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
@@ -138,12 +139,10 @@ function Settings() {
             onMouseEnter={(e) => {
               e.target.style.backgroundColor = '#2C2C2C';
               e.target.style.color = '#D4AF37';
-              e.target.style.borderColor = '#D4AF37';
             }}
             onMouseLeave={(e) => {
               e.target.style.backgroundColor = 'transparent';
               e.target.style.color = '#A0A0A0';
-              e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
             }}
           >
             <i className="fas fa-arrow-left" style={{ 
