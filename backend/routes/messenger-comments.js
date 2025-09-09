@@ -349,27 +349,47 @@ router.all('/webhooks/messenger/comments', async (req, res) => {
               
               // Trigger AI auto-reply for incoming messages (not echoes)
               if (messageData.text && !messaging.message?.is_echo && senderId !== 'me') {
+                logger.info('🔍 Checking AI conditions for message', {
+                  senderId,
+                  hasText: !!messageData.text,
+                  isEcho: messaging.message?.is_echo,
+                  isMe: senderId === 'me'
+                });
+
                 const aiConfig = getAIConfig();
                 const userAIStatus = getUserAIStatus();
                 const userAIEnabled = userAIStatus.hasOwnProperty(senderId) ? userAIStatus[senderId] : true;
                 
+                logger.info('🔍 AI Status Check Details', {
+                  senderId,
+                  userAIStatusObject: userAIStatus,
+                  hasExplicitStatus: userAIStatus.hasOwnProperty(senderId),
+                  userAIEnabled,
+                  globalAIEnabled: aiConfig.enabled,
+                  autoReply: aiConfig.autoReply,
+                  willTriggerAI: aiConfig.enabled && aiConfig.autoReply && userAIEnabled
+                });
+                
                 if (aiConfig.enabled && aiConfig.autoReply && userAIEnabled) {
-                  logger.info('🤖 Adding message to batch for AI processing', {
+                  logger.info('✅ All conditions met - Adding message to batch for AI processing', {
                     senderId,
                     message: messageData.text.substring(0, 50),
-                    batchDelay: '5 seconds',
-                    userAIEnabled,
-                    hasExplicitStatus: userAIStatus.hasOwnProperty(senderId)
+                    batchDelay: '5 seconds'
                   });
                   
                   // Use message batching system (5-second delay)
                   handleMessageBatch(senderId, messageData.text, generateAIReply, sendMessengerReply);
-                } else if (!userAIEnabled) {
-                  logger.info('🚫 AI disabled for user, skipping auto-reply', {
+                } else {
+                  logger.info('❌ AI conditions NOT met - skipping auto-reply', {
                     senderId,
                     userAIEnabled,
-                    hasExplicitStatus: userAIStatus.hasOwnProperty(senderId),
-                    globalAIEnabled: aiConfig.enabled && aiConfig.autoReply
+                    globalAIEnabled: aiConfig.enabled,
+                    autoReply: aiConfig.autoReply,
+                    reasons: {
+                      globalDisabled: !aiConfig.enabled,
+                      autoReplyDisabled: !aiConfig.autoReply,
+                      userDisabled: !userAIEnabled
+                    }
                   });
                 }
               }

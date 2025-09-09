@@ -399,7 +399,8 @@ router.post('/messenger/user-ai/toggle', async (req, res) => {
   logger.info('🤖 User AI toggle requested', {
     userId,
     isActive,
-    currentStatus: userAIStatus[userId]
+    currentStatus: userAIStatus[userId],
+    allStatusesBefore: userAIStatus
   });
 
   if (!userId) {
@@ -423,14 +424,20 @@ router.post('/messenger/user-ai/toggle', async (req, res) => {
     logger.info('✅ User AI status updated', {
       userId,
       newStatus: isActive,
-      allUserStatuses: Object.keys(userAIStatus).length
+      allStatusesAfter: userAIStatus,
+      totalUsers: Object.keys(userAIStatus).length
     });
 
     res.json({
       success: true,
       message: `AI ${isActive ? 'activated' : 'deactivated'} for user ${userId}`,
       userId,
-      isActive
+      isActive,
+      debugInfo: {
+        userAIStatusObject: userAIStatus,
+        hasPropertyCheck: userAIStatus.hasOwnProperty(userId),
+        directAccess: userAIStatus[userId]
+      }
     });
 
   } catch (error) {
