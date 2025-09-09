@@ -312,12 +312,6 @@ const SimpleInstagramWebhook = () => {
           {isRightSidebarCollapsed ? '☰' : '✕'}
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', position: 'relative' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827' }}>
-            <i className="fab fa-instagram" style={{ color: '#E4405F', marginRight: '0.5rem' }}></i>
-            Instagram DM Manager
-          </h1>
-        </div>
         
         <div style={{ display: 'flex', gap: '0', alignItems: 'flex-start', position: 'relative' }}>
           
@@ -349,7 +343,7 @@ const SimpleInstagramWebhook = () => {
               borderRadius: '8px 8px 0 0'
             }}>
               <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
-                📷 Instagram DM Manager
+                📷 Instagram
               </h2>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
                 <button

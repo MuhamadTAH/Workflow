@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import BillingDashboard from '../components/BillingDashboard';
+import APIKeysDashboard from '../components/APIKeysDashboard';
 import '../styles.css';
 import '../styles/DashboardDark.css';
 
@@ -782,7 +783,7 @@ function Settings() {
               <Route path="/account" element={<AccountSettings />} />
               <Route path="/notifications" element={<NotificationSettings />} />
               <Route path="/security" element={<SecuritySettings />} />
-              <Route path="/api" element={<APISettings />} />
+              <Route path="/api" element={<APIKeysDashboard />} />
               <Route path="/billing" element={<BillingDashboard />} />
             </Routes>
           </div>

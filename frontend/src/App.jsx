@@ -215,7 +215,7 @@ function Home() {
                 📊 Admin Dashboard
               </Link>
               <Link 
-                to="/api-keys" 
+                to="/settings/api" 
                 className="hero-btn apikeys-btn"
                 style={{ 
                   backgroundColor: '#f59e0b',
@@ -380,7 +380,6 @@ function App() {
         <Route path="/instagram-comments" element={<SimpleInstagramWebhook />} />
         <Route path="/messenger-comments" element={<SimpleMessengerWebhook />} />
         <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/api-keys" element={<APIKeysDashboard />} />
         <Route path="/settings/*" element={<Settings />} />
         <Route path="/shop/:shopName" element={<PublicShop />} />
         </Routes>
