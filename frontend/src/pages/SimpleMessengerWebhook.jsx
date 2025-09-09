@@ -682,7 +682,7 @@ const SimpleMessengerWebhook = () => {
               <div style={{ 
                 display: 'flex', 
                 gap: '0', 
-                height: 'calc(100vh - 150px)', 
+                height: 'calc(100vh - 100px)', 
                 border: `1px solid ${colors.border}`, 
                 borderRadius: '8px', 
                 overflow: 'hidden',
@@ -1057,12 +1057,6 @@ const SimpleMessengerWebhook = () => {
               </div>
             </div>
 
-            {/* Message Input Field for No Conversation Selected */}
-            <div style={{
-              padding: '1rem',
-              textAlign: 'center'
-            }}>
-            </div>
           </div>
         
           {/* RIGHT SIDEBAR - Sliding User Information Panel */}
