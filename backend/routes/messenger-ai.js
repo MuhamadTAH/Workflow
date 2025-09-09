@@ -23,6 +23,9 @@ let isConnected = false;
 // Message batching system for handling multiple quick messages
 let messageBatches = new Map(); // senderId -> { messages: [], timeout: timeoutId }
 
+// Per-user AI status tracking
+let userAIStatus = {};
+
 // Function to handle message batching with 5-second delay
 function handleMessageBatch(senderId, messageText, generateAIReply, sendMessengerReply) {
   const BATCH_TIMEOUT = 5000; // 5 seconds
@@ -389,9 +392,66 @@ router.post('/messenger-ai/upload-knowledge', upload.single('pdf'), async (req, 
   }
 });
 
+// Per-user AI toggle endpoint
+router.post('/messenger/user-ai/toggle', async (req, res) => {
+  const { userId, isActive } = req.body;
+
+  logger.info('🤖 User AI toggle requested', {
+    userId,
+    isActive,
+    currentStatus: userAIStatus[userId]
+  });
+
+  if (!userId) {
+    return res.status(400).json({
+      success: false,
+      error: 'User ID is required'
+    });
+  }
+
+  if (typeof isActive !== 'boolean') {
+    return res.status(400).json({
+      success: false,
+      error: 'isActive must be a boolean'
+    });
+  }
+
+  try {
+    // Update per-user AI status
+    userAIStatus[userId] = isActive;
+    
+    logger.info('✅ User AI status updated', {
+      userId,
+      newStatus: isActive,
+      allUserStatuses: Object.keys(userAIStatus).length
+    });
+
+    res.json({
+      success: true,
+      message: `AI ${isActive ? 'activated' : 'deactivated'} for user ${userId}`,
+      userId,
+      isActive
+    });
+
+  } catch (error) {
+    logger.error('💥 User AI toggle error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // Generate AI reply for incoming message
 async function generateAIReply(message, senderId) {
   if (!aiConfig.enabled || !aiConfig.autoReply) {
+    return null;
+  }
+
+  // Check per-user AI status (default to true if not set)
+  const userAIEnabled = userAIStatus.hasOwnProperty(senderId) ? userAIStatus[senderId] : true;
+  if (!userAIEnabled) {
+    logger.info('🚫 AI disabled for user', { senderId });
     return null;
   }
 
@@ -446,5 +506,6 @@ module.exports = {
   getAIConfig: () => aiConfig,
   isConnected: () => isConnected,
   getKnowledgeBase: () => knowledgeBaseInfo,
-  handleMessageBatch
+  handleMessageBatch,
+  getUserAIStatus: () => userAIStatus
 };
