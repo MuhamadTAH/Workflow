@@ -1457,22 +1457,8 @@ const SimpleMessengerWebhook = () => {
                       </div>
                       <p>Select a user to view details</p>
                     </div>
-                  )
-                })() : (
-                  <div style={{ 
-                    textAlign: 'center', 
-                    color: colors.mutedText,
-                    padding: '2rem'
-                  }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>
-                      {String.fromCharCode(128100)}
-                    </div>
-                    <p>Select a user to view details</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Statistics Section */}
+                    
+                    {/* Statistics Section */}
               <div style={{ marginBottom: '2rem' }}>
                 <h3 
                   style={{ 
@@ -1601,7 +1587,23 @@ const SimpleMessengerWebhook = () => {
                 </div>
               </div>
             </div>
+          );
+        })() : (
+          <div style={{ 
+            textAlign: 'center', 
+            color: colors.mutedText,
+            padding: '2rem'
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>
+              {String.fromCharCode(128100)}
+            </div>
+            <p>Select a user to view details</p>
           </div>
+        )}
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* AI Settings Modal */}
         <MessengerAISettings
