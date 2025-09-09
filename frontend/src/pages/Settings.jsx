@@ -106,6 +106,27 @@ const AccountSettings = () => {
     
     setIsUpdating(true);
     try {
+      // Mock API delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Mock current password verification (simulate backend check)
+      // In real implementation, backend would verify current password against database
+      const mockCurrentPassword = "currentpass123"; // This would come from your auth system
+      
+      if (passwordData.currentPassword !== mockCurrentPassword) {
+        setErrors({ currentPassword: 'Current password is incorrect' });
+        setIsUpdating(false);
+        return;
+      }
+      
+      // Additional password strength validation (server-side style)
+      const strength = checkPasswordStrength(passwordData.newPassword);
+      if (strength < 3) {
+        setErrors({ newPassword: 'Password is too weak. Please choose a stronger password.' });
+        setIsUpdating(false);
+        return;
+      }
+      
       // TODO: Replace with actual API call
       // const response = await fetch(`${API_BASE_URL}/api/user/change-password`, {
       //   method: 'POST',
@@ -116,11 +137,18 @@ const AccountSettings = () => {
       //     newPassword: passwordData.newPassword
       //   })
       // });
+      // 
+      // if (!response.ok) {
+      //   const errorData = await response.json();
+      //   if (response.status === 401) {
+      //     setErrors({ currentPassword: 'Current password is incorrect' });
+      //   } else {
+      //     alert(errorData.message || 'Failed to update password');
+      //   }
+      //   return;
+      // }
       
-      // Mock API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock success
+      // Mock success only if all validations pass
       alert('Password updated successfully!');
       setShowPasswordModal(false);
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -346,6 +374,18 @@ const AccountSettings = () => {
               <p style={{ color: '#A0A0A0', margin: '0', fontSize: '0.9rem' }}>
                 Enter your current password and choose a new secure password
               </p>
+              {/* Demo helper - Remove in production */}
+              <div style={{ 
+                backgroundColor: '#1a1a1a', 
+                padding: '0.75rem', 
+                borderRadius: '6px', 
+                marginTop: '0.75rem',
+                border: '1px solid rgba(255, 193, 7, 0.3)'
+              }}>
+                <p style={{ color: '#ffc107', margin: '0', fontSize: '0.8rem', fontWeight: '500' }}>
+                  🔧 Demo Mode: Use "currentpass123" as current password for testing
+                </p>
+              </div>
             </div>
 
             {/* Current Password */}
