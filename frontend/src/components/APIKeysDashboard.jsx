@@ -206,64 +206,76 @@ const APIKeysDashboard = () => {
             <h2 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#E0E0E0', margin: '0' }}>API Keys</h2>
           </div>
           
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ minWidth: '100%', borderCollapse: 'collapse' }}>
+              <thead style={{ backgroundColor: '#323232' }}>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">API Key</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usage</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spending</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th style={{ padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#8E8E8E', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Customer</th>
+                  <th style={{ padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#8E8E8E', textTransform: 'uppercase', letterSpacing: '0.05em' }}>API Key</th>
+                  <th style={{ padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#8E8E8E', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Usage</th>
+                  <th style={{ padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#8E8E8E', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Spending</th>
+                  <th style={{ padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#8E8E8E', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
+                  <th style={{ padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#8E8E8E', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody style={{ backgroundColor: '#262626' }}>
                 {apiKeys.map((key, index) => (
-                  <tr key={key.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <tr key={key.id} style={{ borderBottom: index < apiKeys.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none' }}>
+                    <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap' }}>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{key.customer_name}</div>
-                        <div className="text-sm text-gray-500">{key.customer_email}</div>
+                        <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#E0E0E0', marginBottom: '0.25rem' }}>{key.customer_name}</div>
+                        <div style={{ fontSize: '0.875rem', color: '#A0A0A0' }}>{key.customer_email}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center space-x-2">
-                        <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                    <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <code style={{ fontSize: '0.875rem', backgroundColor: '#323232', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', color: '#E0E0E0' }}>
                           {maskAPIKey(key.api_key, selectedKey === key.id)}
                         </code>
                         <button
                           onClick={() => setSelectedKey(selectedKey === key.id ? null : key.id)}
-                          className="text-gray-400 hover:text-gray-600"
+                          style={{ color: '#8E8E8E', cursor: 'pointer', border: 'none', background: 'transparent', transition: 'color 0.2s' }}
+                          onMouseEnter={(e) => e.target.style.color = '#A0A0A0'}
+                          onMouseLeave={(e) => e.target.style.color = '#8E8E8E'}
                         >
                           {selectedKey === key.id ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div>{(key.total_requests || 0).toLocaleString()} requests</div>
-                      <div className="text-gray-500">{(key.total_tokens || 0).toLocaleString()} tokens</div>
+                    <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap', fontSize: '0.875rem' }}>
+                      <div style={{ color: '#E0E0E0', marginBottom: '0.25rem' }}>{(key.total_requests || 0).toLocaleString()} requests</div>
+                      <div style={{ color: '#A0A0A0' }}>{(key.total_tokens || 0).toLocaleString()} tokens</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div>{formatCurrency(key.total_spent)}</div>
-                      <div className="text-gray-500">Limit: {formatCurrency(key.monthly_spending_limit)}</div>
+                    <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap', fontSize: '0.875rem' }}>
+                      <div style={{ color: '#E0E0E0', marginBottom: '0.25rem' }}>{formatCurrency(key.total_spent)}</div>
+                      <div style={{ color: '#A0A0A0' }}>Limit: {formatCurrency(key.monthly_spending_limit)}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        key.is_active 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
+                    <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap' }}>
+                      <span style={{
+                        display: 'inline-flex',
+                        padding: '0.25rem 0.5rem',
+                        fontSize: '0.75rem',
+                        fontWeight: '600',
+                        borderRadius: '9999px',
+                        backgroundColor: key.is_active ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                        color: key.is_active ? '#10b981' : '#ef4444'
+                      }}>
                         {key.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
+                    <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap', fontSize: '0.875rem', fontWeight: '500' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button
                           onClick={() => toggleKeyStatus(key.api_key, key.is_active)}
-                          className={`${
-                            key.is_active ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'
-                          }`}
+                          style={{
+                            color: key.is_active ? '#ef4444' : '#10b981',
+                            cursor: 'pointer',
+                            border: 'none',
+                            background: 'transparent',
+                            transition: 'color 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.target.style.opacity = '0.8'}
+                          onMouseLeave={(e) => e.target.style.opacity = '1'}
                         >
                           {key.is_active ? 'Deactivate' : 'Activate'}
                         </button>
@@ -275,12 +287,20 @@ const APIKeysDashboard = () => {
             </table>
 
             {apiKeys.length === 0 && (
-              <div className="text-center py-12">
-                <Key className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-500">No API keys created yet</p>
+              <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+                <Key className="h-12 w-12" style={{ margin: '0 auto 1rem auto', color: '#8E8E8E' }} />
+                <p style={{ color: '#A0A0A0', marginBottom: '1rem' }}>No API keys created yet</p>
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="mt-4 text-blue-600 hover:text-blue-500"
+                  style={{ 
+                    color: '#4a90e2', 
+                    cursor: 'pointer',
+                    border: 'none',
+                    background: 'transparent',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.color = '#3a7bc8'}
+                  onMouseLeave={(e) => e.target.style.color = '#4a90e2'}
                 >
                   Create your first API key
                 </button>
@@ -291,77 +311,149 @@ const APIKeysDashboard = () => {
 
         {/* Create API Key Modal */}
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-lg font-semibold mb-4">Create New API Key</h3>
+          <div style={{ position: 'fixed', inset: '0', backgroundColor: 'rgba(0, 0, 0, 0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: '50' }}>
+            <div style={{ backgroundColor: '#262626', borderRadius: '0.5rem', padding: '1.5rem', maxWidth: '28rem', width: '100%', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#E0E0E0', marginBottom: '1rem' }}>Create New API Key</h3>
               
-              <div className="space-y-4">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Customer Name *</label>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#A0A0A0', marginBottom: '0.25rem' }}>Customer Name *</label>
                   <input
                     type="text"
                     value={createForm.customer_name}
                     onChange={(e) => setCreateForm({...createForm, customer_name: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    style={{
+                      width: '100%',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      backgroundColor: '#323232',
+                      color: '#E0E0E0',
+                      fontSize: '0.875rem'
+                    }}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Email *</label>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#A0A0A0', marginBottom: '0.25rem' }}>Email *</label>
                   <input
                     type="email"
                     value={createForm.customer_email}
                     onChange={(e) => setCreateForm({...createForm, customer_email: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    style={{
+                      width: '100%',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      backgroundColor: '#323232',
+                      color: '#E0E0E0',
+                      fontSize: '0.875rem'
+                    }}
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Monthly Spending Limit ($)</label>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#A0A0A0', marginBottom: '0.25rem' }}>Monthly Spending Limit ($)</label>
                   <input
                     type="number"
                     value={createForm.monthly_spending_limit}
                     onChange={(e) => setCreateForm({...createForm, monthly_spending_limit: parseFloat(e.target.value)})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    style={{
+                      width: '100%',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      backgroundColor: '#323232',
+                      color: '#E0E0E0',
+                      fontSize: '0.875rem'
+                    }}
                     min="0"
                     step="0.01"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Rate Limit (requests/minute)</label>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#A0A0A0', marginBottom: '0.25rem' }}>Rate Limit (requests/minute)</label>
                   <input
                     type="number"
                     value={createForm.rate_limit_per_minute}
                     onChange={(e) => setCreateForm({...createForm, rate_limit_per_minute: parseInt(e.target.value)})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    style={{
+                      width: '100%',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      backgroundColor: '#323232',
+                      color: '#E0E0E0',
+                      fontSize: '0.875rem'
+                    }}
                     min="1"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Notes</label>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#A0A0A0', marginBottom: '0.25rem' }}>Notes</label>
                   <textarea
                     value={createForm.notes}
                     onChange={(e) => setCreateForm({...createForm, notes: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    style={{
+                      width: '100%',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      backgroundColor: '#323232',
+                      color: '#E0E0E0',
+                      fontSize: '0.875rem',
+                      resize: 'vertical',
+                      minHeight: '4rem'
+                    }}
                     rows="2"
                   />
                 </div>
               </div>
 
-              <div className="flex space-x-3 mt-6">
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
                 <button
                   onClick={createAPIKey}
-                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+                  style={{ 
+                    flex: '1',
+                    backgroundColor: '#4a90e2', 
+                    color: 'white', 
+                    padding: '0.5rem 1rem', 
+                    borderRadius: '0.375rem',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontWeight: '500',
+                    transition: 'background-color 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#3a7bc8'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = '#4a90e2'}
                 >
                   Create API Key
                 </button>
                 <button
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400"
+                  style={{ 
+                    flex: '1',
+                    backgroundColor: '#323232', 
+                    color: '#A0A0A0', 
+                    padding: '0.5rem 1rem', 
+                    borderRadius: '0.375rem',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    cursor: 'pointer',
+                    fontWeight: '500',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#404040';
+                    e.target.style.color = '#E0E0E0';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = '#323232';
+                    e.target.style.color = '#A0A0A0';
+                  }}
                 >
                   Cancel
                 </button>
