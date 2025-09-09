@@ -115,6 +115,47 @@ function Settings() {
           </div>
         </div>
 
+        {/* Back to Dashboard Button */}
+        <div style={{ padding: '0 1rem', marginBottom: '1rem' }}>
+          <button
+            onClick={() => navigate('/')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              width: '100%',
+              padding: '0.75rem 1rem',
+              backgroundColor: 'transparent',
+              color: '#A0A0A0',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              fontSize: '0.95rem',
+              fontWeight: '500',
+              textAlign: 'left'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#2C2C2C';
+              e.target.style.color = '#D4AF37';
+              e.target.style.borderColor = '#D4AF37';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+              e.target.style.color = '#A0A0A0';
+              e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+            }}
+          >
+            <i className="fas fa-arrow-left" style={{ 
+              color: 'inherit',
+              fontSize: '1.1rem',
+              width: '20px',
+              textAlign: 'center'
+            }}></i>
+            Back to Dashboard
+          </button>
+        </div>
+
         {/* Navigation Tabs */}
         <nav style={{ padding: '0 1rem', flex: 1 }}>
           {tabs.map((tab) => (
