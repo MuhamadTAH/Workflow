@@ -40,6 +40,7 @@ const SimpleMessengerWebhook = () => {
   
   // Configuration panel collapse states
   const [isMessengerConfigCollapsed, setIsMessengerConfigCollapsed] = useState(false);
+  const [isSelectedUserCollapsed, setIsSelectedUserCollapsed] = useState(false);
 
   const webhookUrl = `${API_BASE_URL}/api/webhooks/messenger/comments`;
   const verifyToken = 'muhammad';
@@ -1208,10 +1209,8 @@ const SimpleMessengerWebhook = () => {
               </div>
             </div>
           </div>
-
-        </div>
         
-        {/* RIGHT SIDEBAR - Sliding User Information Panel */}
+          {/* RIGHT SIDEBAR - Sliding User Information Panel */}
         <div style={{ 
           width: '300px',
           backgroundColor: colors.cardBg, 
@@ -1342,339 +1341,266 @@ const SimpleMessengerWebhook = () => {
                             backgroundColor: colors.inputBg,
                             borderRadius: '8px',
                             border: `1px solid ${colors.border}`
-                    }}>
-                      {selectedUser?.name || 'Not available'}
-                    </div>
-                  </div>
-
-                  {/* First Name */}
-                  <div style={{ marginBottom: '1rem' }}>
-                    <div style={{ 
-                      fontSize: '0.75rem', 
-                      fontWeight: '600', 
-                      color: '#6b7280',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      marginBottom: '0.25rem'
-                    }}>
-                      First Name
-                    </div>
-                    <div style={{ 
-                      fontSize: '0.9rem', 
-                      color: '#111827',
-                      fontWeight: '500',
-                      padding: '0.5rem',
-                      backgroundColor: '#f9fafb',
-                      borderRadius: '6px',
-                      border: '1px solid #e5e7eb'
-                    }}>
-                      {selectedUser?.first_name || 'Not available'}
-                    </div>
-                  </div>
-
-                  {/* Last Name */}
-                  <div style={{ marginBottom: '1rem' }}>
-                    <div style={{ 
-                      fontSize: '0.75rem', 
-                      fontWeight: '600', 
-                      color: '#6b7280',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      marginBottom: '0.25rem'
-                    }}>
-                      Last Name
-                    </div>
-                    <div style={{ 
-                      fontSize: '0.9rem', 
-                      color: '#111827',
-                      fontWeight: '500',
-                      padding: '0.5rem',
-                      backgroundColor: '#f9fafb',
-                      borderRadius: '6px',
-                      border: '1px solid #e5e7eb'
-                    }}>
-                      {selectedUser?.last_name || 'Not available'}
-                    </div>
-                  </div>
-
-                  {/* User ID */}
-                  <div style={{ marginBottom: '1rem' }}>
-                    <div style={{ 
-                      fontSize: '0.75rem', 
-                      fontWeight: '600', 
-                      color: '#6b7280',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      marginBottom: '0.25rem'
-                    }}>
-                      User ID
-                    </div>
-                    <div style={{ 
-                      fontSize: '0.8rem', 
-                      color: '#6b7280',
-                      fontFamily: 'monospace',
-                      padding: '0.5rem',
-                      backgroundColor: '#f9fafb',
-                      borderRadius: '6px',
-                      border: '1px solid #e5e7eb',
-                      wordBreak: 'break-all'
-                    }}>
-                      {selectedUserId}
-                    </div>
-                  </div>
-
-                  {/* Profile Picture URL */}
-                  {selectedUser?.profile_pic && (
-                    <div style={{ marginBottom: '1rem' }}>
-                      <div style={{ 
-                        fontSize: '0.75rem', 
-                        fontWeight: '600', 
-                        color: '#6b7280',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                        marginBottom: '0.25rem'
-                      }}>
-                        Profile Picture
-                      </div>
-                      <div style={{ 
-                        fontSize: '0.75rem', 
-                        color: '#6b7280',
-                        padding: '0.5rem',
-                        backgroundColor: '#f9fafb',
-                        borderRadius: '6px',
-                        border: '1px solid #e5e7eb',
-                        wordBreak: 'break-all'
-                      }}>
-                        {selectedUser.profile_pic}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Data Fetched Time */}
-                  {selectedUser?.fetchedAt && (
-                    <div style={{ marginBottom: '1rem' }}>
-                      <div style={{ 
-                        fontSize: '0.75rem', 
-                        fontWeight: '600', 
-                        color: '#6b7280',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                        marginBottom: '0.25rem'
-                      }}>
-                        Data Fetched
-                      </div>
-                      <div style={{ 
-                        fontSize: '0.8rem', 
-                        color: '#6b7280',
-                        padding: '0.5rem',
-                        backgroundColor: '#f9fafb',
-                        borderRadius: '6px',
-                        border: '1px solid #e5e7eb'
-                      }}>
-                        {new Date(selectedUser.fetchedAt).toLocaleString()}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Status Indicators */}
-                  <div style={{ marginTop: '1rem' }}>
-                    <div style={{ 
-                      fontSize: '0.75rem', 
-                      fontWeight: '600', 
-                      color: '#6b7280',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      marginBottom: '0.5rem'
-                    }}>
-                      Status
-                    </div>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                      {selectedUser?.failed && (
-                        <div style={{ 
-                          fontSize: '0.75rem', 
-                          color: '#dc2626',
-                          backgroundColor: '#fef2f2',
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          border: '1px solid #fecaca'
-                        }}>
-                          ⚠️ API Fetch Failed
+                          }}>
+                            {selectedUser?.name || 'Not available'}
+                          </div>
                         </div>
-                      )}
+
+                        {/* User ID */}
+                        <div style={{ marginBottom: '1rem' }}>
+                          <div style={{ 
+                            fontSize: '0.75rem', 
+                            fontWeight: '600', 
+                            color: colors.mutedText,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            marginBottom: '0.5rem'
+                          }}>
+                            User ID
+                          </div>
+                          <div style={{ 
+                            fontSize: '0.75rem', 
+                            color: colors.secondaryText,
+                            fontFamily: 'monospace',
+                            padding: '0.75rem',
+                            backgroundColor: colors.inputBg,
+                            borderRadius: '8px',
+                            border: `1px solid ${colors.border}`,
+                            wordBreak: 'break-all'
+                          }}>
+                            {selectedUserId}
+                          </div>
+                        </div>
+
+                        {/* Messages Count */}
+                        <div style={{ marginBottom: '1rem' }}>
+                          <div style={{ 
+                            fontSize: '0.75rem', 
+                            fontWeight: '600', 
+                            color: colors.mutedText,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            marginBottom: '0.5rem'
+                          }}>
+                            Messages
+                          </div>
+                          <div style={{ 
+                            fontSize: '0.875rem', 
+                            color: colors.primaryText,
+                            fontWeight: '500',
+                            padding: '0.75rem',
+                            backgroundColor: colors.inputBg,
+                            borderRadius: '8px',
+                            border: `1px solid ${colors.border}`,
+                            textAlign: 'center'
+                          }}>
+                            {currentMessages.length} messages
+                          </div>
+                        </div>
                       
-                      {selectedUser?.error && (
+                      {/* AI Control Section */}
+                      <div style={{ marginBottom: '1.5rem' }}>
                         <div style={{ 
-                          fontSize: '0.75rem', 
-                          color: '#dc2626',
-                          backgroundColor: '#fef2f2',
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          border: '1px solid #fecaca'
+                          fontSize: '0.875rem', 
+                          fontWeight: '600', 
+                          color: colors.primaryText,
+                          marginBottom: '1rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem'
                         }}>
-                          ❌ Fetch Error
+                          🤖 AI Assistant Control
                         </div>
-                      )}
-                      
-                      {!selectedUser?.failed && !selectedUser?.error && (
-                        <div style={{ 
-                          fontSize: '0.75rem', 
-                          color: '#059669',
-                          backgroundColor: '#ecfdf5',
-                          padding: '0.25rem 0.5rem',
-                          borderRadius: '4px',
-                          border: '1px solid #a7f3d0'
-                        }}>
-                          ✅ Data Available
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* AI Control Button for Selected User */}
-                  <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
-                    <div style={{ marginBottom: '0.75rem' }}>
-                      <div style={{ 
-                        fontSize: '0.75rem', 
-                        fontWeight: '600', 
-                        color: '#6b7280',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
-                        marginBottom: '0.5rem'
-                      }}>
-                        AI Response Control
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                        
                         <div style={{
-                          width: '12px',
-                          height: '12px',
-                          borderRadius: '50%',
-                          backgroundColor: aiActivatingUsers[selectedUserId] ? '#f59e0b' : 
-                            (userAIStatus.hasOwnProperty(selectedUserId) ? 
-                              (userAIStatus[selectedUserId] ? '#10b981' : '#ef4444') : '#10b981')
-                        }}></div>
-                        <span style={{ 
-                          fontSize: '0.75rem', 
-                          color: aiActivatingUsers[selectedUserId] ? '#f59e0b' : 
-                            (userAIStatus.hasOwnProperty(selectedUserId) ? 
-                              (userAIStatus[selectedUserId] ? '#10b981' : '#ef4444') : '#10b981'),
-                          fontWeight: '600'
+                          padding: '1rem',
+                          backgroundColor: userAIStatus[selectedUserId] ? colors.overlay : 'rgba(156, 163, 175, 0.1)',
+                          borderRadius: '8px',
+                          border: `1px solid ${userAIStatus[selectedUserId] ? colors.success : colors.border}`,
+                          textAlign: 'center'
                         }}>
-                          {aiActivatingUsers[selectedUserId] ? 'AI Activating...' : 
-                            (userAIStatus.hasOwnProperty(selectedUserId) ? 
-                              (userAIStatus[selectedUserId] ? 'AI Active' : 'AI Inactive') : 'AI Active')}
-                        </span>
+                          <div style={{ 
+                            fontSize: '0.875rem', 
+                            color: colors.primaryText,
+                            marginBottom: '0.75rem'
+                          }}>
+                            Status: <strong>{userAIStatus[selectedUserId] ? 'Active' : 'Inactive'}</strong>
+                          </div>
+                          <button
+                            onClick={() => toggleUserAI(selectedUserId)}
+                            disabled={isTogglingAI}
+                            style={{
+                              backgroundColor: userAIStatus[selectedUserId] ? colors.error : colors.success,
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '0.5rem 1rem',
+                              fontSize: '0.875rem',
+                              fontWeight: '500',
+                              cursor: isTogglingAI ? 'not-allowed' : 'pointer',
+                              opacity: isTogglingAI ? 0.7 : 1
+                            }}
+                          >
+                            {isTogglingAI ? '⏳ Processing...' : userAIStatus[selectedUserId] ? '🚫 Deactivate AI' : '🤖 Activate AI'}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    
-                    <button
-                      onClick={() => toggleUserAI(selectedUserId)}
-                      disabled={isTogglingAI || !selectedUserId || aiActivatingUsers[selectedUserId]}
-                      style={{
-                        width: '100%',
-                        backgroundColor: isTogglingAI ? '#9ca3af' : 
-                          aiActivatingUsers[selectedUserId] ? '#f59e0b' :
-                          (userAIStatus.hasOwnProperty(selectedUserId) ? 
-                            (userAIStatus[selectedUserId] ? '#ef4444' : '#0084ff') : '#ef4444'),
-                        color: 'white',
-                        padding: '1rem',
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: isTogglingAI || !selectedUserId || aiActivatingUsers[selectedUserId] ? 'not-allowed' : 'pointer',
-                        fontSize: '0.875rem',
-                        fontWeight: '600',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.75rem',
-                        transition: 'all 0.2s ease',
-                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isTogglingAI && selectedUserId && !aiActivatingUsers[selectedUserId]) {
-                          e.target.style.transform = 'translateY(-1px)';
-                          e.target.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.transform = 'translateY(0)';
-                        e.target.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
-                      }}
-                    >
-                      {isTogglingAI ? (
-                        <>
-                          <div style={{
-                            width: '16px',
-                            height: '16px',
-                            border: '2px solid #ffffff',
-                            borderTop: '2px solid transparent',
-                            borderRadius: '50%',
-                            animation: 'spin 1s linear infinite'
-                          }}></div>
-                          Updating...
-                        </>
-                      ) : aiActivatingUsers[selectedUserId] ? (
-                        <>
-                          ⏳
-                          <span>AI Starting... (Please wait)</span>
-                        </>
-                      ) : (userAIStatus.hasOwnProperty(selectedUserId) ? 
-                          (userAIStatus[selectedUserId] ? (
-                            <>
-                              🚫
-                              <span>Deactivate AI</span>
-                            </>
-                          ) : (
-                            <>
-                              🤖
-                              <span>Activate AI</span>
-                            </>
-                          )) : (
-                            <>
-                              🚫
-                              <span>Deactivate AI</span>
-                            </>
-                          )
-                      )}
-                    </button>
-                    
-                    <p style={{ 
-                      fontSize: '0.75rem', 
-                      color: '#6b7280', 
+                  ) : (
+                    <div style={{ 
                       textAlign: 'center', 
-                      marginTop: '0.75rem',
-                      margin: '0.75rem 0 0 0',
-                      lineHeight: '1.4'
+                      color: colors.mutedText,
+                      padding: '2rem'
                     }}>
-                      {aiActivatingUsers[selectedUserId] 
-                        ? 'AI is starting up for this user. Please wait 5 seconds before sending messages.'
-                        : userAIStatus.hasOwnProperty(selectedUserId) 
-                        ? (userAIStatus[selectedUserId] 
-                          ? 'AI will automatically respond to this user\'s messages'
-                          : 'AI responses are disabled for this user')
-                        : 'AI will automatically respond to this user\'s messages'
-                      }
-                    </p>
+                      <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>👤</div>
+                      <p>Select a user to view details</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Statistics Section */}
+              <div style={{ marginBottom: '2rem' }}>
+                <h3 
+                  style={{ 
+                    fontSize: '1rem', 
+                    fontWeight: '600', 
+                    color: colors.primaryText, 
+                    marginBottom: '1rem', 
+                    borderBottom: `2px solid ${colors.border}`, 
+                    paddingBottom: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    userSelect: 'none'
+                  }}
+                >
+                  <span>📊 Statistics</span>
+                </h3>
+                
+                <div style={{ display: 'grid', gap: '0.75rem' }}>
+                  <div style={{
+                    backgroundColor: colors.inputBg,
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    border: `1px solid ${colors.border}`,
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: colors.brandBlue }}>
+                      {conversations.length}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: colors.mutedText }}>
+                      Total Conversations
+                    </div>
+                  </div>
+                  
+                  <div style={{
+                    backgroundColor: colors.inputBg,
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    border: `1px solid ${colors.border}`,
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: colors.success }}>
+                      {messages.length}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: colors.mutedText }}>
+                      Total Messages
+                    </div>
                   </div>
 
+                  <div style={{
+                    backgroundColor: colors.inputBg,
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    border: `1px solid ${colors.border}`,
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isWaiting ? colors.success : colors.error }}>
+                      {isWaiting ? '🟢' : '🔴'}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: colors.mutedText }}>
+                      Webhook Status
+                    </div>
+                  </div>
                 </div>
-              </>
-            );
-          })()}
-        </div>
-      )}
+              </div>
 
-      {/* AI Settings Modal */}
-      <MessengerAISettings
-        isVisible={showAISettings}
-        onClose={() => {
-          setShowAISettings(false);
-          loadAIConfig(); // Reload config after closing settings
-        }}
-      />
+              {/* Quick Actions */}
+              <div style={{ marginBottom: '2rem' }}>
+                <h3 
+                  style={{ 
+                    fontSize: '1rem', 
+                    fontWeight: '600', 
+                    color: colors.primaryText, 
+                    marginBottom: '1rem', 
+                    borderBottom: `2px solid ${colors.border}`, 
+                    paddingBottom: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    userSelect: 'none'
+                  }}
+                >
+                  <span>⚡ Quick Actions</span>
+                </h3>
+                
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  <button
+                    onClick={() => window.location.reload()}
+                    style={{
+                      backgroundColor: colors.brandBlue,
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '0.75rem',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                    🔄 Refresh Page
+                  </button>
+                  
+                  <button
+                    onClick={() => setSelectedUserId(null)}
+                    style={{
+                      backgroundColor: colors.mutedText,
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '0.75rem',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                    ❌ Clear Selection
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
 
-    </div>
-  );
-};
+        {/* AI Settings Modal */}
+        <MessengerAISettings
+          isVisible={showAISettings}
+          onClose={() => {
+            setShowAISettings(false);
+            loadAIConfig(); // Reload config after closing settings
+          }}
+        />
 
-export default SimpleMessengerWebhook;
+      </div>
+    );
+  };
+
+  export default SimpleMessengerWebhook;
