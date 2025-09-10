@@ -50,11 +50,6 @@ function LeftSidebar() {
       icon: 'fab fa-facebook-messenger'
     },
     {
-      name: 'Chat Support',
-      path: '/chat-support',
-      icon: 'fas fa-comments'
-    },
-    {
       name: 'Settings',
       path: '/settings',
       icon: 'fas fa-cog'
