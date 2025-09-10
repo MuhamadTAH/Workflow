@@ -4,6 +4,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import WhatsAppAISettings from '../components/WhatsAppAISettings.jsx';
 
 const WhatsAppReceiver = () => {
+  const { theme, colors } = useTheme();
+  
   // Unified WhatsApp Configuration State
   const [appId, setAppId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
