@@ -21,7 +21,7 @@ const getApiBaseUrl = () => {
     return cleanUrl(import.meta.env.VITE_API_BASE_URL);
   }
   
-  // 3. Development fallback - use remote backend for consistency
+  // 3. Development fallback - use remote backend for consistency  
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return 'https://workflow-lg9z.onrender.com';
   }
