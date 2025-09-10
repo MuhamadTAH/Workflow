@@ -10,8 +10,7 @@ class ChatWebSocketServer {
 
   initialize(server) {
     this.wss = new WebSocket.Server({ 
-      server,
-      path: '/chat'
+      server
     });
 
     this.wss.on('connection', (ws, req) => {
@@ -23,7 +22,7 @@ class ChatWebSocketServer {
 
   handleConnection(ws, req) {
     const url = new URL(req.url, `http://${req.headers.host}`);
-    const sessionId = url.pathname.split('/').pop();
+    const sessionId = url.searchParams.get('sessionId');
     
     if (!sessionId) {
       ws.close(1008, 'Session ID required');
@@ -50,14 +49,22 @@ class ChatWebSocketServer {
     const isAgent = url.searchParams.get('type') === 'agent';
     
     if (isAgent) {
-      session.agentSocket = ws;
-      ws.sessionId = sessionId;
+      // Agent connection - no specific session
+      this.agents.set(ws, true);
       ws.isAgent = true;
-    } else {
-      session.userSocket = ws;
-      ws.sessionId = sessionId;
-      ws.isAgent = false;
+      ws.sessionId = 'agent';
+      
+      this.sendMessage(ws, {
+        type: 'connected',
+        message: 'Agent connected to chat system',
+        timestamp: new Date()
+      });
+      return;
     }
+    
+    session.userSocket = ws;
+    ws.sessionId = sessionId;
+    ws.isAgent = false;
 
     // Handle incoming messages
     ws.on('message', (data) => {
@@ -194,6 +201,13 @@ class ChatWebSocketServer {
   }
 
   handleDisconnection(ws) {
+    if (ws.isAgent && ws.sessionId === 'agent') {
+      // Remove from agents map
+      this.agents.delete(ws);
+      console.log('Agent disconnected from chat system');
+      return;
+    }
+
     const session = this.sessions.get(ws.sessionId);
     if (!session) return;
 

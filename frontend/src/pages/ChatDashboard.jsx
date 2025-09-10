@@ -65,7 +65,7 @@ const ChatDashboard = () => {
   };
 
   const connectAgentWebSocket = () => {
-    const wsUrl = `wss://workflow-lg9z.onrender.com/chat/agent`;
+    const wsUrl = `wss://workflow-lg9z.onrender.com/?type=agent`;
     wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onopen = () => {

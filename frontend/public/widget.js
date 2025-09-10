@@ -442,7 +442,7 @@
     }
 
     connectWebSocket() {
-      const wsUrl = this.apiUrl.replace('http', 'ws').replace('https', 'wss') + `/chat/${this.sessionId}`;
+      const wsUrl = this.apiUrl.replace('http', 'ws').replace('https', 'wss') + `/?sessionId=${this.sessionId}`;
       this.websocket = new WebSocket(wsUrl);
 
       this.websocket.onopen = () => {

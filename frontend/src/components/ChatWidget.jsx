@@ -61,7 +61,7 @@ const ChatWidget = ({
   };
 
   const connectWebSocket = (sessionId) => {
-    const wsUrl = `wss://workflow-lg9z.onrender.com/chat/${sessionId}`;
+    const wsUrl = `wss://workflow-lg9z.onrender.com/?sessionId=${sessionId}`;
     wsRef.current = new WebSocket(wsUrl);
 
     wsRef.current.onopen = () => {
