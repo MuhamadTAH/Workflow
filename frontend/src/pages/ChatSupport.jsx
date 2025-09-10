@@ -108,28 +108,55 @@ const ChatSupport = () => {
 
   const generateEmbedCode = (widget) => {
     const baseUrl = 'https://fixdai.com';
-    const scriptCode = `<script>
-(function() {
-  var script = document.createElement('script');
-  script.src = '${baseUrl}/widget.js';
-  script.onload = function() {
+    
+    // Complete HTML page example
+    const completeHtmlCode = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Website</title>
+</head>
+<body>
+    <h1>Your Website Content</h1>
+    <p>Your normal website content goes here...</p>
+    
+    <!-- Chat Widget - Add this before closing </body> tag -->
+    <script src="${baseUrl}/widget.js"></script>
+    <script>
     ChatWidget.init({
       widgetId: '${widget.id}',
       apiUrl: '${API_BASE_URL}',
-      config: ${JSON.stringify(widget)}
+      config: ${JSON.stringify(widget, null, 2)}
     });
-  };
-  document.head.appendChild(script);
-})();
+    </script>
+</body>
+</html>`;
+
+    // Simple script code (for existing websites)
+    const scriptCode = `<!-- Add this before closing </body> tag -->
+<script src="${baseUrl}/widget.js"></script>
+<script>
+ChatWidget.init({
+  widgetId: '${widget.id}',
+  apiUrl: '${API_BASE_URL}',
+  config: ${JSON.stringify(widget, null, 2)}
+});
 </script>`;
 
-    const iframeCode = `<iframe 
+    // iframe alternative
+    const iframeCode = `<!-- Alternative: iframe embed -->
+<iframe 
   src="${baseUrl}/chat-widget/${widget.id}" 
   style="position: fixed; ${widget.position.includes('bottom') ? 'bottom' : 'top'}: 20px; ${widget.position.includes('right') ? 'right' : 'left'}: 20px; width: 350px; height: 500px; border: none; z-index: 9999;"
   frameborder="0">
 </iframe>`;
 
-    setEmbedCode({ script: scriptCode, iframe: iframeCode });
+    setEmbedCode({ 
+      complete: completeHtmlCode,
+      script: scriptCode, 
+      iframe: iframeCode 
+    });
   };
 
   const deleteWidget = async (widgetId) => {
@@ -298,7 +325,7 @@ const ChatSupport = () => {
                             cursor: 'pointer'
                           }}
                         >
-                          Get Code
+                          📋 Get Embed Code
                         </button>
                         <button
                           onClick={() => deleteWidget(widget.id)}
@@ -323,6 +350,28 @@ const ChatSupport = () => {
                   {/* Chat Dashboard */}
                   <div style={{ marginBottom: '20px' }}>
                     <h4 style={{ margin: '0 0 10px 0', color: colors.text }}>Active Sessions</h4>
+                    
+                    {/* Quick Widget Code Access */}
+                    {widgets.length > 0 && (
+                      <div style={{ marginBottom: '15px' }}>
+                        <button
+                          onClick={() => setActiveTab('widgets')}
+                          style={{
+                            width: '100%',
+                            padding: '10px',
+                            background: colors.primary,
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '500'
+                          }}
+                        >
+                          📋 Get Widget Embed Code
+                        </button>
+                      </div>
+                    )}
                     <div style={{ 
                       display: 'grid', 
                       gridTemplateColumns: '1fr 1fr', 
@@ -542,10 +591,53 @@ const ChatSupport = () => {
             borderRadius: '12px',
             border: `1px solid ${colors.border}`
           }}>
-            <h3 style={{ color: colors.text }}>Embed Code for "{selectedWidget.name}"</h3>
+            <h3 style={{ color: colors.text, marginBottom: '10px' }}>🔗 Complete Embed Code for "{selectedWidget.name}"</h3>
+            <p style={{ color: colors.textSecondary, marginBottom: '25px', fontSize: '14px' }}>
+              Choose the option that works best for your website. Copy and paste the code exactly as shown.
+            </p>
             
-            <div style={{ marginBottom: '20px' }}>
-              <h4 style={{ color: colors.text }}>Option 1: JavaScript Widget (Recommended)</h4>
+            <div style={{ marginBottom: '25px' }}>
+              <h4 style={{ color: colors.text, marginBottom: '10px' }}>📄 Option 1: Complete HTML Page Example</h4>
+              <p style={{ color: colors.textSecondary, marginBottom: '10px', fontSize: '13px' }}>
+                Use this if you're creating a new HTML page or want to see exactly where to place the code:
+              </p>
+              <div style={{ position: 'relative' }}>
+                <pre style={{
+                  background: colors.codeBackground,
+                  padding: '15px',
+                  borderRadius: '6px',
+                  overflow: 'auto',
+                  fontSize: '11px',
+                  color: colors.text,
+                  maxHeight: '300px'
+                }}>
+                  {embedCode.complete}
+                </pre>
+                <button
+                  onClick={() => copyToClipboard(embedCode.complete)}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    padding: '5px 10px',
+                    background: colors.primary,
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  📋 Copy Full HTML
+                </button>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '25px' }}>
+              <h4 style={{ color: colors.text, marginBottom: '10px' }}>⚡ Option 2: Add to Existing Website (Recommended)</h4>
+              <p style={{ color: colors.textSecondary, marginBottom: '10px', fontSize: '13px' }}>
+                Just copy this code and paste it before the closing &lt;/body&gt; tag in your existing website:
+              </p>
               <div style={{ position: 'relative' }}>
                 <pre style={{
                   background: colors.codeBackground,
@@ -564,7 +656,7 @@ const ChatSupport = () => {
                     top: '10px',
                     right: '10px',
                     padding: '5px 10px',
-                    background: colors.primary,
+                    background: colors.success,
                     color: 'white',
                     border: 'none',
                     borderRadius: '4px',
@@ -572,13 +664,16 @@ const ChatSupport = () => {
                     cursor: 'pointer'
                   }}
                 >
-                  Copy
+                  📋 Copy Script
                 </button>
               </div>
             </div>
 
             <div>
-              <h4 style={{ color: colors.text }}>Option 2: iFrame</h4>
+              <h4 style={{ color: colors.text, marginBottom: '10px' }}>🖼️ Option 3: iframe Embed</h4>
+              <p style={{ color: colors.textSecondary, marginBottom: '10px', fontSize: '13px' }}>
+                Alternative method - works with any website builder (Wix, Squarespace, etc.):
+              </p>
               <div style={{ position: 'relative' }}>
                 <pre style={{
                   background: colors.codeBackground,
@@ -597,7 +692,7 @@ const ChatSupport = () => {
                     top: '10px',
                     right: '10px',
                     padding: '5px 10px',
-                    background: colors.primary,
+                    background: colors.secondary,
                     color: 'white',
                     border: 'none',
                     borderRadius: '4px',
@@ -605,9 +700,25 @@ const ChatSupport = () => {
                     cursor: 'pointer'
                   }}
                 >
-                  Copy
+                  📋 Copy iframe
                 </button>
               </div>
+            </div>
+
+            <div style={{ 
+              marginTop: '20px', 
+              padding: '15px', 
+              background: colors.primaryLight, 
+              borderRadius: '8px',
+              border: `1px solid ${colors.primary}`
+            }}>
+              <h5 style={{ color: colors.text, margin: '0 0 8px 0' }}>📋 Quick Instructions:</h5>
+              <ol style={{ color: colors.textSecondary, fontSize: '13px', margin: 0, paddingLeft: '18px' }}>
+                <li>Copy Option 2 code above</li>
+                <li>Paste it before the &lt;/body&gt; tag in your website</li>
+                <li>Save and publish your website</li>
+                <li>The chat widget will appear on your site!</li>
+              </ol>
             </div>
           </div>
         )}
