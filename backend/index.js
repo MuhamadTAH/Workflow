@@ -94,7 +94,35 @@ app.use((req, res, next) => {
 
 // Enhanced CORS fix: Allow all origins including fixdai.com
 app.use(cors({
-  origin: ['https://fixdai.com', 'https://workflow-lg9z.onrender.com', 'http://localhost:3000', 'http://localhost:5173', true],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true);
+    
+    // Allow all origins for chat widget functionality
+    const allowedOrigins = [
+      'https://fixdai.com',
+      'https://workflow-lg9z.onrender.com', 
+      'https://frontend-dpcg.onrender.com',
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://localhost:8000',
+      'http://127.0.0.1:8000',
+      'file://'
+    ];
+    
+    // Allow any localhost port
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+    
+    // Allow allowed origins
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Allow all origins for chat widget (since it's embeddable)
+    return callback(null, true);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
   allowedHeaders: [

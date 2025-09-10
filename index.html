@@ -326,7 +326,7 @@
           .then(function(data) {
             if (data.success) {
               self.sessionId = data.sessionId;
-              self.sendMessage(message);
+              self.sendToBackend(message);
             }
           })
           .catch(function(error) {
