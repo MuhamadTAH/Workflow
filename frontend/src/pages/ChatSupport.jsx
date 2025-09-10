@@ -42,6 +42,15 @@ const ChatSupport = () => {
     loadSessions();
   }, []);
 
+  // Auto-select first widget and generate embed code for testing
+  useEffect(() => {
+    if (widgets.length > 0 && !selectedWidget && activeTab === 'widgets') {
+      const firstWidget = widgets[0];
+      setSelectedWidget(firstWidget);
+      generateEmbedCode(firstWidget);
+    }
+  }, [widgets, selectedWidget, activeTab]);
+
   const loadWidgets = async () => {
     try {
       setIsLoading(true);
@@ -584,14 +593,16 @@ ChatWidget.init({
           </div>
         )}
 
-        {selectedWidget && embedCode && activeTab === 'widgets' && (
+        {embedCode && activeTab === 'widgets' && (
           <div style={{
             background: colors.cardBackground,
             padding: '30px',
             borderRadius: '12px',
             border: `1px solid ${colors.border}`
           }}>
-            <h3 style={{ color: colors.text, marginBottom: '10px' }}>🔗 Complete Embed Code for "{selectedWidget.name}"</h3>
+            <h3 style={{ color: colors.text, marginBottom: '10px' }}>
+              🔗 Complete Embed Code{selectedWidget ? ` for "${selectedWidget.name}"` : ''}
+            </h3>
             <p style={{ color: colors.textSecondary, marginBottom: '25px', fontSize: '14px' }}>
               Choose the option that works best for your website. Copy and paste the code exactly as shown.
             </p>
@@ -838,16 +849,40 @@ ChatWidget.init({
         {!selectedWidget && !selectedSession && !showCreateForm && (
           <div style={{
             display: 'flex',
+            flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
             height: '60%',
             color: colors.textSecondary,
-            fontSize: '18px'
+            fontSize: '18px',
+            textAlign: 'center'
           }}>
-            {activeTab === 'widgets' ? 
-              'Create a widget or select one to get embed code' : 
-              'Select a chat session to view conversation'
-            }
+            <div style={{ marginBottom: '20px', fontSize: '48px' }}>
+              {activeTab === 'widgets' ? '💬' : '📱'}
+            </div>
+            <div style={{ marginBottom: '10px' }}>
+              {activeTab === 'widgets' ? 
+                'Create a widget or click "Get Embed Code" on existing widgets' : 
+                'Select a chat session to view conversation'
+              }
+            </div>
+            {activeTab === 'widgets' && widgets.length === 0 && (
+              <button
+                onClick={() => setShowCreateForm(true)}
+                style={{
+                  marginTop: '15px',
+                  padding: '12px 24px',
+                  background: colors.primary,
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '16px'
+                }}
+              >
+                + Create Your First Widget
+              </button>
+            )}
           </div>
         )}
       </div>
