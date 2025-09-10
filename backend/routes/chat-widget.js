@@ -286,6 +286,41 @@ router.get('/sessions', async (req, res) => {
   }
 });
 
+// Get all messages from all sessions
+router.get('/messages/all', async (req, res) => {
+  try {
+    const sessions = chatWebSocket.getAllActiveSessions();
+    const allMessages = [];
+    
+    sessions.forEach(session => {
+      if (session.messages && session.messages.length > 0) {
+        session.messages.forEach(message => {
+          allMessages.push({
+            ...message,
+            sessionId: session.id,
+            widgetId: session.widgetId || 'unknown'
+          });
+        });
+      }
+    });
+
+    // Sort by timestamp (newest first)
+    allMessages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    res.json({
+      success: true,
+      messages: allMessages
+    });
+
+  } catch (error) {
+    console.error('Error getting all messages:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get messages'
+    });
+  }
+});
+
 // Delete widget
 router.delete('/widget/:widgetId', async (req, res) => {
   try {

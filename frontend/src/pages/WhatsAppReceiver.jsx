@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
+import { useTheme } from '../contexts/ThemeContext';
 import WhatsAppAISettings from '../components/WhatsAppAISettings.jsx';
 
 const WhatsAppReceiver = () => {

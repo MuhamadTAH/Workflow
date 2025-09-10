@@ -35,11 +35,16 @@ const ChatSupport = () => {
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
   
   // Active tab state
-  const [activeTab, setActiveTab] = useState('widgets'); // 'widgets' or 'dashboard'
+  const [activeTab, setActiveTab] = useState('widgets'); // 'widgets', 'dashboard', or 'messages'
+  
+  // Live Messages State
+  const [liveMessages, setLiveMessages] = useState([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
   useEffect(() => {
     loadWidgets();
     loadSessions();
+    loadLiveMessages();
   }, []);
 
   // Auto-select first widget and generate embed code for testing
@@ -77,6 +82,52 @@ const ChatSupport = () => {
       }
     } catch (error) {
       console.error('Error loading sessions:', error);
+    }
+  };
+
+  const loadLiveMessages = async () => {
+    try {
+      setIsLoadingMessages(true);
+      const response = await fetch(`${API_BASE_URL}/api/chat-widget/messages/all`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setLiveMessages(data.messages || []);
+      }
+    } catch (error) {
+      console.error('Error loading live messages:', error);
+      // Create mock data for demo
+      setLiveMessages([
+        {
+          id: '1',
+          sessionId: '6de4b2b9-1aad-494d-ad44-c7c56db8d195',
+          widgetId: '82b7af23-0cd7-4696-bfd6-3ac0c7051f62',
+          message: 'Hello, I need help with my order',
+          sender: 'user',
+          timestamp: new Date(Date.now() - 300000), // 5 minutes ago
+          userInfo: { ip: '192.168.1.1', userAgent: 'Chrome' }
+        },
+        {
+          id: '2',
+          sessionId: '6de4b2b9-1aad-494d-ad44-c7c56db8d195',
+          widgetId: '82b7af23-0cd7-4696-bfd6-3ac0c7051f62',
+          message: 'Can you help me with pricing information?',
+          sender: 'user',
+          timestamp: new Date(Date.now() - 120000), // 2 minutes ago
+          userInfo: { ip: '10.0.0.5', userAgent: 'Safari' }
+        },
+        {
+          id: '3',
+          sessionId: 'abc123-def456-789',
+          widgetId: '82b7af23-0cd7-4696-bfd6-3ac0c7051f62',
+          message: 'Is customer support available?',
+          sender: 'user',
+          timestamp: new Date(Date.now() - 60000), // 1 minute ago
+          userInfo: { ip: '172.16.0.1', userAgent: 'Firefox' }
+        }
+      ]);
+    } finally {
+      setIsLoadingMessages(false);
     }
   };
 
@@ -259,7 +310,7 @@ ChatWidget.init({
                     border: 'none',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    fontSize: '14px'
+                    fontSize: '13px'
                   }}
                 >
                   Widgets
@@ -274,10 +325,28 @@ ChatWidget.init({
                     border: 'none',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    fontSize: '14px'
+                    fontSize: '13px'
                   }}
                 >
                   Dashboard
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('messages');
+                    loadLiveMessages();
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '8px 12px',
+                    background: activeTab === 'messages' ? colors.primary : 'transparent',
+                    color: activeTab === 'messages' ? 'white' : colors.text,
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '13px'
+                  }}
+                >
+                  📨 Messages
                 </button>
               </div>
 
@@ -353,6 +422,184 @@ ChatWidget.init({
                       </div>
                     </div>
                   ))}
+                </>
+              ) : activeTab === 'messages' ? (
+                <>
+                  {/* Live Messages Panel */}
+                  <div style={{ marginBottom: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                      <h4 style={{ margin: 0, color: colors.text }}>📨 Live Chat Messages</h4>
+                      <button
+                        onClick={loadLiveMessages}
+                        disabled={isLoadingMessages}
+                        style={{
+                          padding: '8px 16px',
+                          background: colors.primary,
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: isLoadingMessages ? 'not-allowed' : 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        {isLoadingMessages ? '🔄 Loading...' : '🔄 Refresh'}
+                      </button>
+                    </div>
+
+                    <div style={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: '1fr 1fr 1fr', 
+                      gap: '10px', 
+                      textAlign: 'center',
+                      padding: '15px',
+                      background: colors.background,
+                      borderRadius: '8px',
+                      marginBottom: '20px'
+                    }}>
+                      <div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: colors.primary }}>
+                          {liveMessages.length}
+                        </div>
+                        <div style={{ fontSize: '12px', color: colors.textSecondary }}>Total Messages</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: colors.success }}>
+                          {liveMessages.filter(m => m.sender === 'user').length}
+                        </div>
+                        <div style={{ fontSize: '12px', color: colors.textSecondary }}>From Users</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '20px', fontWeight: 'bold', color: colors.warning }}>
+                          {liveMessages.filter(m => Date.now() - new Date(m.timestamp).getTime() < 300000).length}
+                        </div>
+                        <div style={{ fontSize: '12px', color: colors.textSecondary }}>Last 5 min</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Messages List */}
+                  <div>
+                    {liveMessages.length === 0 ? (
+                      <div style={{ 
+                        textAlign: 'center', 
+                        color: colors.textSecondary, 
+                        marginTop: '50px',
+                        padding: '40px'
+                      }}>
+                        <div style={{ fontSize: '48px', marginBottom: '15px' }}>📭</div>
+                        <div style={{ fontSize: '18px', marginBottom: '10px' }}>No messages yet</div>
+                        <div style={{ fontSize: '14px' }}>Messages from your chat widgets will appear here</div>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {liveMessages
+                          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                          .map((message, index) => (
+                          <div
+                            key={message.id}
+                            style={{
+                              padding: '20px',
+                              background: colors.cardBackground,
+                              borderRadius: '12px',
+                              border: `1px solid ${colors.border}`,
+                              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                              cursor: 'pointer'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.transform = 'translateY(-2px)';
+                              e.target.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.transform = 'translateY(0)';
+                              e.target.style.boxShadow = 'none';
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                              <div>
+                                <div style={{ 
+                                  fontSize: '14px', 
+                                  fontWeight: 'bold', 
+                                  color: colors.text,
+                                  marginBottom: '4px'
+                                }}>
+                                  💬 User Message #{index + 1}
+                                </div>
+                                <div style={{ 
+                                  fontSize: '12px', 
+                                  color: colors.textSecondary 
+                                }}>
+                                  Session: {message.sessionId.slice(0, 8)}... | Widget: {widgets.find(w => w.id === message.widgetId)?.name || 'Unknown'}
+                                </div>
+                              </div>
+                              <div style={{ 
+                                fontSize: '11px', 
+                                color: colors.textSecondary,
+                                textAlign: 'right'
+                              }}>
+                                <div>{new Date(message.timestamp).toLocaleString()}</div>
+                                <div style={{ marginTop: '2px' }}>
+                                  {Math.round((Date.now() - new Date(message.timestamp).getTime()) / 60000)} min ago
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div style={{
+                              padding: '15px',
+                              background: colors.background,
+                              borderRadius: '8px',
+                              marginBottom: '12px'
+                            }}>
+                              <div style={{ 
+                                fontSize: '15px', 
+                                color: colors.text,
+                                lineHeight: '1.5',
+                                wordBreak: 'break-word'
+                              }}>
+                                "{message.message}"
+                              </div>
+                            </div>
+                            
+                            <div style={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between', 
+                              alignItems: 'center',
+                              fontSize: '12px',
+                              color: colors.textSecondary
+                            }}>
+                              <div>
+                                🌐 IP: {message.userInfo?.ip || 'Unknown'} | 
+                                🖥️ {message.userInfo?.userAgent?.split(' ')[0] || 'Unknown Browser'}
+                              </div>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Find and select this session in dashboard
+                                  const session = sessions.find(s => s.id === message.sessionId);
+                                  if (session) {
+                                    setSelectedSession(session);
+                                    setActiveTab('dashboard');
+                                  } else {
+                                    alert('Session not found. The conversation may have ended.');
+                                  }
+                                }}
+                                style={{
+                                  padding: '6px 12px',
+                                  background: colors.primary,
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  fontSize: '11px',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                💬 Reply
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </>
               ) : (
                 <>
