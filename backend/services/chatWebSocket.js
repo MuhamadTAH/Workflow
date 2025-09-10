@@ -24,12 +24,20 @@ class ChatWebSocketServer {
     const url = new URL(req.url, `http://${req.headers.host}`);
     const sessionId = url.searchParams.get('sessionId');
     
+    console.log(`🔗 WebSocket connection attempt:`, {
+      url: req.url,
+      sessionId: sessionId,
+      origin: req.headers.origin,
+      userAgent: req.headers['user-agent']?.substring(0, 50)
+    });
+    
     if (!sessionId) {
+      console.log(`❌ WebSocket rejected: No session ID provided`);
       ws.close(1008, 'Session ID required');
       return;
     }
 
-    console.log(`New WebSocket connection for session: ${sessionId}`);
+    console.log(`✅ WebSocket connected for session: ${sessionId}`);
 
     // Store session connection
     if (!this.sessions.has(sessionId)) {
@@ -115,6 +123,13 @@ class ChatWebSocketServer {
   }
 
   handleChatMessage(ws, message, session) {
+    console.log(`💬 WebSocket message received:`, {
+      sessionId: ws.sessionId,
+      sender: ws.isAgent ? 'agent' : 'user',
+      message: message.message,
+      messageLength: message.message?.length
+    });
+
     const chatMessage = {
       id: Date.now() + Math.random(),
       text: message.message,

@@ -359,7 +359,7 @@ function generateEmbedCode(widgetId, config) {
   script.onload = function() {
     ChatWidget.init({
       widgetId: '${widgetId}',
-      apiUrl: '${process.env.API_BASE_URL || 'http://localhost:3001'}',
+      apiUrl: '${process.env.API_BASE_URL || 'https://workflow-lg9z.onrender.com'}',
       config: ${JSON.stringify(config)}
     });
   };
