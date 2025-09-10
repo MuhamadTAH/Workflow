@@ -734,7 +734,7 @@ const WhatsAppReceiver = () => {
         </button>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', position: 'relative' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#111827' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: colors.primaryText }}>
             <i className="fab fa-whatsapp" style={{ color: '#25D366', marginRight: '0.5rem' }}></i>
             WhatsApp Business Integration
           </h1>
@@ -745,7 +745,7 @@ const WhatsAppReceiver = () => {
           {/* LEFT SIDEBAR - Configuration Panel */}
           <div style={{ 
             width: '400px',
-            backgroundColor: '#f8fafc', 
+            backgroundColor: colors.secondaryBg, 
             borderRadius: '0', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
             padding: '0',
@@ -753,7 +753,7 @@ const WhatsAppReceiver = () => {
             position: 'fixed',
             top: '0',
             left: '0',
-            border: '1px solid #e2e8f0',
+            border: `1px solid ${colors.border}`,
             overflow: 'hidden',
             transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
             transform: isSidebarCollapsed ? 'translateX(-420px)' : 'translateX(0)',
@@ -848,7 +848,7 @@ const WhatsAppReceiver = () => {
                       fontWeight: '600', 
                       color: '#1f2937', 
                       marginBottom: '1rem', 
-                      borderBottom: '2px solid #e5e7eb', 
+                      borderBottom: `2px solid ${colors.border}`, 
                       paddingBottom: '0.5rem',
                       cursor: 'pointer',
                       display: 'flex',
@@ -879,7 +879,7 @@ const WhatsAppReceiver = () => {
                   
                       {/* Webhook URL */}
                   <div style={{ marginBottom: '1rem' }}>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: colors.primaryText, marginBottom: '0.5rem' }}>
                       Webhook URL
                     </label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -915,7 +915,7 @@ const WhatsAppReceiver = () => {
                   {/* Configuration Inputs */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: colors.primaryText, marginBottom: '0.5rem' }}>
                         App ID
                       </label>
                       <input
@@ -937,7 +937,7 @@ const WhatsAppReceiver = () => {
                     </div>
                     
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: colors.primaryText, marginBottom: '0.5rem' }}>
                         Client Secret
                       </label>
                       <input
@@ -959,7 +959,7 @@ const WhatsAppReceiver = () => {
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: colors.primaryText, marginBottom: '0.5rem' }}>
                         Business ID
                       </label>
                       <input
@@ -981,7 +981,7 @@ const WhatsAppReceiver = () => {
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: colors.primaryText, marginBottom: '0.5rem' }}>
                         Access Token
                       </label>
                       <input
@@ -1003,7 +1003,7 @@ const WhatsAppReceiver = () => {
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#374151', marginBottom: '0.5rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: colors.primaryText, marginBottom: '0.5rem' }}>
                         Phone Number Send ID
                       </label>
                       <input
@@ -1122,14 +1122,14 @@ const WhatsAppReceiver = () => {
             }}>
               
               {/* Two Panel Layout */}
-              <div style={{ display: 'flex', gap: '0', height: 'calc(100vh - 60px)', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', gap: '0', height: 'calc(100vh - 60px)', border: `1px solid ${colors.border}`, borderRadius: '8px', overflow: 'hidden' }}>
                 
                 {/* Conversations Panel */}
                 <div style={{ 
                   flex: '0 0 300px', 
-                  backgroundColor: '#f8fafc', 
+                  backgroundColor: colors.secondaryBg, 
                   padding: '1rem', 
-                  borderRight: '1px solid #e2e8f0',
+                  borderRight: `1px solid ${colors.border}`,
                   display: 'flex',
                   flexDirection: 'column'
                 }}>
@@ -1141,7 +1141,7 @@ const WhatsAppReceiver = () => {
                           marginLeft: '0.5rem', 
                           fontSize: '0.75rem', 
                           color: '#10b981',
-                          backgroundColor: '#d1fae5',
+                          backgroundColor: colors.overlay,
                           padding: '0.25rem 0.5rem',
                           borderRadius: '4px'
                         }}>
@@ -1204,7 +1204,7 @@ const WhatsAppReceiver = () => {
                                 {conversation.contactName ? conversation.contactName[0].toUpperCase() : '📱'}
                               </div>
                               <div style={{ flex: 1 }}>
-                                <div style={{ fontWeight: '500', fontSize: '0.875rem', color: '#111827' }}>
+                                <div style={{ fontWeight: '500', fontSize: '0.875rem', color: colors.primaryText }}>
                                   {conversation.contactName || conversation.phoneNumber}
                                 </div>
                                 <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>
@@ -1231,7 +1231,7 @@ const WhatsAppReceiver = () => {
                 {/* Messages Panel */}
                 <div style={{ 
                   flex: '1', 
-                  backgroundColor: '#f8fafc', 
+                  backgroundColor: colors.secondaryBg, 
                   padding: '1rem',
                   display: 'flex',
                   flexDirection: 'column'
@@ -1402,7 +1402,7 @@ const WhatsAppReceiver = () => {
           {/* RIGHT SIDEBAR - User Information Panel */}
           <div style={{ 
             width: '300px',
-            backgroundColor: '#f8fafc', 
+            backgroundColor: colors.secondaryBg, 
             borderRadius: '0', 
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
             padding: '0',
@@ -1410,7 +1410,7 @@ const WhatsAppReceiver = () => {
             position: 'fixed',
             top: '0',
             right: '0',
-            border: '1px solid #e2e8f0',
+            border: `1px solid ${colors.border}`,
             overflow: 'hidden',
             transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
             transform: isRightSidebarCollapsed ? 'translateX(320px)' : 'translateX(0)',
@@ -1505,7 +1505,7 @@ const WhatsAppReceiver = () => {
                     fontWeight: '600', 
                     color: '#1f2937', 
                     marginBottom: '1rem', 
-                    borderBottom: '2px solid #e5e7eb', 
+                    borderBottom: `2px solid ${colors.border}`, 
                     paddingBottom: '0.5rem',
                     cursor: 'pointer',
                     display: 'flex',
@@ -1552,7 +1552,7 @@ const WhatsAppReceiver = () => {
                         {selectedConversation.contactName ? selectedConversation.contactName[0].toUpperCase() : '📱'}
                       </div>
                       <div>
-                        <div style={{ fontWeight: '600', fontSize: '1rem', color: '#111827' }}>
+                        <div style={{ fontWeight: '600', fontSize: '1rem', color: colors.primaryText }}>
                           {selectedConversation.contactName || 'Unknown Contact'}
                         </div>
                         <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
@@ -1564,36 +1564,36 @@ const WhatsAppReceiver = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.875rem' }}>
                       <div>
                         <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Messages</div>
-                        <div style={{ fontWeight: '600', color: '#111827' }}>{selectedConversation.messages.length}</div>
+                        <div style={{ fontWeight: '600', color: colors.primaryText }}>{selectedConversation.messages.length}</div>
                       </div>
                       <div>
                         <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Phone</div>
-                        <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem', wordBreak: 'break-all' }}>
+                        <div style={{ fontWeight: '600', color: colors.primaryText, fontSize: '0.75rem', wordBreak: 'break-all' }}>
                           {selectedConversation.phoneNumber}
                         </div>
                       </div>
                       <div>
                         <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Last Message</div>
-                        <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem' }}>
+                        <div style={{ fontWeight: '600', color: colors.primaryText, fontSize: '0.75rem' }}>
                           {selectedConversation.lastMessageTime ? formatTimestamp(selectedConversation.lastMessageTime) : 'N/A'}
                         </div>
                       </div>
                       <div>
                         <div style={{ color: '#6b7280', marginBottom: '0.25rem' }}>Status</div>
-                        <div style={{ fontWeight: '600', color: '#111827', fontSize: '0.75rem' }}>
+                        <div style={{ fontWeight: '600', color: colors.primaryText, fontSize: '0.75rem' }}>
                           Active
                         </div>
                       </div>
                     </div>
                     
-                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: `1px solid ${colors.border}` }}>
                       <div style={{ color: '#6b7280', marginBottom: '0.25rem', fontSize: '0.875rem' }}>Last Message Preview</div>
                       <div style={{ 
                         backgroundColor: '#f9fafb', 
                         padding: '0.75rem', 
                         borderRadius: '6px', 
                         fontSize: '0.875rem',
-                        color: '#374151',
+                        color: colors.primaryText,
                         fontStyle: selectedConversation.lastMessage ? 'normal' : 'italic'
                       }}>
                         {selectedConversation.lastMessage || 'No recent messages'}
@@ -1601,7 +1601,7 @@ const WhatsAppReceiver = () => {
                     </div>
                     
                     {/* AI Control Button for Selected Contact */}
-                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                    <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: `1px solid ${colors.border}` }}>
                       <div style={{ marginBottom: '0.75rem' }}>
                         <div style={{ color: '#6b7280', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500' }}>
                           AI Response Control
@@ -1745,7 +1745,7 @@ const WhatsAppReceiver = () => {
                     fontWeight: '600', 
                     color: '#1f2937', 
                     marginBottom: '1rem', 
-                    borderBottom: '2px solid #e5e7eb', 
+                    borderBottom: `2px solid ${colors.border}`, 
                     paddingBottom: '0.5rem',
                     cursor: 'pointer',
                     display: 'flex',
@@ -1777,13 +1777,13 @@ const WhatsAppReceiver = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem', fontSize: '0.875rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ color: '#6b7280' }}>Total Contacts</span>
-                      <span style={{ fontWeight: '600', color: '#111827', backgroundColor: '#dbeafe', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                      <span style={{ fontWeight: '600', color: colors.primaryText, backgroundColor: colors.overlay, padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
                         {conversations.length}
                       </span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ color: '#6b7280' }}>Total Messages</span>
-                      <span style={{ fontWeight: '600', color: '#111827', backgroundColor: '#dcfce7', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
+                      <span style={{ fontWeight: '600', color: colors.primaryText, backgroundColor: colors.overlay, padding: '0.25rem 0.5rem', borderRadius: '4px' }}>
                         {messages.length}
                       </span>
                     </div>
@@ -1828,7 +1828,7 @@ const WhatsAppReceiver = () => {
                     fontWeight: '600', 
                     color: '#1f2937', 
                     marginBottom: '1rem', 
-                    borderBottom: '2px solid #e5e7eb', 
+                    borderBottom: `2px solid ${colors.border}`, 
                     paddingBottom: '0.5rem',
                     cursor: 'pointer',
                     display: 'flex',
