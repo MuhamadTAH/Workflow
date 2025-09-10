@@ -108,12 +108,16 @@ const AccountSettings = () => {
     
     setIsUpdating(true);
     try {
+      console.log('🔄 Attempting to change password...');
+      console.log('📋 Token exists:', !!localStorage.getItem('token'));
+      
       // Call real API to change password
       const response = await authAPI.changePassword({
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       });
 
+      console.log('✅ Password change successful:', response.data);
       // Success - password changed
       alert('Password updated successfully!');
       setShowPasswordModal(false);
@@ -121,15 +125,18 @@ const AccountSettings = () => {
       setErrors({});
       
     } catch (error) {
-      console.error('Password update error:', error);
+      console.error('❌ Password update error:', error);
+      console.error('📄 Full error response:', error.response);
       
       if (error.response) {
         // Server responded with error status
         const status = error.response.status;
         const errorData = error.response.data;
+        console.error('🔍 Error details:', { status, errorData });
         
         if (status === 401 || status === 400) {
           // Current password is incorrect
+          console.error('🚫 Authentication failed - wrong current password');
           setErrors({ currentPassword: 'Current password is incorrect' });
         } else if (status === 422) {
           // Validation errors from server

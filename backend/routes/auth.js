@@ -505,9 +505,14 @@ router.post('/change-password', verifyToken, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user.userId;
+    
+    console.log('🔑 Password change request for user ID:', userId);
+    console.log('📋 Current password provided:', !!currentPassword);
+    console.log('📋 New password provided:', !!newPassword);
 
     // Validate input
     if (!currentPassword || !newPassword) {
+      console.log('❌ Missing password data');
       return res.status(400).json({ 
         message: 'Current password and new password are required' 
       });
@@ -533,11 +538,16 @@ router.post('/change-password', verifyToken, async (req, res) => {
 
       try {
         // Verify current password
+        console.log('🔍 Comparing passwords for user:', user.email);
         const validCurrentPassword = await bcrypt.compare(currentPassword, user.password);
+        console.log('✓ Password comparison result:', validCurrentPassword);
         
         if (!validCurrentPassword) {
+          console.log('❌ Current password verification failed');
           return res.status(401).json({ message: 'Current password is incorrect' });
         }
+        
+        console.log('✅ Current password verified successfully');
 
         // Check if new password is different from current
         const samePassword = await bcrypt.compare(newPassword, user.password);
