@@ -52,6 +52,10 @@ const verifyToken = (req, res, next) => {
   }
 
   try {
+    console.log('🔐 [DEBUG] Token verification - Raw token:', token ? token.substring(0, 30) + '...' : 'NO TOKEN');
+    console.log('🔐 [DEBUG] Token verification - Token length:', token ? token.length : 0);
+    console.log('🔐 [DEBUG] Token verification - JWT_SECRET present:', !!process.env.JWT_SECRET);
+    
     // Allow mock token for testing/development
     if (token.startsWith('MOCK_TOKEN_FOR_TESTING_')) {
       console.log('✅ Using mock token for development');
@@ -66,7 +70,11 @@ const verifyToken = (req, res, next) => {
     console.log('✅ Token verified successfully');
     next();
   } catch (error) {
-    console.log('❌ Token verification failed:', error.message);
+    console.log('❌ [DEBUG] Token verification failed:', {
+      error: error.message,
+      name: error.name,
+      tokenPreview: token ? token.substring(0, 50) + '...' : 'NO TOKEN'
+    });
     return res.status(401).json({ error: 'Invalid token' });
   }
 };
@@ -807,14 +815,12 @@ router.get('/image/:listenerId/:fileId', asyncHandler(async (req, res) => {
 }));
 
 // Send voice message endpoint
-router.post('/send-voice', voiceUpload.single('voice'), asyncHandler(async (req, res) => {
+router.post('/send-voice', verifyToken, voiceUpload.single('voice'), asyncHandler(async (req, res) => {
   const { chatId } = req.body;
   
   try {
-    // Get bot configuration from user's session
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId;
+    // Get user ID from verified token (handled by verifyToken middleware)
+    const userId = req.user?.userId || req.user?.id;
 
     // Get user's active bot configuration
     const userBot = await getUserActiveBotFromDatabase(userId);
@@ -914,18 +920,42 @@ router.post('/send-voice', voiceUpload.single('voice'), asyncHandler(async (req,
 }));
 
 // Send image message endpoint
-router.post('/send-image', imageUpload.single('image'), asyncHandler(async (req, res) => {
+router.post('/send-image', verifyToken, imageUpload.single('image'), asyncHandler(async (req, res) => {
+  console.log('🚀 [DEBUG] Send image endpoint hit');
+  console.log('🚀 [DEBUG] Request headers:', {
+    'content-type': req.headers['content-type'],
+    'authorization': req.headers.authorization ? 'Bearer token present' : 'No token',
+    'user-agent': req.headers['user-agent']?.substring(0, 50)
+  });
+  console.log('🚀 [DEBUG] Request body keys:', Object.keys(req.body));
+  console.log('🚀 [DEBUG] Request file:', req.file ? {
+    fieldname: req.file.fieldname,
+    originalname: req.file.originalname,
+    mimetype: req.file.mimetype,
+    size: req.file.size
+  } : 'No file uploaded');
+  
   const { chatId } = req.body;
+  console.log('🚀 [DEBUG] Chat ID from body:', chatId);
   
   try {
-    // Get bot configuration from user's session
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId;
+    // Get user ID from verified token (handled by verifyToken middleware)
+    const userId = req.user?.userId || req.user?.id;
+    console.log('🚀 [DEBUG] Using userId from middleware:', userId);
+    console.log('🚀 [DEBUG] User object from middleware:', req.user);
 
     // Get user's active bot configuration
+    console.log('🚀 [DEBUG] Looking up bot for userId:', userId);
     const userBot = await getUserActiveBotFromDatabase(userId);
+    console.log('🚀 [DEBUG] Bot lookup result:', userBot ? {
+      listener_id: userBot.listener_id,
+      bot_token: userBot.bot_token ? userBot.bot_token.substring(0, 10) + '...' : 'No token',
+      is_active: userBot.is_active,
+      setup_at: userBot.setup_at
+    } : 'No bot found');
+    
     if (!userBot) {
+      console.log('🚀 [DEBUG] No bot found, returning 400');
       return res.status(400).json({
         success: false,
         error: 'No active bot configuration found. Please setup a bot first.'
@@ -1016,11 +1046,17 @@ router.post('/send-image', imageUpload.single('image'), asyncHandler(async (req,
       });
     }
   } catch (error) {
-    console.error('❌ Send image message error:', error.message);
+    console.error('🚀 [DEBUG] ❌ Send image message error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      response: error.response?.data
+    });
     res.status(500).json({
       success: false,
       error: 'Failed to send image message',
-      message: error.message
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }));
