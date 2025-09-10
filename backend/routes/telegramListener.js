@@ -91,8 +91,8 @@ const saveMessageToDatabase = async (listenerId, messageData) => {
   return new Promise((resolve, reject) => {
     db.run(`
       INSERT INTO telegram_listener_messages 
-      (listener_id, update_id, message_id, chat_id, text, from_user_id, from_name, from_username, date, type, is_bot_message)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (listener_id, update_id, message_id, chat_id, text, from_user_id, from_name, from_username, date, type, is_bot_message, voice_file_id, voice_file_url, voice_duration, voice_mime_type, voice_file_size)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       listenerId, 
       messageData.updateId, 
@@ -104,7 +104,12 @@ const saveMessageToDatabase = async (listenerId, messageData) => {
       messageData.fromUsername, 
       messageData.date, 
       messageData.type, 
-      messageData.isBotMessage || 0
+      messageData.isBotMessage || 0,
+      messageData.voiceFileId || null,
+      messageData.voiceFileUrl || null,
+      messageData.voiceDuration || null,
+      messageData.voiceMimeType || null,
+      messageData.voiceFileSize || null
     ], function(err) {
       if (err) reject(err);
       else resolve(this.lastID);
@@ -187,6 +192,30 @@ const updateClaudeLastUsed = async (userId) => {
       else resolve();
     });
   });
+};
+
+// Function to get voice file URL from Telegram
+const getVoiceFileUrl = async (botToken, fileId) => {
+  try {
+    console.log('🎵 Getting voice file URL for file ID:', fileId);
+    
+    // Get file info from Telegram
+    const fileInfoResponse = await axios.get(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+    
+    if (fileInfoResponse.data.ok && fileInfoResponse.data.result.file_path) {
+      const filePath = fileInfoResponse.data.result.file_path;
+      const fileUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`;
+      
+      console.log('✅ Voice file URL obtained:', fileUrl);
+      return fileUrl;
+    } else {
+      console.error('❌ Failed to get file info from Telegram:', fileInfoResponse.data);
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ Error getting voice file URL:', error.message);
+    return null;
+  }
 };
 
 // Function to send message to Claude and get response using aiService for consistency
@@ -446,10 +475,33 @@ router.post('/webhook/:listenerId', asyncHandler(async (req, res) => {
     const fromUser = message.from;
     const fromName = `${fromUser.first_name || ''} ${fromUser.last_name || ''}`.trim() || 'Unknown';
     
+    // Check for voice message
+    let voiceData = null;
+    let messageType = 'text';
+    
+    if (message.voice) {
+      console.log('🎵 Voice message detected:', message.voice);
+      messageType = 'voice';
+      
+      // Get voice file URL from Telegram
+      const voiceFileUrl = await getVoiceFileUrl(botConfig.bot_token, message.voice.file_id);
+      
+      voiceData = {
+        voiceFileId: message.voice.file_id,
+        voiceFileUrl: voiceFileUrl,
+        voiceDuration: message.voice.duration,
+        voiceMimeType: message.voice.mime_type,
+        voiceFileSize: message.voice.file_size
+      };
+      
+      console.log('🎵 Voice data processed:', voiceData);
+    }
+    
     // Log message details
     console.log('👤 From:', fromName);
     console.log('💬 Chat ID:', chatId);
-    console.log('📝 Message:', messageText);
+    console.log('📝 Message:', messageText || (voiceData ? 'Voice message' : 'No text'));
+    console.log('🎵 Voice:', !!voiceData);
     console.log('🕐 Date:', new Date(message.date * 1000).toISOString());
     
     // Store message in database
@@ -457,13 +509,14 @@ router.post('/webhook/:listenerId', asyncHandler(async (req, res) => {
       updateId: update.update_id,
       messageId: message.message_id,
       chatId: chatId,
-      text: messageText,
+      text: messageText || (voiceData ? '[Voice message]' : ''),
       fromUserId: fromUser.id,
       fromName: fromName,
       fromUsername: fromUser.username,
       date: new Date(message.date * 1000).toISOString(),
-      type: message.text ? 'text' : 'other',
-      isBotMessage: false
+      type: messageType,
+      isBotMessage: false,
+      ...voiceData
     };
     
     await saveMessageToDatabase(listenerId, messageData);
@@ -555,6 +608,53 @@ router.get('/messages/:listenerId', asyncHandler(async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch messages',
+      message: error.message
+    });
+  }
+}));
+
+// Voice file proxy endpoint - proxies voice files from Telegram to frontend
+router.get('/voice/:listenerId/:fileId', asyncHandler(async (req, res) => {
+  const { listenerId, fileId } = req.params;
+  
+  try {
+    // Get bot configuration to get the bot token
+    const botConfig = await getBotFromDatabase(listenerId);
+    if (!botConfig) {
+      return res.status(404).json({
+        success: false,
+        error: 'Bot configuration not found'
+      });
+    }
+    
+    // Get voice file URL from Telegram
+    const voiceFileUrl = await getVoiceFileUrl(botConfig.bot_token, fileId);
+    if (!voiceFileUrl) {
+      return res.status(404).json({
+        success: false,
+        error: 'Voice file not found'
+      });
+    }
+    
+    // Proxy the file from Telegram
+    console.log('🎵 Proxying voice file:', voiceFileUrl);
+    const response = await axios.get(voiceFileUrl, { responseType: 'stream' });
+    
+    // Set appropriate headers
+    res.set({
+      'Content-Type': response.headers['content-type'] || 'audio/ogg',
+      'Content-Length': response.headers['content-length'],
+      'Cache-Control': 'public, max-age=86400' // Cache for 24 hours
+    });
+    
+    // Pipe the file data to the response
+    response.data.pipe(res);
+    
+  } catch (error) {
+    console.error('❌ Error proxying voice file:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve voice file',
       message: error.message
     });
   }

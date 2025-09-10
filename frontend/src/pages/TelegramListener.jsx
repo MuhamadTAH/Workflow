@@ -650,6 +650,7 @@ const TelegramListener = () => {
           fromName: message.fromName,
           fromUsername: message.fromUsername,
           lastMessage: message.text,
+          lastMessageType: message.type,
           lastMessageTime: message.date,
           messageCount: 1
         });
@@ -659,6 +660,7 @@ const TelegramListener = () => {
         user.messageCount++;
         if (message.date > user.lastMessageTime) {
           user.lastMessage = message.text;
+          user.lastMessageType = message.type;
           user.lastMessageTime = message.date;
         }
       }
@@ -1200,9 +1202,19 @@ const TelegramListener = () => {
                                   color: colors.mutedText,
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap'
+                                  whiteSpace: 'nowrap',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.25rem'
                                 }}>
-                                  {user.lastMessage || 'No text'}
+                                  {user.lastMessageType === 'voice' ? (
+                                    <>
+                                      <span>🎵</span>
+                                      <span>Voice message</span>
+                                    </>
+                                  ) : (
+                                    user.lastMessage || 'No text'
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -1293,12 +1305,50 @@ const TelegramListener = () => {
                                 position: 'relative'
                               }}
                             >
-                              <div style={{
-                                fontSize: '0.875rem',
-                                lineHeight: '1.4'
-                              }}>
-                                {message.text || '<No text>'}
-                              </div>
+                              {/* Message content - text or voice */}
+                              {message.type === 'voice' && message.voice_file_id ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span style={{ fontSize: '1.2rem' }}>🎵</span>
+                                    <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>Voice message</span>
+                                    {message.voice_duration && (
+                                      <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>
+                                        ({Math.floor(message.voice_duration / 60)}:{(message.voice_duration % 60).toString().padStart(2, '0')})
+                                      </span>
+                                    )}
+                                  </div>
+                                  <audio 
+                                    controls 
+                                    style={{ 
+                                      width: '100%', 
+                                      height: '40px',
+                                      borderRadius: '20px',
+                                      outline: 'none'
+                                    }}
+                                    preload="metadata"
+                                  >
+                                    <source 
+                                      src={`${API_BASE_URL}/api/telegram-listener/voice/${listenerId}/${message.voice_file_id}`} 
+                                      type={message.voice_mime_type || 'audio/ogg'} 
+                                    />
+                                    Your browser does not support the audio element.
+                                  </audio>
+                                  {message.voice_file_size && (
+                                    <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>
+                                      {(message.voice_file_size / 1024).toFixed(1)} KB
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div style={{
+                                  fontSize: '0.875rem',
+                                  lineHeight: '1.4'
+                                }}>
+                                  {message.text || '<No text>'}
+                                </div>
+                              )}
+                              
+                              {/* Timestamp */}
                               <div style={{ 
                                 fontSize: '0.65rem', 
                                 opacity: 0.7,

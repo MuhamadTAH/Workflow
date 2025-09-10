@@ -984,6 +984,11 @@ Be enthusiastic and helpful while staying accurate.`,
       timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
       type TEXT DEFAULT 'text',
       is_bot_message BOOLEAN DEFAULT 0,
+      voice_file_id TEXT,
+      voice_file_url TEXT,
+      voice_duration INTEGER,
+      voice_mime_type TEXT,
+      voice_file_size INTEGER,
       FOREIGN KEY (listener_id) REFERENCES telegram_listener_bots(listener_id) ON DELETE CASCADE
     )
   `, (err) => {
@@ -991,6 +996,24 @@ Be enthusiastic and helpful while staying accurate.`,
       console.error('❌ Error creating telegram_listener_messages table:', err);
     } else {
       console.log('✅ Telegram Listener Messages table ready');
+      
+      // Add voice message columns to existing table if they don't exist
+      const voiceColumns = [
+        'voice_file_id TEXT',
+        'voice_file_url TEXT', 
+        'voice_duration INTEGER',
+        'voice_mime_type TEXT',
+        'voice_file_size INTEGER'
+      ];
+      
+      voiceColumns.forEach(column => {
+        const columnName = column.split(' ')[0];
+        db.run(`ALTER TABLE telegram_listener_messages ADD COLUMN ${column}`, (alterErr) => {
+          if (alterErr && !alterErr.message.includes('duplicate column')) {
+            console.error(`❌ Error adding ${columnName} column:`, alterErr);
+          }
+        });
+      });
     }
   });
 
