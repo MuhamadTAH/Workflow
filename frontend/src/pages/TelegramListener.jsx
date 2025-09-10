@@ -1730,21 +1730,6 @@ const TelegramListener = () => {
                           </div>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <button
-                              onClick={sendImageMessage}
-                              disabled={isSending}
-                              style={{
-                                backgroundColor: isSending ? colors.mutedText : colors.success,
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '6px',
-                                padding: '0.5rem 1rem',
-                                fontSize: '0.75rem',
-                                cursor: isSending ? 'not-allowed' : 'pointer'
-                              }}
-                            >
-                              {isSending ? 'Sending...' : 'Send'}
-                            </button>
-                            <button
                               onClick={cancelImageUpload}
                               style={{
                                 backgroundColor: colors.error,
@@ -1755,8 +1740,9 @@ const TelegramListener = () => {
                                 fontSize: '0.75rem',
                                 cursor: 'pointer'
                               }}
+                              title="Remove selected image"
                             >
-                              Cancel
+                              ✕ Remove
                             </button>
                           </div>
                         </div>
@@ -1855,29 +1841,56 @@ const TelegramListener = () => {
                           </label>
                         </div>
                         
-                        {/* Send Text Button */}
-                        <button
-                          onClick={handleSendMessage}
-                          disabled={isSending || !sendMessage.trim() || isRecording || recordedBlob}
-                          style={{
-                            backgroundColor: (isSending || !sendMessage.trim() || isRecording || recordedBlob) ? colors.mutedText : colors.brandBlue,
-                            color: 'white',
-                            padding: '0.75rem',
-                            border: 'none',
-                            borderRadius: '50%',
-                            fontSize: '1rem',
-                            cursor: (isSending || !sendMessage.trim() || isRecording || recordedBlob) ? 'not-allowed' : 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: '40px',
-                            height: '40px',
-                            minWidth: '40px'
-                          }}
-                          title="Send message"
-                        >
-                          {isSending ? '⏳' : '📤'}
-                        </button>
+                        {/* Send Buttons - Show different button based on what's ready to send */}
+                        {selectedImageFile ? (
+                          // Send Image Button (when image is selected)
+                          <button
+                            onClick={sendImageMessage}
+                            disabled={isSending}
+                            style={{
+                              backgroundColor: isSending ? colors.mutedText : colors.success,
+                              color: 'white',
+                              padding: '0.75rem',
+                              border: 'none',
+                              borderRadius: '50%',
+                              fontSize: '1rem',
+                              cursor: isSending ? 'not-allowed' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '40px',
+                              height: '40px',
+                              minWidth: '40px'
+                            }}
+                            title="Send image"
+                          >
+                            {isSending ? '⏳' : '🖼️'}
+                          </button>
+                        ) : (
+                          // Send Text Button (default)
+                          <button
+                            onClick={handleSendMessage}
+                            disabled={isSending || !sendMessage.trim() || isRecording || recordedBlob}
+                            style={{
+                              backgroundColor: (isSending || !sendMessage.trim() || isRecording || recordedBlob) ? colors.mutedText : colors.brandBlue,
+                              color: 'white',
+                              padding: '0.75rem',
+                              border: 'none',
+                              borderRadius: '50%',
+                              fontSize: '1rem',
+                              cursor: (isSending || !sendMessage.trim() || isRecording || recordedBlob) ? 'not-allowed' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '40px',
+                              height: '40px',
+                              minWidth: '40px'
+                            }}
+                            title="Send message"
+                          >
+                            {isSending ? '⏳' : '📤'}
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}
