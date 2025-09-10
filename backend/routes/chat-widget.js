@@ -326,8 +326,14 @@ router.post('/cleanup-sessions', (req, res) => {
   }
 });
 
-// Initialize Claude AI
-const claudeAI = new ClaudeAI();
+// Initialize Claude AI (lazy initialization to avoid constructor errors)
+let claudeAI = null;
+const getClaudeAI = () => {
+  if (!claudeAI) {
+    claudeAI = new ClaudeAI();
+  }
+  return claudeAI;
+};
 
 // Store AI configuration in memory (in production, use database)
 let aiConfigCache = {
