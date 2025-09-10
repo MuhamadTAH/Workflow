@@ -1306,14 +1306,14 @@ const TelegramListener = () => {
                               }}
                             >
                               {/* Message content - text or voice */}
-                              {message.type === 'voice' && message.voice_file_id ? (
+                              {(message.type === 'voice' || message.text === '[Voice message]') && (message.voice_file_id || message.voiceFileId) ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <span style={{ fontSize: '1.2rem' }}>🎵</span>
                                     <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>Voice message</span>
-                                    {message.voice_duration && (
+                                    {(message.voice_duration || message.voiceDuration) && (
                                       <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>
-                                        ({Math.floor(message.voice_duration / 60)}:{(message.voice_duration % 60).toString().padStart(2, '0')})
+                                        ({Math.floor((message.voice_duration || message.voiceDuration) / 60)}:{((message.voice_duration || message.voiceDuration) % 60).toString().padStart(2, '0')})
                                       </span>
                                     )}
                                   </div>
@@ -1328,14 +1328,14 @@ const TelegramListener = () => {
                                     preload="metadata"
                                   >
                                     <source 
-                                      src={`${API_BASE_URL}/api/telegram-listener/voice/${listenerId}/${message.voice_file_id}`} 
-                                      type={message.voice_mime_type || 'audio/ogg'} 
+                                      src={`${API_BASE_URL}/api/telegram-listener/voice/${listenerId}/${message.voice_file_id || message.voiceFileId}`} 
+                                      type={message.voice_mime_type || message.voiceMimeType || 'audio/ogg'} 
                                     />
                                     Your browser does not support the audio element.
                                   </audio>
-                                  {message.voice_file_size && (
+                                  {(message.voice_file_size || message.voiceFileSize) && (
                                     <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>
-                                      {(message.voice_file_size / 1024).toFixed(1)} KB
+                                      {((message.voice_file_size || message.voiceFileSize) / 1024).toFixed(1)} KB
                                     </div>
                                   )}
                                 </div>
