@@ -1212,6 +1212,11 @@ const TelegramListener = () => {
                                       <span>🎵</span>
                                       <span>Voice message</span>
                                     </>
+                                  ) : user.lastMessageType === 'image' ? (
+                                    <>
+                                      <span>🖼️</span>
+                                      <span>Image</span>
+                                    </>
                                   ) : (
                                     user.lastMessage || 'No text'
                                   )}
@@ -1305,7 +1310,7 @@ const TelegramListener = () => {
                                 position: 'relative'
                               }}
                             >
-                              {/* Message content - text or voice */}
+                              {/* Message content - text, voice, or image */}
                               {(message.type === 'voice' || message.text === '[Voice message]') && (message.voice_file_id || message.voiceFileId) ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -1336,6 +1341,48 @@ const TelegramListener = () => {
                                   {(message.voice_file_size || message.voiceFileSize) && (
                                     <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>
                                       {((message.voice_file_size || message.voiceFileSize) / 1024).toFixed(1)} KB
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (message.type === 'image' || message.text === '[Image]') && (message.image_file_id || message.imageFileId) ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <span style={{ fontSize: '1.2rem' }}>🖼️</span>
+                                    <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>Image</span>
+                                    {(message.image_file_size || message.imageFileSize) && (
+                                      <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>
+                                        ({((message.image_file_size || message.imageFileSize) / 1024).toFixed(1)} KB)
+                                      </span>
+                                    )}
+                                  </div>
+                                  <img 
+                                    src={`${API_BASE_URL}/api/telegram-listener/image/${listenerId}/${message.image_file_id || message.imageFileId}`}
+                                    alt="User sent image"
+                                    style={{ 
+                                      maxWidth: '100%',
+                                      maxHeight: '300px',
+                                      borderRadius: '8px',
+                                      objectFit: 'contain',
+                                      backgroundColor: '#f0f0f0'
+                                    }}
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      e.target.nextSibling.style.display = 'block';
+                                    }}
+                                  />
+                                  <div style={{ display: 'none', fontSize: '0.875rem', fontStyle: 'italic', opacity: 0.7 }}>
+                                    Failed to load image
+                                  </div>
+                                  {(message.caption) && (
+                                    <div style={{ 
+                                      fontSize: '0.875rem', 
+                                      fontStyle: 'italic',
+                                      marginTop: '0.25rem',
+                                      padding: '0.5rem',
+                                      backgroundColor: 'rgba(0,0,0,0.05)',
+                                      borderRadius: '4px'
+                                    }}>
+                                      {message.caption}
                                     </div>
                                   )}
                                 </div>

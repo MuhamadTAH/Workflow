@@ -989,6 +989,12 @@ Be enthusiastic and helpful while staying accurate.`,
       voice_duration INTEGER,
       voice_mime_type TEXT,
       voice_file_size INTEGER,
+      image_file_id TEXT,
+      image_file_url TEXT,
+      image_width INTEGER,
+      image_height INTEGER,
+      image_file_size INTEGER,
+      caption TEXT,
       FOREIGN KEY (listener_id) REFERENCES telegram_listener_bots(listener_id) ON DELETE CASCADE
     )
   `, (err) => {
@@ -1007,6 +1013,25 @@ Be enthusiastic and helpful while staying accurate.`,
       ];
       
       voiceColumns.forEach(column => {
+        const columnName = column.split(' ')[0];
+        db.run(`ALTER TABLE telegram_listener_messages ADD COLUMN ${column}`, (alterErr) => {
+          if (alterErr && !alterErr.message.includes('duplicate column')) {
+            console.error(`❌ Error adding ${columnName} column:`, alterErr);
+          }
+        });
+      });
+      
+      // Add image message columns to existing table if they don't exist
+      const imageColumns = [
+        'image_file_id TEXT',
+        'image_file_url TEXT',
+        'image_width INTEGER',
+        'image_height INTEGER',
+        'image_file_size INTEGER',
+        'caption TEXT'
+      ];
+      
+      imageColumns.forEach(column => {
         const columnName = column.split(' ')[0];
         db.run(`ALTER TABLE telegram_listener_messages ADD COLUMN ${column}`, (alterErr) => {
           if (alterErr && !alterErr.message.includes('duplicate column')) {

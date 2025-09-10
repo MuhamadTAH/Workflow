@@ -92,8 +92,8 @@ const saveMessageToDatabase = async (listenerId, messageData) => {
   return new Promise((resolve, reject) => {
     db.run(`
       INSERT INTO telegram_listener_messages 
-      (listener_id, update_id, message_id, chat_id, text, from_user_id, from_name, from_username, date, type, is_bot_message, voice_file_id, voice_file_url, voice_duration, voice_mime_type, voice_file_size)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (listener_id, update_id, message_id, chat_id, text, from_user_id, from_name, from_username, date, type, is_bot_message, voice_file_id, voice_file_url, voice_duration, voice_mime_type, voice_file_size, image_file_id, image_file_url, image_width, image_height, image_file_size, caption)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       listenerId, 
       messageData.updateId, 
@@ -110,7 +110,13 @@ const saveMessageToDatabase = async (listenerId, messageData) => {
       messageData.voiceFileUrl || null,
       messageData.voiceDuration || null,
       messageData.voiceMimeType || null,
-      messageData.voiceFileSize || null
+      messageData.voiceFileSize || null,
+      messageData.imageFileId || null,
+      messageData.imageFileUrl || null,
+      messageData.imageWidth || null,
+      messageData.imageHeight || null,
+      messageData.imageFileSize || null,
+      messageData.caption || null
     ], function(err) {
       if (err) reject(err);
       else resolve(this.lastID);
@@ -215,6 +221,30 @@ const getVoiceFileUrl = async (botToken, fileId) => {
     }
   } catch (error) {
     console.error('❌ Error getting voice file URL:', error.message);
+    return null;
+  }
+};
+
+// Function to get image file URL from Telegram
+const getImageFileUrl = async (botToken, fileId) => {
+  try {
+    console.log('🖼️ Getting image file URL for file ID:', fileId);
+    
+    // Get file info from Telegram
+    const fileInfoResponse = await axios.get(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+    
+    if (fileInfoResponse.data.ok && fileInfoResponse.data.result.file_path) {
+      const filePath = fileInfoResponse.data.result.file_path;
+      const fileUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`;
+      
+      console.log('✅ Image file URL obtained:', fileUrl);
+      return fileUrl;
+    } else {
+      console.error('❌ Failed to get image file info from Telegram:', fileInfoResponse.data);
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ Error getting image file URL:', error.message);
     return null;
   }
 };
@@ -478,7 +508,9 @@ router.post('/webhook/:listenerId', asyncHandler(async (req, res) => {
     
     // Check for voice message
     let voiceData = null;
+    let imageData = null;
     let messageType = 'text';
+    let messageCaption = message.caption || '';
     
     if (message.voice) {
       console.log('🎵 Voice message detected:', message.voice);
@@ -496,13 +528,34 @@ router.post('/webhook/:listenerId', asyncHandler(async (req, res) => {
       };
       
       console.log('🎵 Voice data processed:', voiceData);
+    } else if (message.photo && message.photo.length > 0) {
+      console.log('🖼️ Image message detected:', message.photo);
+      messageType = 'image';
+      
+      // Get the largest photo size (last element in the array)
+      const largestPhoto = message.photo[message.photo.length - 1];
+      
+      // Get image file URL from Telegram
+      const imageFileUrl = await getImageFileUrl(botConfig.bot_token, largestPhoto.file_id);
+      
+      imageData = {
+        imageFileId: largestPhoto.file_id,
+        imageFileUrl: imageFileUrl,
+        imageWidth: largestPhoto.width,
+        imageHeight: largestPhoto.height,
+        imageFileSize: largestPhoto.file_size,
+        caption: messageCaption
+      };
+      
+      console.log('🖼️ Image data processed:', imageData);
     }
     
     // Log message details
     console.log('👤 From:', fromName);
     console.log('💬 Chat ID:', chatId);
-    console.log('📝 Message:', messageText || (voiceData ? 'Voice message' : 'No text'));
+    console.log('📝 Message:', messageText || (voiceData ? 'Voice message' : imageData ? 'Image message' : 'No text'));
     console.log('🎵 Voice:', !!voiceData);
+    console.log('🖼️ Image:', !!imageData);
     console.log('🕐 Date:', new Date(message.date * 1000).toISOString());
     
     // Store message in database
@@ -510,14 +563,15 @@ router.post('/webhook/:listenerId', asyncHandler(async (req, res) => {
       updateId: update.update_id,
       messageId: message.message_id,
       chatId: chatId,
-      text: messageText || (voiceData ? '[Voice message]' : ''),
+      text: messageText || (voiceData ? '[Voice message]' : imageData ? '[Image]' : ''),
       fromUserId: fromUser.id,
       fromName: fromName,
       fromUsername: fromUser.username,
       date: new Date(message.date * 1000).toISOString(),
       type: messageType,
       isBotMessage: false,
-      ...voiceData
+      ...voiceData,
+      ...imageData
     };
     
     await saveMessageToDatabase(listenerId, messageData);
@@ -656,6 +710,53 @@ router.get('/voice/:listenerId/:fileId', asyncHandler(async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve voice file',
+      message: error.message
+    });
+  }
+}));
+
+// Image file proxy endpoint - proxies image files from Telegram to frontend
+router.get('/image/:listenerId/:fileId', asyncHandler(async (req, res) => {
+  const { listenerId, fileId } = req.params;
+  
+  try {
+    // Get bot configuration to get the bot token
+    const botConfig = await getBotFromDatabase(listenerId);
+    if (!botConfig) {
+      return res.status(404).json({
+        success: false,
+        error: 'Bot configuration not found'
+      });
+    }
+    
+    // Get image file URL from Telegram
+    const imageFileUrl = await getImageFileUrl(botConfig.bot_token, fileId);
+    if (!imageFileUrl) {
+      return res.status(404).json({
+        success: false,
+        error: 'Image file not found'
+      });
+    }
+    
+    // Proxy the file from Telegram
+    console.log('🖼️ Proxying image file:', imageFileUrl);
+    const response = await axios.get(imageFileUrl, { responseType: 'stream' });
+    
+    // Set appropriate headers
+    res.set({
+      'Content-Type': response.headers['content-type'] || 'image/jpeg',
+      'Content-Length': response.headers['content-length'],
+      'Cache-Control': 'public, max-age=86400' // Cache for 24 hours
+    });
+    
+    // Pipe the file data to the response
+    response.data.pipe(res);
+    
+  } catch (error) {
+    console.error('❌ Error proxying image file:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve image file',
       message: error.message
     });
   }
