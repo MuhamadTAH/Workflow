@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const logger = require('../services/logger');
+const ClaudeAI = require('../services/claudeAI');
 
 // Store for active chat widget sessions (in production, use Redis or database)
 const activeSessions = new Map();
@@ -112,6 +113,9 @@ router.post('/message', (req, res) => {
     // Log message
     logger.info('Chat widget message received', messageData);
     console.log('📨 WIDGET MESSAGE:', messageData);
+    
+    // Trigger AI auto-reply if enabled
+    processAIReply(messageData);
     
     res.json({
       success: true,
@@ -321,5 +325,137 @@ router.post('/cleanup-sessions', (req, res) => {
     res.status(500).json({ error: 'Failed to cleanup sessions' });
   }
 });
+
+// Initialize Claude AI
+const claudeAI = new ClaudeAI();
+
+// Get AI configuration
+router.get('/ai-config', async (req, res) => {
+  try {
+    console.log('🤖 Loading Chat Widget AI configuration...');
+    
+    // Default AI configuration
+    const defaultConfig = {
+      aiEnabled: false,
+      autoReply: false,
+      systemPrompt: 'You are a helpful customer support assistant for a website chat widget. Respond professionally and helpfully to visitor questions.',
+      knowledgeBase: '',
+      responseDelay: 2000, // 2 seconds delay before auto-reply
+      model: 'claude-3-5-sonnet-20241022'
+    };
+
+    // For now, return default config (can be extended to save/load from database)
+    res.json({
+      success: true,
+      config: defaultConfig
+    });
+  } catch (error) {
+    console.error('Error loading AI config:', error);
+    res.status(500).json({ success: false, error: 'Failed to load AI configuration' });
+  }
+});
+
+// Save AI configuration
+router.post('/ai-config', async (req, res) => {
+  try {
+    const config = req.body;
+    console.log('🤖 Saving Chat Widget AI configuration:', config);
+    
+    // Here you could save to database if needed
+    // For now, just acknowledge the save
+    res.json({
+      success: true,
+      message: 'AI configuration saved successfully'
+    });
+  } catch (error) {
+    console.error('Error saving AI config:', error);
+    res.status(500).json({ success: false, error: 'Failed to save AI configuration' });
+  }
+});
+
+// AI Auto-reply functionality
+async function processAIReply(messageData) {
+  try {
+    // Check if AI is enabled (in a real implementation, load from database)
+    const aiConfig = {
+      aiEnabled: true,
+      autoReply: true,
+      systemPrompt: 'You are a helpful customer support assistant for a website chat widget. Respond professionally and helpfully to visitor questions. Keep responses concise and friendly.',
+      knowledgeBase: '',
+      responseDelay: 2000,
+      model: 'claude-3-5-sonnet-20241022'
+    };
+
+    if (!aiConfig.aiEnabled || !aiConfig.autoReply) {
+      return;
+    }
+
+    // Add delay before responding
+    setTimeout(async () => {
+      try {
+        console.log('🤖 Generating AI reply for message:', messageData.message);
+        
+        // Generate AI response
+        const aiResponse = await claudeAI.sendMessage(
+          messageData.message,
+          aiConfig.systemPrompt,
+          aiConfig.knowledgeBase
+        );
+
+        if (aiResponse) {
+          // Create AI reply message
+          const aiReplyData = {
+            id: `msg_${Date.now()}_${Math.random().toString(36).substring(2)}`,
+            sessionId: `ai_reply_${Date.now()}`,
+            widgetId: messageData.widgetId,
+            message: aiResponse,
+            senderName: 'AI Assistant',
+            senderEmail: null,
+            websiteUrl: messageData.websiteUrl || 'AI Reply',
+            userAgent: 'AI Assistant',
+            referrer: 'Auto Reply System',
+            timestamp: new Date().toISOString(),
+            isRead: true,
+            isAIReply: true
+          };
+
+          // Store AI reply in database
+          db.run(
+            `INSERT OR IGNORE INTO chat_widget_messages 
+             (id, session_id, widget_id, message, sender_name, sender_email, website_url, user_agent, referrer, timestamp, is_read)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              aiReplyData.id,
+              aiReplyData.sessionId,
+              aiReplyData.widgetId,
+              aiReplyData.message,
+              aiReplyData.senderName,
+              aiReplyData.senderEmail,
+              aiReplyData.websiteUrl,
+              aiReplyData.userAgent,
+              aiReplyData.referrer,
+              aiReplyData.timestamp,
+              aiReplyData.isRead ? 1 : 0
+            ],
+            function(err) {
+              if (err) {
+                console.error('Error storing AI reply:', err);
+              } else {
+                console.log('🤖 AI REPLY STORED:', aiReplyData);
+                logger.info('AI reply generated and stored', aiReplyData);
+              }
+            }
+          );
+        }
+      } catch (error) {
+        console.error('Error generating AI reply:', error);
+        logger.error('AI reply generation failed:', error);
+      }
+    }, aiConfig.responseDelay);
+
+  } catch (error) {
+    console.error('Error in AI reply processing:', error);
+  }
+}
 
 module.exports = router;

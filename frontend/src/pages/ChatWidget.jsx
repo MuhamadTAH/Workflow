@@ -27,6 +27,19 @@ const ChatWidget = () => {
   const [isWidgetSettingsCollapsed, setIsWidgetSettingsCollapsed] = useState(false);
   const [isWebsiteInfoCollapsed, setIsWebsiteInfoCollapsed] = useState(false);
   const [isStatsCollapsed, setIsStatsCollapsed] = useState(false);
+  const [isAISettingsCollapsed, setIsAISettingsCollapsed] = useState(false);
+
+  // AI Configuration State
+  const [aiConfig, setAiConfig] = useState({
+    aiEnabled: false,
+    autoReply: false,
+    systemPrompt: 'You are a helpful customer support assistant for a website chat widget. Respond professionally and helpfully to visitor questions.',
+    knowledgeBase: '',
+    responseDelay: 2000,
+    model: 'claude-3-5-sonnet-20241022'
+  });
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
+  const [aiError, setAiError] = useState('');
 
   // Set fixed widget ID on component mount
   useEffect(() => {
@@ -578,6 +591,66 @@ if (document.readyState === 'loading') {
       sendReply();
     }
   };
+
+  // Load AI configuration
+  const loadAIConfig = async () => {
+    setIsLoadingAI(true);
+    setAiError('');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/chat-widget/ai-config`);
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        setAiConfig(data.config);
+        console.log('✅ AI configuration loaded');
+      } else {
+        setAiError('Failed to load AI configuration');
+        console.error('Failed to load AI config:', data.error);
+      }
+    } catch (error) {
+      setAiError('Network error loading AI configuration');
+      console.error('Error loading AI config:', error);
+    } finally {
+      setIsLoadingAI(false);
+    }
+  };
+
+  // Save AI configuration
+  const saveAIConfig = async () => {
+    setIsLoadingAI(true);
+    setAiError('');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/chat-widget/ai-config`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(aiConfig)
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        console.log('✅ AI configuration saved');
+        alert('AI configuration saved successfully!');
+      } else {
+        setAiError('Failed to save AI configuration');
+        console.error('Failed to save AI config:', data.error);
+        alert('Failed to save AI configuration: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      setAiError('Network error saving AI configuration');
+      console.error('Error saving AI config:', error);
+      alert('Network error while saving AI configuration');
+    } finally {
+      setIsLoadingAI(false);
+    }
+  };
+
+  // Load AI configuration on component mount
+  useEffect(() => {
+    loadAIConfig();
+  }, []);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: colors.primaryBg, padding: '0' }}>
@@ -1591,6 +1664,226 @@ if (document.readyState === 'loading') {
                           Widget Status
                         </div>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* AI Settings Section */}
+              <div style={{ marginBottom: isAISettingsCollapsed ? '0' : '2rem' }}>
+                <h3 
+                  onClick={() => setIsAISettingsCollapsed(!isAISettingsCollapsed)}
+                  style={{ 
+                    fontSize: '1rem', 
+                    fontWeight: '600', 
+                    color: colors.primaryText, 
+                    marginBottom: '1rem', 
+                    borderBottom: `2px solid ${colors.border}`, 
+                    paddingBottom: '0.5rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    userSelect: 'none'
+                  }}
+                >
+                  <span>🤖 AI Assistant Settings</span>
+                  <span style={{ 
+                    transform: isAISettingsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                    fontSize: '0.8rem',
+                    color: colors.mutedText
+                  }}>
+                    ▼
+                  </span>
+                </h3>
+
+                {/* Collapsible Content */}
+                <div style={{
+                  maxHeight: isAISettingsCollapsed ? '0' : '2000px',
+                  overflow: 'hidden',
+                  transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                  opacity: isAISettingsCollapsed ? 0 : 1
+                }}>
+                
+                  <div style={{ backgroundColor: colors.inputBg, borderRadius: '8px', padding: '1rem', border: `1px solid ${colors.border}` }}>
+                    {aiError && (
+                      <div style={{ 
+                        backgroundColor: colors.error + '20', 
+                        color: colors.error, 
+                        padding: '0.5rem', 
+                        borderRadius: '4px', 
+                        marginBottom: '1rem',
+                        fontSize: '0.875rem'
+                      }}>
+                        {aiError}
+                      </div>
+                    )}
+
+                    {/* AI Enable Toggle */}
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '0.5rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        color: colors.primaryText
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={aiConfig.aiEnabled}
+                          onChange={(e) => setAiConfig({...aiConfig, aiEnabled: e.target.checked})}
+                          style={{ transform: 'scale(1.2)' }}
+                        />
+                        Enable AI Assistant
+                      </label>
+                    </div>
+
+                    {/* Auto Reply Toggle */}
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '0.5rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        color: colors.primaryText
+                      }}>
+                        <input
+                          type="checkbox"
+                          checked={aiConfig.autoReply}
+                          onChange={(e) => setAiConfig({...aiConfig, autoReply: e.target.checked})}
+                          disabled={!aiConfig.aiEnabled}
+                          style={{ transform: 'scale(1.2)' }}
+                        />
+                        Auto Reply to Messages
+                      </label>
+                    </div>
+
+                    {/* System Prompt */}
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ 
+                        display: 'block',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        color: colors.primaryText,
+                        marginBottom: '0.5rem'
+                      }}>
+                        System Prompt:
+                      </label>
+                      <textarea
+                        value={aiConfig.systemPrompt}
+                        onChange={(e) => setAiConfig({...aiConfig, systemPrompt: e.target.value})}
+                        disabled={!aiConfig.aiEnabled}
+                        rows={3}
+                        style={{
+                          width: '100%',
+                          padding: '0.5rem',
+                          borderRadius: '4px',
+                          border: `1px solid ${colors.border}`,
+                          backgroundColor: colors.cardBg,
+                          color: colors.primaryText,
+                          fontSize: '0.875rem',
+                          resize: 'vertical'
+                        }}
+                        placeholder="Define how the AI should respond to visitors..."
+                      />
+                    </div>
+
+                    {/* Knowledge Base */}
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ 
+                        display: 'block',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        color: colors.primaryText,
+                        marginBottom: '0.5rem'
+                      }}>
+                        Knowledge Base:
+                      </label>
+                      <textarea
+                        value={aiConfig.knowledgeBase}
+                        onChange={(e) => setAiConfig({...aiConfig, knowledgeBase: e.target.value})}
+                        disabled={!aiConfig.aiEnabled}
+                        rows={4}
+                        style={{
+                          width: '100%',
+                          padding: '0.5rem',
+                          borderRadius: '4px',
+                          border: `1px solid ${colors.border}`,
+                          backgroundColor: colors.cardBg,
+                          color: colors.primaryText,
+                          fontSize: '0.875rem',
+                          resize: 'vertical'
+                        }}
+                        placeholder="Add company information, FAQs, policies, etc..."
+                      />
+                    </div>
+
+                    {/* Response Delay */}
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ 
+                        display: 'block',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        color: colors.primaryText,
+                        marginBottom: '0.5rem'
+                      }}>
+                        Response Delay: {aiConfig.responseDelay / 1000}s
+                      </label>
+                      <input
+                        type="range"
+                        min="1000"
+                        max="10000"
+                        step="500"
+                        value={aiConfig.responseDelay}
+                        onChange={(e) => setAiConfig({...aiConfig, responseDelay: parseInt(e.target.value)})}
+                        disabled={!aiConfig.aiEnabled}
+                        style={{
+                          width: '100%',
+                          margin: '0.5rem 0'
+                        }}
+                      />
+                      <div style={{ fontSize: '0.75rem', color: colors.mutedText }}>
+                        How long to wait before AI responds (1-10 seconds)
+                      </div>
+                    </div>
+
+                    {/* Save Button */}
+                    <button
+                      onClick={saveAIConfig}
+                      disabled={isLoadingAI || !aiConfig.aiEnabled}
+                      style={{
+                        width: '100%',
+                        backgroundColor: aiConfig.aiEnabled ? colors.success : colors.mutedText,
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '0.75rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        cursor: aiConfig.aiEnabled ? 'pointer' : 'not-allowed',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem'
+                      }}
+                    >
+                      {isLoadingAI ? '⏳ Saving...' : '💾 Save AI Settings'}
+                    </button>
+
+                    {/* AI Status */}
+                    <div style={{ 
+                      marginTop: '1rem',
+                      padding: '0.5rem',
+                      backgroundColor: aiConfig.aiEnabled && aiConfig.autoReply ? colors.success + '20' : colors.mutedText + '20',
+                      borderRadius: '4px',
+                      textAlign: 'center',
+                      fontSize: '0.875rem',
+                      color: aiConfig.aiEnabled && aiConfig.autoReply ? colors.success : colors.mutedText
+                    }}>
+                      Status: {aiConfig.aiEnabled ? (aiConfig.autoReply ? '🟢 AI Auto-Reply Active' : '🟡 AI Enabled (Manual Only)') : '🔴 AI Disabled'}
                     </div>
                   </div>
                 </div>
