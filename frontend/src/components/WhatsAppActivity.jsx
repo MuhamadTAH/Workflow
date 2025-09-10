@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api.js';
 
-const WhatsAppActivity = () => {
+const WhatsAppActivity = ({ onTimestampUpdate }) => {
   const [latestUser, setLatestUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchLatestWhatsAppUser = async () => {
+    let foundUser = null;
+    
     try {
       // Get WhatsApp messages
       const response = await fetch(`${API_BASE_URL}/api/whatsapp-receiver/messages`, {
@@ -29,19 +31,30 @@ const WhatsAppActivity = () => {
           );
           const latestMessage = sortedMessages[0];
           
-          setLatestUser({
+          foundUser = {
             from: latestMessage.from,
             fromName: latestMessage.fromName || latestMessage.profile_name || 'WhatsApp User',
             text: latestMessage.text || latestMessage.body || 'No text',
             timestamp: latestMessage.timestamp || latestMessage.date,
             phoneNumber: latestMessage.from
-          });
+          };
+          setLatestUser(foundUser);
+          
+          // Notify parent component of the timestamp
+          if (onTimestampUpdate) {
+            onTimestampUpdate(latestMessage.timestamp || latestMessage.date);
+          }
         }
       }
     } catch (error) {
       console.error('Error fetching latest WhatsApp user:', error);
     } finally {
       setLoading(false);
+      
+      // If no user found after all attempts, notify with null timestamp
+      if (onTimestampUpdate && !foundUser) {
+        onTimestampUpdate(null);
+      }
     }
   };
 

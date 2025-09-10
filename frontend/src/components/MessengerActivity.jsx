@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api.js';
 
-const MessengerActivity = () => {
+const MessengerActivity = ({ onTimestampUpdate }) => {
   const [latestUser, setLatestUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchLatestMessengerUser = async () => {
+    let foundUser = null;
+    
     try {
       // Get Messenger messages
       const response = await fetch(`${API_BASE_URL}/api/messenger/messages`);
@@ -34,7 +36,7 @@ const MessengerActivity = () => {
             const senderId = latestMessage.sender?.id;
             const user = users[senderId];
             
-            setLatestUser({
+            foundUser = {
               userId: senderId,
               name: user?.name || latestMessage.sender?.name || 'Messenger User',
               firstName: user?.first_name || latestMessage.sender?.first_name,
@@ -42,7 +44,13 @@ const MessengerActivity = () => {
               text: latestMessage.text || latestMessage.message || 'No text',
               timestamp: latestMessage.timestamp || latestMessage.created_time,
               messageId: latestMessage.id
-            });
+            };
+            setLatestUser(foundUser);
+            
+            // Notify parent component of the timestamp
+            if (onTimestampUpdate) {
+              onTimestampUpdate(latestMessage.timestamp || latestMessage.created_time);
+            }
           }
         }
       }
@@ -50,6 +58,11 @@ const MessengerActivity = () => {
       console.error('Error fetching latest Messenger user:', error);
     } finally {
       setLoading(false);
+      
+      // If no user found after all attempts, notify with null timestamp
+      if (onTimestampUpdate && !foundUser) {
+        onTimestampUpdate(null);
+      }
     }
   };
 

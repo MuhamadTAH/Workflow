@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api.js';
 
-const InstagramActivity = () => {
+const InstagramActivity = ({ onTimestampUpdate }) => {
   const [latestUser, setLatestUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchLatestInstagramUser = async () => {
+    let foundUser = null;
+    
     try {
       // Get Instagram comments/messages
       const response = await fetch(`${API_BASE_URL}/api/instagram-comments/comments`);
@@ -30,14 +32,20 @@ const InstagramActivity = () => {
             const senderId = latestMessage.sender?.id;
             const user = users[senderId];
             
-            setLatestUser({
+            foundUser = {
               userId: senderId,
               username: user?.username || `user_${senderId?.slice(0, 8)}`,
               name: user?.name || 'Instagram User',
               text: latestMessage.text || 'No text',
               timestamp: latestMessage.timestamp,
               messageId: latestMessage.id
-            });
+            };
+            setLatestUser(foundUser);
+            
+            // Notify parent component of the timestamp
+            if (onTimestampUpdate) {
+              onTimestampUpdate(latestMessage.timestamp);
+            }
           }
         }
       }
@@ -45,6 +53,11 @@ const InstagramActivity = () => {
       console.error('Error fetching latest Instagram user:', error);
     } finally {
       setLoading(false);
+      
+      // If no user found after all attempts, notify with null timestamp
+      if (onTimestampUpdate && !foundUser) {
+        onTimestampUpdate(null);
+      }
     }
   };
 

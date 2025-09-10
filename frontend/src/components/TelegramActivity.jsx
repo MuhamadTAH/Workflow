@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api.js';
 
-const TelegramActivity = () => {
+const TelegramActivity = ({ onTimestampUpdate }) => {
   const [latestUser, setLatestUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchLatestTelegramUser = async () => {
+    let foundUser = null;
+    
     try {
       // Get all telegram listeners for the user
       const response = await fetch(`${API_BASE_URL}/api/telegram-listener/status`, {
@@ -37,13 +39,19 @@ const TelegramActivity = () => {
               const sortedMessages = userMessages.sort((a, b) => new Date(b.date) - new Date(a.date));
               const latestMessage = sortedMessages[0];
               
-              setLatestUser({
+              foundUser = {
                 fromName: latestMessage.fromName || 'Unknown User',
                 fromUsername: latestMessage.fromUsername,
                 text: latestMessage.text || 'No text',
                 date: latestMessage.date,
                 chatId: latestMessage.chatId
-              });
+              };
+              setLatestUser(foundUser);
+              
+              // Notify parent component of the timestamp
+              if (onTimestampUpdate) {
+                onTimestampUpdate(latestMessage.date);
+              }
             }
           }
         }
@@ -52,6 +60,11 @@ const TelegramActivity = () => {
       console.error('Error fetching latest Telegram user:', error);
     } finally {
       setLoading(false);
+      
+      // If no user found after all attempts, notify with null timestamp
+      if (onTimestampUpdate && !foundUser) {
+        onTimestampUpdate(null);
+      }
     }
   };
 

@@ -29,10 +29,7 @@ import BillingDashboard from './components/BillingDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import APIKeysDashboard from './components/APIKeysDashboard';
 import Settings from './pages/Settings';
-import TelegramActivity from './components/TelegramActivity';
-import WhatsAppActivity from './components/WhatsAppActivity';
-import InstagramActivity from './components/InstagramActivity';
-import MessengerActivity from './components/MessengerActivity';
+import DynamicActivityList from './components/DynamicActivityList';
 // Import shop components using the modular router
 import { 
   ShopDashboard, 
@@ -207,10 +204,7 @@ function Home() {
               <Link to="/workflows" className="view-all-link">View All</Link>
             </div>
             <div className="activity-list">
-              <TelegramActivity />
-              <WhatsAppActivity />
-              <InstagramActivity />
-              <MessengerActivity />
+              <DynamicActivityList />
             </div>
           </div>
 
