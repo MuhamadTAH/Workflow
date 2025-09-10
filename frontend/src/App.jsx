@@ -206,6 +206,7 @@ function Home() {
             </div>
             <div className="activity-list">
               <TelegramActivity />
+              <WhatsAppActivity />
             </div>
           </div>
 

@@ -498,6 +498,49 @@ const WhatsAppReceiver = () => {
     };
   }, [isActive, selectedConversation, hasAutoSelected]);
 
+  // Auto-select user from dashboard navigation
+  useEffect(() => {
+    const autoSelectData = localStorage.getItem('autoSelectWhatsAppUser');
+    if (autoSelectData) {
+      try {
+        const userData = JSON.parse(autoSelectData);
+        // Check if the data is recent (within last 30 seconds)
+        if (Date.now() - userData.timestamp < 30000) {
+          // Wait for conversations to load first
+          const checkAndSelect = () => {
+            if (conversations.length > 0) {
+              const targetConversation = conversations.find(conv => 
+                conv.phoneNumber === userData.from || 
+                conv.phoneNumber === userData.phoneNumber ||
+                conv.contact?.name === userData.fromName
+              );
+              if (targetConversation) {
+                setSelectedConversation(targetConversation);
+                setHasAutoSelected(true);
+                localStorage.removeItem('autoSelectWhatsAppUser'); // Clean up
+              } else {
+                // If conversation not found, try again after a short delay
+                setTimeout(checkAndSelect, 1000);
+              }
+            } else if (messages.length > 0) {
+              // If conversations not ready but messages exist, try again
+              setTimeout(checkAndSelect, 500);
+            }
+          };
+          
+          // Check after a short delay to ensure conversations are loaded
+          setTimeout(checkAndSelect, 500);
+        } else {
+          // Clean up old data
+          localStorage.removeItem('autoSelectWhatsAppUser');
+        }
+      } catch (error) {
+        console.error('Error parsing auto-select WhatsApp user data:', error);
+        localStorage.removeItem('autoSelectWhatsAppUser');
+      }
+    }
+  }, [conversations, messages]); // Re-run when conversations or messages change
+
   const handleActivate = async () => {
     if (!appId.trim() || !clientSecret.trim() || !businessId.trim() || !accessToken.trim() || !phoneNumberSendId.trim()) {
       setError('Please fill in all WhatsApp configuration fields');
