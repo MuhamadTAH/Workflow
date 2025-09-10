@@ -47,6 +47,9 @@ const apiKeysRoutes = require('./routes/apikeys');
 const externalClaudeRoutes = require('./routes/external-claude');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
+// CHAT WIDGET ROUTES
+const chatWidgetRoutes = require('./routes/chat-widget');
+const chatWebSocket = require('./services/chatWebSocket');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const logger = require('./services/logger');
 const DatabaseInitializer = require('./services/dbInitializer');
@@ -215,6 +218,8 @@ app.use('/api/nodes', (req, res, next) => {
 
 // NEW ROUTES FROM WORKFLOWNODE
 app.use('/api/nodes', nodesRoutes);
+// CHAT WIDGET ROUTES
+app.use('/api/chat-widget', chatWidgetRoutes);
 
 // Root health endpoint
 app.get('/', (req, res) => {
@@ -405,6 +410,8 @@ const http = require('http');
 const server = http.createServer(app);
 
 // WebSocket server initialization removed with AI Assistant system
+// Initialize Chat Widget WebSocket server
+chatWebSocket.initialize(server);
 
 server.listen(PORT, async () => {
   console.log(`🚀 Backend server started on port ${PORT}`);

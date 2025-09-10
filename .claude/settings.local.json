@@ -71,7 +71,8 @@
       "Read(D:\\automation/**)",
       "Bash(git checkout:*)",
       "WebFetch(domain:fixdai.com)",
-      "Bash(start https://frontend-dpcg.onrender.com)"
+      "Bash(start https://frontend-dpcg.onrender.com)",
+      "Bash(git clean:*)"
     ],
     "deny": []
   }
