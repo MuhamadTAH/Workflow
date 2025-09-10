@@ -571,15 +571,41 @@ ChatWidget.init({
                                 🖥️ {message.userInfo?.userAgent?.split(' ')[0] || 'Unknown Browser'}
                               </div>
                               <button
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                   e.stopPropagation();
-                                  // Find and select this session in dashboard
-                                  const session = sessions.find(s => s.id === message.sessionId);
-                                  if (session) {
-                                    setSelectedSession(session);
-                                    setActiveTab('dashboard');
-                                  } else {
-                                    alert('Session not found. The conversation may have ended.');
+                                  
+                                  try {
+                                    // Load the full session data including all messages
+                                    const response = await fetch(`${API_BASE_URL}/api/chat-widget/session/${message.sessionId}`);
+                                    const data = await response.json();
+                                    
+                                    if (data.success) {
+                                      // Create a session object with the loaded data
+                                      const fullSession = {
+                                        id: message.sessionId,
+                                        widgetId: message.widgetId,
+                                        messages: data.session.messages || [],
+                                        isActive: true,
+                                        createdAt: data.session.createdAt || message.timestamp
+                                      };
+                                      
+                                      setSelectedSession(fullSession);
+                                      setActiveTab('dashboard');
+                                      
+                                      // Also add to sessions list if not already there
+                                      setSessions(prev => {
+                                        const exists = prev.find(s => s.id === message.sessionId);
+                                        if (!exists) {
+                                          return [...prev, fullSession];
+                                        }
+                                        return prev.map(s => s.id === message.sessionId ? fullSession : s);
+                                      });
+                                    } else {
+                                      alert('Could not load conversation. The session may have ended.');
+                                    }
+                                  } catch (error) {
+                                    console.error('Error loading session:', error);
+                                    alert('Error loading conversation. Please try again.');
                                   }
                                 }}
                                 style={{
@@ -991,9 +1017,21 @@ ChatWidget.init({
             display: 'flex',
             flexDirection: 'column'
           }}>
-            <h3 style={{ color: colors.text, margin: '0 0 20px 0' }}>
-              Chat Session {selectedSession.id.slice(0, 8)}...
-            </h3>
+            <div style={{ marginBottom: '20px' }}>
+              <h3 style={{ color: colors.text, margin: '0 0 8px 0' }}>
+                💬 Chat Session {selectedSession.id.slice(0, 8)}...
+              </h3>
+              <div style={{ 
+                fontSize: '14px', 
+                color: colors.textSecondary,
+                display: 'flex',
+                gap: '15px'
+              }}>
+                <span>📅 Started: {new Date(selectedSession.createdAt).toLocaleString()}</span>
+                <span>📊 Messages: {selectedSession.messages?.length || 0}</span>
+                <span>🔗 Widget: {widgets.find(w => w.id === selectedSession.widgetId)?.name || 'Unknown'}</span>
+              </div>
+            </div>
             
             <div style={{ 
               flex: 1, 
@@ -1003,12 +1041,20 @@ ChatWidget.init({
               borderRadius: '8px',
               marginBottom: '20px'
             }}>
-              {messages.length === 0 ? (
-                <div style={{ textAlign: 'center', color: colors.textSecondary }}>
-                  No messages yet
+              {!selectedSession.messages || selectedSession.messages.length === 0 ? (
+                <div style={{ 
+                  textAlign: 'center', 
+                  color: colors.textSecondary,
+                  padding: '40px'
+                }}>
+                  <div style={{ fontSize: '48px', marginBottom: '15px' }}>💬</div>
+                  <div>No messages in this conversation yet</div>
+                  <div style={{ fontSize: '14px', marginTop: '8px' }}>
+                    Messages will appear here when the user starts chatting
+                  </div>
                 </div>
               ) : (
-                messages.map((message, index) => (
+                selectedSession.messages.map((message, index) => (
                   <div key={index} style={{
                     marginBottom: '15px',
                     display: 'flex',
@@ -1024,7 +1070,7 @@ ChatWidget.init({
                       color: message.sender === 'agent' ? 'white' : colors.text,
                       border: message.sender === 'user' ? `1px solid ${colors.border}` : 'none'
                     }}>
-                      {message.text}
+                      {message.text || message.message}
                     </div>
                     <div style={{ 
                       fontSize: '11px', 
@@ -1032,8 +1078,8 @@ ChatWidget.init({
                       marginTop: '4px',
                       padding: '0 4px'
                     }}>
-                      {message.sender === 'agent' ? 'You' : 
-                       message.sender === 'user' ? 'User' : 'Bot'} • 
+                      {message.sender === 'agent' ? '👤 You' : 
+                       message.sender === 'user' ? '💬 User' : '🤖 Bot'} • 
                       {new Date(message.timestamp).toLocaleTimeString([], { 
                         hour: '2-digit', 
                         minute: '2-digit' 
