@@ -30,6 +30,9 @@ export const authAPI = {
   
   // Get user profile (protected)
   getProfile: () => api.get('/api/profile'),
+  
+  // Change user password (protected)
+  changePassword: (passwordData) => api.post('/api/change-password', passwordData),
 };
 
 // Workflow API functions

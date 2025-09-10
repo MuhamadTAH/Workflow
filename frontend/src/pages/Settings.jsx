@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import BillingDashboard from '../components/BillingDashboard';
 import APIKeysDashboard from '../components/APIKeysDashboard';
+import { authAPI } from '../api';
 import '../styles.css';
 import '../styles/DashboardDark.css';
 
@@ -107,63 +108,43 @@ const AccountSettings = () => {
     
     setIsUpdating(true);
     try {
-      // Mock API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Mock current password verification (simulate backend check)
-      // In real implementation, backend would verify current password against database
-      // For demo purposes, we'll simulate a more realistic password system
-      const mockUserPasswords = {
-        "password": true,
-        "123456": true,
-        "admin": true,
-        "user123": true,
-        "mypassword": true,
-        "currentpass123": true  // Keep the old one for backwards compatibility
-      };
-      
-      if (!mockUserPasswords[passwordData.currentPassword]) {
-        setErrors({ currentPassword: 'Current password is incorrect' });
-        setIsUpdating(false);
-        return;
-      }
-      
-      // Additional password strength validation (server-side style)
-      const strength = checkPasswordStrength(passwordData.newPassword);
-      if (strength < 3) {
-        setErrors({ newPassword: 'Password is too weak. Please choose a stronger password.' });
-        setIsUpdating(false);
-        return;
-      }
-      
-      // TODO: Replace with actual API call
-      // const response = await fetch(`${API_BASE_URL}/api/user/change-password`, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   credentials: 'include',
-      //   body: JSON.stringify({
-      //     currentPassword: passwordData.currentPassword,
-      //     newPassword: passwordData.newPassword
-      //   })
-      // });
-      // 
-      // if (!response.ok) {
-      //   const errorData = await response.json();
-      //   if (response.status === 401) {
-      //     setErrors({ currentPassword: 'Current password is incorrect' });
-      //   } else {
-      //     alert(errorData.message || 'Failed to update password');
-      //   }
-      //   return;
-      // }
-      
-      // Mock success only if all validations pass
+      // Call real API to change password
+      const response = await authAPI.changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
+
+      // Success - password changed
       alert('Password updated successfully!');
       setShowPasswordModal(false);
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setErrors({});
+      
     } catch (error) {
-      alert('Failed to update password. Please try again.');
+      console.error('Password update error:', error);
+      
+      if (error.response) {
+        // Server responded with error status
+        const status = error.response.status;
+        const errorData = error.response.data;
+        
+        if (status === 401 || status === 400) {
+          // Current password is incorrect
+          setErrors({ currentPassword: 'Current password is incorrect' });
+        } else if (status === 422) {
+          // Validation errors from server
+          if (errorData.errors) {
+            setErrors(errorData.errors);
+          } else {
+            setErrors({ newPassword: errorData.message || 'Password validation failed' });
+          }
+        } else {
+          alert(errorData.message || 'Failed to update password. Please try again.');
+        }
+      } else {
+        // Network or other error
+        alert('Network error. Please check your connection and try again.');
+      }
     } finally {
       setIsUpdating(false);
     }
@@ -383,21 +364,6 @@ const AccountSettings = () => {
               <p style={{ color: '#A0A0A0', margin: '0', fontSize: '0.9rem' }}>
                 Enter your current password and choose a new secure password
               </p>
-              {/* Demo helper - Remove in production */}
-              <div style={{ 
-                backgroundColor: '#1a1a1a', 
-                padding: '0.75rem', 
-                borderRadius: '6px', 
-                marginTop: '0.75rem',
-                border: '1px solid rgba(255, 193, 7, 0.3)'
-              }}>
-                <p style={{ color: '#ffc107', margin: '0 0 0.5rem 0', fontSize: '0.8rem', fontWeight: '500' }}>
-                  🔧 Demo Mode - Try any of these passwords:
-                </p>
-                <p style={{ color: '#ffc107', margin: '0', fontSize: '0.75rem', opacity: '0.8' }}>
-                  password • 123456 • admin • user123 • mypassword • currentpass123
-                </p>
-              </div>
             </div>
 
             {/* Current Password */}

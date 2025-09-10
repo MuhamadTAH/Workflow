@@ -500,4 +500,82 @@ router.get('/debug/user/:email', (req, res) => {
   }
 });
 
+// POST /api/change-password - Change user password (protected route)
+router.post('/change-password', verifyToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.userId;
+
+    // Validate input
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ 
+        message: 'Current password and new password are required' 
+      });
+    }
+
+    // Validate new password strength
+    if (newPassword.length < 8) {
+      return res.status(422).json({ 
+        message: 'New password must be at least 8 characters long' 
+      });
+    }
+
+    // Get user from database
+    db.get('SELECT * FROM users WHERE id = ?', [userId], async (err, user) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ message: 'Database error' });
+      }
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      try {
+        // Verify current password
+        const validCurrentPassword = await bcrypt.compare(currentPassword, user.password);
+        
+        if (!validCurrentPassword) {
+          return res.status(401).json({ message: 'Current password is incorrect' });
+        }
+
+        // Check if new password is different from current
+        const samePassword = await bcrypt.compare(newPassword, user.password);
+        if (samePassword) {
+          return res.status(422).json({ 
+            message: 'New password must be different from current password' 
+          });
+        }
+
+        // Hash new password
+        const saltRounds = 10;
+        const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+        // Update password in database
+        db.run(
+          'UPDATE users SET password = ? WHERE id = ?',
+          [hashedNewPassword, userId],
+          function(err) {
+            if (err) {
+              console.error('Error updating password:', err);
+              return res.status(500).json({ message: 'Failed to update password' });
+            }
+
+            console.log('✅ Password updated successfully for user ID:', userId);
+            res.json({ 
+              message: 'Password updated successfully' 
+            });
+          }
+        );
+      } catch (passwordError) {
+        console.error('Password processing error:', passwordError);
+        return res.status(500).json({ message: 'Password processing error' });
+      }
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
