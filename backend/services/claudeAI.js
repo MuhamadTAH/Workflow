@@ -102,4 +102,4 @@ class ClaudeAI {
   }
 }
 
-module.exports = new ClaudeAI();
+module.exports = ClaudeAI;

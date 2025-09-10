@@ -33,6 +33,7 @@ const ChatWidget = () => {
   const [aiConfig, setAiConfig] = useState({
     aiEnabled: false,
     autoReply: false,
+    apiKey: '',
     systemPrompt: 'You are a helpful customer support assistant for a website chat widget. Respond professionally and helpfully to visitor questions.',
     knowledgeBase: '',
     responseDelay: 2000,
@@ -601,7 +602,12 @@ if (document.readyState === 'loading') {
       const data = await response.json();
       
       if (response.ok && data.success) {
-        setAiConfig(data.config);
+        // Keep the current API key if the loaded one is masked
+        const loadedConfig = data.config;
+        if (loadedConfig.apiKey && loadedConfig.apiKey.includes('••••')) {
+          loadedConfig.apiKey = aiConfig.apiKey; // Keep current value
+        }
+        setAiConfig(loadedConfig);
         console.log('✅ AI configuration loaded');
       } else {
         setAiError('Failed to load AI configuration');
@@ -1761,6 +1767,53 @@ if (document.readyState === 'loading') {
                       </label>
                     </div>
 
+                    {/* Claude API Key */}
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label style={{ 
+                        display: 'block',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        color: colors.primaryText,
+                        marginBottom: '0.5rem'
+                      }}>
+                        Claude API Key:
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="password"
+                          value={aiConfig.apiKey}
+                          onChange={(e) => setAiConfig({...aiConfig, apiKey: e.target.value})}
+                          disabled={!aiConfig.aiEnabled}
+                          style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            borderRadius: '4px',
+                            border: `1px solid ${colors.border}`,
+                            backgroundColor: colors.cardBg,
+                            color: colors.primaryText,
+                            fontSize: '0.875rem',
+                            fontFamily: 'monospace'
+                          }}
+                          placeholder="sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxx..."
+                        />
+                        {aiConfig.apiKey && (
+                          <div style={{
+                            position: 'absolute',
+                            right: '0.5rem',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            fontSize: '0.75rem',
+                            color: colors.success
+                          }}>
+                            🔐
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: colors.mutedText, marginTop: '0.25rem' }}>
+                        Get your API key from <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" style={{ color: colors.brandBlue }}>console.anthropic.com</a>
+                      </div>
+                    </div>
+
                     {/* System Prompt */}
                     <div style={{ marginBottom: '1rem' }}>
                       <label style={{ 
@@ -1873,17 +1926,41 @@ if (document.readyState === 'loading') {
                       {isLoadingAI ? '⏳ Saving...' : '💾 Save AI Settings'}
                     </button>
 
+                    {/* API Key Warning */}
+                    {aiConfig.aiEnabled && aiConfig.autoReply && !aiConfig.apiKey && (
+                      <div style={{
+                        marginTop: '0.5rem',
+                        padding: '0.5rem',
+                        backgroundColor: colors.error + '20',
+                        borderRadius: '4px',
+                        textAlign: 'center',
+                        fontSize: '0.875rem',
+                        color: colors.error
+                      }}>
+                        ⚠️ API Key required for auto-reply functionality
+                      </div>
+                    )}
+
                     {/* AI Status */}
                     <div style={{ 
                       marginTop: '1rem',
                       padding: '0.5rem',
-                      backgroundColor: aiConfig.aiEnabled && aiConfig.autoReply ? colors.success + '20' : colors.mutedText + '20',
+                      backgroundColor: aiConfig.aiEnabled && aiConfig.autoReply && aiConfig.apiKey ? colors.success + '20' : 
+                                      aiConfig.aiEnabled && aiConfig.autoReply && !aiConfig.apiKey ? colors.error + '20' :
+                                      aiConfig.aiEnabled ? colors.warning + '20' : colors.mutedText + '20',
                       borderRadius: '4px',
                       textAlign: 'center',
                       fontSize: '0.875rem',
-                      color: aiConfig.aiEnabled && aiConfig.autoReply ? colors.success : colors.mutedText
+                      color: aiConfig.aiEnabled && aiConfig.autoReply && aiConfig.apiKey ? colors.success : 
+                             aiConfig.aiEnabled && aiConfig.autoReply && !aiConfig.apiKey ? colors.error :
+                             aiConfig.aiEnabled ? colors.warning : colors.mutedText
                     }}>
-                      Status: {aiConfig.aiEnabled ? (aiConfig.autoReply ? '🟢 AI Auto-Reply Active' : '🟡 AI Enabled (Manual Only)') : '🔴 AI Disabled'}
+                      Status: {
+                        !aiConfig.aiEnabled ? '🔴 AI Disabled' :
+                        !aiConfig.autoReply ? '🟡 AI Enabled (Manual Only)' :
+                        !aiConfig.apiKey ? '🔴 API Key Required' :
+                        '🟢 AI Auto-Reply Active'
+                      }
                     </div>
                   </div>
                 </div>

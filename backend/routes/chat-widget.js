@@ -329,25 +329,31 @@ router.post('/cleanup-sessions', (req, res) => {
 // Initialize Claude AI
 const claudeAI = new ClaudeAI();
 
+// Store AI configuration in memory (in production, use database)
+let aiConfigCache = {
+  aiEnabled: false,
+  autoReply: false,
+  apiKey: '',
+  systemPrompt: 'You are a helpful customer support assistant for a website chat widget. Respond professionally and helpfully to visitor questions.',
+  knowledgeBase: '',
+  responseDelay: 2000,
+  model: 'claude-3-5-sonnet-20241022'
+};
+
 // Get AI configuration
 router.get('/ai-config', async (req, res) => {
   try {
     console.log('🤖 Loading Chat Widget AI configuration...');
     
-    // Default AI configuration
-    const defaultConfig = {
-      aiEnabled: false,
-      autoReply: false,
-      systemPrompt: 'You are a helpful customer support assistant for a website chat widget. Respond professionally and helpfully to visitor questions.',
-      knowledgeBase: '',
-      responseDelay: 2000, // 2 seconds delay before auto-reply
-      model: 'claude-3-5-sonnet-20241022'
+    // Return current config, but mask the API key for security
+    const configToSend = {
+      ...aiConfigCache,
+      apiKey: aiConfigCache.apiKey ? '••••••••••••••••••••' + aiConfigCache.apiKey.slice(-4) : ''
     };
 
-    // For now, return default config (can be extended to save/load from database)
     res.json({
       success: true,
-      config: defaultConfig
+      config: configToSend
     });
   } catch (error) {
     console.error('Error loading AI config:', error);
@@ -359,10 +365,29 @@ router.get('/ai-config', async (req, res) => {
 router.post('/ai-config', async (req, res) => {
   try {
     const config = req.body;
-    console.log('🤖 Saving Chat Widget AI configuration:', config);
+    console.log('🤖 Saving Chat Widget AI configuration...');
     
-    // Here you could save to database if needed
-    // For now, just acknowledge the save
+    // Update the cached configuration
+    // Only update API key if a new one is provided (not masked)
+    if (config.apiKey && !config.apiKey.includes('••••')) {
+      aiConfigCache.apiKey = config.apiKey;
+    }
+    
+    aiConfigCache.aiEnabled = config.aiEnabled;
+    aiConfigCache.autoReply = config.autoReply;
+    aiConfigCache.systemPrompt = config.systemPrompt;
+    aiConfigCache.knowledgeBase = config.knowledgeBase;
+    aiConfigCache.responseDelay = config.responseDelay;
+    
+    console.log('✅ AI configuration updated:', {
+      aiEnabled: aiConfigCache.aiEnabled,
+      autoReply: aiConfigCache.autoReply,
+      hasApiKey: !!aiConfigCache.apiKey,
+      systemPromptLength: aiConfigCache.systemPrompt.length,
+      knowledgeBaseLength: aiConfigCache.knowledgeBase.length,
+      responseDelay: aiConfigCache.responseDelay
+    });
+    
     res.json({
       success: true,
       message: 'AI configuration saved successfully'
@@ -376,17 +401,14 @@ router.post('/ai-config', async (req, res) => {
 // AI Auto-reply functionality
 async function processAIReply(messageData) {
   try {
-    // Check if AI is enabled (in a real implementation, load from database)
-    const aiConfig = {
-      aiEnabled: true,
-      autoReply: true,
-      systemPrompt: 'You are a helpful customer support assistant for a website chat widget. Respond professionally and helpfully to visitor questions. Keep responses concise and friendly.',
-      knowledgeBase: '',
-      responseDelay: 2000,
-      model: 'claude-3-5-sonnet-20241022'
-    };
+    // Use the cached AI configuration
+    if (!aiConfigCache.aiEnabled || !aiConfigCache.autoReply) {
+      console.log('🤖 AI auto-reply skipped: AI disabled or auto-reply disabled');
+      return;
+    }
 
-    if (!aiConfig.aiEnabled || !aiConfig.autoReply) {
+    if (!aiConfigCache.apiKey) {
+      console.log('🤖 AI auto-reply skipped: No API key configured');
       return;
     }
 
@@ -395,11 +417,15 @@ async function processAIReply(messageData) {
       try {
         console.log('🤖 Generating AI reply for message:', messageData.message);
         
+        // Create a temporary Claude AI instance with the configured API key
+        const tempClaudeAI = new ClaudeAI();
+        tempClaudeAI.apiKey = aiConfigCache.apiKey;
+        
         // Generate AI response
-        const aiResponse = await claudeAI.sendMessage(
+        const aiResponse = await tempClaudeAI.sendMessage(
           messageData.message,
-          aiConfig.systemPrompt,
-          aiConfig.knowledgeBase
+          aiConfigCache.systemPrompt,
+          aiConfigCache.knowledgeBase
         );
 
         if (aiResponse) {
@@ -451,7 +477,7 @@ async function processAIReply(messageData) {
         console.error('Error generating AI reply:', error);
         logger.error('AI reply generation failed:', error);
       }
-    }, aiConfig.responseDelay);
+    }, aiConfigCache.responseDelay);
 
   } catch (error) {
     console.error('Error in AI reply processing:', error);
