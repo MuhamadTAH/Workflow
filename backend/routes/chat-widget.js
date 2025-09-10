@@ -189,6 +189,75 @@ router.get('/sessions', (req, res) => {
   }
 });
 
+// Send reply from dashboard
+router.post('/reply', (req, res) => {
+  try {
+    const { widgetId, websiteUrl, message, senderName = 'Support Agent' } = req.body;
+    
+    if (!widgetId || !message) {
+      return res.status(400).json({ error: 'Widget ID and message are required' });
+    }
+    
+    // Create reply message data
+    const messageData = {
+      id: `msg_${Date.now()}_${Math.random().toString(36).substring(2)}`,
+      sessionId: `dashboard_reply_${Date.now()}`,
+      widgetId,
+      message,
+      senderName,
+      senderEmail: null,
+      websiteUrl: websiteUrl || 'Dashboard Reply',
+      userAgent: 'Dashboard',
+      referrer: 'Support Dashboard',
+      timestamp: new Date().toISOString(),
+      isRead: true,
+      isReply: true // Mark as dashboard reply
+    };
+    
+    // Store reply in database
+    db.run(
+      `INSERT OR IGNORE INTO chat_widget_messages 
+       (id, session_id, widget_id, message, sender_name, sender_email, website_url, user_agent, referrer, timestamp, is_read)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        messageData.id,
+        messageData.sessionId,
+        messageData.widgetId,
+        messageData.message,
+        messageData.senderName,
+        messageData.senderEmail,
+        messageData.websiteUrl,
+        messageData.userAgent,
+        messageData.referrer,
+        messageData.timestamp,
+        messageData.isRead ? 1 : 0
+      ],
+      function(err) {
+        if (err) {
+          console.error('Error storing dashboard reply:', err);
+          return res.status(500).json({ error: 'Failed to store reply' });
+        } else {
+          console.log('💬 DASHBOARD REPLY STORED:', messageData);
+        }
+      }
+    );
+    
+    // Log reply
+    logger.info('Dashboard reply sent', messageData);
+    console.log('📤 DASHBOARD REPLY:', messageData);
+    
+    res.json({
+      success: true,
+      messageId: messageData.id,
+      message: 'Reply sent successfully'
+    });
+    
+  } catch (error) {
+    logger.error('Error sending dashboard reply:', error);
+    res.status(500).json({ error: 'Failed to send reply' });
+  }
+});
+
 // Mark messages as read
 router.post('/mark-read', (req, res) => {
   try {

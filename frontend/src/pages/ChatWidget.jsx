@@ -456,6 +456,52 @@ if (document.readyState === 'loading') {
 
   const currentMessages = getMessagesForWebsite(selectedWebsite?.url);
 
+  // Send reply function
+  const sendReply = async () => {
+    if (!replyText.trim() || !selectedWebsite || isReplying) return;
+
+    setIsReplying(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/chat-widget/reply`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          widgetId: widgetId,
+          websiteUrl: selectedWebsite.url,
+          message: replyText.trim(),
+          senderName: 'Support Agent'
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setReplyText('');
+        // Refresh messages to show the reply
+        fetchMessages();
+        console.log('✅ Reply sent successfully');
+      } else {
+        console.error('Failed to send reply:', data.error);
+        alert('Failed to send reply: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error sending reply:', error);
+      alert('Network error while sending reply');
+    } finally {
+      setIsReplying(false);
+    }
+  };
+
+  // Handle reply input key press
+  const handleReplyKeyPress = (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      sendReply();
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: colors.primaryBg, padding: '0' }}>
       <div style={{ width: '100%', margin: '0 auto', padding: '0' }}>
@@ -1036,51 +1082,134 @@ if (document.readyState === 'loading') {
                         </div>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                          {currentMessages.map((message, index) => (
-                            <div 
-                              key={message.id || index}
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'flex-start',
-                                width: '100%',
-                                marginBottom: '0.5rem'
-                              }}
-                            >
-                              <div style={{
-                                maxWidth: '70%',
-                                padding: '0.75rem 1rem',
-                                borderRadius: '18px 18px 18px 4px',
-                                backgroundColor: colors.cardBg,
-                                color: colors.primaryText,
-                                fontSize: '0.875rem',
-                                lineHeight: '1.4',
-                                wordWrap: 'break-word',
-                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
-                                position: 'relative'
-                              }}>
-                                {/* Message Content */}
-                                <div style={{ marginBottom: '0.25rem' }}>
-                                  {message.message}
-                                </div>
-
-                                {/* Timestamp and sender info */}
-                                <div style={{ 
-                                  fontSize: '0.65rem',
-                                  opacity: 0.7,
-                                  color: colors.mutedText,
-                                  marginTop: '0.25rem'
+                          {currentMessages.map((message, index) => {
+                            const isSupportReply = message.senderName === 'Support Agent' || message.userAgent === 'Dashboard';
+                            return (
+                              <div 
+                                key={message.id || index}
+                                style={{
+                                  display: 'flex',
+                                  justifyContent: isSupportReply ? 'flex-end' : 'flex-start',
+                                  width: '100%',
+                                  marginBottom: '0.5rem'
+                                }}
+                              >
+                                <div style={{
+                                  maxWidth: '70%',
+                                  padding: '0.75rem 1rem',
+                                  borderRadius: isSupportReply ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                                  backgroundColor: isSupportReply ? colors.brandBlue : colors.cardBg,
+                                  color: isSupportReply ? 'white' : colors.primaryText,
+                                  fontSize: '0.875rem',
+                                  lineHeight: '1.4',
+                                  wordWrap: 'break-word',
+                                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+                                  position: 'relative'
                                 }}>
-                                  {new Date(message.timestamp).toLocaleString()}
-                                  <br/>
-                                  <span style={{ fontSize: '0.6rem' }}>
-                                    {message.senderName} • {message.websiteUrl ? new URL(message.websiteUrl).pathname : 'Unknown page'}
-                                  </span>
+                                  {/* Message Content */}
+                                  <div style={{ marginBottom: '0.25rem' }}>
+                                    {message.message}
+                                  </div>
+
+                                  {/* Timestamp and sender info */}
+                                  <div style={{ 
+                                    fontSize: '0.65rem',
+                                    opacity: 0.7,
+                                    color: isSupportReply ? 'rgba(255,255,255,0.8)' : colors.mutedText,
+                                    marginTop: '0.25rem'
+                                  }}>
+                                    {new Date(message.timestamp).toLocaleString()}
+                                    <br/>
+                                    <span style={{ fontSize: '0.6rem' }}>
+                                      {message.senderName} {isSupportReply ? '👨‍💼' : '👤'}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {/* Reply Input Field */}
+                  {selectedWebsite && (
+                    <div style={{ 
+                      padding: '1rem',
+                      backgroundColor: colors.secondaryBg,
+                      borderTop: `1px solid ${colors.border}`
+                    }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+                        <div style={{ flex: 1 }}>
+                          <label style={{ 
+                            display: 'block', 
+                            fontSize: '0.75rem', 
+                            fontWeight: '500', 
+                            color: colors.secondaryText, 
+                            marginBottom: '0.25rem' 
+                          }}>
+                            Reply as Support Agent
+                          </label>
+                          <textarea
+                            value={replyText}
+                            onChange={(e) => setReplyText(e.target.value)}
+                            onKeyPress={handleReplyKeyPress}
+                            placeholder="Type your reply..."
+                            rows="2"
+                            disabled={isReplying}
+                            style={{ 
+                              width: '100%', 
+                              padding: '0.75rem', 
+                              border: `1px solid ${colors.border}`, 
+                              borderRadius: '8px', 
+                              fontSize: '0.875rem',
+                              outline: 'none',
+                              backgroundColor: colors.inputBg,
+                              color: colors.primaryText,
+                              fontFamily: 'inherit',
+                              resize: 'vertical',
+                              minHeight: '44px'
+                            }}
+                          />
+                        </div>
+                        <button
+                          onClick={sendReply}
+                          disabled={!replyText.trim() || isReplying}
+                          style={{
+                            backgroundColor: (!replyText.trim() || isReplying) ? colors.mutedText : colors.brandBlue,
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '0.75rem 1.5rem',
+                            fontSize: '0.875rem',
+                            fontWeight: '500',
+                            cursor: (!replyText.trim() || isReplying) ? 'not-allowed' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            minHeight: '44px'
+                          }}
+                        >
+                          {isReplying ? (
+                            <>
+                              <span>Sending...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>📤</span>
+                              <span>Send</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <div style={{ 
+                        fontSize: '0.65rem', 
+                        color: colors.mutedText, 
+                        marginTop: '0.25rem' 
+                      }}>
+                        Press Enter to send • Shift+Enter for new line
+                      </div>
                     </div>
                   )}
                 </div>
