@@ -351,6 +351,11 @@ if (document.readyState === 'loading') {
 
   // Activate widget (save to backend)
   const activateWidget = async () => {
+    if (!widgetName.trim()) {
+      setError('Widget name is required');
+      return;
+    }
+    
     setIsLoading(true);
     setError('');
 
@@ -362,10 +367,9 @@ if (document.readyState === 'loading') {
         },
         body: JSON.stringify({
           widgetId,
-          widgetName,
-          widgetColor,
-          welcomeMessage,
-          isActive: true
+          websiteUrl: window.location.href,
+          userAgent: navigator.userAgent,
+          referrer: document.referrer || 'Dashboard Activation'
         })
       });
 
@@ -373,12 +377,14 @@ if (document.readyState === 'loading') {
 
       if (response.ok && data.success) {
         setIsActive(true);
-        console.log('✅ Chat widget activated successfully');
+        console.log('✅ Chat widget activated successfully:', data.sessionId);
       } else {
         setError(data.error || 'Failed to activate widget');
+        console.error('Activation failed:', data);
       }
     } catch (error) {
       setError('Network error: ' + error.message);
+      console.error('Network error during activation:', error);
     } finally {
       setIsLoading(false);
     }
