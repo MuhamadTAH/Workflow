@@ -102,6 +102,53 @@ const SimpleMessengerWebhook = () => {
     return () => clearInterval(interval);
   }, [isWaiting]);
 
+  // Auto-select user from dashboard navigation
+  useEffect(() => {
+    const autoSelectData = localStorage.getItem('autoSelectMessengerUser');
+    if (autoSelectData) {
+      try {
+        const userData = JSON.parse(autoSelectData);
+        // Check if the data is recent (within last 30 seconds)
+        if (Date.now() - userData.timestamp < 30000) {
+          // Wait for messages to load first
+          const checkAndSelect = () => {
+            if (messages.length > 0) {
+              // Find the user in the messages
+              const targetMessage = messages.find(msg => 
+                msg.sender?.id === userData.userId ||
+                (users[msg.sender?.id]?.name === userData.name) ||
+                (users[msg.sender?.id]?.first_name === userData.firstName && 
+                 users[msg.sender?.id]?.last_name === userData.lastName)
+              );
+              
+              if (targetMessage) {
+                setSelectedUserId(targetMessage.sender?.id);
+                setSelectedMessage(targetMessage);
+                localStorage.removeItem('autoSelectMessengerUser'); // Clean up
+              } else {
+                // If user not found, try again after a short delay
+                setTimeout(checkAndSelect, 1000);
+              }
+            } else if (hasReceivedCall || isWaiting) {
+              // If messages should exist but don't, fetch them
+              fetchMessages();
+              setTimeout(checkAndSelect, 500);
+            }
+          };
+          
+          // Check after a short delay to ensure messages are loaded
+          setTimeout(checkAndSelect, 500);
+        } else {
+          // Clean up old data
+          localStorage.removeItem('autoSelectMessengerUser');
+        }
+      } catch (error) {
+        console.error('Error parsing auto-select Messenger user data:', error);
+        localStorage.removeItem('autoSelectMessengerUser');
+      }
+    }
+  }, [messages, users, hasReceivedCall, isWaiting]); // Re-run when messages, users, or status changes
+
   const checkStatus = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/messenger/status`);

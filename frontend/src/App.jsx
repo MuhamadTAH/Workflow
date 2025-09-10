@@ -32,6 +32,7 @@ import Settings from './pages/Settings';
 import TelegramActivity from './components/TelegramActivity';
 import WhatsAppActivity from './components/WhatsAppActivity';
 import InstagramActivity from './components/InstagramActivity';
+import MessengerActivity from './components/MessengerActivity';
 // Import shop components using the modular router
 import { 
   ShopDashboard, 
@@ -209,6 +210,7 @@ function Home() {
               <TelegramActivity />
               <WhatsAppActivity />
               <InstagramActivity />
+              <MessengerActivity />
             </div>
           </div>
 
