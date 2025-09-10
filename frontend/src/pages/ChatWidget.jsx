@@ -621,6 +621,42 @@ if (document.readyState === 'loading') {
     }
   };
 
+  // Connect Claude API (same pattern as WhatsApp)
+  const connectClaudeAPI = async () => {
+    setIsLoadingAI(true);
+    setAiError('');
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/chat-widget/claude/connect`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          claudeApiKey: aiConfig.apiKey,
+          systemPrompt: aiConfig.systemPrompt
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        console.log('✅ Claude API connected successfully');
+        setAiError('');
+        // Show success message
+        alert(`🎉 Claude API Connected!\n\nTest Response: ${data.testResponse}\n\nYour AI assistant is now ready for auto-replies!`);
+      } else {
+        setAiError(data.error || 'Failed to connect Claude API');
+        console.error('❌ Claude connection failed:', data.error);
+      }
+    } catch (error) {
+      console.error('Error connecting Claude:', error);
+      setAiError('Network error while connecting to Claude API');
+    } finally {
+      setIsLoadingAI(false);
+    }
+  };
+
   // Save AI configuration
   const saveAIConfig = async () => {
     setIsLoadingAI(true);
@@ -1783,7 +1819,6 @@ if (document.readyState === 'loading') {
                           type="password"
                           value={aiConfig.apiKey}
                           onChange={(e) => setAiConfig({...aiConfig, apiKey: e.target.value})}
-                          disabled={!aiConfig.aiEnabled}
                           style={{
                             width: '100%',
                             padding: '0.5rem',
@@ -1828,7 +1863,6 @@ if (document.readyState === 'loading') {
                       <textarea
                         value={aiConfig.systemPrompt}
                         onChange={(e) => setAiConfig({...aiConfig, systemPrompt: e.target.value})}
-                        disabled={!aiConfig.aiEnabled}
                         rows={3}
                         style={{
                           width: '100%',
@@ -1858,7 +1892,6 @@ if (document.readyState === 'loading') {
                       <textarea
                         value={aiConfig.knowledgeBase}
                         onChange={(e) => setAiConfig({...aiConfig, knowledgeBase: e.target.value})}
-                        disabled={!aiConfig.aiEnabled}
                         rows={4}
                         style={{
                           width: '100%',
@@ -1892,7 +1925,6 @@ if (document.readyState === 'loading') {
                         step="500"
                         value={aiConfig.responseDelay}
                         onChange={(e) => setAiConfig({...aiConfig, responseDelay: parseInt(e.target.value)})}
-                        disabled={!aiConfig.aiEnabled}
                         style={{
                           width: '100%',
                           margin: '0.5rem 0'
@@ -1902,6 +1934,30 @@ if (document.readyState === 'loading') {
                         How long to wait before AI responds (1-10 seconds)
                       </div>
                     </div>
+
+                    {/* Connect Claude Button */}
+                    <button
+                      onClick={connectClaudeAPI}
+                      disabled={isLoadingAI || !aiConfig.apiKey}
+                      style={{
+                        width: '100%',
+                        backgroundColor: aiConfig.apiKey ? colors.brandBlue : colors.mutedText,
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '0.75rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        cursor: (isLoadingAI || !aiConfig.apiKey) ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        marginBottom: '0.5rem'
+                      }}
+                    >
+                      {isLoadingAI ? '⏳ Connecting...' : '🔗 Connect Claude API'}
+                    </button>
 
                     {/* Save Button */}
                     <button
