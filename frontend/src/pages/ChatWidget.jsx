@@ -1,0 +1,1451 @@
+import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config/api';
+import { useTheme } from '../contexts/ThemeContext';
+
+const ChatWidget = () => {
+  const { theme, colors } = useTheme();
+  
+  // Widget Configuration State
+  const [widgetId, setWidgetId] = useState('');
+  const [widgetName, setWidgetName] = useState('');
+  const [widgetColor, setWidgetColor] = useState('#4a90e2');
+  const [welcomeMessage, setWelcomeMessage] = useState('Hi! How can we help you?');
+  const [isActive, setIsActive] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  // Messages and Websites State
+  const [messages, setMessages] = useState([]);
+  const [websites, setWebsites] = useState([]);
+  const [selectedWebsite, setSelectedWebsite] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [isReplying, setIsReplying] = useState(false);
+  
+  // UI State
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
+  const [isWidgetSettingsCollapsed, setIsWidgetSettingsCollapsed] = useState(false);
+  const [isWebsiteInfoCollapsed, setIsWebsiteInfoCollapsed] = useState(false);
+  const [isStatsCollapsed, setIsStatsCollapsed] = useState(false);
+
+  // Generate unique widget ID on component mount
+  useEffect(() => {
+    if (!widgetId) {
+      const newWidgetId = 'widget_' + Math.random().toString(36).substr(2, 9);
+      setWidgetId(newWidgetId);
+    }
+  }, []);
+
+  // Generate embed code
+  const generateEmbedCode = () => {
+    return `<!-- Chat Widget by Your Company -->
+<script>
+(function() {
+  var chatWidget = {
+    widgetId: '${widgetId}',
+    apiUrl: '${API_BASE_URL}/api/chat-widget',
+    color: '${widgetColor}',
+    welcomeMessage: '${welcomeMessage}',
+    
+    init: function() {
+      // Create widget container
+      var container = document.createElement('div');
+      container.id = 'chat-widget-' + this.widgetId;
+      container.innerHTML = this.getHTML();
+      document.body.appendChild(container);
+      
+      // Add styles
+      var style = document.createElement('style');
+      style.textContent = this.getCSS();
+      document.head.appendChild(style);
+      
+      // Add event listeners
+      this.bindEvents();
+    },
+    
+    getHTML: function() {
+      return \`
+        <div id="chat-bubble" onclick="chatWidget.toggleChat()">
+          <div class="chat-icon">💬</div>
+          <div class="chat-notification" id="chat-notification" style="display: none;">1</div>
+        </div>
+        <div id="chat-window" style="display: none;">
+          <div class="chat-header">
+            <span>Chat with us</span>
+            <button onclick="chatWidget.toggleChat()" class="close-btn">×</button>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="message bot-message">\${this.welcomeMessage}</div>
+          </div>
+          <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Type a message..." onkeypress="chatWidget.handleKeyPress(event)">
+            <button onclick="chatWidget.sendMessage()" class="send-btn">Send</button>
+          </div>
+        </div>
+      \`;
+    },
+    
+    getCSS: function() {
+      return \`
+        #chat-widget-\${this.widgetId} {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          z-index: 10000;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        #chat-bubble {
+          width: 60px;
+          height: 60px;
+          background: \${this.color};
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          transition: transform 0.2s;
+          position: relative;
+        }
+        
+        #chat-bubble:hover {
+          transform: scale(1.1);
+        }
+        
+        .chat-icon {
+          font-size: 24px;
+          color: white;
+        }
+        
+        .chat-notification {
+          position: absolute;
+          top: -8px;
+          right: -8px;
+          background: #ff4444;
+          color: white;
+          border-radius: 50%;
+          width: 24px;
+          height: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          font-weight: bold;
+        }
+        
+        #chat-window {
+          position: absolute;
+          bottom: 80px;
+          right: 0;
+          width: 350px;
+          height: 500px;
+          background: white;
+          border-radius: 12px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+        
+        .chat-header {
+          background: \${this.color};
+          color: white;
+          padding: 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .close-btn {
+          background: none;
+          border: none;
+          color: white;
+          font-size: 20px;
+          cursor: pointer;
+          padding: 0;
+          width: 24px;
+          height: 24px;
+        }
+        
+        .chat-messages {
+          flex: 1;
+          padding: 16px;
+          overflow-y: auto;
+          background: #f8f9fa;
+        }
+        
+        .message {
+          margin-bottom: 12px;
+          padding: 8px 12px;
+          border-radius: 8px;
+          max-width: 80%;
+          word-wrap: break-word;
+        }
+        
+        .bot-message {
+          background: #e9ecef;
+          align-self: flex-start;
+        }
+        
+        .user-message {
+          background: \${this.color};
+          color: white;
+          align-self: flex-end;
+          margin-left: auto;
+        }
+        
+        .chat-input-area {
+          padding: 16px;
+          border-top: 1px solid #dee2e6;
+          display: flex;
+          gap: 8px;
+        }
+        
+        #chat-input {
+          flex: 1;
+          padding: 8px 12px;
+          border: 1px solid #dee2e6;
+          border-radius: 20px;
+          outline: none;
+        }
+        
+        .send-btn {
+          background: \${this.color};
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 20px;
+          cursor: pointer;
+        }
+        
+        .send-btn:hover {
+          opacity: 0.9;
+        }
+      \`;
+    },
+    
+    toggleChat: function() {
+      var chatWindow = document.getElementById('chat-window');
+      if (chatWindow.style.display === 'none') {
+        chatWindow.style.display = 'flex';
+        document.getElementById('chat-notification').style.display = 'none';
+      } else {
+        chatWindow.style.display = 'none';
+      }
+    },
+    
+    handleKeyPress: function(event) {
+      if (event.key === 'Enter') {
+        this.sendMessage();
+      }
+    },
+    
+    sendMessage: function() {
+      var input = document.getElementById('chat-input');
+      var message = input.value.trim();
+      
+      if (message) {
+        this.addMessage(message, 'user');
+        input.value = '';
+        
+        // Send to your backend
+        this.sendToBackend(message);
+      }
+    },
+    
+    addMessage: function(text, type) {
+      var messagesContainer = document.getElementById('chat-messages');
+      var messageDiv = document.createElement('div');
+      messageDiv.className = 'message ' + (type === 'user' ? 'user-message' : 'bot-message');
+      messageDiv.textContent = text;
+      messagesContainer.appendChild(messageDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    },
+    
+    sendToBackend: function(message) {
+      var self = this;
+      
+      // First activate widget session if not done
+      if (!this.sessionId) {
+        fetch(this.apiUrl + '/activate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            widgetId: this.widgetId,
+            websiteUrl: window.location.href,
+            userAgent: navigator.userAgent,
+            referrer: document.referrer
+          })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+          if (data.success) {
+            self.sessionId = data.sessionId;
+            self.sendMessage(message);
+          }
+        })
+        .catch(function(error) {
+          console.log('Chat widget activation error:', error);
+        });
+        return;
+      }
+      
+      // Send message to backend
+      fetch(this.apiUrl + '/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: this.sessionId,
+          widgetId: this.widgetId,
+          message: message,
+          senderName: 'Website Visitor',
+          senderEmail: null
+        })
+      }).catch(function(error) {
+        console.log('Chat widget error:', error);
+      });
+    },
+    
+    sendMessageToBackend: function(message) {
+      this.sendToBackend(message);
+    },
+    
+    bindEvents: function() {
+      // Initialize session on widget load
+      this.sessionId = null;
+    }
+  };
+  
+  // Initialize widget when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      chatWidget.init();
+    });
+  } else {
+    chatWidget.init();
+  }
+})();
+</script>`;
+  };
+
+  // Copy embed code to clipboard
+  const copyEmbedCode = async () => {
+    try {
+      await navigator.clipboard.writeText(generateEmbedCode());
+      alert('Widget code copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      alert('Failed to copy code. Please copy manually.');
+    }
+  };
+
+  // Activate widget (save to backend)
+  const activateWidget = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/chat-widget/activate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          widgetId,
+          widgetName,
+          widgetColor,
+          welcomeMessage,
+          isActive: true
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setIsActive(true);
+        console.log('✅ Chat widget activated successfully');
+      } else {
+        setError(data.error || 'Failed to activate widget');
+      }
+    } catch (error) {
+      setError('Network error: ' + error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch messages from widgets
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/chat-widget/messages`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const allMessages = data.messages || [];
+        setMessages(allMessages);
+        
+        // Group messages by website URL to create websites list
+        const websitesMap = new Map();
+        
+        allMessages.forEach(message => {
+          const websiteUrl = message.websiteUrl;
+          if (!websiteUrl) return;
+          
+          if (!websitesMap.has(websiteUrl)) {
+            websitesMap.set(websiteUrl, {
+              url: websiteUrl,
+              messageCount: 0,
+              lastMessage: message.timestamp,
+              messages: []
+            });
+          }
+          
+          const website = websitesMap.get(websiteUrl);
+          website.messageCount++;
+          website.messages.push(message);
+          
+          // Update last message timestamp if this is newer
+          if (new Date(message.timestamp) > new Date(website.lastMessage)) {
+            website.lastMessage = message.timestamp;
+          }
+        });
+        
+        // Convert map to array and sort by last message timestamp
+        const websitesArray = Array.from(websitesMap.values())
+          .sort((a, b) => new Date(b.lastMessage) - new Date(a.lastMessage));
+        
+        setWebsites(websitesArray);
+      }
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+  // Poll for messages when widget is active
+  useEffect(() => {
+    let interval;
+    if (isActive) {
+      fetchMessages();
+      interval = setInterval(fetchMessages, 3000);
+    }
+    return () => clearInterval(interval);
+  }, [isActive, widgetId]);
+
+  // Get messages for selected website
+  const getMessagesForWebsite = (websiteUrl) => {
+    if (!websiteUrl || !messages.length) return [];
+    return messages.filter(message => message.websiteUrl === websiteUrl)
+      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  };
+
+  const currentMessages = getMessagesForWebsite(selectedWebsite?.url);
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: colors.primaryBg, padding: '0' }}>
+      <div style={{ width: '100%', margin: '0 auto', padding: '0' }}>
+        
+        {/* Fixed Toggle Buttons */}
+        <button
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          style={{
+            position: 'fixed',
+            top: '20px',
+            left: isSidebarCollapsed ? '20px' : '400px',
+            backgroundColor: colors.brandBlue,
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '0.75rem 1rem',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            zIndex: 1001
+          }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = colors.brandBlueDark}
+          onMouseLeave={(e) => e.target.style.backgroundColor = colors.brandBlue}
+        >
+          {isSidebarCollapsed ? '☰' : '✕'}
+        </button>
+        
+        <button
+          onClick={() => setIsRightSidebarCollapsed(!isRightSidebarCollapsed)}
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: isRightSidebarCollapsed ? '20px' : '300px',
+            backgroundColor: colors.success,
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '0.75rem 1rem',
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            zIndex: 1001
+          }}
+          onMouseEnter={(e) => e.target.style.backgroundColor = colors.brandBlueDark}
+          onMouseLeave={(e) => e.target.style.backgroundColor = colors.success}
+        >
+          {isRightSidebarCollapsed ? '☰' : '✕'}
+        </button>
+
+        <div style={{ display: 'flex', gap: '0', alignItems: 'flex-start', position: 'relative' }}>
+          
+          {/* LEFT SIDEBAR - Widget Configuration */}
+          <div style={{ 
+            width: '400px',
+            backgroundColor: colors.secondaryBg, 
+            borderRadius: '0', 
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
+            padding: '0',
+            height: '100vh',
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            borderRight: `1px solid ${colors.border}`,
+            overflow: 'hidden',
+            transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
+            transform: isSidebarCollapsed ? 'translateX(-420px)' : 'translateX(0)',
+            opacity: isSidebarCollapsed ? 0 : 1,
+            zIndex: 1000
+          }}>
+            {/* Sidebar Header */}
+            <div style={{ 
+              backgroundColor: colors.brandBlue, 
+              color: 'white', 
+              padding: '1rem 1.5rem',
+              borderRadius: '0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <h2 style={{ fontSize: '1.125rem', fontWeight: 'bold', margin: '0', display: 'flex', alignItems: 'center' }}>
+                <i className="fas fa-comments" style={{ marginRight: '0.5rem' }}></i>
+                Chat Widget
+              </h2>
+            </div>
+            
+            {/* Sidebar Content */}
+            <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
+              
+              {/* Widget Settings Section */}
+              <div style={{ marginBottom: isWidgetSettingsCollapsed ? '0' : '2rem' }}>
+                <h3 
+                  onClick={() => setIsWidgetSettingsCollapsed(!isWidgetSettingsCollapsed)}
+                  style={{ 
+                    fontSize: '1rem', 
+                    fontWeight: '600', 
+                    color: colors.primaryText, 
+                    marginBottom: '1rem', 
+                    borderBottom: `2px solid ${colors.border}`, 
+                    paddingBottom: '0.5rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    userSelect: 'none'
+                  }}
+                >
+                  <span>⚙️ Widget Settings</span>
+                  <span style={{ 
+                    transform: isWidgetSettingsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                    fontSize: '0.8rem',
+                    color: colors.mutedText
+                  }}>
+                    ▼
+                  </span>
+                </h3>
+                
+                {/* Collapsible Content */}
+                <div style={{
+                  maxHeight: isWidgetSettingsCollapsed ? '0' : '2000px',
+                  overflow: 'hidden',
+                  transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                  opacity: isWidgetSettingsCollapsed ? 0 : 1
+                }}>
+
+                  {/* Widget Name */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: colors.secondaryText, marginBottom: '0.5rem' }}>
+                      Widget Name
+                    </label>
+                    <input
+                      type="text"
+                      value={widgetName}
+                      onChange={(e) => setWidgetName(e.target.value)}
+                      placeholder="My Website Chat"
+                      style={{ 
+                        width: '100%', 
+                        padding: '0.75rem', 
+                        border: `1px solid ${colors.border}`, 
+                        borderRadius: '6px', 
+                        fontSize: '0.875rem',
+                        outline: 'none',
+                        backgroundColor: colors.inputBg,
+                        color: colors.primaryText
+                      }}
+                    />
+                  </div>
+
+                  {/* Widget ID */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: colors.secondaryText, marginBottom: '0.5rem' }}>
+                      Widget ID
+                    </label>
+                    <input
+                      type="text"
+                      value={widgetId}
+                      readOnly
+                      style={{ 
+                        width: '100%', 
+                        padding: '0.75rem', 
+                        border: `1px solid ${colors.border}`, 
+                        borderRadius: '6px', 
+                        fontSize: '0.75rem',
+                        backgroundColor: colors.inputBg,
+                        color: colors.mutedText,
+                        fontFamily: 'monospace'
+                      }}
+                    />
+                  </div>
+
+                  {/* Widget Color */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: colors.secondaryText, marginBottom: '0.5rem' }}>
+                      Widget Color
+                    </label>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <input
+                        type="color"
+                        value={widgetColor}
+                        onChange={(e) => setWidgetColor(e.target.value)}
+                        style={{ 
+                          width: '50px',
+                          height: '40px',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer'
+                        }}
+                      />
+                      <input
+                        type="text"
+                        value={widgetColor}
+                        onChange={(e) => setWidgetColor(e.target.value)}
+                        style={{ 
+                          flex: 1,
+                          padding: '0.75rem', 
+                          border: `1px solid ${colors.border}`, 
+                          borderRadius: '6px', 
+                          fontSize: '0.875rem',
+                          backgroundColor: colors.inputBg,
+                          color: colors.primaryText
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Welcome Message */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: colors.secondaryText, marginBottom: '0.5rem' }}>
+                      Welcome Message
+                    </label>
+                    <textarea
+                      value={welcomeMessage}
+                      onChange={(e) => setWelcomeMessage(e.target.value)}
+                      placeholder="Hi! How can we help you?"
+                      rows="3"
+                      style={{ 
+                        width: '100%', 
+                        padding: '0.75rem', 
+                        border: `1px solid ${colors.border}`, 
+                        borderRadius: '6px', 
+                        fontSize: '0.875rem',
+                        outline: 'none',
+                        backgroundColor: colors.inputBg,
+                        color: colors.primaryText,
+                        fontFamily: 'inherit',
+                        resize: 'vertical'
+                      }}
+                    />
+                  </div>
+
+                  {/* Embed Code Section */}
+                  <div style={{ marginBottom: '1rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: colors.secondaryText, marginBottom: '0.5rem' }}>
+                      Embed Code
+                    </label>
+                    <div style={{ 
+                      backgroundColor: colors.inputBg,
+                      border: `1px solid ${colors.border}`,
+                      borderRadius: '6px',
+                      padding: '0.75rem',
+                      marginBottom: '0.5rem'
+                    }}>
+                      <code style={{
+                        fontSize: '0.75rem',
+                        color: colors.mutedText,
+                        wordBreak: 'break-all',
+                        display: 'block',
+                        maxHeight: '150px',
+                        overflow: 'auto'
+                      }}>
+                        {generateEmbedCode().substring(0, 200)}...
+                      </code>
+                    </div>
+                    <button
+                      onClick={copyEmbedCode}
+                      style={{
+                        width: '100%',
+                        backgroundColor: colors.success,
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '0.75rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem'
+                      }}
+                      onMouseEnter={(e) => e.target.style.opacity = '0.9'}
+                      onMouseLeave={(e) => e.target.style.opacity = '1'}
+                    >
+                      📋 Copy Widget Code
+                    </button>
+                  </div>
+
+                  {/* Activate Widget */}
+                  {!isActive && (
+                    <button
+                      onClick={activateWidget}
+                      disabled={isLoading || !widgetName}
+                      style={{
+                        width: '100%',
+                        backgroundColor: isLoading || !widgetName ? colors.mutedText : colors.brandBlue,
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '0.75rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        cursor: isLoading || !widgetName ? 'not-allowed' : 'pointer',
+                        marginBottom: '1rem'
+                      }}
+                    >
+                      {isLoading ? 'Activating...' : '🚀 Activate Widget'}
+                    </button>
+                  )}
+
+                  {/* Status */}
+                  {isActive && (
+                    <div style={{ 
+                      padding: '1rem', 
+                      borderRadius: '6px', 
+                      backgroundColor: colors.overlay,
+                      color: colors.success,
+                      textAlign: 'center',
+                      marginBottom: '1rem'
+                    }}>
+                      ✅ Widget is active and ready to receive messages
+                    </div>
+                  )}
+
+                  {/* Error Display */}
+                  {error && (
+                    <div style={{ 
+                      padding: '1rem', 
+                      borderRadius: '6px', 
+                      backgroundColor: colors.overlay,
+                      color: colors.error,
+                      marginBottom: '1rem',
+                      border: `1px solid ${colors.error}`
+                    }}>
+                      {error}
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* CENTER COLUMN - Chat Interface */}
+          <div style={{ 
+            position: 'fixed',
+            top: '0',
+            left: isSidebarCollapsed ? '0' : '400px',
+            right: isRightSidebarCollapsed ? '0' : '300px',
+            height: '100vh',
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '0',
+            transition: 'left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            padding: '2rem 1rem',
+            backgroundColor: colors.primaryBg,
+            borderTop: `1px solid ${colors.border}`,
+            borderBottom: `1px solid ${colors.border}`,
+            zIndex: 999,
+            overflowY: 'auto'
+          }}>
+
+            {/* Two Panel Layout */}
+            <div style={{
+              opacity: isActive ? 1 : 0.6
+            }}>
+              {!isActive && (
+                <div style={{
+                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                  padding: '1rem',
+                  borderRadius: '6px',
+                  marginBottom: '1rem',
+                  border: `1px solid ${colors.error}`
+                }}>
+                  <p style={{ color: colors.error, fontSize: '0.875rem', margin: 0 }}>
+                    ⚠️ Configure and activate your widget to start receiving messages
+                  </p>
+                </div>
+              )}
+              
+              <div style={{ 
+                display: 'flex', 
+                gap: '0', 
+                height: 'calc(100vh - 100px)', 
+                border: `1px solid ${colors.border}`, 
+                borderRadius: '8px', 
+                overflow: 'hidden',
+                width: '100%',
+                maxWidth: '100%'
+              }}>
+                
+                {/* Websites Panel */}
+                <div style={{ 
+                  flex: '0 0 300px',
+                  width: '300px',
+                  minWidth: '300px',
+                  maxWidth: '300px',
+                  backgroundColor: colors.cardBg, 
+                  padding: '1rem', 
+                  borderRight: `1px solid ${colors.border}`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <h3 style={{ fontWeight: '500', color: colors.primaryText, margin: 0 }}>
+                      🌐 Websites
+                      {isActive && (
+                        <span style={{ 
+                          marginLeft: '0.5rem', 
+                          fontSize: '0.75rem', 
+                          color: colors.success,
+                          backgroundColor: colors.overlay,
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px'
+                        }}>
+                          🟢 Live
+                        </span>
+                      )}
+                    </h3>
+                    <span style={{ fontSize: '0.875rem', color: colors.mutedText }}>
+                      {websites.length} site{websites.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  <div style={{ 
+                    flex: 1,
+                    overflowY: 'auto', 
+                    backgroundColor: colors.inputBg, 
+                    borderRadius: '4px',
+                    border: `1px solid ${colors.border}`
+                  }}>
+                    {websites.length === 0 ? (
+                      <div style={{ 
+                        padding: '2rem', 
+                        textAlign: 'center', 
+                        color: colors.mutedText,
+                        fontSize: '0.875rem'
+                      }}>
+                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🌐</div>
+                        <p>No websites using your widget yet. Install the widget code on your website to start receiving messages!</p>
+                      </div>
+                    ) : (
+                      <div style={{ padding: '0.5rem' }}>
+                        {websites.map((website) => (
+                          <div
+                            key={website.url}
+                            onClick={() => setSelectedWebsite(website)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              padding: '0.75rem',
+                              borderRadius: '6px',
+                              marginBottom: '0.5rem',
+                              cursor: 'pointer',
+                              backgroundColor: selectedWebsite?.url === website.url ? colors.brandBlue : 'transparent',
+                              color: selectedWebsite?.url === website.url ? 'white' : colors.primaryText,
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <div style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              backgroundColor: selectedWebsite?.url === website.url ? 'rgba(255,255,255,0.2)' : colors.brandBlue,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginRight: '0.75rem',
+                              fontSize: '1rem',
+                              color: 'white',
+                              fontWeight: 'bold'
+                            }}>
+                              🌐
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ 
+                                fontWeight: '500', 
+                                fontSize: '0.875rem',
+                                marginBottom: '0.25rem',
+                                color: selectedWebsite?.url === website.url ? 'white' : colors.primaryText,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}>
+                                {new URL(website.url).hostname}
+                              </div>
+                              <div style={{ 
+                                fontSize: '0.75rem', 
+                                color: selectedWebsite?.url === website.url ? 'rgba(255,255,255,0.8)' : colors.mutedText
+                              }}>
+                                {website.messageCount} message{website.messageCount !== 1 ? 's' : ''}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Messages Panel */}
+                <div style={{ 
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  backgroundColor: colors.inputBg
+                }}>
+        
+                  {/* Messages Header */}
+                  {selectedWebsite ? (
+                    <div style={{ 
+                      padding: '1rem',
+                      backgroundColor: colors.secondaryBg,
+                      borderBottom: `1px solid ${colors.border}`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '1rem'
+                    }}>
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        backgroundColor: colors.brandBlue,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1rem',
+                        color: 'white',
+                        fontWeight: 'bold'
+                      }}>
+                        🌐
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '1rem', fontWeight: '600', color: colors.primaryText }}>
+                          {new URL(selectedWebsite.url).hostname}
+                        </div>
+                        <div style={{ fontSize: '0.875rem', color: colors.mutedText }}>
+                          {selectedWebsite.url}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ 
+                      padding: '2rem',
+                      backgroundColor: colors.cardBg,
+                      textAlign: 'center',
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexDirection: 'column'
+                    }}>
+                      <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>💬</div>
+                      <h2 style={{ 
+                        fontSize: '1.25rem', 
+                        fontWeight: '600',
+                        color: colors.primaryText,
+                        margin: '0 0 0.5rem 0'
+                      }}>
+                        Select a Website
+                      </h2>
+                      <p style={{ fontSize: '0.875rem', color: colors.mutedText, margin: 0 }}>
+                        Choose a website from the left panel to view messages from visitors
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Messages Display */}
+                  {selectedWebsite && (
+                    <div style={{ 
+                      flex: 1, 
+                      overflowY: 'auto', 
+                      padding: '1rem',
+                      backgroundColor: colors.primaryBg
+                    }}>
+                      {currentMessages.length === 0 ? (
+                        <div style={{ 
+                          textAlign: 'center', 
+                          color: colors.mutedText, 
+                          padding: '2rem',
+                          fontStyle: 'italic'
+                        }}>
+                          No messages from this website yet.
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          {currentMessages.map((message, index) => (
+                            <div 
+                              key={message.id || index}
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'flex-start',
+                                width: '100%',
+                                marginBottom: '0.5rem'
+                              }}
+                            >
+                              <div style={{
+                                maxWidth: '70%',
+                                padding: '0.75rem 1rem',
+                                borderRadius: '18px 18px 18px 4px',
+                                backgroundColor: colors.cardBg,
+                                color: colors.primaryText,
+                                fontSize: '0.875rem',
+                                lineHeight: '1.4',
+                                wordWrap: 'break-word',
+                                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+                                position: 'relative'
+                              }}>
+                                {/* Message Content */}
+                                <div style={{ marginBottom: '0.25rem' }}>
+                                  {message.message}
+                                </div>
+
+                                {/* Timestamp and sender info */}
+                                <div style={{ 
+                                  fontSize: '0.65rem',
+                                  opacity: 0.7,
+                                  color: colors.mutedText,
+                                  marginTop: '0.25rem'
+                                }}>
+                                  {new Date(message.timestamp).toLocaleString()}
+                                  <br/>
+                                  <span style={{ fontSize: '0.6rem' }}>
+                                    {message.senderName} • {message.websiteUrl ? new URL(message.websiteUrl).pathname : 'Unknown page'}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT SIDEBAR - Website Analytics & Info */}
+          <div style={{ 
+            width: '300px',
+            backgroundColor: colors.cardBg, 
+            borderRadius: '0', 
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
+            padding: '0',
+            height: '100vh',
+            position: 'fixed',
+            top: '0',
+            right: '0',
+            borderLeft: `1px solid ${colors.border}`,
+            overflow: 'hidden',
+            transition: 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease',
+            transform: isRightSidebarCollapsed ? 'translateX(320px)' : 'translateX(0)',
+            opacity: isRightSidebarCollapsed ? 0 : 1,
+            zIndex: 1000
+          }}>
+            {/* Right Sidebar Header */}
+            <div style={{ 
+              backgroundColor: colors.success, 
+              color: 'white', 
+              padding: '1rem 1.5rem',
+              borderRadius: '0'
+            }}>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'center' }}>
+                <button
+                  onClick={() => window.location.href = '/instagram-comments'}
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.2)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    borderRadius: '8px',
+                    padding: '0.75rem',
+                    cursor: 'pointer',
+                    color: 'white',
+                    fontSize: '1.25rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.3)'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.2)'}
+                  title="Switch to Instagram"
+                >
+                  <i className="fab fa-instagram"></i>
+                </button>
+                
+                <button
+                  onClick={() => window.location.href = '/telegram-listener'}
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.2)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    borderRadius: '8px',
+                    padding: '0.75rem',
+                    cursor: 'pointer',
+                    color: 'white',
+                    fontSize: '1.25rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.3)'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.2)'}
+                  title="Switch to Telegram"
+                >
+                  <i className="fab fa-telegram"></i>
+                </button>
+                
+                <button
+                  onClick={() => window.location.href = '/whatsapp-receiver'}
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.2)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    borderRadius: '8px',
+                    padding: '0.75rem',
+                    cursor: 'pointer',
+                    color: 'white',
+                    fontSize: '1.25rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.3)'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.2)'}
+                  title="Switch to WhatsApp"
+                >
+                  <i className="fab fa-whatsapp"></i>
+                </button>
+                
+                <button
+                  onClick={() => window.location.href = '/messenger-webhook'}
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.2)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    borderRadius: '8px',
+                    padding: '0.75rem',
+                    cursor: 'pointer',
+                    color: 'white',
+                    fontSize: '1.25rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.3)'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(255,255,255,0.2)'}
+                  title="Switch to Messenger"
+                >
+                  <i className="fab fa-facebook-messenger"></i>
+                </button>
+              </div>
+            </div>
+            
+            {/* Right Sidebar Content */}
+            <div style={{ padding: '1.5rem', height: 'calc(100vh - 60px)', overflowY: 'auto' }}>
+              
+              {/* Selected Website Info Section */}
+              <div style={{ marginBottom: isWebsiteInfoCollapsed ? '0' : '2rem' }}>
+                <h3 
+                  onClick={() => setIsWebsiteInfoCollapsed(!isWebsiteInfoCollapsed)}
+                  style={{ 
+                    fontSize: '1rem', 
+                    fontWeight: '600', 
+                    color: colors.primaryText, 
+                    marginBottom: '1rem', 
+                    borderBottom: `2px solid ${colors.border}`, 
+                    paddingBottom: '0.5rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    userSelect: 'none'
+                  }}
+                >
+                  <span>🌐 Selected Website</span>
+                  <span style={{ 
+                    transform: isWebsiteInfoCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                    fontSize: '0.8rem',
+                    color: colors.mutedText
+                  }}>
+                    ▼
+                  </span>
+                </h3>
+
+                {/* Collapsible Content */}
+                <div style={{
+                  maxHeight: isWebsiteInfoCollapsed ? '0' : '2000px',
+                  overflow: 'hidden',
+                  transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                  opacity: isWebsiteInfoCollapsed ? 0 : 1
+                }}>
+                
+                  {selectedWebsite ? (
+                    <div style={{ backgroundColor: colors.inputBg, borderRadius: '8px', padding: '1rem', border: `1px solid ${colors.border}` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+                        <div style={{
+                          width: '50px',
+                          height: '50px',
+                          borderRadius: '50%',
+                          backgroundColor: colors.brandBlue,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '1.5rem',
+                          color: 'white',
+                          fontWeight: 'bold',
+                          marginRight: '0.75rem'
+                        }}>
+                          🌐
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: '600', fontSize: '1rem', color: colors.primaryText }}>
+                            {new URL(selectedWebsite.url).hostname}
+                          </div>
+                          <div style={{ color: colors.mutedText, fontSize: '0.875rem' }}>
+                            {selectedWebsite.messageCount} message{selectedWebsite.messageCount !== 1 ? 's' : ''}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div style={{ fontSize: '0.875rem', color: colors.mutedText, marginBottom: '0.5rem' }}>
+                        Full URL:
+                      </div>
+                      <div style={{ 
+                        backgroundColor: colors.cardBg,
+                        padding: '0.75rem', 
+                        borderRadius: '6px', 
+                        fontSize: '0.75rem',
+                        color: colors.primaryText,
+                        wordBreak: 'break-all',
+                        fontFamily: 'monospace'
+                      }}>
+                        {selectedWebsite.url}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ 
+                      textAlign: 'center', 
+                      color: colors.mutedText,
+                      padding: '2rem'
+                    }}>
+                      <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>
+                        🌐
+                      </div>
+                      <p>Select a website to view details</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Statistics Section */}
+              <div style={{ marginBottom: isStatsCollapsed ? '0' : '2rem' }}>
+                <h3 
+                  onClick={() => setIsStatsCollapsed(!isStatsCollapsed)}
+                  style={{ 
+                    fontSize: '1rem', 
+                    fontWeight: '600', 
+                    color: colors.primaryText, 
+                    marginBottom: '1rem', 
+                    borderBottom: `2px solid ${colors.border}`, 
+                    paddingBottom: '0.5rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    userSelect: 'none'
+                  }}
+                >
+                  <span>📊 Statistics</span>
+                  <span style={{ 
+                    transform: isStatsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.2s ease',
+                    fontSize: '0.8rem',
+                    color: colors.mutedText
+                  }}>
+                    ▼
+                  </span>
+                </h3>
+                
+                {/* Collapsible Content */}
+                <div style={{
+                  maxHeight: isStatsCollapsed ? '0' : '2000px',
+                  overflow: 'hidden',
+                  transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
+                  opacity: isStatsCollapsed ? 0 : 1
+                }}>
+                
+                  <div style={{ backgroundColor: colors.inputBg, borderRadius: '8px', padding: '1rem', border: `1px solid ${colors.border}` }}>
+                    <div style={{ display: 'grid', gap: '0.75rem' }}>
+                      <div style={{
+                        backgroundColor: colors.cardBg,
+                        padding: '1rem',
+                        borderRadius: '8px',
+                        border: `1px solid ${colors.border}`,
+                        textAlign: 'center'
+                      }}>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: colors.brandBlue }}>
+                          {websites.length}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: colors.mutedText }}>
+                          Active Websites
+                        </div>
+                      </div>
+                      
+                      <div style={{
+                        backgroundColor: colors.cardBg,
+                        padding: '1rem',
+                        borderRadius: '8px',
+                        border: `1px solid ${colors.border}`,
+                        textAlign: 'center'
+                      }}>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: colors.success }}>
+                          {messages.length}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: colors.mutedText }}>
+                          Total Messages
+                        </div>
+                      </div>
+
+                      <div style={{
+                        backgroundColor: colors.cardBg,
+                        padding: '1rem',
+                        borderRadius: '8px',
+                        border: `1px solid ${colors.border}`,
+                        textAlign: 'center'
+                      }}>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: isActive ? colors.success : colors.error }}>
+                          {isActive ? '🟢' : '🔴'}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: colors.mutedText }}>
+                          Widget Status
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Actions */}
+              <div style={{ marginBottom: '2rem' }}>
+                <h3 
+                  style={{ 
+                    fontSize: '1rem', 
+                    fontWeight: '600', 
+                    color: colors.primaryText, 
+                    marginBottom: '1rem', 
+                    borderBottom: `2px solid ${colors.border}`, 
+                    paddingBottom: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    userSelect: 'none'
+                  }}
+                >
+                  <span>⚡ Quick Actions</span>
+                </h3>
+                
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  <button
+                    onClick={() => window.location.reload()}
+                    style={{
+                      backgroundColor: colors.brandBlue,
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '0.75rem',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                    🔄 Refresh Dashboard
+                  </button>
+                  
+                  <button
+                    onClick={copyEmbedCode}
+                    style={{
+                      backgroundColor: colors.success,
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      padding: '0.75rem',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                    📋 Copy Widget Code
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ChatWidget;

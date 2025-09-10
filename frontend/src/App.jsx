@@ -24,6 +24,7 @@ import WhatsAppReceiver from './pages/WhatsAppReceiver';
 import WhatsAppReceiverTest from './pages/WhatsAppReceiverTest';
 import SimpleInstagramWebhook from './pages/SimpleInstagramWebhook';
 import SimpleMessengerWebhook from './pages/SimpleMessengerWebhook';
+import ChatWidget from './pages/ChatWidget';
 import BillingDashboard from './components/BillingDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import APIKeysDashboard from './components/APIKeysDashboard';
@@ -202,33 +203,7 @@ function Home() {
               <Link to="/workflows" className="view-all-link">View All</Link>
             </div>
             <div className="activity-list">
-              <div className="activity-item">
-                <div className="activity-icon success">
-                  <i className="fas fa-check"></i>
-                </div>
-                <div className="activity-content">
-                  <p className="activity-title">Marketing Automation completed</p>
-                  <span className="activity-time">2 hours ago</span>
-                </div>
-              </div>
-              <div className="activity-item">
-                <div className="activity-icon info">
-                  <i className="fas fa-plus"></i>
-                </div>
-                <div className="activity-content">
-                  <p className="activity-title">New Telegram connection added</p>
-                  <span className="activity-time">1 day ago</span>
-                </div>
-              </div>
-              <div className="activity-item">
-                <div className="activity-icon warning">
-                  <i className="fas fa-edit"></i>
-                </div>
-                <div className="activity-content">
-                  <p className="activity-title">E-commerce workflow updated</p>
-                  <span className="activity-time">3 days ago</span>
-                </div>
-              </div>
+              <TelegramActivity />
             </div>
           </div>
 
@@ -325,6 +300,7 @@ function App() {
         <Route path="/whatsapp-test" element={<WhatsAppReceiverTest />} />
         <Route path="/instagram-comments" element={<SimpleInstagramWebhook />} />
         <Route path="/messenger-comments" element={<SimpleMessengerWebhook />} />
+        <Route path="/chat-widget" element={<ChatWidget />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/settings/*" element={<Settings />} />
         <Route path="/shop/:shopName" element={<PublicShop />} />

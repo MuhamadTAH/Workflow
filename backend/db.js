@@ -1355,6 +1355,42 @@ Be enthusiastic and helpful while staying accurate.`,
     }
   });
 
+  // Create chat_widget_messages table - Store messages from embeddable chat widgets
+  db.run(`
+    CREATE TABLE IF NOT EXISTS chat_widget_messages (
+      id TEXT PRIMARY KEY,
+      session_id TEXT NOT NULL,
+      widget_id TEXT NOT NULL,
+      message TEXT NOT NULL,
+      sender_name TEXT DEFAULT 'Website Visitor',
+      sender_email TEXT,
+      website_url TEXT,
+      user_agent TEXT,
+      referrer TEXT,
+      timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+      is_read BOOLEAN DEFAULT 0
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating chat_widget_messages table:', err);
+    } else {
+      console.log('✅ Chat Widget Messages table ready');
+      
+      // Create indexes for performance
+      db.run(`CREATE INDEX IF NOT EXISTS idx_widget_messages_timestamp ON chat_widget_messages (timestamp DESC)`, (indexErr) => {
+        if (indexErr && !indexErr.message.includes('already exists')) {
+          console.error('⚠️ Warning: Could not create widget_messages_timestamp index:', indexErr.message);
+        }
+      });
+      
+      db.run(`CREATE INDEX IF NOT EXISTS idx_widget_messages_widget_id ON chat_widget_messages (widget_id, timestamp DESC)`, (indexErr) => {
+        if (indexErr && !indexErr.message.includes('already exists')) {
+          console.error('⚠️ Warning: Could not create widget_messages_widget_id index:', indexErr.message);
+        }
+      });
+    }
+  });
+
 });
 
 module.exports = db;

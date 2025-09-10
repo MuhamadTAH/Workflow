@@ -17,6 +17,7 @@ const jobsRoutes = require('./routes/jobs');
 const chatRoutes = require('./routes/chat');
 const chatTriggerRoutes = require('./routes/chatTrigger');
 const chatbotRoutes = require('./routes/chatbot');
+const chatWidgetRoutes = require('./routes/chat-widget');
 // AI ASSISTANT SYSTEM - New Addition
 // AI Assistant routes removed
 // WHATSAPP ROUTES
@@ -171,6 +172,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/chat-messages', chatRoutes);
 app.use('/api/chat-trigger', chatTriggerRoutes);
 app.use('/api/v1/chatbot', chatbotRoutes);
+app.use('/api/chat-widget', chatWidgetRoutes);
 // AI ASSISTANT SYSTEM ROUTES - REMOVED
 // WHATSAPP ROUTES
 app.use('/api/whatsapp', whatsappRoutes);

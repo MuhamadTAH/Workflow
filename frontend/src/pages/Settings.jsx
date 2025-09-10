@@ -112,9 +112,17 @@ const AccountSettings = () => {
       
       // Mock current password verification (simulate backend check)
       // In real implementation, backend would verify current password against database
-      const mockCurrentPassword = "currentpass123"; // This would come from your auth system
+      // For demo purposes, we'll simulate a more realistic password system
+      const mockUserPasswords = {
+        "password": true,
+        "123456": true,
+        "admin": true,
+        "user123": true,
+        "mypassword": true,
+        "currentpass123": true  // Keep the old one for backwards compatibility
+      };
       
-      if (passwordData.currentPassword !== mockCurrentPassword) {
+      if (!mockUserPasswords[passwordData.currentPassword]) {
         setErrors({ currentPassword: 'Current password is incorrect' });
         setIsUpdating(false);
         return;
@@ -383,8 +391,11 @@ const AccountSettings = () => {
                 marginTop: '0.75rem',
                 border: '1px solid rgba(255, 193, 7, 0.3)'
               }}>
-                <p style={{ color: '#ffc107', margin: '0', fontSize: '0.8rem', fontWeight: '500' }}>
-                  🔧 Demo Mode: Use "currentpass123" as current password for testing
+                <p style={{ color: '#ffc107', margin: '0 0 0.5rem 0', fontSize: '0.8rem', fontWeight: '500' }}>
+                  🔧 Demo Mode - Try any of these passwords:
+                </p>
+                <p style={{ color: '#ffc107', margin: '0', fontSize: '0.75rem', opacity: '0.8' }}>
+                  password • 123456 • admin • user123 • mypassword • currentpass123
                 </p>
               </div>
             </div>
