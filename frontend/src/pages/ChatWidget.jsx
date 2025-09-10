@@ -231,9 +231,11 @@ window.chatWidget = {
         if (chatWindow.style.display === 'none' || chatWindow.style.display === '') {
           chatWindow.style.display = 'flex';
           document.getElementById('chat-notification').style.display = 'none';
+          this.startPolling(); // Start checking for replies
           console.log('Chat window opened');
         } else {
           chatWindow.style.display = 'none';
+          this.stopPolling(); // Stop checking for replies
           console.log('Chat window closed');
         }
       } else {
@@ -290,7 +292,7 @@ window.chatWidget = {
         .then(function(data) {
           if (data.success) {
             self.sessionId = data.sessionId;
-            self.sendMessage(message);
+            self.sendToBackend(message);
           }
         })
         .catch(function(error) {
@@ -324,6 +326,81 @@ window.chatWidget = {
     bindEvents: function() {
       // Initialize session on widget load
       this.sessionId = null;
+      this.lastMessageTime = null;
+      
+      // Start polling for replies when chat is opened
+      this.pollInterval = null;
+    },
+    
+    startPolling: function() {
+      var self = this;
+      if (this.pollInterval) return; // Already polling
+      
+      this.pollInterval = setInterval(function() {
+        self.fetchNewMessages();
+      }, 3000); // Poll every 3 seconds
+    },
+    
+    stopPolling: function() {
+      if (this.pollInterval) {
+        clearInterval(this.pollInterval);
+        this.pollInterval = null;
+      }
+    },
+    
+    fetchNewMessages: function() {
+      var self = this;
+      
+      // Only fetch if we have a widget ID
+      if (!this.widgetId) return;
+      
+      fetch(this.apiUrl + '/messages?limit=10')
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+          if (data.success && data.messages) {
+            self.displayNewMessages(data.messages);
+          }
+        })
+        .catch(function(error) {
+          console.log('Error fetching messages:', error);
+        });
+    },
+    
+    displayNewMessages: function(messages) {
+      var self = this;
+      
+      // Filter messages for this widget and newer than last message
+      var widgetMessages = messages.filter(function(msg) {
+        return msg.widgetId === self.widgetId;
+      });
+      
+      // Sort by timestamp
+      widgetMessages.sort(function(a, b) {
+        return new Date(a.timestamp) - new Date(b.timestamp);
+      });
+      
+      // Add new messages to chat
+      widgetMessages.forEach(function(msg) {
+        var messageTime = new Date(msg.timestamp);
+        
+        // Skip if we've already shown this message
+        if (self.lastMessageTime && messageTime <= self.lastMessageTime) {
+          return;
+        }
+        
+        // Determine if it's a support reply
+        var isSupport = msg.senderName === 'Support Agent' || msg.userAgent === 'Dashboard';
+        
+        // Only add support replies (visitor messages are already added when sent)
+        if (isSupport) {
+          self.addMessage(msg.message, 'bot');
+        }
+        
+        // Update last message time
+        if (!self.lastMessageTime || messageTime > self.lastMessageTime) {
+          self.lastMessageTime = messageTime;
+        }
+      });
     }
 };
 
