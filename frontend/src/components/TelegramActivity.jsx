@@ -107,8 +107,39 @@ const TelegramActivity = () => {
     );
   }
 
+  const handleClick = () => {
+    // Store the latest user data in localStorage so TelegramListener can auto-select them
+    if (latestUser) {
+      localStorage.setItem('autoSelectUser', JSON.stringify({
+        userId: latestUser.chatId, // Using chatId as userId for consistency with TelegramListener
+        fromName: latestUser.fromName,
+        fromUsername: latestUser.fromUsername,
+        chatId: latestUser.chatId,
+        timestamp: Date.now()
+      }));
+    }
+    // Navigate to telegram listener page
+    window.location.href = '/telegram-listener';
+  };
+
   return (
-    <div className="activity-item">
+    <div 
+      className="activity-item"
+      onClick={handleClick}
+      style={{ 
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        borderRadius: '6px'
+      }}
+      onMouseEnter={(e) => {
+        e.target.style.backgroundColor = '#f8f9fa';
+        e.target.style.transform = 'translateY(-1px)';
+      }}
+      onMouseLeave={(e) => {
+        e.target.style.backgroundColor = 'transparent';
+        e.target.style.transform = 'translateY(0)';
+      }}
+    >
       <div className="activity-icon info">
         <i className="fab fa-telegram-plane"></i>
       </div>
@@ -132,6 +163,14 @@ const TelegramActivity = () => {
             "{latestUser.text}"
           </div>
         )}
+        <div style={{
+          fontSize: '0.7rem',
+          color: '#6366f1',
+          marginTop: '0.25rem',
+          fontWeight: '500'
+        }}>
+          Click to view in Telegram Listener →
+        </div>
       </div>
     </div>
   );

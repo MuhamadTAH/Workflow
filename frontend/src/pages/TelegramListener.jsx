@@ -182,6 +182,43 @@ const TelegramListener = () => {
     };
   }, [isPolling, listenerId]);
 
+  // Auto-select user from dashboard navigation
+  useEffect(() => {
+    const autoSelectData = localStorage.getItem('autoSelectUser');
+    if (autoSelectData) {
+      try {
+        const userData = JSON.parse(autoSelectData);
+        // Check if the data is recent (within last 30 seconds)
+        if (Date.now() - userData.timestamp < 30000) {
+          // Wait for messages to load first
+          const checkAndSelect = () => {
+            const users = getUniqueUsers();
+            const targetUser = users.find(user => 
+              user.chatId === userData.chatId || 
+              user.fromName === userData.fromName
+            );
+            if (targetUser) {
+              setSelectedUser(targetUser);
+              localStorage.removeItem('autoSelectUser'); // Clean up
+            } else if (messages.length > 0) {
+              // If user not found but messages exist, try again in a moment
+              setTimeout(checkAndSelect, 1000);
+            }
+          };
+          
+          // Check after a short delay to ensure messages are loaded
+          setTimeout(checkAndSelect, 500);
+        } else {
+          // Clean up old data
+          localStorage.removeItem('autoSelectUser');
+        }
+      } catch (error) {
+        console.error('Error parsing auto-select user data:', error);
+        localStorage.removeItem('autoSelectUser');
+      }
+    }
+  }, [messages]); // Re-run when messages change
+
   // Load all saved configurations on mount
   useEffect(() => {
     loadSavedConfigurations();
