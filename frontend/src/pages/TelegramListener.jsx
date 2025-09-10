@@ -24,6 +24,10 @@ const TelegramListener = () => {
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordingTimer, setRecordingTimer] = useState(null);
   
+  // Image modal states
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
+  
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
@@ -885,6 +889,23 @@ const TelegramListener = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Image modal functions
+  const openImageModal = (message) => {
+    setSelectedImage({
+      src: `${API_BASE_URL}/api/telegram-listener/image/${listenerId}/${message.image_file_id || message.imageFileId}`,
+      caption: message.caption,
+      fromName: message.fromName,
+      date: message.date,
+      fileSize: message.image_file_size || message.imageFileSize
+    });
+    setShowImageModal(true);
+  };
+
+  const closeImageModal = () => {
+    setSelectedImage(null);
+    setShowImageModal(false);
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: colors.primaryBg, padding: '0' }}>
       <div style={{ width: '100%', margin: '0 auto', padding: '0' }}>
@@ -1472,12 +1493,18 @@ const TelegramListener = () => {
                                       maxHeight: '300px',
                                       borderRadius: '8px',
                                       objectFit: 'contain',
-                                      backgroundColor: '#f0f0f0'
+                                      backgroundColor: '#f0f0f0',
+                                      cursor: 'pointer',
+                                      transition: 'transform 0.2s ease'
                                     }}
+                                    onClick={() => openImageModal(message)}
+                                    onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
+                                    onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                                     onError={(e) => {
                                       e.target.style.display = 'none';
                                       e.target.nextSibling.style.display = 'block';
                                     }}
+                                    title="Click to view larger"
                                   />
                                   <div style={{ display: 'none', fontSize: '0.875rem', fontStyle: 'italic', opacity: 0.7 }}>
                                     Failed to load image
@@ -2213,6 +2240,114 @@ const TelegramListener = () => {
           </div>
           
         </div>
+
+        {/* Image Modal */}
+        {showImageModal && selectedImage && (
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999,
+              padding: '2rem'
+            }}
+            onClick={closeImageModal}
+          >
+            <div 
+              style={{
+                position: 'relative',
+                maxWidth: '90vw',
+                maxHeight: '90vh',
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 25px 50px rgba(0, 0, 0, 0.5)'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={closeImageModal}
+                style={{
+                  position: 'absolute',
+                  top: '1rem',
+                  right: '1rem',
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 10000
+                }}
+                title="Close"
+              >
+                ✕
+              </button>
+
+              {/* Image */}
+              <img 
+                src={selectedImage.src}
+                alt="Enlarged view"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  maxHeight: '70vh',
+                  objectFit: 'contain',
+                  display: 'block'
+                }}
+              />
+
+              {/* Image Info */}
+              <div style={{
+                padding: '1rem 1.5rem',
+                borderTop: `1px solid ${colors.border}`,
+                backgroundColor: 'white'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                  <div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: '600', color: colors.primaryText }}>
+                      From: {selectedImage.fromName}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: colors.mutedText }}>
+                      {new Date(selectedImage.date).toLocaleString()}
+                    </div>
+                  </div>
+                  {selectedImage.fileSize && (
+                    <div style={{ fontSize: '0.75rem', color: colors.mutedText }}>
+                      {(selectedImage.fileSize / 1024).toFixed(1)} KB
+                    </div>
+                  )}
+                </div>
+                
+                {selectedImage.caption && (
+                  <div style={{
+                    fontSize: '0.875rem',
+                    color: colors.primaryText,
+                    fontStyle: 'italic',
+                    padding: '0.75rem',
+                    backgroundColor: colors.inputBg,
+                    borderRadius: '8px',
+                    border: `1px solid ${colors.border}`
+                  }}>
+                    {selectedImage.caption}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* AI Settings Modal */}
         {showAISettings && (
