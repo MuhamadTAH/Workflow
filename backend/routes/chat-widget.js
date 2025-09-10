@@ -51,6 +51,7 @@ router.post('/activate', (req, res) => {
 
 // Send a message from the chat widget
 router.post('/message', (req, res) => {
+  console.log('🔥 CHAT WIDGET MESSAGE ENDPOINT HIT - PRODUCTION CHECK');
   try {
     const { sessionId, widgetId, message, senderName, senderEmail } = req.body;
     
