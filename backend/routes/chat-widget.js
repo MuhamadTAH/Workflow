@@ -404,6 +404,72 @@ router.post('/ai-config', async (req, res) => {
   }
 });
 
+// Function to send message to Claude (same pattern as WhatsApp)
+const sendMessageToClaude = async (messageText, systemPrompt = '', knowledgeBase = '', apiKey = null) => {
+  try {
+    console.log('🤖 Sending message to Claude AI:', messageText.substring(0, 50) + '...');
+    
+    const claudeApiKey = apiKey || aiConfigCache.apiKey || process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY;
+    
+    if (!claudeApiKey) {
+      throw new Error('Claude API key not configured');
+    }
+
+    // Combine system prompt with knowledge base
+    let fullSystemPrompt = systemPrompt || aiConfigCache.systemPrompt;
+    if (knowledgeBase && knowledgeBase.trim()) {
+      fullSystemPrompt += `\n\nKnowledge Base:\n${knowledgeBase}`;
+    }
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': claudeApiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: aiConfigCache.model || 'claude-3-5-sonnet-20241022',
+        max_tokens: 1000,
+        system: fullSystemPrompt || 'You are a helpful customer support assistant for a website chat widget.',
+        messages: [
+          {
+            role: 'user',
+            content: messageText
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Claude API error: ${errorData.error?.message || 'Unknown error'}`);
+    }
+
+    const data = await response.json();
+    const responseText = data.content?.[0]?.text;
+
+    console.log('✅ Claude AI response received:', {
+      responseLength: responseText?.length || 0,
+      usage: data.usage
+    });
+
+    return {
+      success: true,
+      response: responseText || 'Sorry, I could not generate a response.',
+      usage: data.usage
+    };
+
+  } catch (error) {
+    console.error('❌ Error calling Claude API:', error.message);
+    return {
+      success: false,
+      error: error.message,
+      response: 'Sorry, I encountered an error processing your message.'
+    };
+  }
+};
+
 // AI Auto-reply functionality
 async function processAIReply(messageData) {
   try {
@@ -413,7 +479,7 @@ async function processAIReply(messageData) {
       return;
     }
 
-    if (!aiConfigCache.apiKey) {
+    if (!aiConfigCache.apiKey && !process.env.ANTHROPIC_API_KEY && !process.env.CLAUDE_API_KEY) {
       console.log('🤖 AI auto-reply skipped: No API key configured');
       return;
     }
@@ -423,24 +489,24 @@ async function processAIReply(messageData) {
       try {
         console.log('🤖 Generating AI reply for message:', messageData.message);
         
-        // Create a temporary Claude AI instance with the configured API key
-        const tempClaudeAI = new ClaudeAI();
-        tempClaudeAI.apiKey = aiConfigCache.apiKey;
-        
-        // Generate AI response
-        const aiResponse = await tempClaudeAI.sendMessage(
+        // Generate AI response using same pattern as WhatsApp
+        const claudeResult = await sendMessageToClaude(
           messageData.message,
           aiConfigCache.systemPrompt,
-          aiConfigCache.knowledgeBase
+          aiConfigCache.knowledgeBase,
+          aiConfigCache.apiKey
         );
 
-        if (aiResponse) {
+        if (claudeResult && claudeResult.success) {
+          console.log('✅ Claude response received:', claudeResult.response.substring(0, 100) + '...');
+          console.log('💰 Token usage:', claudeResult.usage);
+          
           // Create AI reply message
           const aiReplyData = {
             id: `msg_${Date.now()}_${Math.random().toString(36).substring(2)}`,
             sessionId: `ai_reply_${Date.now()}`,
             widgetId: messageData.widgetId,
-            message: aiResponse,
+            message: claudeResult.response,
             senderName: 'AI Assistant',
             senderEmail: null,
             websiteUrl: messageData.websiteUrl || 'AI Reply',
@@ -471,13 +537,15 @@ async function processAIReply(messageData) {
             ],
             function(err) {
               if (err) {
-                console.error('Error storing AI reply:', err);
+                console.error('❌ Error storing AI reply:', err);
               } else {
                 console.log('🤖 AI REPLY STORED:', aiReplyData);
                 logger.info('AI reply generated and stored', aiReplyData);
               }
             }
           );
+        } else {
+          console.log('❌ No response from Claude AI');
         }
       } catch (error) {
         console.error('Error generating AI reply:', error);
@@ -489,5 +557,103 @@ async function processAIReply(messageData) {
     console.error('Error in AI reply processing:', error);
   }
 }
+
+// Claude connection test endpoint (same pattern as WhatsApp)
+router.post('/claude/connect', async (req, res) => {
+  try {
+    const { claudeApiKey, systemPrompt } = req.body;
+    
+    if (!claudeApiKey) {
+      return res.status(400).json({ success: false, error: 'Claude API key is required' });
+    }
+    
+    console.log('🤖 Testing Claude API connection...');
+    
+    // Test the API key by sending a simple message
+    const testResult = await sendMessageToClaude(
+      'Hello, this is a connection test.',
+      systemPrompt || 'Respond with just "Connection successful"',
+      '',
+      claudeApiKey
+    );
+    
+    if (testResult.success) {
+      // Update the cached configuration with the new API key
+      aiConfigCache.apiKey = claudeApiKey;
+      if (systemPrompt) {
+        aiConfigCache.systemPrompt = systemPrompt;
+      }
+      
+      console.log('✅ Claude API connection successful');
+      
+      res.json({
+        success: true,
+        message: 'Claude API connected successfully',
+        status: '✅ Connected and ready for auto-replies',
+        testResponse: testResult.response
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: `Claude API connection failed: ${testResult.error}`,
+        status: '❌ Connection failed'
+      });
+    }
+  } catch (error) {
+    console.error('Error testing Claude connection:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to test Claude connection',
+      details: error.message
+    });
+  }
+});
+
+// AI test endpoint
+router.post('/ai-test', async (req, res) => {
+  try {
+    const { message } = req.body;
+    console.log('🧪 Testing Chat Widget AI with message:', message);
+    
+    if (!message) {
+      return res.status(400).json({ success: false, error: 'Test message is required' });
+    }
+    
+    // Test AI response using current configuration
+    const testResult = await sendMessageToClaude(
+      message,
+      aiConfigCache.systemPrompt,
+      aiConfigCache.knowledgeBase,
+      aiConfigCache.apiKey
+    );
+    
+    if (testResult.success) {
+      res.json({
+        success: true,
+        response: testResult.response,
+        usage: testResult.usage,
+        config: {
+          aiEnabled: aiConfigCache.aiEnabled,
+          autoReply: aiConfigCache.autoReply,
+          hasApiKey: !!aiConfigCache.apiKey,
+          model: aiConfigCache.model
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: testResult.error,
+        response: testResult.response
+      });
+    }
+  } catch (error) {
+    console.error('Error testing AI:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to test AI',
+      details: error.message
+    });
+  }
+});
 
 module.exports = router;
