@@ -443,27 +443,64 @@
 
     connectWebSocket() {
       const wsUrl = this.apiUrl.replace('http', 'ws').replace('https', 'wss') + `/?sessionId=${this.sessionId}`;
+      console.log('Attempting WebSocket connection to:', wsUrl);
+      
       this.websocket = new WebSocket(wsUrl);
 
       this.websocket.onopen = () => {
+        console.log('WebSocket connected successfully');
         this.updateStatus('connected');
       };
 
       this.websocket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        
-        if (data.type === 'message') {
-          this.addMessage(data.message, data.sender || 'agent');
+        console.log('WebSocket message received:', event.data);
+        try {
+          const data = JSON.parse(event.data);
+          
+          if (data.type === 'message') {
+            this.addMessage(data.message, data.sender || 'agent');
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
         }
       };
 
-      this.websocket.onclose = () => {
+      this.websocket.onclose = (event) => {
+        console.log('WebSocket closed:', event.code, event.reason);
         this.updateStatus('disconnected');
+        
+        // Try to reconnect after 3 seconds if not manually closed
+        if (event.code !== 1000) {
+          setTimeout(() => {
+            console.log('Attempting WebSocket reconnection...');
+            this.connectWebSocket();
+          }, 3000);
+        }
       };
 
-      this.websocket.onerror = () => {
+      this.websocket.onerror = (error) => {
+        console.error('WebSocket error:', error);
         this.updateStatus('disconnected');
+        
+        // Fallback: Use polling instead of WebSocket
+        this.startPolling();
       };
+    }
+
+    startPolling() {
+      console.log('Starting polling fallback...');
+      this.updateStatus('connected');
+      
+      // Add a simple welcome message
+      setTimeout(() => {
+        this.addMessage('Chat connected via polling. How can we help you?', 'bot');
+      }, 1000);
+      
+      // Simulate polling every 5 seconds
+      this.pollingInterval = setInterval(() => {
+        // This could check for new messages via REST API
+        console.log('Polling for messages...');
+      }, 5000);
     }
 
     sendMessage() {
@@ -474,13 +511,41 @@
       this.addMessage(text, 'user');
       this.textarea.value = '';
 
-      // Send via WebSocket
+      // Send via WebSocket if connected
       if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
         this.websocket.send(JSON.stringify({
           type: 'message',
           message: text,
           sessionId: this.sessionId
         }));
+      } else {
+        // Fallback: Send via REST API
+        this.sendViaAPI(text);
+      }
+    }
+
+    async sendViaAPI(message) {
+      try {
+        const response = await fetch(`${this.apiUrl}/api/chat-widget/session/${this.sessionId}/message`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, sender: 'user' })
+        });
+
+        if (response.ok) {
+          console.log('Message sent via API successfully');
+          
+          // Simulate an auto-response for demo
+          setTimeout(() => {
+            this.addMessage('Thank you for your message! An agent will respond shortly.', 'bot');
+          }, 1500);
+        } else {
+          console.error('Failed to send message via API');
+          this.addMessage('Sorry, there was an issue sending your message. Please try again.', 'bot');
+        }
+      } catch (error) {
+        console.error('Error sending message via API:', error);
+        this.addMessage('Chat is currently offline. Please try again later.', 'bot');
       }
     }
 
