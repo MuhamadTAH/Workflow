@@ -163,14 +163,6 @@ const TelegramActivity = () => {
             "{latestUser.text}"
           </div>
         )}
-        <div style={{
-          fontSize: '0.7rem',
-          color: '#6366f1',
-          marginTop: '0.25rem',
-          fontWeight: '500'
-        }}>
-          Click to view in Telegram Listener →
-        </div>
       </div>
     </div>
   );
