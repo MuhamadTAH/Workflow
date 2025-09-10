@@ -555,7 +555,7 @@ ChatWidget.init({
                                 lineHeight: '1.5',
                                 wordBreak: 'break-word'
                               }}>
-                                "{message.message}"
+                                "{message.text || message.message || 'No message content'}"
                               </div>
                             </div>
                             

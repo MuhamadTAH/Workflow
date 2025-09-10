@@ -39,7 +39,12 @@ class ChatWebSocketServer {
         agentSocket: null,
         messages: [],
         createdAt: new Date(),
-        isActive: true
+        isActive: true,
+        userInfo: {
+          ip: req.connection.remoteAddress || req.socket.remoteAddress || 'Unknown',
+          userAgent: req.headers['user-agent'] || 'Unknown Browser',
+          referrer: req.headers.referer || req.headers.referrer || 'Direct'
+        }
       });
     }
 
@@ -115,7 +120,8 @@ class ChatWebSocketServer {
       text: message.message,
       sender: ws.isAgent ? 'agent' : 'user',
       timestamp: new Date(),
-      sessionId: ws.sessionId
+      sessionId: ws.sessionId,
+      userInfo: session.userInfo || {}
     };
 
     // Store message in session
