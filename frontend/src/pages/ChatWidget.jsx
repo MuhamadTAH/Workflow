@@ -28,11 +28,10 @@ const ChatWidget = () => {
   const [isWebsiteInfoCollapsed, setIsWebsiteInfoCollapsed] = useState(false);
   const [isStatsCollapsed, setIsStatsCollapsed] = useState(false);
 
-  // Generate unique widget ID on component mount
+  // Set fixed widget ID on component mount
   useEffect(() => {
     if (!widgetId) {
-      const newWidgetId = 'widget_' + Math.random().toString(36).substr(2, 9);
-      setWidgetId(newWidgetId);
+      setWidgetId('widget_main_site'); // Fixed ID that won't change
     }
   }, []);
 
