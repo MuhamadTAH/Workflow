@@ -31,6 +31,7 @@ import APIKeysDashboard from './components/APIKeysDashboard';
 import Settings from './pages/Settings';
 import TelegramActivity from './components/TelegramActivity';
 import WhatsAppActivity from './components/WhatsAppActivity';
+import InstagramActivity from './components/InstagramActivity';
 // Import shop components using the modular router
 import { 
   ShopDashboard, 
@@ -207,6 +208,7 @@ function Home() {
             <div className="activity-list">
               <TelegramActivity />
               <WhatsAppActivity />
+              <InstagramActivity />
             </div>
           </div>
 
