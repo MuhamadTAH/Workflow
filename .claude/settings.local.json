@@ -75,7 +75,8 @@
       "Bash(git clean:*)",
       "Bash(echo $API_BASE_URL)",
       "Bash(start http://localhost:5173/chat-widget)",
-      "Bash(start \"D:\\automation\\Workflow\\test-chat-widget.html\")"
+      "Bash(start \"D:\\automation\\Workflow\\test-chat-widget.html\")",
+      "Bash(start:*)"
     ],
     "deny": []
   }

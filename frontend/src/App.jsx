@@ -30,6 +30,7 @@ import AdminDashboard from './components/AdminDashboard';
 import APIKeysDashboard from './components/APIKeysDashboard';
 import Settings from './pages/Settings';
 import TelegramActivity from './components/TelegramActivity';
+import WhatsAppActivity from './components/WhatsAppActivity';
 // Import shop components using the modular router
 import { 
   ShopDashboard, 

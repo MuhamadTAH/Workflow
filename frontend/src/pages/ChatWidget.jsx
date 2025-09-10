@@ -40,8 +40,8 @@ const ChatWidget = () => {
   const generateEmbedCode = () => {
     return `<!-- Chat Widget by Your Company -->
 <script>
-(function() {
-  var chatWidget = {
+// Make chatWidget globally accessible
+window.chatWidget = {
     widgetId: '${widgetId}',
     apiUrl: '${API_BASE_URL}/api/chat-widget',
     color: '${widgetColor}',
@@ -65,21 +65,21 @@ const ChatWidget = () => {
     
     getHTML: function() {
       return \`
-        <div id="chat-bubble" onclick="chatWidget.toggleChat()">
+        <div id="chat-bubble" onclick="window.chatWidget.toggleChat()">
           <div class="chat-icon">💬</div>
           <div class="chat-notification" id="chat-notification" style="display: none;">1</div>
         </div>
         <div id="chat-window" style="display: none;">
           <div class="chat-header">
             <span>Chat with us</span>
-            <button onclick="chatWidget.toggleChat()" class="close-btn">×</button>
+            <button onclick="window.chatWidget.toggleChat()" class="close-btn">×</button>
           </div>
           <div class="chat-messages" id="chat-messages">
             <div class="message bot-message">\${this.welcomeMessage}</div>
           </div>
           <div class="chat-input-area">
-            <input type="text" id="chat-input" placeholder="Type a message..." onkeypress="chatWidget.handleKeyPress(event)">
-            <button onclick="chatWidget.sendMessage()" class="send-btn">Send</button>
+            <input type="text" id="chat-input" placeholder="Type a message..." onkeypress="window.chatWidget.handleKeyPress(event)">
+            <button onclick="window.chatWidget.sendMessage()" class="send-btn">Send</button>
           </div>
         </div>
       \`;
@@ -226,12 +226,19 @@ const ChatWidget = () => {
     },
     
     toggleChat: function() {
+      console.log('Toggle chat called');
       var chatWindow = document.getElementById('chat-window');
-      if (chatWindow.style.display === 'none') {
-        chatWindow.style.display = 'flex';
-        document.getElementById('chat-notification').style.display = 'none';
+      if (chatWindow) {
+        if (chatWindow.style.display === 'none' || chatWindow.style.display === '') {
+          chatWindow.style.display = 'flex';
+          document.getElementById('chat-notification').style.display = 'none';
+          console.log('Chat window opened');
+        } else {
+          chatWindow.style.display = 'none';
+          console.log('Chat window closed');
+        }
       } else {
-        chatWindow.style.display = 'none';
+        console.error('Chat window element not found');
       }
     },
     
@@ -319,17 +326,16 @@ const ChatWidget = () => {
       // Initialize session on widget load
       this.sessionId = null;
     }
-  };
-  
-  // Initialize widget when DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-      chatWidget.init();
-    });
-  } else {
-    chatWidget.init();
-  }
-})();
+};
+
+// Initialize widget when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() {
+    window.chatWidget.init();
+  });
+} else {
+  window.chatWidget.init();
+}
 </script>`;
   };
 
