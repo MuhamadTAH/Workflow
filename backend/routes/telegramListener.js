@@ -22,6 +22,19 @@ const voiceUpload = multer({
   }
 });
 
+// Configure multer for image file uploads
+const imageUpload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  }
+});
+
 // Middleware to verify JWT token - same as WhatsApp for consistency
 const verifyToken = (req, res, next) => {
   console.log('🔐 Telegram Listener Token Verification:', {
@@ -895,6 +908,118 @@ router.post('/send-voice', voiceUpload.single('voice'), asyncHandler(async (req,
     res.status(500).json({
       success: false,
       error: 'Failed to send voice message',
+      message: error.message
+    });
+  }
+}));
+
+// Send image message endpoint
+router.post('/send-image', imageUpload.single('image'), asyncHandler(async (req, res) => {
+  const { chatId } = req.body;
+  
+  try {
+    // Get bot configuration from user's session
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+
+    // Get user's active bot configuration
+    const userBot = await getUserActiveBotFromDatabase(userId);
+    if (!userBot) {
+      return res.status(400).json({
+        success: false,
+        error: 'No active bot configuration found. Please setup a bot first.'
+      });
+    }
+
+    if (!chatId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Chat ID is required'
+      });
+    }
+
+    // Check if image file was uploaded
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'Image file is required'
+      });
+    }
+
+    const imageFile = req.file;
+    console.log('📷 Sending image message to chat:', chatId);
+    console.log('📷 Image file info:', {
+      originalname: imageFile.originalname,
+      mimetype: imageFile.mimetype,
+      size: imageFile.size
+    });
+
+    // Send image message to Telegram using FormData
+    const FormData = require('form-data');
+    const form = new FormData();
+    form.append('chat_id', chatId);
+    form.append('photo', imageFile.buffer, {
+      filename: imageFile.originalname,
+      contentType: imageFile.mimetype
+    });
+
+    const response = await axios.post(
+      `https://api.telegram.org/bot${userBot.bot_token}/sendPhoto`,
+      form,
+      {
+        headers: {
+          ...form.getHeaders()
+        }
+      }
+    );
+
+    if (response.data.ok) {
+      console.log('✅ Image message sent successfully');
+      
+      // Get the largest photo size from response
+      const photos = response.data.result.photo;
+      const largestPhoto = photos[photos.length - 1];
+      
+      // Store the sent image message in database
+      const sentMessageData = {
+        updateId: 'sent_' + Date.now(),
+        messageId: response.data.result.message_id,
+        chatId: chatId,
+        text: '[Image sent]',
+        fromUserId: 'bot',
+        fromName: 'You',
+        fromUsername: 'bot',
+        date: new Date().toISOString(),
+        type: 'image',
+        isBotMessage: true,
+        imageFileId: largestPhoto?.file_id,
+        imageWidth: largestPhoto?.width,
+        imageHeight: largestPhoto?.height,
+        imageFileSize: largestPhoto?.file_size,
+        caption: req.body.caption || null
+      };
+
+      await saveMessageToDatabase(userBot.listener_id, sentMessageData);
+
+      res.json({
+        success: true,
+        message: 'Image message sent successfully',
+        telegramResponse: response.data.result
+      });
+    } else {
+      console.error('❌ Telegram API error:', response.data);
+      res.status(400).json({
+        success: false,
+        error: 'Failed to send image message via Telegram',
+        details: response.data.description
+      });
+    }
+  } catch (error) {
+    console.error('❌ Send image message error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to send image message',
       message: error.message
     });
   }

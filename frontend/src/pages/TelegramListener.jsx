@@ -28,6 +28,10 @@ const TelegramListener = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showImageModal, setShowImageModal] = useState(false);
   
+  // Image upload states
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
@@ -906,6 +910,66 @@ const TelegramListener = () => {
     setShowImageModal(false);
   };
 
+  // Image upload functions
+  const handleImageSelect = (event) => {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      setSelectedImageFile(file);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert('Please select a valid image file');
+    }
+  };
+
+  const cancelImageUpload = () => {
+    setSelectedImageFile(null);
+    setImagePreview(null);
+  };
+
+  const sendImageMessage = async () => {
+    if (!selectedUser || !selectedImageFile) {
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('image', selectedImageFile);
+      formData.append('chatId', selectedUser.chatId);
+
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/send-image`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setSelectedImageFile(null);
+        setImagePreview(null);
+        // Refresh messages immediately to show the sent image
+        fetchMessages();
+      } else {
+        alert(`❌ Failed to send image: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Send image error:', error);
+      alert(`❌ Network error: ${error.message}`);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: colors.primaryBg, padding: '0' }}>
       <div style={{ width: '100%', margin: '0 auto', padding: '0' }}>
@@ -1632,6 +1696,72 @@ const TelegramListener = () => {
                         </div>
                       )}
                       
+                      {/* Image Upload Preview */}
+                      {selectedImageFile && imagePreview && (
+                        <div style={{ 
+                          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                          border: '1px solid rgba(59, 130, 246, 0.3)',
+                          borderRadius: '8px',
+                          padding: '0.75rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <img 
+                              src={imagePreview}
+                              alt="Image preview"
+                              style={{
+                                width: '60px',
+                                height: '60px',
+                                borderRadius: '6px',
+                                objectFit: 'cover',
+                                border: '1px solid rgba(0,0,0,0.1)'
+                              }}
+                            />
+                            <div>
+                              <div style={{ fontSize: '0.875rem', fontWeight: '500', color: colors.primaryText }}>
+                                📷 Image selected
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: colors.mutedText }}>
+                                {selectedImageFile.name} • {(selectedImageFile.size / 1024).toFixed(1)} KB
+                              </div>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                              onClick={sendImageMessage}
+                              disabled={isSending}
+                              style={{
+                                backgroundColor: isSending ? colors.mutedText : colors.success,
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.75rem',
+                                cursor: isSending ? 'not-allowed' : 'pointer'
+                              }}
+                            >
+                              {isSending ? 'Sending...' : 'Send'}
+                            </button>
+                            <button
+                              onClick={cancelImageUpload}
+                              style={{
+                                backgroundColor: colors.error,
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                padding: '0.5rem 1rem',
+                                fontSize: '0.75rem',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
                       {/* Main Input Area */}
                       <div style={{ 
                         display: 'flex',
@@ -1691,6 +1821,39 @@ const TelegramListener = () => {
                         >
                           🎤
                         </button>
+                        
+                        {/* Image Upload Button */}
+                        <div style={{ position: 'relative' }}>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageSelect}
+                            style={{ display: 'none' }}
+                            id="image-upload"
+                            disabled={isSending || isRecording || recordedBlob || selectedImageFile}
+                          />
+                          <label
+                            htmlFor="image-upload"
+                            style={{
+                              backgroundColor: (isSending || isRecording || recordedBlob || selectedImageFile) ? colors.mutedText : colors.brandBlue,
+                              color: 'white',
+                              padding: '0.75rem',
+                              border: 'none',
+                              borderRadius: '50%',
+                              fontSize: '1rem',
+                              cursor: (isSending || isRecording || recordedBlob || selectedImageFile) ? 'not-allowed' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '40px',
+                              height: '40px',
+                              minWidth: '40px'
+                            }}
+                            title="Upload image"
+                          >
+                            📷
+                          </label>
+                        </div>
                         
                         {/* Send Text Button */}
                         <button
