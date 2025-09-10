@@ -1,9 +1,26 @@
 const express = require('express');
 const axios = require('axios');
+const jwt = require('jsonwebtoken');
+const multer = require('multer');
 const router = express.Router();
 const { asyncHandler } = require('../middleware/errorHandler');
 const logger = require('../services/logger');
 const db = require('../db');
+
+// Configure multer for voice file uploads
+const voiceUpload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('audio/') || 
+        file.mimetype === 'video/webm' || 
+        file.mimetype === 'application/octet-stream') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only audio files are allowed'), false);
+    }
+  }
+});
 
 // Middleware to verify JWT token - same as WhatsApp for consistency
 const verifyToken = (req, res, next) => {
@@ -84,6 +101,20 @@ const updateBotActivity = async (listenerId) => {
     `, [listenerId], (err) => {
       if (err) reject(err);
       else resolve();
+    });
+  });
+};
+
+const getUserActiveBotFromDatabase = async (userId) => {
+  return new Promise((resolve, reject) => {
+    db.get(`
+      SELECT * FROM telegram_listener_bots 
+      WHERE user_id = ? AND is_active = 1 
+      ORDER BY setup_at DESC 
+      LIMIT 1
+    `, [userId], (err, row) => {
+      if (err) reject(err);
+      else resolve(row);
     });
   });
 };
@@ -757,6 +788,113 @@ router.get('/image/:listenerId/:fileId', asyncHandler(async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve image file',
+      message: error.message
+    });
+  }
+}));
+
+// Send voice message endpoint
+router.post('/send-voice', voiceUpload.single('voice'), asyncHandler(async (req, res) => {
+  const { chatId } = req.body;
+  
+  try {
+    // Get bot configuration from user's session
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+
+    // Get user's active bot configuration
+    const userBot = await getUserActiveBotFromDatabase(userId);
+    if (!userBot) {
+      return res.status(400).json({
+        success: false,
+        error: 'No active bot configuration found. Please setup a bot first.'
+      });
+    }
+
+    if (!chatId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Chat ID is required'
+      });
+    }
+
+    // Check if voice file was uploaded
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'Voice file is required'
+      });
+    }
+
+    const voiceFile = req.file;
+    console.log('🎤 Sending voice message to chat:', chatId);
+    console.log('🎤 Voice file info:', {
+      originalname: voiceFile.originalname,
+      mimetype: voiceFile.mimetype,
+      size: voiceFile.size
+    });
+
+    // Send voice message to Telegram using FormData
+    const FormData = require('form-data');
+    const form = new FormData();
+    form.append('chat_id', chatId);
+    form.append('voice', voiceFile.buffer, {
+      filename: 'voice.ogg',
+      contentType: 'audio/ogg'
+    });
+
+    const response = await axios.post(
+      `https://api.telegram.org/bot${userBot.bot_token}/sendVoice`,
+      form,
+      {
+        headers: {
+          ...form.getHeaders()
+        }
+      }
+    );
+
+    if (response.data.ok) {
+      console.log('✅ Voice message sent successfully');
+      
+      // Store the sent voice message in database
+      const sentMessageData = {
+        updateId: 'sent_' + Date.now(),
+        messageId: response.data.result.message_id,
+        chatId: chatId,
+        text: '[Voice message sent]',
+        fromUserId: 'bot',
+        fromName: 'You',
+        fromUsername: 'bot',
+        date: new Date().toISOString(),
+        type: 'voice',
+        isBotMessage: true,
+        voiceFileId: response.data.result.voice?.file_id,
+        voiceDuration: response.data.result.voice?.duration,
+        voiceMimeType: response.data.result.voice?.mime_type,
+        voiceFileSize: response.data.result.voice?.file_size
+      };
+
+      await saveMessageToDatabase(userBot.listener_id, sentMessageData);
+
+      res.json({
+        success: true,
+        message: 'Voice message sent successfully',
+        telegramResponse: response.data.result
+      });
+    } else {
+      console.error('❌ Telegram API error:', response.data);
+      res.status(400).json({
+        success: false,
+        error: 'Failed to send voice message via Telegram',
+        details: response.data.description
+      });
+    }
+  } catch (error) {
+    console.error('❌ Send voice message error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to send voice message',
       message: error.message
     });
   }

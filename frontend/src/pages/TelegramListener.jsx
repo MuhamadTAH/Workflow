@@ -17,6 +17,13 @@ const TelegramListener = () => {
   const [sendMessage, setSendMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   
+  // Voice recording states
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [recordedBlob, setRecordedBlob] = useState(null);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [recordingTimer, setRecordingTimer] = useState(null);
+  
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isRightSidebarCollapsed, setIsRightSidebarCollapsed] = useState(false);
@@ -776,6 +783,108 @@ const TelegramListener = () => {
     }
   };
 
+  // Voice recording functions
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm;codecs=opus'
+      });
+
+      const chunks = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm;codecs=opus' });
+        setRecordedBlob(blob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      setMediaRecorder(recorder);
+      recorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      // Start timer
+      const timer = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+      setRecordingTimer(timer);
+
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      alert('Could not access microphone. Please check permissions.');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      if (recordingTimer) {
+        clearInterval(recordingTimer);
+        setRecordingTimer(null);
+      }
+    }
+  };
+
+  const cancelRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    }
+    setRecordedBlob(null);
+    setRecordingTime(0);
+  };
+
+  const sendVoiceMessage = async () => {
+    if (!selectedUser || !recordedBlob) {
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('voice', recordedBlob, 'voice_message.webm');
+      formData.append('chatId', selectedUser.chatId);
+
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/send-voice`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setRecordedBlob(null);
+        setRecordingTime(0);
+        // Refresh messages immediately to show the sent voice message
+        fetchMessages();
+      } else {
+        alert(`❌ Failed to send voice message: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Send voice message error:', error);
+      alert(`❌ Network error: ${error.message}`);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  // Format recording time
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: colors.primaryBg, padding: '0' }}>
       <div style={{ width: '100%', margin: '0 auto', padding: '0' }}>
@@ -1420,60 +1529,166 @@ const TelegramListener = () => {
                       borderRadius: '0 0 4px 4px',
                       padding: '1rem',
                       display: 'flex',
-                      gap: '0.75rem',
-                      alignItems: 'flex-end'
+                      flexDirection: 'column',
+                      gap: '0.75rem'
                     }}>
-                      <div style={{ flex: 1 }}>
-                        <textarea
-                          value={sendMessage}
-                          onChange={(e) => setSendMessage(e.target.value)}
-                          placeholder={`Type a message to ${selectedUser.fromName}...`}
-                          style={{
-                            width: '100%',
-                            minHeight: '40px',
-                            maxHeight: '120px',
-                            padding: '0.75rem',
-                            border: `1px solid ${colors.border}`,
-                            borderRadius: '20px',
-                            fontSize: '0.875rem',
-                            resize: 'none',
-                            outline: 'none',
-                            fontFamily: 'inherit',
-                            lineHeight: '1.4'
-                          }}
-                          disabled={isSending}
-                          onKeyPress={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              if (sendMessage.trim() && !isSending) {
-                                handleSendMessage();
-                              }
-                            }
-                          }}
-                        />
-                      </div>
-                      <button
-                        onClick={handleSendMessage}
-                        disabled={isSending || !sendMessage.trim()}
-                        style={{
-                          backgroundColor: isSending || !sendMessage.trim() ? colors.mutedText : colors.brandBlue,
-                          color: 'white',
+                      
+                      {/* Voice Recording Status */}
+                      {(isRecording || recordedBlob) && (
+                        <div style={{ 
+                          backgroundColor: isRecording ? 'rgba(239, 68, 68, 0.1)' : 'rgba(34, 197, 94, 0.1)',
+                          border: `1px solid ${isRecording ? 'rgba(239, 68, 68, 0.3)' : 'rgba(34, 197, 94, 0.3)'}`,
+                          borderRadius: '8px',
                           padding: '0.75rem',
-                          border: 'none',
-                          borderRadius: '50%',
-                          fontSize: '1rem',
-                          cursor: isSending || !sendMessage.trim() ? 'not-allowed' : 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '40px',
-                          height: '40px',
-                          minWidth: '40px'
-                        }}
-                        title="Send message"
-                      >
-                        {isSending ? '⏳' : '📤'}
-                      </button>
+                          justifyContent: 'space-between'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '1rem' }}>
+                              {isRecording ? '🔴' : '🎵'}
+                            </span>
+                            <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>
+                              {isRecording ? `Recording... ${formatTime(recordingTime)}` : 'Voice message recorded'}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            {isRecording ? (
+                              <button
+                                onClick={stopRecording}
+                                style={{
+                                  backgroundColor: colors.success,
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '6px',
+                                  padding: '0.5rem 1rem',
+                                  fontSize: '0.75rem',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Stop
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={sendVoiceMessage}
+                                  disabled={isSending}
+                                  style={{
+                                    backgroundColor: isSending ? colors.mutedText : colors.success,
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    padding: '0.5rem 1rem',
+                                    fontSize: '0.75rem',
+                                    cursor: isSending ? 'not-allowed' : 'pointer'
+                                  }}
+                                >
+                                  {isSending ? 'Sending...' : 'Send'}
+                                </button>
+                                <button
+                                  onClick={cancelRecording}
+                                  style={{
+                                    backgroundColor: colors.error,
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    padding: '0.5rem 1rem',
+                                    fontSize: '0.75rem',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  Cancel
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Main Input Area */}
+                      <div style={{ 
+                        display: 'flex',
+                        gap: '0.75rem',
+                        alignItems: 'flex-end'
+                      }}>
+                        <div style={{ flex: 1 }}>
+                          <textarea
+                            value={sendMessage}
+                            onChange={(e) => setSendMessage(e.target.value)}
+                            placeholder={`Type a message to ${selectedUser.fromName}...`}
+                            style={{
+                              width: '100%',
+                              minHeight: '40px',
+                              maxHeight: '120px',
+                              padding: '0.75rem',
+                              border: `1px solid ${colors.border}`,
+                              borderRadius: '20px',
+                              fontSize: '0.875rem',
+                              resize: 'none',
+                              outline: 'none',
+                              fontFamily: 'inherit',
+                              lineHeight: '1.4'
+                            }}
+                            disabled={isSending || isRecording}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                if (sendMessage.trim() && !isSending && !isRecording) {
+                                  handleSendMessage();
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                        
+                        {/* Voice Record Button */}
+                        <button
+                          onClick={startRecording}
+                          disabled={isSending || isRecording || recordedBlob}
+                          style={{
+                            backgroundColor: (isSending || isRecording || recordedBlob) ? colors.mutedText : colors.success,
+                            color: 'white',
+                            padding: '0.75rem',
+                            border: 'none',
+                            borderRadius: '50%',
+                            fontSize: '1rem',
+                            cursor: (isSending || isRecording || recordedBlob) ? 'not-allowed' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '40px',
+                            height: '40px',
+                            minWidth: '40px'
+                          }}
+                          title="Record voice message"
+                        >
+                          🎤
+                        </button>
+                        
+                        {/* Send Text Button */}
+                        <button
+                          onClick={handleSendMessage}
+                          disabled={isSending || !sendMessage.trim() || isRecording || recordedBlob}
+                          style={{
+                            backgroundColor: (isSending || !sendMessage.trim() || isRecording || recordedBlob) ? colors.mutedText : colors.brandBlue,
+                            color: 'white',
+                            padding: '0.75rem',
+                            border: 'none',
+                            borderRadius: '50%',
+                            fontSize: '1rem',
+                            cursor: (isSending || !sendMessage.trim() || isRecording || recordedBlob) ? 'not-allowed' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '40px',
+                            height: '40px',
+                            minWidth: '40px'
+                          }}
+                          title="Send message"
+                        >
+                          {isSending ? '⏳' : '📤'}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
