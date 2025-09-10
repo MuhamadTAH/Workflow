@@ -274,7 +274,7 @@ ChatWidget.init({
         <div style={{ padding: '20px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             {!isLeftSidebarCollapsed && (
-              <h2 style={{ margin: 0, color: colors.text }}>Chat Support</h2>
+              <h2 style={{ margin: 0, color: '#000000' }}>Chat Support</h2>
             )}
             <button 
               onClick={() => setIsLeftSidebarCollapsed(!isLeftSidebarCollapsed)}
@@ -282,7 +282,7 @@ ChatWidget.init({
                 background: 'none', 
                 border: 'none', 
                 fontSize: '18px',
-                color: colors.text,
+                color: '#000000',
                 cursor: 'pointer'
               }}
             >
@@ -377,13 +377,13 @@ ChatWidget.init({
                       marginBottom: '10px',
                       background: selectedWidget?.id === widget.id ? colors.primaryLight : colors.cardBackground
                     }}>
-                      <h4 style={{ margin: '0 0 8px 0', color: colors.text }}>{widget.name}</h4>
-                      <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: colors.textSecondary }}>
+                      <h4 style={{ margin: '0 0 8px 0', color: '#000000' }}>{widget.name}</h4>
+                      <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#333333' }}>
                         Created: {new Date(widget.createdAt).toLocaleDateString()}
                       </p>
-                      <p style={{ margin: '0 0 10px 0', fontSize: '12px' }}>
-                        Status: <span style={{ color: widget.enabled ? colors.success : colors.error }}>
-                          {widget.enabled ? 'Enabled' : 'Disabled'}
+                      <p style={{ margin: '0 0 10px 0', fontSize: '12px', color: '#333333' }}>
+                        Status: <span style={{ color: widget.enabled ? '#28a745' : '#dc3545' }}>
+                          {widget.enabled ? '✅ Active' : '❌ Disabled'}
                         </span>
                       </p>
                       
@@ -428,7 +428,7 @@ ChatWidget.init({
                   {/* Live Messages Panel */}
                   <div style={{ marginBottom: '20px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                      <h4 style={{ margin: 0, color: colors.text }}>📨 Live Chat Messages</h4>
+                      <h4 style={{ margin: 0, color: '#000000' }}>📨 Live Chat Messages</h4>
                       <button
                         onClick={loadLiveMessages}
                         disabled={isLoadingMessages}
@@ -460,19 +460,19 @@ ChatWidget.init({
                         <div style={{ fontSize: '20px', fontWeight: 'bold', color: colors.primary }}>
                           {liveMessages.length}
                         </div>
-                        <div style={{ fontSize: '12px', color: colors.textSecondary }}>Total Messages</div>
+                        <div style={{ fontSize: '12px', color: '#333333' }}>Total Messages</div>
                       </div>
                       <div>
                         <div style={{ fontSize: '20px', fontWeight: 'bold', color: colors.success }}>
                           {liveMessages.filter(m => m.sender === 'user').length}
                         </div>
-                        <div style={{ fontSize: '12px', color: colors.textSecondary }}>From Users</div>
+                        <div style={{ fontSize: '12px', color: '#333333' }}>From Users</div>
                       </div>
                       <div>
                         <div style={{ fontSize: '20px', fontWeight: 'bold', color: colors.warning }}>
                           {liveMessages.filter(m => Date.now() - new Date(m.timestamp).getTime() < 300000).length}
                         </div>
-                        <div style={{ fontSize: '12px', color: colors.textSecondary }}>Last 5 min</div>
+                        <div style={{ fontSize: '12px', color: '#333333' }}>Last 5 min</div>
                       </div>
                     </div>
                   </div>
@@ -482,7 +482,7 @@ ChatWidget.init({
                     {liveMessages.length === 0 ? (
                       <div style={{ 
                         textAlign: 'center', 
-                        color: colors.textSecondary, 
+                        color: '#333333', 
                         marginTop: '50px',
                         padding: '40px'
                       }}>
@@ -519,21 +519,21 @@ ChatWidget.init({
                                 <div style={{ 
                                   fontSize: '14px', 
                                   fontWeight: 'bold', 
-                                  color: colors.text,
+                                  color: '#000000',
                                   marginBottom: '4px'
                                 }}>
                                   💬 User Message #{index + 1}
                                 </div>
                                 <div style={{ 
                                   fontSize: '12px', 
-                                  color: colors.textSecondary 
+                                  color: '#333333' 
                                 }}>
                                   Session: {message.sessionId.slice(0, 8)}... | Widget: {widgets.find(w => w.id === message.widgetId)?.name || 'Unknown'}
                                 </div>
                               </div>
                               <div style={{ 
                                 fontSize: '11px', 
-                                color: colors.textSecondary,
+                                color: '#333333',
                                 textAlign: 'right'
                               }}>
                                 <div>{new Date(message.timestamp).toLocaleString()}</div>
@@ -551,7 +551,7 @@ ChatWidget.init({
                             }}>
                               <div style={{ 
                                 fontSize: '15px', 
-                                color: colors.text,
+                                color: '#000000',
                                 lineHeight: '1.5',
                                 wordBreak: 'break-word'
                               }}>
@@ -564,7 +564,7 @@ ChatWidget.init({
                               justifyContent: 'space-between', 
                               alignItems: 'center',
                               fontSize: '12px',
-                              color: colors.textSecondary
+                              color: '#333333'
                             }}>
                               <div>
                                 🌐 IP: {message.userInfo?.ip || 'Unknown'} | 
@@ -631,7 +631,7 @@ ChatWidget.init({
                 <>
                   {/* Chat Dashboard */}
                   <div style={{ marginBottom: '20px' }}>
-                    <h4 style={{ margin: '0 0 10px 0', color: colors.text }}>Active Sessions</h4>
+                    <h4 style={{ margin: '0 0 10px 0', color: '#000000' }}>Active Sessions</h4>
                     
                     {/* Quick Widget Code Access */}
                     {widgets.length > 0 && (
@@ -667,19 +667,19 @@ ChatWidget.init({
                         <div style={{ fontSize: '18px', fontWeight: 'bold', color: colors.primary }}>
                           {sessions.length}
                         </div>
-                        <div style={{ fontSize: '12px', color: colors.textSecondary }}>Total</div>
+                        <div style={{ fontSize: '12px', color: '#333333' }}>Total</div>
                       </div>
                       <div>
                         <div style={{ fontSize: '18px', fontWeight: 'bold', color: colors.success }}>
                           {sessions.filter(s => s.isActive).length}
                         </div>
-                        <div style={{ fontSize: '12px', color: colors.textSecondary }}>Active</div>
+                        <div style={{ fontSize: '12px', color: '#333333' }}>Active</div>
                       </div>
                     </div>
                   </div>
 
                   {sessions.length === 0 ? (
-                    <div style={{ textAlign: 'center', color: colors.textSecondary, marginTop: '50px' }}>
+                    <div style={{ textAlign: 'center', color: '#333333', marginTop: '50px' }}>
                       No active sessions
                     </div>
                   ) : (
@@ -697,13 +697,13 @@ ChatWidget.init({
                           transition: 'background 0.2s'
                         }}
                       >
-                        <div style={{ fontWeight: 'bold', marginBottom: '5px', color: colors.text }}>
+                        <div style={{ fontWeight: 'bold', marginBottom: '5px', color: '#000000' }}>
                           Session {session.id.slice(0, 8)}...
                         </div>
-                        <div style={{ fontSize: '12px', color: colors.textSecondary, marginBottom: '5px' }}>
+                        <div style={{ fontSize: '12px', color: '#333333', marginBottom: '5px' }}>
                           {session.isActive ? 'Active' : 'Closed'}
                         </div>
-                        <div style={{ fontSize: '12px', color: colors.textSecondary }}>
+                        <div style={{ fontSize: '12px', color: '#333333' }}>
                           {new Date(session.createdAt).toLocaleString()}
                         </div>
                       </div>
@@ -726,11 +726,11 @@ ChatWidget.init({
             marginBottom: '20px',
             border: `1px solid ${colors.border}`
           }}>
-            <h3 style={{ color: colors.text }}>Create New Chat Widget</h3>
+            <h3 style={{ color: '#000000' }}>Create New Chat Widget</h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               <div>
-                <label style={{ color: colors.text }}>Widget Name *</label>
+                <label style={{ color: '#000000' }}>Widget Name *</label>
                 <input
                   type="text"
                   value={formData.name}
@@ -742,12 +742,12 @@ ChatWidget.init({
                     borderRadius: '6px',
                     marginBottom: '15px',
                     background: colors.inputBackground,
-                    color: colors.text
+                    color: '#000000'
                   }}
                   placeholder="My Website Chat"
                 />
 
-                <label style={{ color: colors.text }}>Primary Color</label>
+                <label style={{ color: '#000000' }}>Primary Color</label>
                 <input
                   type="color"
                   value={formData.primaryColor}
@@ -761,7 +761,7 @@ ChatWidget.init({
                   }}
                 />
 
-                <label style={{ color: colors.text }}>Position</label>
+                <label style={{ color: '#000000' }}>Position</label>
                 <select
                   value={formData.position}
                   onChange={(e) => setFormData({...formData, position: e.target.value})}
@@ -772,7 +772,7 @@ ChatWidget.init({
                     borderRadius: '6px',
                     marginBottom: '15px',
                     background: colors.inputBackground,
-                    color: colors.text
+                    color: '#000000'
                   }}
                 >
                   <option value="bottom-right">Bottom Right</option>
@@ -783,7 +783,7 @@ ChatWidget.init({
               </div>
 
               <div>
-                <label style={{ color: colors.text }}>Chat Title</label>
+                <label style={{ color: '#000000' }}>Chat Title</label>
                 <input
                   type="text"
                   value={formData.title}
@@ -795,11 +795,11 @@ ChatWidget.init({
                     borderRadius: '6px',
                     marginBottom: '15px',
                     background: colors.inputBackground,
-                    color: colors.text
+                    color: '#000000'
                   }}
                 />
 
-                <label style={{ color: colors.text }}>Welcome Message</label>
+                <label style={{ color: '#000000' }}>Welcome Message</label>
                 <textarea
                   value={formData.welcomeMessage}
                   onChange={(e) => setFormData({...formData, welcomeMessage: e.target.value})}
@@ -811,12 +811,12 @@ ChatWidget.init({
                     marginBottom: '15px',
                     resize: 'vertical',
                     background: colors.inputBackground,
-                    color: colors.text
+                    color: '#000000'
                   }}
                   rows="3"
                 />
 
-                <label style={{ color: colors.text }}>Input Placeholder</label>
+                <label style={{ color: '#000000' }}>Input Placeholder</label>
                 <input
                   type="text"
                   value={formData.placeholder}
@@ -828,7 +828,7 @@ ChatWidget.init({
                     borderRadius: '6px',
                     marginBottom: '15px',
                     background: colors.inputBackground,
-                    color: colors.text
+                    color: '#000000'
                   }}
                 />
               </div>
@@ -873,16 +873,16 @@ ChatWidget.init({
             borderRadius: '12px',
             border: `1px solid ${colors.border}`
           }}>
-            <h3 style={{ color: colors.text, marginBottom: '10px' }}>
+            <h3 style={{ color: '#000000', marginBottom: '10px' }}>
               🔗 Complete Embed Code{selectedWidget ? ` for "${selectedWidget.name}"` : ''}
             </h3>
-            <p style={{ color: colors.textSecondary, marginBottom: '25px', fontSize: '14px' }}>
+            <p style={{ color: '#333333', marginBottom: '25px', fontSize: '14px' }}>
               Choose the option that works best for your website. Copy and paste the code exactly as shown.
             </p>
             
             <div style={{ marginBottom: '25px' }}>
-              <h4 style={{ color: colors.text, marginBottom: '10px' }}>📄 Option 1: Complete HTML Page Example</h4>
-              <p style={{ color: colors.textSecondary, marginBottom: '10px', fontSize: '13px' }}>
+              <h4 style={{ color: '#000000', marginBottom: '10px' }}>📄 Option 1: Complete HTML Page Example</h4>
+              <p style={{ color: '#333333', marginBottom: '10px', fontSize: '13px' }}>
                 Use this if you're creating a new HTML page or want to see exactly where to place the code:
               </p>
               <div style={{ position: 'relative' }}>
@@ -892,7 +892,7 @@ ChatWidget.init({
                   borderRadius: '6px',
                   overflow: 'auto',
                   fontSize: '11px',
-                  color: colors.text,
+                  color: '#000000',
                   maxHeight: '300px'
                 }}>
                   {embedCode.complete}
@@ -918,8 +918,8 @@ ChatWidget.init({
             </div>
 
             <div style={{ marginBottom: '25px' }}>
-              <h4 style={{ color: colors.text, marginBottom: '10px' }}>⚡ Option 2: Add to Existing Website (Recommended)</h4>
-              <p style={{ color: colors.textSecondary, marginBottom: '10px', fontSize: '13px' }}>
+              <h4 style={{ color: '#000000', marginBottom: '10px' }}>⚡ Option 2: Add to Existing Website (Recommended)</h4>
+              <p style={{ color: '#333333', marginBottom: '10px', fontSize: '13px' }}>
                 Just copy this code and paste it before the closing &lt;/body&gt; tag in your existing website:
               </p>
               <div style={{ position: 'relative' }}>
@@ -929,7 +929,7 @@ ChatWidget.init({
                   borderRadius: '6px',
                   overflow: 'auto',
                   fontSize: '12px',
-                  color: colors.text
+                  color: '#000000'
                 }}>
                   {embedCode.script}
                 </pre>
@@ -954,8 +954,8 @@ ChatWidget.init({
             </div>
 
             <div>
-              <h4 style={{ color: colors.text, marginBottom: '10px' }}>🖼️ Option 3: iframe Embed</h4>
-              <p style={{ color: colors.textSecondary, marginBottom: '10px', fontSize: '13px' }}>
+              <h4 style={{ color: '#000000', marginBottom: '10px' }}>🖼️ Option 3: iframe Embed</h4>
+              <p style={{ color: '#333333', marginBottom: '10px', fontSize: '13px' }}>
                 Alternative method - works with any website builder (Wix, Squarespace, etc.):
               </p>
               <div style={{ position: 'relative' }}>
@@ -965,7 +965,7 @@ ChatWidget.init({
                   borderRadius: '6px',
                   overflow: 'auto',
                   fontSize: '12px',
-                  color: colors.text
+                  color: '#000000'
                 }}>
                   {embedCode.iframe}
                 </pre>
@@ -996,8 +996,8 @@ ChatWidget.init({
               borderRadius: '8px',
               border: `1px solid ${colors.primary}`
             }}>
-              <h5 style={{ color: colors.text, margin: '0 0 8px 0' }}>📋 Quick Instructions:</h5>
-              <ol style={{ color: colors.textSecondary, fontSize: '13px', margin: 0, paddingLeft: '18px' }}>
+              <h5 style={{ color: '#000000', margin: '0 0 8px 0' }}>📋 Quick Instructions:</h5>
+              <ol style={{ color: '#333333', fontSize: '13px', margin: 0, paddingLeft: '18px' }}>
                 <li>Copy Option 2 code above</li>
                 <li>Paste it before the &lt;/body&gt; tag in your website</li>
                 <li>Save and publish your website</li>
@@ -1018,12 +1018,12 @@ ChatWidget.init({
             flexDirection: 'column'
           }}>
             <div style={{ marginBottom: '20px' }}>
-              <h3 style={{ color: colors.text, margin: '0 0 8px 0' }}>
+              <h3 style={{ color: '#000000', margin: '0 0 8px 0' }}>
                 💬 Chat Session {selectedSession.id.slice(0, 8)}...
               </h3>
               <div style={{ 
                 fontSize: '14px', 
-                color: colors.textSecondary,
+                color: '#333333',
                 display: 'flex',
                 gap: '15px'
               }}>
@@ -1044,7 +1044,7 @@ ChatWidget.init({
               {!selectedSession.messages || selectedSession.messages.length === 0 ? (
                 <div style={{ 
                   textAlign: 'center', 
-                  color: colors.textSecondary,
+                  color: '#333333',
                   padding: '40px'
                 }}>
                   <div style={{ fontSize: '48px', marginBottom: '15px' }}>💬</div>
@@ -1067,14 +1067,14 @@ ChatWidget.init({
                       borderRadius: '18px',
                       background: message.sender === 'agent' ? colors.primary : 
                                 message.sender === 'user' ? colors.cardBackground : colors.secondary,
-                      color: message.sender === 'agent' ? 'white' : colors.text,
+                      color: message.sender === 'agent' ? 'white' : '#000000',
                       border: message.sender === 'user' ? `1px solid ${colors.border}` : 'none'
                     }}>
                       {message.text || message.message}
                     </div>
                     <div style={{ 
                       fontSize: '11px', 
-                      color: colors.textSecondary, 
+                      color: '#333333', 
                       marginTop: '4px',
                       padding: '0 4px'
                     }}>
@@ -1111,7 +1111,7 @@ ChatWidget.init({
                   maxHeight: '100px',
                   minHeight: '20px',
                   background: colors.inputBackground,
-                  color: colors.text
+                  color: '#000000'
                 }}
                 rows="1"
               />
@@ -1146,7 +1146,7 @@ ChatWidget.init({
             justifyContent: 'center',
             alignItems: 'center',
             height: '60%',
-            color: colors.textSecondary,
+            color: '#333333',
             fontSize: '18px',
             textAlign: 'center'
           }}>
