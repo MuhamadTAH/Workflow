@@ -2393,6 +2393,23 @@ const TelegramListener = () => {
                   </button>
                   
                   <button
+                    onClick={() => window.location.href = '/workflow-builder'}
+                    style={{
+                      backgroundColor: colors.success,
+                      color: 'white',
+                      padding: '0.75rem',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: '500',
+                      marginBottom: '0.5rem'
+                    }}
+                  >
+                    🔧 Workflow
+                  </button>
+
+                  <button
                     onClick={() => window.location.reload()}
                     style={{
                       backgroundColor: colors.brandBlue,
