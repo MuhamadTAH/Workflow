@@ -128,81 +128,25 @@ const App = ({ botContext }) => {
     const telegramWorkflow = savedWorkflows.find(w => w.name === 'Telegram Workflow');
     
     if (!telegramWorkflow) {
-      // Auto-create Telegram Workflow with pre-built nodes
+      // Auto-create empty Telegram Workflow - will be populated with real virtual workflow
       const telegramWorkflowId = `telegram-workflow-${Date.now()}`;
-      const triggerNodeId = getId();
-      const sendNodeId = getId();
-      
-      const defaultTelegramNodes = [
-        {
-          id: triggerNodeId,
-          type: 'custom',
-          position: { x: 100, y: 100 },
-          data: {
-            label: 'Telegram Trigger',
-            type: 'telegram-trigger',
-            description: 'Listens for incoming Telegram messages from your active bot',
-            config: {
-              updateTypes: ['message'],
-              messageTypes: ['text', 'voice', 'photo'],
-              autoConnect: true, // Auto-connect to active Telegram listener
-              nodeId: triggerNodeId
-            },
-            isProtected: true, // Cannot be deleted
-            outputs: {
-              message: 'Telegram message data',
-              chat: 'Chat information',
-              user: 'User details'
-            }
-          }
-        },
-        {
-          id: sendNodeId,
-          type: 'custom',
-          position: { x: 400, y: 100 },
-          data: {
-            label: 'Telegram Send',
-            type: 'telegram-send',
-            description: 'Sends automated responses back to Telegram users',
-            config: {
-              messageText: 'Hello {{message.from.first_name}}! You said: {{message.text}}',
-              parseMode: '',
-              disableWebPagePreview: false,
-              autoConnect: true, // Auto-connect to active Telegram bot
-              chatId: '{{message.chat.id}}' // Use chat ID from trigger
-            },
-            isProtected: true, // Cannot be deleted
-            inputs: {
-              triggerData: 'Data from telegram trigger'
-            }
-          }
-        }
-      ];
-      
-      const defaultTelegramEdges = [
-        {
-          id: `${triggerNodeId}-${sendNodeId}`,
-          source: triggerNodeId,
-          target: sendNodeId,
-          type: 'default'
-        }
-      ];
       
       const newTelegramWorkflow = {
         id: telegramWorkflowId,
         name: 'Telegram Workflow',
-        nodes: defaultTelegramNodes,
-        edges: defaultTelegramEdges,
+        nodes: [], // Empty - will load real virtual workflow
+        edges: [], // Empty - will load real virtual workflow
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        isProtected: true // Cannot be deleted
+        isProtected: true, // Cannot be deleted
+        isTelegramWorkflow: true // Flag to identify this as the real Telegram workflow
       };
       
       // Save to localStorage
       savedWorkflows.push(newTelegramWorkflow);
       localStorage.setItem('savedWorkflows', JSON.stringify(savedWorkflows));
       
-      console.log('🤖 Auto-created Telegram Workflow with default nodes');
+      console.log('🤖 Auto-created empty Telegram Workflow - ready for real virtual workflow');
     }
     
     if (loadWorkflowId && currentWorkflowId !== loadWorkflowId) {
@@ -280,6 +224,62 @@ const App = ({ botContext }) => {
       }
     }
   }, [setNodes, setEdges, currentWorkflowId, lastSavedState, workflowName]);
+
+  // Load real Telegram virtual workflow data
+  const loadTelegramVirtualWorkflow = useCallback(async () => {
+    try {
+      // Check if this is the Telegram Workflow
+      const savedWorkflows = JSON.parse(localStorage.getItem('savedWorkflows') || '[]');
+      const currentWorkflow = savedWorkflows.find(w => w.id === currentWorkflowId);
+      
+      if (currentWorkflow?.name === 'Telegram Workflow' || currentWorkflow?.isTelegramWorkflow) {
+        console.log('🔄 Loading real Telegram virtual workflow...');
+        
+        // Fetch actual Telegram workflow from backend
+        const response = await fetch(`${API_BASE_URL}/api/workflows/telegram-workflow`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.workflow) {
+            console.log('✅ Loaded real Telegram workflow:', data.workflow);
+            
+            // Update nodes and edges with real workflow data
+            setNodes(data.workflow.nodes || []);
+            setEdges(data.workflow.edges || []);
+            
+            // Update saved state
+            setTimeout(() => {
+              const initialState = JSON.stringify({
+                name: 'Telegram Workflow',
+                nodes: (data.workflow.nodes || []).map(node => ({ id: node.id, position: node.position, data: node.data })),
+                edges: (data.workflow.edges || []).map(edge => ({ id: edge.id, source: edge.source, target: edge.target }))
+              });
+              setLastSavedState(initialState);
+              setHasUnsavedChanges(false);
+            }, 100);
+            
+            return true;
+          }
+        } else {
+          console.log('ℹ️ No existing Telegram workflow found, creating new one');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error loading Telegram virtual workflow:', error);
+    }
+    return false;
+  }, [currentWorkflowId, setNodes, setEdges, setLastSavedState, setHasUnsavedChanges]);
+
+  // Load real Telegram workflow when Telegram Workflow is selected
+  useEffect(() => {
+    if (currentWorkflowId && workflowName === 'Telegram Workflow') {
+      loadTelegramVirtualWorkflow();
+    }
+  }, [currentWorkflowId, workflowName, loadTelegramVirtualWorkflow]);
 
   // Add beforeunload listener for unsaved changes and unactivated bot workflows
   useEffect(() => {
