@@ -424,11 +424,12 @@
             return;
           }
           
-          // Determine if it's a support reply
+          // Determine if it's a support reply or AI response
           var isSupport = msg.senderName === 'Support Agent' || msg.userAgent === 'Dashboard';
+          var isAI = msg.senderName === 'AI Assistant' || msg.userAgent === 'AI Assistant';
           
-          // Only add support replies (visitor messages are already added when sent)
-          if (isSupport) {
+          // Only add support replies and AI responses (visitor messages are already added when sent)
+          if (isSupport || isAI) {
             self.addMessage(msg.message, 'bot');
           }
           

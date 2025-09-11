@@ -1276,12 +1276,13 @@ if (document.readyState === 'loading') {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                           {currentMessages.map((message, index) => {
                             const isSupportReply = message.senderName === 'Support Agent' || message.userAgent === 'Dashboard';
+                            const isAIReply = message.senderName === 'AI Assistant' || message.userAgent === 'AI Assistant';
                             return (
                               <div 
                                 key={message.id || index}
                                 style={{
                                   display: 'flex',
-                                  justifyContent: isSupportReply ? 'flex-end' : 'flex-start',
+                                  justifyContent: (isSupportReply || isAIReply) ? 'flex-start' : 'flex-end',
                                   width: '100%',
                                   marginBottom: '0.5rem'
                                 }}
@@ -1289,9 +1290,9 @@ if (document.readyState === 'loading') {
                                 <div style={{
                                   maxWidth: '70%',
                                   padding: '0.75rem 1rem',
-                                  borderRadius: isSupportReply ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                                  backgroundColor: isSupportReply ? colors.brandBlue : colors.cardBg,
-                                  color: isSupportReply ? 'white' : colors.primaryText,
+                                  borderRadius: (isSupportReply || isAIReply) ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                                  backgroundColor: isAIReply ? colors.success : (isSupportReply ? colors.brandBlue : colors.cardBg),
+                                  color: (isSupportReply || isAIReply) ? 'white' : colors.primaryText,
                                   fontSize: '0.875rem',
                                   lineHeight: '1.4',
                                   wordWrap: 'break-word',
@@ -1307,13 +1308,13 @@ if (document.readyState === 'loading') {
                                   <div style={{ 
                                     fontSize: '0.65rem',
                                     opacity: 0.7,
-                                    color: isSupportReply ? 'rgba(255,255,255,0.8)' : colors.mutedText,
+                                    color: (isSupportReply || isAIReply) ? 'rgba(255,255,255,0.8)' : colors.mutedText,
                                     marginTop: '0.25rem'
                                   }}>
                                     {new Date(message.timestamp).toLocaleString()}
                                     <br/>
                                     <span style={{ fontSize: '0.6rem' }}>
-                                      {message.senderName} {isSupportReply ? '👨‍💼' : '👤'}
+                                      {message.senderName} {isAIReply ? '🤖' : (isSupportReply ? '👨‍💼' : '👤')}
                                     </span>
                                   </div>
                                 </div>
