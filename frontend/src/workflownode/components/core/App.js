@@ -52,6 +52,7 @@ const App = ({ botContext }) => {
   const [executionProgress, setExecutionProgress] = useState('');
   const [workflowExecutor, setWorkflowExecutor] = useState(null);
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  const [status, setStatus] = useState('');
   
   // Custom nodes change handler that protects certain nodes from deletion
   const handleNodesChange = useCallback((changes) => {
@@ -261,20 +262,21 @@ const App = ({ botContext }) => {
           console.log('📦 API Response data:', data);
           
           if (data.success && data.workflow) {
-            console.log('✅ Connected to actual Telegram workflow:', data.workflow.description);
-            console.log('📊 Bot stats:', data.workflow.botConfig);
+            console.log('✅ Loaded real virtual workflow:', data.workflow.description);
+            console.log('📊 Virtual nodes:', data.workflow.nodes.length);
+            console.log('🔗 Connected to real Telegram settings');
             
-            // Show information about the actual running workflow
-            // Don't create fake nodes - just display that it's connected to real system
-            setNodes([]);
-            setEdges([]);
+            // Load the real virtual workflow nodes representing actual Telegram components
+            setNodes(data.workflow.nodes || []);
+            setEdges(data.workflow.edges || []);
             
             // Update saved state
             setTimeout(() => {
               const initialState = JSON.stringify({
                 name: 'Telegram Workflow',
-                nodes: [],
-                edges: [],
+                nodes: (data.workflow.nodes || []).map(node => ({ id: node.id, position: node.position, data: node.data })),
+                edges: (data.workflow.edges || []).map(edge => ({ id: edge.id, source: edge.source, target: edge.target })),
+                isVirtualWorkflow: true,
                 realWorkflowData: data.workflow
               });
               setLastSavedState(initialState);
@@ -528,8 +530,46 @@ const App = ({ botContext }) => {
   }, []);
 
   // Handles closing the config panel and updating the node's data.
-  const onPanelClose = (updatedData) => {
+  const onPanelClose = async (updatedData) => {
     if (updatedData && selectedNode) {
+        // Check if this is a virtual workflow node that needs to sync to Telegram page
+        if (selectedNode.data?.isVirtualNode && workflowName === 'Telegram Workflow') {
+          console.log('🔄 Syncing virtual node changes to Telegram page...', {
+            nodeId: selectedNode.id,
+            nodeType: selectedNode.data.type,
+            changes: updatedData
+          });
+          
+          try {
+            // Sync changes back to actual Telegram settings
+            const response = await fetch(`${API_BASE_URL}/api/workflows/telegram-workflow/update`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              },
+              body: JSON.stringify({
+                nodeId: selectedNode.id,
+                nodeType: selectedNode.data.type,
+                config: updatedData.config || updatedData
+              })
+            });
+            
+            if (response.ok) {
+              const result = await response.json();
+              console.log('✅ Successfully synced to Telegram page:', result);
+              setStatus('✅ Changes synced to Telegram page');
+            } else {
+              console.error('❌ Failed to sync to Telegram page');
+              setStatus('❌ Failed to sync changes');
+            }
+          } catch (error) {
+            console.error('❌ Error syncing to Telegram page:', error);
+            setStatus('❌ Sync error');
+          }
+        }
+
+        // Update the node in the workflow
         setNodes((nds) =>
             nds.map((node) => {
                 if (node.id === selectedNode.id) {
@@ -540,8 +580,7 @@ const App = ({ botContext }) => {
             })
         );
         
-        // Auto-save disabled - user must manually save
-        console.log('📝 Node parameters updated (auto-save disabled)');
+        console.log('📝 Virtual node updated and synced');
     }
     setSelectedNode(null); // Close the panel
   };
