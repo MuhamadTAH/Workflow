@@ -6,6 +6,7 @@ const router = express.Router();
 const { asyncHandler } = require('../middleware/errorHandler');
 const logger = require('../services/logger');
 const db = require('../db');
+const { detectAgreementFromConversation, quickAgreementCheck } = require('../services/agreementDetection');
 
 // Configure multer for voice file uploads
 const voiceUpload = multer({ 
@@ -676,6 +677,16 @@ router.post('/webhook/:listenerId', asyncHandler(async (req, res) => {
           await saveMessageToDatabase(listenerId, claudeMessageData);
           
           console.log('✅ Claude response stored in conversation panel');
+
+          // 🤝 AGREEMENT DETECTION - Check if client agreed to something
+          console.log('🤝 Checking for client agreement...');
+          await checkForAgreementAndProcess(listenerId, botConfig.user_id, {
+            customer_id: chatId,
+            customer_name: fromName,
+            customer_username: fromUser.username,
+            platform: 'telegram'
+          }, messageText, claudeResponse);
+
         } else {
           console.log('❌ Failed to send auto-response to Telegram');
         }
@@ -1585,6 +1596,130 @@ router.get('/test', (req, res) => {
     persistenceEnabled: true
   });
 });
+
+// =================================================================
+// AGREEMENT DETECTION FUNCTIONS
+// =================================================================
+
+/**
+ * Check for client agreement in conversation and process if found
+ * @param {string} listenerId - Telegram listener ID
+ * @param {number} userId - User ID
+ * @param {Object} customerInfo - Customer information
+ * @param {string} customerMessage - Customer's message
+ * @param {string} aiResponse - AI's response
+ */
+const checkForAgreementAndProcess = async (listenerId, userId, customerInfo, customerMessage, aiResponse) => {
+  try {
+    console.log('🔍 Running agreement detection...', {
+      listenerId,
+      userId,
+      customerId: customerInfo.customer_id
+    });
+
+    // Quick check for agreement in customer's message
+    const quickCheck = quickAgreementCheck(customerMessage);
+    
+    if (quickCheck.hasAgreement) {
+      console.log('✅ Quick agreement check passed, running full analysis...', {
+        confidence: quickCheck.confidence,
+        keywords: quickCheck.keywords
+      });
+
+      // Get recent conversation history for context
+      const conversationMessages = await getRecentConversationMessages(listenerId, 20);
+      
+      if (conversationMessages.length > 0) {
+        // Run full agreement detection
+        const detectionResult = await detectAgreementFromConversation(
+          conversationMessages,
+          customerMessage,
+          { ...customerInfo, user_id: userId }
+        );
+
+        if (detectionResult.agreementDetected) {
+          console.log('🎉 AGREEMENT DETECTED!', {
+            agreementId: detectionResult.agreementId,
+            confidence: detectionResult.confidence,
+            customerId: customerInfo.customer_id
+          });
+
+          // Send confirmation message to customer
+          const confirmationMessage = `🎉 Great! I've recorded your agreement. You'll receive a summary of our discussion shortly. Your reference ID is: AGR-${detectionResult.agreementId}`;
+          
+          await sendTelegramMessage(
+            (await getBotFromDatabase(listenerId)).bot_token,
+            customerInfo.customer_id,
+            confirmationMessage
+          );
+
+          // Log the agreement detection
+          logger.info('Client agreement detected and processed', {
+            agreementId: detectionResult.agreementId,
+            customerId: customerInfo.customer_id,
+            userId: userId,
+            platform: 'telegram',
+            confidence: detectionResult.confidence
+          });
+
+        } else {
+          console.log('❌ Full agreement analysis: No agreement detected', {
+            confidence: detectionResult.confidence
+          });
+        }
+      } else {
+        console.log('❌ No conversation history found for full analysis');
+      }
+    } else {
+      console.log('❌ Quick agreement check: No strong agreement indicators found');
+    }
+
+  } catch (error) {
+    console.error('❌ Error in agreement detection:', error.message);
+    logger.logError(error, {
+      context: 'agreement-detection-telegram',
+      listenerId,
+      userId,
+      customerId: customerInfo.customer_id
+    });
+  }
+};
+
+/**
+ * Get recent conversation messages for agreement analysis
+ * @param {string} listenerId - Listener ID
+ * @param {number} limit - Message limit
+ * @returns {Array} Array of formatted messages
+ */
+const getRecentConversationMessages = async (listenerId, limit = 20) => {
+  return new Promise((resolve, reject) => {
+    db.all(`
+      SELECT 
+        text, from_name, from_user_id, date, is_bot_message, type
+      FROM telegram_listener_messages 
+      WHERE listener_id = ? 
+      ORDER BY timestamp DESC 
+      LIMIT ?
+    `, [listenerId, limit], (err, rows) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      // Format messages for agreement detection
+      const formattedMessages = (rows || []).reverse().map(row => ({
+        message_text: row.text || '',
+        sender_type: row.is_bot_message ? 'ai' : 'customer',
+        sender_name: row.from_name || 'Unknown',
+        message_timestamp: row.date,
+        from_user_id: row.from_user_id,
+        type: row.type || 'text'
+      }));
+
+      resolve(formattedMessages);
+    });
+  });
+};
 
 // Export restore function for manual use
 router.restoreActiveWebhooks = restoreActiveWebhooks;

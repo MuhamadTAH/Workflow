@@ -78,7 +78,8 @@
       "Bash(start \"D:\\automation\\Workflow\\test-chat-widget.html\")",
       "Bash(start:*)",
       "Bash(python:*)",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Bash(git revert:*)"
     ],
     "deny": []
   }

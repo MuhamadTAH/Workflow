@@ -1483,6 +1483,159 @@ Be enthusiastic and helpful while staying accurate.`,
     }
   });
 
+  // =================================================================
+  // CLIENT AGREEMENTS SYSTEM TABLES - For Agreement Detection & Tracking
+  // =================================================================
+
+  // Create client_agreements table - Store detected agreements from conversations
+  db.run(`
+    CREATE TABLE IF NOT EXISTS client_agreements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      customer_id TEXT NOT NULL, -- Telegram chat ID or customer identifier
+      customer_name TEXT,
+      customer_username TEXT,
+      platform TEXT NOT NULL DEFAULT 'telegram', -- 'telegram', 'whatsapp', 'messenger', etc.
+      
+      -- Agreement detection details
+      agreement_detected_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      agreement_confidence REAL DEFAULT 0.0, -- 0.0 to 1.0 confidence score
+      agreement_trigger_message TEXT, -- The message that triggered agreement detection
+      agreement_keywords TEXT, -- JSON array of detected keywords
+      
+      -- Extracted client information
+      phone_number TEXT,
+      email_address TEXT,
+      location TEXT,
+      address TEXT,
+      
+      -- Service/product details
+      service_requested TEXT,
+      service_description TEXT,
+      budget_mentioned TEXT,
+      price_agreed TEXT,
+      timeline_mentioned TEXT,
+      
+      -- Agreement summary
+      agreement_summary TEXT, -- AI-generated summary of the agreement
+      conversation_summary TEXT, -- AI-generated conversation summary
+      full_conversation_json TEXT, -- Full conversation history as JSON
+      
+      -- Status tracking
+      status TEXT DEFAULT 'pending', -- 'pending', 'confirmed', 'cancelled', 'completed'
+      notes TEXT,
+      
+      -- File generation
+      agreement_file_path TEXT, -- Path to generated agreement document
+      agreement_file_url TEXT, -- Public URL to agreement file
+      client_portal_link TEXT, -- Unique link for client to access their info
+      
+      -- Timestamps
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      confirmed_at DATETIME,
+      completed_at DATETIME,
+      
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating client_agreements table:', err);
+    } else {
+      console.log('✅ Client Agreements table ready');
+      
+      // Create indexes for performance
+      db.run(`CREATE INDEX IF NOT EXISTS idx_agreements_user_platform ON client_agreements (user_id, platform)`, (indexErr) => {
+        if (indexErr && !indexErr.message.includes('already exists')) {
+          console.error('⚠️ Warning: Could not create agreements_user_platform index:', indexErr.message);
+        }
+      });
+      
+      db.run(`CREATE INDEX IF NOT EXISTS idx_agreements_status_date ON client_agreements (status, agreement_detected_at DESC)`, (indexErr) => {
+        if (indexErr && !indexErr.message.includes('already exists')) {
+          console.error('⚠️ Warning: Could not create agreements_status_date index:', indexErr.message);
+        }
+      });
+    }
+  });
+
+  // Create agreement_conversation_messages table - Store conversation history for agreements
+  db.run(`
+    CREATE TABLE IF NOT EXISTS agreement_conversation_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      agreement_id INTEGER NOT NULL,
+      message_index INTEGER NOT NULL, -- Order of message in conversation
+      sender_type TEXT NOT NULL, -- 'customer', 'ai', 'bot'
+      sender_name TEXT,
+      message_text TEXT NOT NULL,
+      message_timestamp DATETIME,
+      is_agreement_trigger BOOLEAN DEFAULT 0, -- Mark the message that triggered agreement
+      extracted_info_json TEXT, -- JSON of any extracted information from this message
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      
+      FOREIGN KEY (agreement_id) REFERENCES client_agreements(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating agreement_conversation_messages table:', err);
+    } else {
+      console.log('✅ Agreement Conversation Messages table ready');
+    }
+  });
+
+  // Create agreement_extracted_info table - Store extracted information pieces
+  db.run(`
+    CREATE TABLE IF NOT EXISTS agreement_extracted_info (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      agreement_id INTEGER NOT NULL,
+      info_type TEXT NOT NULL, -- 'phone', 'email', 'location', 'service', 'budget', 'timeline', etc.
+      info_key TEXT NOT NULL, -- Specific field name
+      info_value TEXT NOT NULL, -- Extracted value
+      confidence REAL DEFAULT 0.0, -- Confidence in extraction (0.0-1.0)
+      source_message_id INTEGER, -- Which message this was extracted from
+      extraction_method TEXT DEFAULT 'ai', -- 'ai', 'regex', 'manual'
+      is_verified BOOLEAN DEFAULT 0, -- Manual verification status
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      verified_at DATETIME,
+      
+      FOREIGN KEY (agreement_id) REFERENCES client_agreements(id) ON DELETE CASCADE,
+      FOREIGN KEY (source_message_id) REFERENCES agreement_conversation_messages(id)
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating agreement_extracted_info table:', err);
+    } else {
+      console.log('✅ Agreement Extracted Info table ready');
+    }
+  });
+
+  // Create agreement_files table - Track generated agreement documents
+  db.run(`
+    CREATE TABLE IF NOT EXISTS agreement_files (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      agreement_id INTEGER NOT NULL,
+      file_type TEXT NOT NULL, -- 'pdf', 'doc', 'txt', 'json'
+      file_name TEXT NOT NULL,
+      file_path TEXT NOT NULL,
+      file_url TEXT,
+      file_size INTEGER,
+      template_used TEXT,
+      generation_method TEXT DEFAULT 'auto', -- 'auto', 'manual'
+      download_count INTEGER DEFAULT 0,
+      is_active BOOLEAN DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      last_accessed DATETIME,
+      
+      FOREIGN KEY (agreement_id) REFERENCES client_agreements(id) ON DELETE CASCADE
+    )
+  `, (err) => {
+    if (err) {
+      console.error('❌ Error creating agreement_files table:', err);
+    } else {
+      console.log('✅ Agreement Files table ready');
+    }
+  });
+
 });
 
 module.exports = db;

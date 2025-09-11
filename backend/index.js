@@ -48,6 +48,8 @@ const apiKeysRoutes = require('./routes/apikeys');
 const externalClaudeRoutes = require('./routes/external-claude');
 // NEW ROUTES FROM WORKFLOWNODE
 const nodesRoutes = require('./routes/nodes');
+// CLIENT AGREEMENTS ROUTES
+const clientAgreementsRoutes = require('./routes/clientAgreements');
 const { errorHandler, requestLogger } = require('./middleware/errorHandler');
 const logger = require('./services/logger');
 const DatabaseInitializer = require('./services/dbInitializer');
@@ -245,6 +247,8 @@ app.use('/api/nodes', (req, res, next) => {
 
 // NEW ROUTES FROM WORKFLOWNODE
 app.use('/api/nodes', nodesRoutes);
+// CLIENT AGREEMENTS ROUTES
+app.use('/api/client-agreements', clientAgreementsRoutes);
 
 // Root health endpoint
 app.get('/', (req, res) => {

@@ -55,6 +55,11 @@ function LeftSidebar() {
       icon: 'fas fa-comments'
     },
     {
+      name: 'Client Agreements',
+      path: '/client-agreements',
+      icon: 'fas fa-handshake'
+    },
+    {
       name: 'Settings',
       path: '/settings',
       icon: 'fas fa-cog'

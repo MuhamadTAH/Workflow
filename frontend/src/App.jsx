@@ -25,6 +25,7 @@ import WhatsAppReceiverTest from './pages/WhatsAppReceiverTest';
 import SimpleInstagramWebhook from './pages/SimpleInstagramWebhook';
 import SimpleMessengerWebhook from './pages/SimpleMessengerWebhook';
 import ChatWidget from './pages/ChatWidget';
+import ClientAgreements from './pages/ClientAgreements';
 import BillingDashboard from './components/BillingDashboard';
 import AdminDashboard from './components/AdminDashboard';
 import APIKeysDashboard from './components/APIKeysDashboard';
@@ -302,6 +303,7 @@ function App() {
         <Route path="/instagram-comments" element={<SimpleInstagramWebhook />} />
         <Route path="/messenger-comments" element={<SimpleMessengerWebhook />} />
         <Route path="/chat-widget" element={<ChatWidget />} />
+        <Route path="/client-agreements" element={<ClientAgreements />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/settings/*" element={<Settings />} />
         <Route path="/shop/:shopName" element={<PublicShop />} />
