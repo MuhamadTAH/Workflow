@@ -59,7 +59,7 @@ const verifyToken = (req, res, next) => {
     // Allow mock token for testing/development
     if (token.startsWith('MOCK_TOKEN_FOR_TESTING_')) {
       console.log('✅ Using mock token for development');
-      req.user = { userId: 'test-user-1', email: 'mhamadtah548@gmail.com', mock: true };
+      req.user = { userId: 1, id: 1, email: 'mhamadtah548@gmail.com', mock: true };
       return next();
     }
     
@@ -937,6 +937,7 @@ router.post('/send-image', verifyToken, imageUpload.single('image'), asyncHandle
   
   const { chatId } = req.body;
   console.log('🚀 [DEBUG] Chat ID from body:', chatId);
+  console.log('🚀 [DEBUG] Full request body:', req.body);
   
   try {
     // Get user ID from verified token (handled by verifyToken middleware)
