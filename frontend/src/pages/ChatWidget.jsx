@@ -1207,7 +1207,13 @@ if (document.readyState === 'loading') {
                                 textOverflow: 'ellipsis',
                                 whiteSpace: 'nowrap'
                               }}>
-                                {new URL(conversation.websiteUrl).hostname}
+                                {(() => {
+                                  try {
+                                    return new URL(conversation.websiteUrl).hostname;
+                                  } catch (e) {
+                                    return conversation.websiteUrl || 'Unknown Website';
+                                  }
+                                })()}
                               </div>
                               <div style={{ 
                                 fontSize: '0.75rem', 
@@ -1257,7 +1263,13 @@ if (document.readyState === 'loading') {
                       </div>
                       <div>
                         <div style={{ fontSize: '1rem', fontWeight: '600', color: colors.primaryText }}>
-                          {new URL(selectedConversation.websiteUrl).hostname}
+                          {(() => {
+                            try {
+                              return new URL(selectedConversation.websiteUrl).hostname;
+                            } catch (e) {
+                              return selectedConversation.websiteUrl || 'Unknown Website';
+                            }
+                          })()}
                         </div>
                         <div style={{ fontSize: '0.875rem', color: colors.mutedText }}>
                           {selectedConversation.websiteUrl}
@@ -1768,7 +1780,13 @@ if (document.readyState === 'loading') {
                         </div>
                         <div>
                           <div style={{ fontWeight: '600', fontSize: '1rem', color: colors.primaryText }}>
-                            {new URL(selectedConversation.websiteUrl).hostname}
+                            {(() => {
+                              try {
+                                return new URL(selectedConversation.websiteUrl).hostname;
+                              } catch (e) {
+                                return selectedConversation.websiteUrl || 'Unknown Website';
+                              }
+                            })()}
                           </div>
                           <div style={{ color: colors.mutedText, fontSize: '0.875rem' }}>
                             {selectedConversation.messageCount} message{selectedConversation.messageCount !== 1 ? 's' : ''}
