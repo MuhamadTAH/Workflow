@@ -130,14 +130,30 @@ const updateBotActivity = async (listenerId) => {
 
 const getUserActiveBotFromDatabase = async (userId) => {
   return new Promise((resolve, reject) => {
+    // First try the telegram_listener_bots table
     db.get(`
       SELECT * FROM telegram_listener_bots 
       WHERE user_id = ? AND is_active = 1 
       ORDER BY setup_at DESC 
       LIMIT 1
     `, [userId], (err, row) => {
-      if (err) reject(err);
-      else resolve(row);
+      if (err) {
+        reject(err);
+      } else if (row) {
+        resolve(row);
+      } else {
+        // Fallback: Try to find from telegram_listeners table for backward compatibility
+        db.get(`
+          SELECT bot_token, listener_id, webhook_url, setup_at 
+          FROM telegram_listeners 
+          WHERE user_id = ? AND is_active = 1 
+          ORDER BY setup_at DESC 
+          LIMIT 1
+        `, [userId], (err2, row2) => {
+          if (err2) reject(err2);
+          else resolve(row2);
+        });
+      }
     });
   });
 };
