@@ -14,10 +14,10 @@ const ChatWidget = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Messages and Websites State
+  // Messages and Conversations State
   const [messages, setMessages] = useState([]);
-  const [websites, setWebsites] = useState([]);
-  const [selectedWebsite, setSelectedWebsite] = useState(null);
+  const [conversations, setConversations] = useState([]);
+  const [selectedConversation, setSelectedConversation] = useState(null);
   const [replyText, setReplyText] = useState('');
   const [isReplying, setIsReplying] = useState(false);
   
@@ -481,47 +481,61 @@ if (document.readyState === 'loading') {
     }
   };
 
-  // Fetch messages from widgets
-  const fetchMessages = async () => {
+  // Fetch conversations (grouped by session)
+  const fetchMessages = async (sessionId = null) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/chat-widget/messages`);
+      let url = `${API_BASE_URL}/api/chat-widget/messages`;
+      if (sessionId) {
+        url += `?sessionId=${sessionId}`;
+      }
+      
+      const response = await fetch(url);
       const data = await response.json();
       
       if (data.success) {
         const allMessages = data.messages || [];
-        setMessages(allMessages);
         
-        // Group messages by website URL to create websites list
-        const websitesMap = new Map();
-        
-        allMessages.forEach(message => {
-          const websiteUrl = message.websiteUrl;
-          if (!websiteUrl) return;
+        if (sessionId) {
+          // If fetching for specific session, just set messages
+          setMessages(allMessages);
+        } else {
+          // Group messages by session ID to create conversations list
+          const conversationsMap = new Map();
           
-          if (!websitesMap.has(websiteUrl)) {
-            websitesMap.set(websiteUrl, {
-              url: websiteUrl,
-              messageCount: 0,
-              lastMessage: message.timestamp,
-              messages: []
-            });
-          }
+          allMessages.forEach(message => {
+            const sessionId = message.sessionId;
+            if (!sessionId) return;
+            
+            if (!conversationsMap.has(sessionId)) {
+              conversationsMap.set(sessionId, {
+                sessionId: sessionId,
+                websiteUrl: message.websiteUrl,
+                userAgent: message.userAgent,
+                messageCount: 0,
+                lastMessage: message.timestamp,
+                lastMessageText: message.message,
+                messages: []
+              });
+            }
+            
+            const conversation = conversationsMap.get(sessionId);
+            conversation.messageCount++;
+            conversation.messages.push(message);
+            
+            // Update last message timestamp if this is newer
+            if (new Date(message.timestamp) > new Date(conversation.lastMessage)) {
+              conversation.lastMessage = message.timestamp;
+              conversation.lastMessageText = message.message;
+            }
+          });
           
-          const website = websitesMap.get(websiteUrl);
-          website.messageCount++;
-          website.messages.push(message);
+          // Convert map to array and sort by last message timestamp
+          const conversationsArray = Array.from(conversationsMap.values())
+            .sort((a, b) => new Date(b.lastMessage) - new Date(a.lastMessage));
           
-          // Update last message timestamp if this is newer
-          if (new Date(message.timestamp) > new Date(website.lastMessage)) {
-            website.lastMessage = message.timestamp;
-          }
-        });
-        
-        // Convert map to array and sort by last message timestamp
-        const websitesArray = Array.from(websitesMap.values())
-          .sort((a, b) => new Date(b.lastMessage) - new Date(a.lastMessage));
-        
-        setWebsites(websitesArray);
+          setConversations(conversationsArray);
+          setMessages(allMessages);
+        }
       }
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -538,18 +552,18 @@ if (document.readyState === 'loading') {
     return () => clearInterval(interval);
   }, [isActive, widgetId]);
 
-  // Get messages for selected website
-  const getMessagesForWebsite = (websiteUrl) => {
-    if (!websiteUrl || !messages.length) return [];
-    return messages.filter(message => message.websiteUrl === websiteUrl)
+  // Get messages for selected conversation
+  const getMessagesForConversation = (sessionId) => {
+    if (!sessionId || !messages.length) return [];
+    return messages.filter(message => message.sessionId === sessionId)
       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   };
 
-  const currentMessages = getMessagesForWebsite(selectedWebsite?.url);
+  const currentMessages = getMessagesForConversation(selectedConversation?.sessionId);
 
   // Send reply function
   const sendReply = async () => {
-    if (!replyText.trim() || !selectedWebsite || isReplying) return;
+    if (!replyText.trim() || !selectedConversation || isReplying) return;
 
     setIsReplying(true);
     try {
@@ -559,8 +573,8 @@ if (document.readyState === 'loading') {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          sessionId: selectedConversation.sessionId,
           widgetId: widgetId,
-          websiteUrl: selectedWebsite.url,
           message: replyText.trim(),
           senderName: 'Support Agent'
         })
@@ -1131,10 +1145,10 @@ if (document.readyState === 'loading') {
                       </div>
                     ) : (
                       <div style={{ padding: '0.5rem' }}>
-                        {websites.map((website) => (
+                        {conversations.map((conversation) => (
                           <div
-                            key={website.url}
-                            onClick={() => setSelectedWebsite(website)}
+                            key={conversation.sessionId}
+                            onClick={() => setSelectedConversation(conversation)}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
@@ -1142,8 +1156,8 @@ if (document.readyState === 'loading') {
                               borderRadius: '6px',
                               marginBottom: '0.5rem',
                               cursor: 'pointer',
-                              backgroundColor: selectedWebsite?.url === website.url ? colors.brandBlue : 'transparent',
-                              color: selectedWebsite?.url === website.url ? 'white' : colors.primaryText,
+                              backgroundColor: selectedConversation?.sessionId === conversation.sessionId ? colors.brandBlue : 'transparent',
+                              color: selectedConversation?.sessionId === conversation.sessionId ? 'white' : colors.primaryText,
                               transition: 'all 0.2s ease'
                             }}
                           >
@@ -1151,7 +1165,7 @@ if (document.readyState === 'loading') {
                               width: '40px',
                               height: '40px',
                               borderRadius: '50%',
-                              backgroundColor: selectedWebsite?.url === website.url ? 'rgba(255,255,255,0.2)' : colors.brandBlue,
+                              backgroundColor: selectedConversation?.sessionId === conversation.sessionId ? 'rgba(255,255,255,0.2)' : colors.brandBlue,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',

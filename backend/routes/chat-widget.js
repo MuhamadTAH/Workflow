@@ -133,13 +133,21 @@ router.post('/message', (req, res) => {
 // Get messages for dashboard display
 router.get('/messages', (req, res) => {
   try {
-    const { limit = 50, offset = 0 } = req.query;
+    const { limit = 50, offset = 0, sessionId } = req.query;
     
-    db.all(
-      `SELECT * FROM chat_widget_messages 
-       ORDER BY timestamp DESC 
-       LIMIT ? OFFSET ?`,
-      [parseInt(limit), parseInt(offset)],
+    let query = `SELECT * FROM chat_widget_messages`;
+    let params = [];
+    
+    // If sessionId provided, filter by it (for specific conversation)
+    if (sessionId) {
+      query += ` WHERE session_id = ?`;
+      params.push(sessionId);
+    }
+    
+    query += ` ORDER BY timestamp DESC LIMIT ? OFFSET ?`;
+    params.push(parseInt(limit), parseInt(offset));
+    
+    db.all(query, params,
       (err, messages) => {
         if (err) {
           console.error('Error fetching chat widget messages:', err);
@@ -197,21 +205,21 @@ router.get('/sessions', (req, res) => {
 // Send reply from dashboard
 router.post('/reply', (req, res) => {
   try {
-    const { widgetId, websiteUrl, message, senderName = 'Support Agent' } = req.body;
+    const { sessionId, widgetId, message, senderName = 'Support Agent' } = req.body;
     
-    if (!widgetId || !message) {
-      return res.status(400).json({ error: 'Widget ID and message are required' });
+    if (!sessionId || !message) {
+      return res.status(400).json({ error: 'Session ID and message are required' });
     }
     
     // Create reply message data
     const messageData = {
       id: `msg_${Date.now()}_${Math.random().toString(36).substring(2)}`,
-      sessionId: `dashboard_reply_${Date.now()}`,
-      widgetId,
+      sessionId: sessionId, // Use the actual session ID for the conversation
+      widgetId: widgetId || 'widget_main_site',
       message,
       senderName,
       senderEmail: null,
-      websiteUrl: websiteUrl || 'Dashboard Reply',
+      websiteUrl: 'Dashboard Reply',
       userAgent: 'Dashboard',
       referrer: 'Support Dashboard',
       timestamp: new Date().toISOString(),

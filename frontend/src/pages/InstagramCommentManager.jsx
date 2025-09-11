@@ -717,7 +717,9 @@ const InstagramCommentManager = () => {
                                   textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap'
                                 }}>
-                                  {message.text || 'No text content'}
+                                  {message.voiceFileUrl ? '🎤 Voice message' : 
+                                   message.imageFileUrl ? `🖼️ Image${message.caption ? `: ${message.caption}` : ''}` :
+                                   message.text || 'No text content'}
                                 </div>
                                 <div style={{ fontSize: '0.65rem', color: '#6b7280', marginTop: '0.25rem' }}>
                                   {formatTimestamp(message.timestamp)}

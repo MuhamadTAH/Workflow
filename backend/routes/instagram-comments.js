@@ -210,7 +210,7 @@ router.all('/webhooks/instagram/comments', async (req, res) => {
             });
 
             // Skip non-message events (read receipts, delivery confirmations, etc.)
-            if (!messaging.message || !messaging.message.text) {
+            if (!messaging.message || (!messaging.message.text && !messaging.message.attachments)) {
               logger.info('🔄 Skipping non-message event (read receipt/delivery/etc.)');
               return;
             }
@@ -222,9 +222,48 @@ router.all('/webhooks/instagram/comments', async (req, res) => {
               await fetchUserInfo(senderId);
             }
 
+            // Process message text and attachments
+            let messageText = messaging.message?.text || '';
+            let voiceData = null;
+            let imageData = null;
+
+            // Handle attachments (voice and image)
+            if (messaging.message?.attachments && messaging.message.attachments.length > 0) {
+              const attachment = messaging.message.attachments[0]; // Handle first attachment
+              
+              if (attachment.type === 'audio') {
+                messageText = messageText || '[Voice message]';
+                voiceData = {
+                  voiceFileUrl: attachment.payload?.url,
+                  voiceMimeType: 'audio/mp4', // Instagram typically uses mp4 for audio
+                  voiceFileSize: null // Not provided by Instagram API
+                };
+                logger.info('🎤 Voice attachment detected:', {
+                  url: voiceData.voiceFileUrl ? 'present' : 'missing',
+                  type: attachment.type
+                });
+              } else if (attachment.type === 'image') {
+                messageText = messageText || '[Image]';
+                imageData = {
+                  imageFileUrl: attachment.payload?.url,
+                  imageMimeType: 'image/jpeg', // Instagram typically uses jpeg
+                  imageFileSize: null, // Not provided by Instagram API
+                  caption: messageText !== '[Image]' ? messageText : null
+                };
+                logger.info('🖼️ Image attachment detected:', {
+                  url: imageData.imageFileUrl ? 'present' : 'missing',
+                  type: attachment.type,
+                  hasCaption: !!imageData.caption
+                });
+              } else {
+                logger.info('📎 Other attachment type:', { type: attachment.type });
+                messageText = messageText || `[${attachment.type} attachment]`;
+              }
+            }
+
             const messageData = {
               id: messaging.message?.mid || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              text: messaging.message?.text || '',
+              text: messageText,
               sender: {
                 id: messaging.sender?.id
               },
@@ -233,7 +272,18 @@ router.all('/webhooks/instagram/comments', async (req, res) => {
               },
               timestamp: new Date().toISOString(),
               webhookTimestamp: messaging.timestamp,
-              rawData: messaging
+              rawData: messaging,
+              // Voice data
+              voiceFileUrl: voiceData?.voiceFileUrl || null,
+              voiceMimeType: voiceData?.voiceMimeType || null,
+              voiceFileSize: voiceData?.voiceFileSize || null,
+              // Image data
+              imageFileUrl: imageData?.imageFileUrl || null,
+              imageMimeType: imageData?.imageMimeType || null,
+              imageFileSize: imageData?.imageFileSize || null,
+              caption: imageData?.caption || null,
+              // Message type
+              messageType: voiceData ? 'voice' : imageData ? 'image' : 'text'
             };
             
             // Check for duplicate messages to avoid double-storing sent messages
