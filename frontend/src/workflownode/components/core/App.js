@@ -261,18 +261,21 @@ const App = ({ botContext }) => {
           console.log('📦 API Response data:', data);
           
           if (data.success && data.workflow) {
-            console.log('✅ Loaded real Telegram workflow with nodes:', data.workflow.nodes.length);
+            console.log('✅ Connected to actual Telegram workflow:', data.workflow.description);
+            console.log('📊 Bot stats:', data.workflow.botConfig);
             
-            // Update nodes and edges with real workflow data
-            setNodes(data.workflow.nodes || []);
-            setEdges(data.workflow.edges || []);
+            // Show information about the actual running workflow
+            // Don't create fake nodes - just display that it's connected to real system
+            setNodes([]);
+            setEdges([]);
             
             // Update saved state
             setTimeout(() => {
               const initialState = JSON.stringify({
                 name: 'Telegram Workflow',
-                nodes: (data.workflow.nodes || []).map(node => ({ id: node.id, position: node.position, data: node.data })),
-                edges: (data.workflow.edges || []).map(edge => ({ id: edge.id, source: edge.source, target: edge.target }))
+                nodes: [],
+                edges: [],
+                realWorkflowData: data.workflow
               });
               setLastSavedState(initialState);
               setHasUnsavedChanges(false);
@@ -283,9 +286,9 @@ const App = ({ botContext }) => {
         } else {
           const errorText = await response.text();
           console.log('❌ API Error response:', errorText);
-          console.log('ℹ️ Using fallback - loading empty workflow');
+          console.log('ℹ️ No active Telegram bot found');
           
-          // Load empty workflow as fallback
+          // Show empty workflow - user needs to setup Telegram bot first
           setNodes([]);
           setEdges([]);
         }

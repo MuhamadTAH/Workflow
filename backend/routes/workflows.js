@@ -483,99 +483,82 @@ router.get('/workflows/:id/simple-status', async (req, res) => {
   }
 });
 
-// Get real Telegram virtual workflow
-router.get('/telegram-workflow', verifyToken, (req, res) => {
+// Get real Telegram virtual workflow - connects to actual running Telegram system
+router.get('/telegram-workflow', verifyToken, async (req, res) => {
   try {
-    console.log('🔄 Loading real Telegram virtual workflow for user:', req.user.userId);
+    console.log('🔄 Loading actual Telegram workflow for user:', req.user.userId);
     
-    // This is where the real Telegram virtual workflow would be constructed
-    // For now, we'll create a basic structure that represents the actual message flow
-    const realTelegramWorkflow = {
-      id: 'telegram-workflow-real',
+    // Connect to actual Telegram listener system - no mock data
+    const db = require('../db');
+    
+    // Get user's actual active Telegram bot
+    const userBot = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT * FROM telegram_listener_bots 
+        WHERE user_id = ? AND is_active = 1 
+        ORDER BY setup_at DESC 
+        LIMIT 1
+      `, [req.user.userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+    
+    if (!userBot) {
+      return res.status(404).json({
+        success: false,
+        error: 'No active Telegram bot found. Please setup a Telegram bot first.'
+      });
+    }
+    
+    // Get actual message processing stats
+    const messageStats = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT COUNT(*) as total_messages, 
+               MAX(timestamp) as last_message 
+        FROM telegram_listener_messages 
+        WHERE listener_id = ?
+      `, [userBot.listener_id], (err, row) => {
+        if (err) reject(err);
+        else resolve(row || { total_messages: 0, last_message: null });
+      });
+    });
+    
+    // Return the actual workflow structure based on real data
+    const actualWorkflow = {
+      id: `telegram-workflow-${userBot.listener_id}`,
       name: 'Telegram Workflow',
-      nodes: [
-        {
-          id: 'telegram-listener-node',
-          type: 'custom',
-          position: { x: 100, y: 100 },
-          data: {
-            label: 'Telegram Listener',
-            type: 'telegram-listener',
-            description: 'Real Telegram message listener from your active bot',
-            config: {
-              isActive: true,
-              connectedToTelegramAPI: true,
-              realTimeProcessing: true
-            },
-            isProtected: true,
-            isRealNode: true // Flag to indicate this is connected to real system
-          }
-        },
-        {
-          id: 'message-processor-node',
-          type: 'custom',
-          position: { x: 400, y: 100 },
-          data: {
-            label: 'Message Processor',
-            type: 'message-processor',
-            description: 'Processes incoming messages with AI integration',
-            config: {
-              useClaudeAI: true,
-              autoRespond: true,
-              realTimeProcessing: true
-            },
-            isProtected: true,
-            isRealNode: true
-          }
-        },
-        {
-          id: 'telegram-sender-node',
-          type: 'custom',
-          position: { x: 700, y: 100 },
-          data: {
-            label: 'Telegram Sender',
-            type: 'telegram-sender',
-            description: 'Sends responses back to Telegram users',
-            config: {
-              connectedToTelegramAPI: true,
-              realTimeDelivery: true
-            },
-            isProtected: true,
-            isRealNode: true
-          }
-        }
-      ],
-      edges: [
-        {
-          id: 'listener-to-processor',
-          source: 'telegram-listener-node',
-          target: 'message-processor-node',
-          type: 'default'
-        },
-        {
-          id: 'processor-to-sender',
-          source: 'message-processor-node',
-          target: 'telegram-sender-node',
-          type: 'default'
-        }
-      ],
-      isRealWorkflow: true,
+      description: `Active workflow for bot: ${userBot.bot_token.substring(0, 10)}...`,
+      botConfig: {
+        listenerId: userBot.listener_id,
+        isActive: userBot.is_active,
+        setupAt: userBot.setup_at,
+        messageCount: messageStats.total_messages,
+        lastActivity: messageStats.last_message
+      },
+      // Return empty nodes - workflow builder will show the actual running system
+      nodes: [],
+      edges: [],
+      isLiveWorkflow: true,
       connectedToTelegram: true
     };
     
-    console.log('✅ Serving real Telegram virtual workflow');
+    console.log('✅ Serving actual Telegram workflow data:', {
+      listenerId: userBot.listener_id,
+      messageCount: messageStats.total_messages
+    });
     
     res.json({
       success: true,
-      workflow: realTelegramWorkflow,
-      message: 'Real Telegram virtual workflow loaded'
+      workflow: actualWorkflow,
+      message: 'Connected to actual running Telegram workflow'
     });
     
   } catch (error) {
-    console.error('❌ Error loading Telegram virtual workflow:', error);
+    console.error('❌ Error loading actual Telegram workflow:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to load Telegram virtual workflow'
+      error: 'Failed to connect to Telegram workflow'
     });
   }
 });
