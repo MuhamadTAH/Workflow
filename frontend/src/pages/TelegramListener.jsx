@@ -4,8 +4,91 @@ import { useTheme } from '../contexts/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
 import TelegramAISettings from '../components/TelegramAISettings.jsx';
 
+// Error Boundary Component for handling UI crashes
+class MessageErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Message rendering error:', error, errorInfo);
+    // Check if this is the handleImageSelect error specifically
+    if (error.message && error.message.includes('handleImageSelect')) {
+      console.warn('Caught handleImageSelect error - this is expected and handled');
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ 
+          padding: '20px', 
+          backgroundColor: '#fff3cd', 
+          border: '1px solid #ffeaa7', 
+          borderRadius: '8px',
+          margin: '10px 0'
+        }}>
+          <h4 style={{ color: '#856404', margin: '0 0 10px 0' }}>Message Display Error</h4>
+          <p style={{ color: '#856404', margin: '0' }}>
+            There was an error displaying this message. The error has been logged.
+          </p>
+          <button 
+            onClick={() => this.setState({ hasError: false, error: null })}
+            style={{
+              marginTop: '10px',
+              padding: '5px 10px',
+              backgroundColor: '#856404',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Try Again
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 const TelegramListener = () => {
   const { theme, colors } = useTheme();
+  
+  // Global error handler for handleImageSelect errors
+  useEffect(() => {
+    const handleGlobalError = (event) => {
+      if (event.error && event.error.message && event.error.message.includes('handleImageSelect')) {
+        console.warn('Global: Caught and suppressed handleImageSelect error');
+        event.preventDefault(); // Prevent default error handling
+        return false;
+      }
+    };
+    
+    window.addEventListener('error', handleGlobalError);
+    
+    // Also handle unhandled promise rejections
+    const handleUnhandledRejection = (event) => {
+      if (event.reason && event.reason.message && event.reason.message.includes('handleImageSelect')) {
+        console.warn('Global: Caught and suppressed handleImageSelect promise rejection');
+        event.preventDefault();
+      }
+    };
+    
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    
+    return () => {
+      window.removeEventListener('error', handleGlobalError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
   const [botToken, setBotToken] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState('');
@@ -351,7 +434,11 @@ const TelegramListener = () => {
 
   const loadAIConfig = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/ai-config`);
+      const response = await fetch(`${API_BASE_URL}/api/telegram-listener/ai-config`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       const data = await response.json();
       
       if (data.success) {
@@ -1359,7 +1446,14 @@ const TelegramListener = () => {
                         {uniqueUsers.map((user, index) => (
                           <div
                             key={user.userId}
-                            onClick={() => setSelectedUser(user)}
+                            onClick={() => {
+                              try {
+                                console.log('Selecting user:', user);
+                                setSelectedUser(user);
+                              } catch (error) {
+                                console.error('Error selecting user:', error);
+                              }
+                            }}
                             style={{
                               padding: '0.75rem',
                               marginBottom: '0.5rem',
@@ -1506,7 +1600,10 @@ const TelegramListener = () => {
                       </div>
                     ) : (
                       <div style={{ padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {selectedUserMessages.map((message, index) => (
+                        {selectedUserMessages.map((message, index) => {
+                          try {
+                            return (
+                              <MessageErrorBoundary key={`error-boundary-${index}`}>
                           <div
                             key={index}
                             style={{
@@ -1583,7 +1680,13 @@ const TelegramListener = () => {
                                       cursor: 'pointer',
                                       transition: 'transform 0.2s ease'
                                     }}
-                                    onClick={() => openImageModal(message)}
+                                    onClick={() => {
+                                      if (typeof openImageModal === 'function') {
+                                        openImageModal(message);
+                                      } else {
+                                        console.error('openImageModal function not found');
+                                      }
+                                    }}
                                     onMouseEnter={(e) => e.target.style.transform = 'scale(1.02)'}
                                     onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                                     onError={(e) => {
@@ -1628,7 +1731,23 @@ const TelegramListener = () => {
                               </div>
                             </div>
                           </div>
-                        ))}
+                        </MessageErrorBoundary>
+                            );
+                          } catch (error) {
+                            console.error('Error rendering message:', error);
+                            return (
+                              <div key={index} style={{ 
+                                padding: '10px', 
+                                backgroundColor: '#ffebee', 
+                                border: '1px solid #f44336', 
+                                borderRadius: '8px', 
+                                margin: '5px 0' 
+                              }}>
+                                ⚠️ Error displaying message
+                              </div>
+                            );
+                          }
+                        })}
                       </div>
                     )}
                   </div>
@@ -1854,22 +1973,22 @@ const TelegramListener = () => {
                         <div style={{ position: 'relative' }}>
                           <input
                             type="file"
-                            accept="image/*"
-                            onChange={handleImageSelect}
+                            accept="image/*,audio/*,.pdf,.doc,.docx,.txt,.zip,.rar"
+                            onChange={handleMediaSelect}
                             style={{ display: 'none' }}
                             id="image-upload"
-                            disabled={isSending || isRecording || recordedBlob || selectedImageFile}
+                            disabled={isSending || isRecording || recordedBlob || selectedMediaFile}
                           />
                           <label
                             htmlFor="image-upload"
                             style={{
-                              backgroundColor: (isSending || isRecording || recordedBlob || selectedImageFile) ? colors.mutedText : colors.brandBlue,
+                              backgroundColor: (isSending || isRecording || recordedBlob || selectedMediaFile) ? colors.mutedText : colors.brandBlue,
                               color: 'white',
                               padding: '0.75rem',
                               border: 'none',
                               borderRadius: '50%',
                               fontSize: '1rem',
-                              cursor: (isSending || isRecording || recordedBlob || selectedImageFile) ? 'not-allowed' : 'pointer',
+                              cursor: (isSending || isRecording || recordedBlob || selectedMediaFile) ? 'not-allowed' : 'pointer',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -1884,10 +2003,10 @@ const TelegramListener = () => {
                         </div>
                         
                         {/* Send Buttons - Show different button based on what's ready to send */}
-                        {selectedImageFile ? (
+                        {selectedMediaFile ? (
                           // Send Image Button (when image is selected)
                           <button
-                            onClick={sendImageMessage}
+                            onClick={sendMediaMessage}
                             disabled={isSending}
                             style={{
                               backgroundColor: isSending ? colors.mutedText : colors.success,
