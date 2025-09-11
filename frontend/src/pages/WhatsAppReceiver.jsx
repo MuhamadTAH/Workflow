@@ -431,7 +431,16 @@ const WhatsAppReceiver = () => {
       }
       
       conversationMap[phoneNumber].messages.push(message);
-      conversationMap[phoneNumber].lastMessage = message.text || message.message;
+      
+      // Set last message with proper handling for voice and image
+      let lastMessageText = message.text || message.message;
+      if (message.voice_file_url || message.voiceFileUrl) {
+        lastMessageText = '🎤 Voice message';
+      } else if (message.image_file_url || message.imageFileUrl) {
+        lastMessageText = '🖼️ Image' + (message.caption ? `: ${message.caption}` : '');
+      }
+      
+      conversationMap[phoneNumber].lastMessage = lastMessageText;
       conversationMap[phoneNumber].lastMessageTime = message.timestamp || message.createdAt;
     });
     
@@ -1352,12 +1361,62 @@ const WhatsAppReceiver = () => {
                                 boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
                                 wordWrap: 'break-word'
                               }}>
+                                {/* Voice Message */}
+                                {(message.voice_file_url || message.voiceFileUrl) && (
+                                  <div style={{ marginBottom: '0.5rem' }}>
+                                    <div style={{ 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      gap: '0.5rem',
+                                      marginBottom: '0.25rem'
+                                    }}>
+                                      <span style={{ fontSize: '1rem' }}>🎤</span>
+                                      <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>Voice message</span>
+                                    </div>
+                                    <audio 
+                                      controls 
+                                      style={{ 
+                                        width: '100%', 
+                                        maxWidth: '250px',
+                                        height: '32px'
+                                      }}
+                                      preload="metadata"
+                                    >
+                                      <source src={message.voice_file_url || message.voiceFileUrl} type={message.voice_mime_type || message.voiceMimeType || 'audio/ogg'} />
+                                      Your browser does not support the audio element.
+                                    </audio>
+                                  </div>
+                                )}
+
+                                {/* Image Message */}
+                                {(message.image_file_url || message.imageFileUrl) && (
+                                  <div style={{ marginBottom: message.caption ? '0.5rem' : '0' }}>
+                                    <img 
+                                      src={message.image_file_url || message.imageFileUrl}
+                                      alt="WhatsApp image"
+                                      style={{
+                                        maxWidth: '200px',
+                                        maxHeight: '200px',
+                                        borderRadius: '0.5rem',
+                                        cursor: 'pointer',
+                                        objectFit: 'cover'
+                                      }}
+                                      onClick={() => {
+                                        // Open image in modal/new tab
+                                        window.open(message.image_file_url || message.imageFileUrl, '_blank');
+                                      }}
+                                    />
+                                  </div>
+                                )}
+
+                                {/* Text Message */}
                                 <div style={{
                                   fontSize: '0.875rem',
                                   lineHeight: '1.4'
                                 }}>
                                   {message.text || message.message}
                                 </div>
+                                
                                 <div style={{ 
                                   fontSize: '0.65rem', 
                                   opacity: 0.7,

@@ -65,7 +65,19 @@ whatsappDb.serialize(() => {
     timestamp TEXT,
     raw_data TEXT,
     direction TEXT DEFAULT 'incoming',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    voice_file_id TEXT,
+    voice_file_url TEXT,
+    voice_duration INTEGER,
+    voice_mime_type TEXT,
+    voice_file_size INTEGER,
+    image_file_id TEXT,
+    image_file_url TEXT,
+    image_width INTEGER,
+    image_height INTEGER,
+    image_file_size INTEGER,
+    image_mime_type TEXT,
+    caption TEXT
   )`);
   
   // Add direction column if it doesn't exist (for existing databases)
@@ -73,6 +85,42 @@ whatsappDb.serialize(() => {
     if (err && !err.message.includes('duplicate column')) {
       console.error('Error adding direction column:', err);
     }
+  });
+  
+  // Add voice message columns if they don't exist
+  const voiceColumns = [
+    'voice_file_id TEXT',
+    'voice_file_url TEXT', 
+    'voice_duration INTEGER',
+    'voice_mime_type TEXT',
+    'voice_file_size INTEGER'
+  ];
+  
+  voiceColumns.forEach(column => {
+    whatsappDb.run(`ALTER TABLE whatsapp_receiver_messages ADD COLUMN ${column}`, (err) => {
+      if (err && !err.message.includes('duplicate column')) {
+        console.error(`Error adding voice column ${column}:`, err);
+      }
+    });
+  });
+  
+  // Add image message columns if they don't exist
+  const imageColumns = [
+    'image_file_id TEXT',
+    'image_file_url TEXT',
+    'image_width INTEGER', 
+    'image_height INTEGER',
+    'image_file_size INTEGER',
+    'image_mime_type TEXT',
+    'caption TEXT'
+  ];
+  
+  imageColumns.forEach(column => {
+    whatsappDb.run(`ALTER TABLE whatsapp_receiver_messages ADD COLUMN ${column}`, (err) => {
+      if (err && !err.message.includes('duplicate column')) {
+        console.error(`Error adding image column ${column}:`, err);
+      }
+    });
   });
 });
 
@@ -87,6 +135,31 @@ let receiverState = {
   accessToken: null,
   phoneNumberSendId: null,
   activatedAt: null
+};
+
+// Helper function to get WhatsApp media file URL
+const getWhatsAppMediaUrl = async (mediaId, accessToken) => {
+  try {
+    console.log('🔍 Fetching WhatsApp media URL for:', mediaId);
+    
+    const axios = require('axios');
+    const response = await axios.get(`https://graph.facebook.com/v21.0/${mediaId}`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    });
+    
+    if (response.data && response.data.url) {
+      console.log('✅ WhatsApp media URL retrieved successfully');
+      return response.data.url;
+    } else {
+      console.error('❌ No URL found in WhatsApp media response');
+      return null;
+    }
+  } catch (error) {
+    console.error('❌ Error fetching WhatsApp media URL:', error.message);
+    return null;
+  }
 };
 
 // Database helper functions
@@ -524,8 +597,8 @@ const sendWhatsAppReply = async (phoneNumber, messageText) => {
 };
 
 // Function to store received WhatsApp message (called from webhook)
-const storeWhatsAppMessage = (webhookData) => {
-  return new Promise((resolve, reject) => {
+const storeWhatsAppMessage = async (webhookData) => {
+  return new Promise(async (resolve, reject) => {
     console.log('💾 Storing WhatsApp message from receiver...');
     
     // Only store if receiver is active
@@ -548,27 +621,100 @@ const storeWhatsAppMessage = (webhookData) => {
       const message = value.messages[0];
       const contact = value.contacts?.[0];
       
+      // Initialize message data
       const messageData = {
         phoneNumber: message.from,
         contactName: contact?.profile?.name || contact?.wa_id || 'Unknown Contact',
-        messageText: message.text?.body || message.type || 'Unknown message type',
+        messageText: '',
         messageId: message.id,
         messageType: message.type || 'text',
         timestamp: message.timestamp ? new Date(parseInt(message.timestamp) * 1000).toISOString() : new Date().toISOString(),
         rawData: JSON.stringify(webhookData)
       };
 
+      // Initialize voice and image data
+      let voiceData = null;
+      let imageData = null;
+
+      // Handle different message types
+      if (message.type === 'text') {
+        messageData.messageText = message.text?.body || '';
+        console.log('📝 Text message:', messageData.messageText?.substring(0, 50));
+      } 
+      else if (message.type === 'audio' && message.audio) {
+        messageData.messageText = '[Voice message]';
+        
+        // Get voice file URL if access token is available
+        let voiceFileUrl = null;
+        if (receiverState.accessToken && message.audio.id) {
+          try {
+            voiceFileUrl = await getWhatsAppMediaUrl(message.audio.id, receiverState.accessToken);
+          } catch (error) {
+            console.error('❌ Error getting voice file URL:', error.message);
+          }
+        }
+        
+        voiceData = {
+          voiceFileId: message.audio.id,
+          voiceFileUrl: voiceFileUrl,
+          voiceMimeType: message.audio.mime_type,
+          voiceFileSize: message.audio.file_size
+        };
+        
+        console.log('🎤 Voice message processed:', {
+          fileId: voiceData.voiceFileId,
+          hasUrl: !!voiceData.voiceFileUrl,
+          mimeType: voiceData.voiceMimeType
+        });
+      }
+      else if (message.type === 'image' && message.image) {
+        messageData.messageText = message.image.caption || '[Image]';
+        
+        // Get image file URL if access token is available
+        let imageFileUrl = null;
+        if (receiverState.accessToken && message.image.id) {
+          try {
+            imageFileUrl = await getWhatsAppMediaUrl(message.image.id, receiverState.accessToken);
+          } catch (error) {
+            console.error('❌ Error getting image file URL:', error.message);
+          }
+        }
+        
+        imageData = {
+          imageFileId: message.image.id,
+          imageFileUrl: imageFileUrl,
+          imageMimeType: message.image.mime_type,
+          imageFileSize: message.image.file_size,
+          caption: message.image.caption || null
+        };
+        
+        console.log('🖼️ Image message processed:', {
+          fileId: imageData.imageFileId,
+          hasUrl: !!imageData.imageFileUrl,
+          mimeType: imageData.imageMimeType,
+          hasCaption: !!imageData.caption
+        });
+      }
+      else {
+        messageData.messageText = `[${message.type} message]`;
+        console.log('📦 Other message type:', message.type);
+      }
+
       console.log('📝 Message data to store:', {
         from: messageData.phoneNumber,
         name: messageData.contactName,
         text: messageData.messageText?.substring(0, 50),
-        type: messageData.messageType
+        type: messageData.messageType,
+        hasVoice: !!voiceData,
+        hasImage: !!imageData
       });
 
       const insertQuery = `
         INSERT OR REPLACE INTO whatsapp_receiver_messages 
-        (phone_number, contact_name, message_text, message_id, message_type, timestamp, raw_data)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        (phone_number, contact_name, message_text, message_id, message_type, timestamp, raw_data,
+         voice_file_id, voice_file_url, voice_mime_type, voice_file_size,
+         image_file_id, image_file_url, image_mime_type, image_file_size, caption)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       
       whatsappDb.run(insertQuery, [
@@ -578,7 +724,18 @@ const storeWhatsAppMessage = (webhookData) => {
         messageData.messageId,
         messageData.messageType,
         messageData.timestamp,
-        messageData.rawData
+        messageData.rawData,
+        // Voice data
+        voiceData?.voiceFileId || null,
+        voiceData?.voiceFileUrl || null,
+        voiceData?.voiceMimeType || null,
+        voiceData?.voiceFileSize || null,
+        // Image data
+        imageData?.imageFileId || null,
+        imageData?.imageFileUrl || null,
+        imageData?.imageMimeType || null,
+        imageData?.imageFileSize || null,
+        imageData?.caption || null
       ], async function(err) {
         if (err) {
           console.error('❌ Error storing message:', err);
