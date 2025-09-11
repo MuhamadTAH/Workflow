@@ -77,7 +77,8 @@
       "Bash(start http://localhost:5173/chat-widget)",
       "Bash(start \"D:\\automation\\Workflow\\test-chat-widget.html\")",
       "Bash(start:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(del:*)"
     ],
     "deny": []
   }

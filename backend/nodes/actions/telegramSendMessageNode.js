@@ -12,7 +12,7 @@ class TelegramSendMessageNode {
         this.name = 'Telegram Send Message';
         this.type = 'telegramSendMessage';
         this.icon = 'fab fa-telegram';
-        this.description = 'Send messages via Telegram Bot API';
+        this.description = 'Send text messages, photos, documents, voice messages, and audio files via Telegram Bot API';
     }
 
     /**
@@ -20,6 +20,21 @@ class TelegramSendMessageNode {
      */
     getParameters() {
         return {
+            messageType: {
+                displayName: 'Message Type',
+                name: 'messageType',
+                type: 'options',
+                options: [
+                    { name: 'Text Message', value: 'text' },
+                    { name: 'Photo', value: 'photo' },
+                    { name: 'Document/PDF', value: 'document' },
+                    { name: 'Voice Message', value: 'voice' },
+                    { name: 'Audio File', value: 'audio' }
+                ],
+                default: 'text',
+                required: true,
+                description: 'Type of message to send'
+            },
             chatId: {
                 displayName: 'Chat ID',
                 name: 'chatId',
@@ -36,8 +51,42 @@ class TelegramSendMessageNode {
                     rows: 4
                 },
                 default: 'Hello {{$json.message.from.first_name || "there"}}!',
-                required: true,
-                description: 'Message content (supports expressions)'
+                required: false,
+                description: 'Message content (supports expressions)',
+                displayOptions: {
+                    show: {
+                        messageType: ['text']
+                    }
+                }
+            },
+            mediaFile: {
+                displayName: 'Media File',
+                name: 'mediaFile',
+                type: 'string',
+                default: '',
+                required: false,
+                description: 'File path or URL to media file',
+                displayOptions: {
+                    show: {
+                        messageType: ['photo', 'document', 'voice', 'audio']
+                    }
+                }
+            },
+            caption: {
+                displayName: 'Caption',
+                name: 'caption',
+                type: 'string',
+                typeOptions: {
+                    rows: 2
+                },
+                default: '',
+                required: false,
+                description: 'Caption for media (supports expressions)',
+                displayOptions: {
+                    show: {
+                        messageType: ['photo', 'document', 'voice', 'audio']
+                    }
+                }
             },
             parseMode: {
                 displayName: 'Parse Mode',
@@ -115,7 +164,7 @@ class TelegramSendMessageNode {
                 throw new Error(`Parameter validation failed: ${validation.errors.join(', ')}`);
             }
 
-            // Send message to Telegram
+            // Send message to Telegram based on type
             const result = await this.sendTelegramMessage(processedConfig);
             
             return {
@@ -123,13 +172,14 @@ class TelegramSendMessageNode {
                 data: {
                     messageId: result.message_id,
                     chatId: result.chat.id,
-                    text: result.text,
+                    text: result.text || result.caption || 'Media sent',
                     date: result.date,
-                    sentAt: new Date().toISOString()
+                    sentAt: new Date().toISOString(),
+                    messageType: processedConfig.messageType || 'text'
                 },
                 telegram: result,
                 nodeType: this.type,
-                message: 'Message sent successfully'
+                message: `${processedConfig.messageType || 'text'} message sent successfully`
             };
 
         } catch (error) {
@@ -161,7 +211,7 @@ class TelegramSendMessageNode {
         console.log('🔍 MessageText field value:', processed.messageText);
         
         // Fields that support template expressions
-        const templateFields = ['chatId', 'text', 'replyToMessageId', 'botToken'];
+        const templateFields = ['chatId', 'text', 'mediaFile', 'caption', 'replyToMessageId', 'botToken'];
         
         templateFields.forEach(field => {
             if (processed[field] && typeof processed[field] === 'string') {
@@ -209,9 +259,26 @@ class TelegramSendMessageNode {
             errors.push('Chat ID is required');
         }
         
-        if (!config.text || config.text.trim() === '') {
-            console.log('❌ Text validation failed - text field:', config.text);
-            errors.push('Message text is required');
+        // Validate based on message type
+        const messageType = config.messageType || 'text';
+        
+        if (messageType === 'text') {
+            if (!config.text || config.text.trim() === '') {
+                console.log('❌ Text validation failed - text field:', config.text);
+                errors.push('Message text is required for text messages');
+            }
+        } else {
+            // For media messages, validate mediaFile
+            if (!config.mediaFile || config.mediaFile.trim() === '') {
+                console.log('❌ Media validation failed - mediaFile field:', config.mediaFile);
+                errors.push(`Media file is required for ${messageType} messages`);
+            } else {
+                // Validate file based on message type
+                const fileValidation = this.validateMediaFile(config.mediaFile, messageType);
+                if (!fileValidation.valid) {
+                    errors.push(...fileValidation.errors);
+                }
+            }
         }
         
         // Auto-provide bot token if none configured
@@ -248,6 +315,96 @@ class TelegramSendMessageNode {
     }
 
     /**
+     * Validate media file based on message type
+     */
+    validateMediaFile(mediaFile, messageType) {
+        const errors = [];
+        
+        // Check if it's a URL
+        if (mediaFile.startsWith('http://') || mediaFile.startsWith('https://')) {
+            console.log('📡 Media file is URL, skipping local file validation');
+            return { valid: true, errors: [] };
+        }
+
+        const fs = require('fs');
+        const path = require('path');
+
+        // Check if file exists (for local files)
+        if (!fs.existsSync(mediaFile)) {
+            errors.push(`File not found: ${mediaFile}`);
+            return { valid: false, errors };
+        }
+
+        // Get file stats
+        const stats = fs.statSync(mediaFile);
+        const fileSize = stats.size;
+        const fileExtension = path.extname(mediaFile).toLowerCase();
+
+        // Telegram file size limits (in bytes)
+        const MAX_PHOTO_SIZE = 10 * 1024 * 1024;      // 10MB for photos
+        const MAX_DOCUMENT_SIZE = 50 * 1024 * 1024;    // 50MB for documents
+        const MAX_VOICE_SIZE = 1 * 1024 * 1024;        // 1MB for voice (OGG/OPUS only)
+        const MAX_AUDIO_SIZE = 50 * 1024 * 1024;       // 50MB for audio
+
+        // File type validations
+        const PHOTO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+        const DOCUMENT_EXTENSIONS = ['.pdf', '.doc', '.docx', '.txt', '.zip', '.rar']; // Add more as needed
+        const VOICE_EXTENSIONS = ['.ogg']; // Telegram voice messages must be OGG/OPUS
+        const AUDIO_EXTENSIONS = ['.mp3', '.m4a', '.aac', '.ogg', '.wav', '.flac'];
+
+        switch (messageType) {
+            case 'photo':
+                if (fileSize > MAX_PHOTO_SIZE) {
+                    errors.push(`Photo file too large: ${(fileSize / 1024 / 1024).toFixed(2)}MB (max: 10MB)`);
+                }
+                if (!PHOTO_EXTENSIONS.includes(fileExtension)) {
+                    errors.push(`Invalid photo format: ${fileExtension}. Supported: ${PHOTO_EXTENSIONS.join(', ')}`);
+                }
+                break;
+
+            case 'document':
+                if (fileSize > MAX_DOCUMENT_SIZE) {
+                    errors.push(`Document file too large: ${(fileSize / 1024 / 1024).toFixed(2)}MB (max: 50MB)`);
+                }
+                // Documents can be any file type, so no extension validation
+                break;
+
+            case 'voice':
+                if (fileSize > MAX_VOICE_SIZE) {
+                    errors.push(`Voice file too large: ${(fileSize / 1024).toFixed(2)}KB (max: 1MB)`);
+                }
+                if (!VOICE_EXTENSIONS.includes(fileExtension)) {
+                    errors.push(`Invalid voice format: ${fileExtension}. Telegram voice messages must be OGG/OPUS format`);
+                }
+                break;
+
+            case 'audio':
+                if (fileSize > MAX_AUDIO_SIZE) {
+                    errors.push(`Audio file too large: ${(fileSize / 1024 / 1024).toFixed(2)}MB (max: 50MB)`);
+                }
+                if (!AUDIO_EXTENSIONS.includes(fileExtension)) {
+                    errors.push(`Invalid audio format: ${fileExtension}. Supported: ${AUDIO_EXTENSIONS.join(', ')}`);
+                }
+                break;
+
+            default:
+                errors.push(`Unknown media type: ${messageType}`);
+        }
+
+        console.log(`📁 File validation for ${messageType}:`, {
+            file: mediaFile,
+            size: `${(fileSize / 1024 / 1024).toFixed(2)}MB`,
+            extension: fileExtension,
+            valid: errors.length === 0
+        });
+
+        return {
+            valid: errors.length === 0,
+            errors: errors
+        };
+    }
+
+    /**
      * Validate chat ID format
      */
     isValidChatId(chatId) {
@@ -270,79 +427,107 @@ class TelegramSendMessageNode {
     }
 
     /**
-     * Send message to Telegram Bot API
+     * Send message to Telegram Bot API based on message type
      */
     async sendTelegramMessage(config) {
-        const url = `https://api.telegram.org/bot${config.botToken}/sendMessage`;
+        console.log('📤 Sending to Telegram API with type:', config.messageType || 'text');
         
-        // Build request body
-        const body = {
-            chat_id: config.chatId,
-            text: config.text
-        };
+        const { TelegramAPI } = require('../../services/telegramAPI');
+        const telegramAPI = new TelegramAPI(config.botToken);
         
-        // Add optional parameters
+        // Prepare options
+        const options = {};
+        
         if (config.parseMode && config.parseMode.trim() !== '') {
-            body.parse_mode = config.parseMode;
+            options.parse_mode = config.parseMode;
         }
         
         if (config.disableWebPagePreview === true) {
-            body.disable_web_page_preview = true;
+            options.disable_web_page_preview = true;
         }
         
         if (config.disableNotification === true) {
-            body.disable_notification = true;
+            options.disable_notification = true;
         }
         
         if (config.replyToMessageId && config.replyToMessageId.trim() !== '') {
-            body.reply_to_message_id = parseInt(config.replyToMessageId, 10);
+            options.reply_to_message_id = parseInt(config.replyToMessageId, 10);
         }
 
-        console.log('📤 Sending to Telegram API:', { url: url.replace(/bot\d+:/, 'bot[HIDDEN]:'), body });
+        let result;
+        const messageType = config.messageType || 'text';
 
         try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'User-Agent': 'Workflow-Builder/1.0'
-                },
-                body: JSON.stringify(body)
-            });
+            switch (messageType) {
+                case 'text':
+                    if (!config.text || config.text.trim() === '') {
+                        throw new Error('Text message requires text content');
+                    }
+                    result = await telegramAPI.sendMessage(config.chatId, config.text, options);
+                    break;
 
-            const data = await response.json();
+                case 'photo':
+                    if (!config.mediaFile || config.mediaFile.trim() === '') {
+                        throw new Error('Photo message requires mediaFile path or URL');
+                    }
+                    if (config.caption) options.caption = config.caption;
+                    result = await telegramAPI.sendPhoto(config.chatId, config.mediaFile, options);
+                    break;
 
-            if (!response.ok || !data.ok) {
-                const errorMsg = data.description || `HTTP ${response.status}: ${response.statusText}`;
-                throw new Error(`Telegram API Error: ${errorMsg}`);
+                case 'document':
+                    if (!config.mediaFile || config.mediaFile.trim() === '') {
+                        throw new Error('Document message requires mediaFile path or URL');
+                    }
+                    if (config.caption) options.caption = config.caption;
+                    result = await telegramAPI.sendDocument(config.chatId, config.mediaFile, options);
+                    break;
+
+                case 'voice':
+                    if (!config.mediaFile || config.mediaFile.trim() === '') {
+                        throw new Error('Voice message requires mediaFile path or URL');
+                    }
+                    if (config.caption) options.caption = config.caption;
+                    result = await telegramAPI.sendVoice(config.chatId, config.mediaFile, options);
+                    break;
+
+                case 'audio':
+                    if (!config.mediaFile || config.mediaFile.trim() === '') {
+                        throw new Error('Audio message requires mediaFile path or URL');
+                    }
+                    if (config.caption) options.caption = config.caption;
+                    result = await telegramAPI.sendAudio(config.chatId, config.mediaFile, options);
+                    break;
+
+                default:
+                    throw new Error(`Unsupported message type: ${messageType}`);
             }
 
+            if (!result.success) {
+                throw new Error(result.error?.message || 'Failed to send message');
+            }
+
+            const telegramResult = result.data.result;
+            
             console.log('✅ Telegram API Response:', {
-                messageId: data.result.message_id,
-                chatId: data.result.chat.id,
+                messageId: telegramResult.message_id,
+                chatId: telegramResult.chat.id,
+                messageType: messageType,
                 success: true
             });
 
-            console.log('🔄 CHECKPOINT 1: After Telegram API success');
-
-            // CRITICAL: Also save the workflow response to Live Chat database
-            console.log('🚨 LIVE CHAT INTEGRATION: About to call saveTelegramResponseToLiveChat...');
-            console.log('🚨 Params: config.chatId =', config.chatId, ', data.result.chat.id =', data.result?.chat?.id, ', inputData exists =', !!inputData);
+            // CRITICAL: Save the workflow response to Live Chat database
             try {
-                await this.saveTelegramResponseToLiveChat(config, data.result, inputData);
+                await this.saveTelegramResponseToLiveChat(config, telegramResult, this.inputData);
                 console.log('✅ LIVE CHAT INTEGRATION: saveTelegramResponseToLiveChat completed successfully');
             } catch (liveChatError) {
                 console.error('❌ LIVE CHAT INTEGRATION ERROR:', liveChatError.message);
                 console.error('❌ Full error stack:', liveChatError);
             }
 
-            console.log('🔄 CHECKPOINT 2: Before returning data.result');
-            return data.result;
+            return telegramResult;
 
         } catch (error) {
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                throw new Error('Network error: Unable to connect to Telegram API');
-            }
+            console.error('❌ Telegram API Error:', error.message);
             throw error;
         }
     }
@@ -566,8 +751,11 @@ class TelegramSendMessageNode {
      */
     getSampleConfig() {
         return {
+            messageType: 'text',
             chatId: '123456789',
-            text: 'Hello from n8n-style Telegram node!',
+            text: 'Hello from enhanced Telegram node!',
+            mediaFile: '', // For photo/document/voice/audio
+            caption: '', // For media captions
             parseMode: 'MarkdownV2',
             disableWebPagePreview: false,
             disableNotification: false,

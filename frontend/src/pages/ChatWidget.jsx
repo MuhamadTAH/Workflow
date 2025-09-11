@@ -1122,7 +1122,7 @@ if (document.readyState === 'loading') {
                       )}
                     </h3>
                     <span style={{ fontSize: '0.875rem', color: colors.mutedText }}>
-                      {websites.length} site{websites.length !== 1 ? 's' : ''}
+                      {conversations.length} site{conversations.length !== 1 ? 's' : ''}
                     </span>
                   </div>
 
@@ -1133,7 +1133,7 @@ if (document.readyState === 'loading') {
                     borderRadius: '4px',
                     border: `1px solid ${colors.border}`
                   }}>
-                    {websites.length === 0 ? (
+                    {conversations.length === 0 ? (
                       <div style={{ 
                         padding: '2rem', 
                         textAlign: 'center', 
@@ -1181,18 +1181,18 @@ if (document.readyState === 'loading') {
                                 fontWeight: '500', 
                                 fontSize: '0.875rem',
                                 marginBottom: '0.25rem',
-                                color: selectedWebsite?.url === website.url ? 'white' : colors.primaryText,
+                                color: selectedConversation?.sessionId === conversation.sessionId ? 'white' : colors.primaryText,
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                                 whiteSpace: 'nowrap'
                               }}>
-                                {new URL(website.url).hostname}
+                                {new URL(conversation.websiteUrl).hostname}
                               </div>
                               <div style={{ 
                                 fontSize: '0.75rem', 
-                                color: selectedWebsite?.url === website.url ? 'rgba(255,255,255,0.8)' : colors.mutedText
+                                color: selectedConversation?.sessionId === conversation.sessionId ? 'rgba(255,255,255,0.8)' : colors.mutedText
                               }}>
-                                {website.messageCount} message{website.messageCount !== 1 ? 's' : ''}
+                                {conversation.messageCount} message{conversation.messageCount !== 1 ? 's' : ''}
                               </div>
                             </div>
                           </div>
@@ -1211,7 +1211,7 @@ if (document.readyState === 'loading') {
                 }}>
         
                   {/* Messages Header */}
-                  {selectedWebsite ? (
+                  {selectedConversation ? (
                     <div style={{ 
                       padding: '1rem',
                       backgroundColor: colors.secondaryBg,
@@ -1236,10 +1236,10 @@ if (document.readyState === 'loading') {
                       </div>
                       <div>
                         <div style={{ fontSize: '1rem', fontWeight: '600', color: colors.primaryText }}>
-                          {new URL(selectedWebsite.url).hostname}
+                          {new URL(selectedConversation.websiteUrl).hostname}
                         </div>
                         <div style={{ fontSize: '0.875rem', color: colors.mutedText }}>
-                          {selectedWebsite.url}
+                          {selectedConversation.websiteUrl}
                         </div>
                       </div>
                     </div>
@@ -1261,16 +1261,16 @@ if (document.readyState === 'loading') {
                         color: colors.primaryText,
                         margin: '0 0 0.5rem 0'
                       }}>
-                        Select a Website
+                        Select a Conversation
                       </h2>
                       <p style={{ fontSize: '0.875rem', color: colors.mutedText, margin: 0 }}>
-                        Choose a website from the left panel to view messages from visitors
+                        Choose a conversation from the left panel to view messages from visitors
                       </p>
                     </div>
                   )}
 
                   {/* Messages Display */}
-                  {selectedWebsite && (
+                  {selectedConversation && (
                     <div style={{ 
                       flex: 1, 
                       overflowY: 'auto', 
@@ -1341,7 +1341,7 @@ if (document.readyState === 'loading') {
                   )}
 
                   {/* Reply Input Field */}
-                  {selectedWebsite && (
+                  {selectedConversation && (
                     <div style={{ 
                       padding: '1rem',
                       backgroundColor: colors.secondaryBg,
@@ -1561,7 +1561,7 @@ if (document.readyState === 'loading') {
                     userSelect: 'none'
                   }}
                 >
-                  <span>🌐 Selected Website</span>
+                  <span>🌐 Selected Conversation</span>
                   <span style={{ 
                     transform: isWebsiteInfoCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
                     transition: 'transform 0.2s ease',
@@ -1580,7 +1580,7 @@ if (document.readyState === 'loading') {
                   opacity: isWebsiteInfoCollapsed ? 0 : 1
                 }}>
                 
-                  {selectedWebsite ? (
+                  {selectedConversation ? (
                     <div style={{ backgroundColor: colors.inputBg, borderRadius: '8px', padding: '1rem', border: `1px solid ${colors.border}` }}>
                       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
                         <div style={{
@@ -1600,10 +1600,10 @@ if (document.readyState === 'loading') {
                         </div>
                         <div>
                           <div style={{ fontWeight: '600', fontSize: '1rem', color: colors.primaryText }}>
-                            {new URL(selectedWebsite.url).hostname}
+                            {new URL(selectedConversation.websiteUrl).hostname}
                           </div>
                           <div style={{ color: colors.mutedText, fontSize: '0.875rem' }}>
-                            {selectedWebsite.messageCount} message{selectedWebsite.messageCount !== 1 ? 's' : ''}
+                            {selectedConversation.messageCount} message{selectedConversation.messageCount !== 1 ? 's' : ''}
                           </div>
                         </div>
                       </div>
@@ -1620,7 +1620,7 @@ if (document.readyState === 'loading') {
                         wordBreak: 'break-all',
                         fontFamily: 'monospace'
                       }}>
-                        {selectedWebsite.url}
+                        {selectedConversation.websiteUrl}
                       </div>
                     </div>
                   ) : (
@@ -1632,7 +1632,7 @@ if (document.readyState === 'loading') {
                       <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>
                         🌐
                       </div>
-                      <p>Select a website to view details</p>
+                      <p>Select a conversation to view details</p>
                     </div>
                   )}
                 </div>
@@ -1685,10 +1685,10 @@ if (document.readyState === 'loading') {
                         textAlign: 'center'
                       }}>
                         <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: colors.brandBlue }}>
-                          {websites.length}
+                          {conversations.length}
                         </div>
                         <div style={{ fontSize: '0.75rem', color: colors.mutedText }}>
-                          Active Websites
+                          Active Conversations
                         </div>
                       </div>
                       

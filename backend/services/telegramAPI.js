@@ -292,6 +292,308 @@ class TelegramAPI {
       };
     }
   }
+
+  async sendPhoto(chatId, photo, options = {}) {
+    try {
+      const FormData = require('form-data');
+      const fs = require('fs');
+      
+      const form = new FormData();
+      form.append('chat_id', chatId);
+      
+      // Handle photo input (file path, URL, or Buffer)
+      if (typeof photo === 'string') {
+        if (photo.startsWith('http')) {
+          // URL
+          form.append('photo', photo);
+        } else {
+          // File path
+          if (fs.existsSync(photo)) {
+            form.append('photo', fs.createReadStream(photo));
+          } else {
+            throw new Error(`File not found: ${photo}`);
+          }
+        }
+      } else if (Buffer.isBuffer(photo)) {
+        form.append('photo', photo, 'image.jpg');
+      } else {
+        throw new Error('Invalid photo format. Use file path, URL, or Buffer.');
+      }
+
+      // Add optional parameters
+      if (options.caption) form.append('caption', options.caption);
+      if (options.parse_mode) form.append('parse_mode', options.parse_mode);
+      if (options.disable_notification) form.append('disable_notification', options.disable_notification);
+      if (options.reply_to_message_id) form.append('reply_to_message_id', options.reply_to_message_id);
+
+      logger.debug('Sending Telegram photo', {
+        chatId: chatId,
+        photoType: typeof photo,
+        caption: options.caption ? 'present' : 'none'
+      });
+
+      const response = await axios.post(`${this.baseURL}/sendPhoto`, form, {
+        headers: form.getHeaders(),
+        timeout: 30000
+      });
+
+      if (response.data && response.data.ok) {
+        logger.info('Photo sent successfully', {
+          chatId: chatId,
+          messageId: response.data.result.message_id
+        });
+        return {
+          success: true,
+          data: response.data
+        };
+      } else {
+        return {
+          success: false,
+          error: { message: response.data?.description || 'Failed to send photo' }
+        };
+      }
+    } catch (error) {
+      logger.logError(error, {
+        context: 'sendPhoto',
+        chatId: chatId
+      });
+      return {
+        success: false,
+        error: { 
+          message: error.response?.data?.description || error.message || 'Photo sending failed'
+        }
+      };
+    }
+  }
+
+  async sendDocument(chatId, document, options = {}) {
+    try {
+      const FormData = require('form-data');
+      const fs = require('fs');
+      const path = require('path');
+      
+      const form = new FormData();
+      form.append('chat_id', chatId);
+      
+      // Handle document input (file path, URL, or Buffer)
+      if (typeof document === 'string') {
+        if (document.startsWith('http')) {
+          // URL
+          form.append('document', document);
+        } else {
+          // File path
+          if (fs.existsSync(document)) {
+            const filename = path.basename(document);
+            form.append('document', fs.createReadStream(document), filename);
+          } else {
+            throw new Error(`File not found: ${document}`);
+          }
+        }
+      } else if (Buffer.isBuffer(document)) {
+        const filename = options.filename || 'document.pdf';
+        form.append('document', document, filename);
+      } else {
+        throw new Error('Invalid document format. Use file path, URL, or Buffer.');
+      }
+
+      // Add optional parameters
+      if (options.caption) form.append('caption', options.caption);
+      if (options.parse_mode) form.append('parse_mode', options.parse_mode);
+      if (options.disable_notification) form.append('disable_notification', options.disable_notification);
+      if (options.reply_to_message_id) form.append('reply_to_message_id', options.reply_to_message_id);
+
+      logger.debug('Sending Telegram document', {
+        chatId: chatId,
+        documentType: typeof document,
+        caption: options.caption ? 'present' : 'none'
+      });
+
+      const response = await axios.post(`${this.baseURL}/sendDocument`, form, {
+        headers: form.getHeaders(),
+        timeout: 60000  // Longer timeout for file uploads
+      });
+
+      if (response.data && response.data.ok) {
+        logger.info('Document sent successfully', {
+          chatId: chatId,
+          messageId: response.data.result.message_id
+        });
+        return {
+          success: true,
+          data: response.data
+        };
+      } else {
+        return {
+          success: false,
+          error: { message: response.data?.description || 'Failed to send document' }
+        };
+      }
+    } catch (error) {
+      logger.logError(error, {
+        context: 'sendDocument',
+        chatId: chatId
+      });
+      return {
+        success: false,
+        error: { 
+          message: error.response?.data?.description || error.message || 'Document sending failed'
+        }
+      };
+    }
+  }
+
+  async sendVoice(chatId, voice, options = {}) {
+    try {
+      const FormData = require('form-data');
+      const fs = require('fs');
+      
+      const form = new FormData();
+      form.append('chat_id', chatId);
+      
+      // Handle voice input (file path, URL, or Buffer)
+      if (typeof voice === 'string') {
+        if (voice.startsWith('http')) {
+          // URL
+          form.append('voice', voice);
+        } else {
+          // File path
+          if (fs.existsSync(voice)) {
+            form.append('voice', fs.createReadStream(voice));
+          } else {
+            throw new Error(`File not found: ${voice}`);
+          }
+        }
+      } else if (Buffer.isBuffer(voice)) {
+        form.append('voice', voice, 'voice.ogg');
+      } else {
+        throw new Error('Invalid voice format. Use file path, URL, or Buffer.');
+      }
+
+      // Add optional parameters
+      if (options.caption) form.append('caption', options.caption);
+      if (options.parse_mode) form.append('parse_mode', options.parse_mode);
+      if (options.duration) form.append('duration', options.duration);
+      if (options.disable_notification) form.append('disable_notification', options.disable_notification);
+      if (options.reply_to_message_id) form.append('reply_to_message_id', options.reply_to_message_id);
+
+      logger.debug('Sending Telegram voice message', {
+        chatId: chatId,
+        voiceType: typeof voice,
+        duration: options.duration || 'auto'
+      });
+
+      const response = await axios.post(`${this.baseURL}/sendVoice`, form, {
+        headers: form.getHeaders(),
+        timeout: 30000
+      });
+
+      if (response.data && response.data.ok) {
+        logger.info('Voice message sent successfully', {
+          chatId: chatId,
+          messageId: response.data.result.message_id
+        });
+        return {
+          success: true,
+          data: response.data
+        };
+      } else {
+        return {
+          success: false,
+          error: { message: response.data?.description || 'Failed to send voice message' }
+        };
+      }
+    } catch (error) {
+      logger.logError(error, {
+        context: 'sendVoice',
+        chatId: chatId
+      });
+      return {
+        success: false,
+        error: { 
+          message: error.response?.data?.description || error.message || 'Voice message sending failed'
+        }
+      };
+    }
+  }
+
+  async sendAudio(chatId, audio, options = {}) {
+    try {
+      const FormData = require('form-data');
+      const fs = require('fs');
+      const path = require('path');
+      
+      const form = new FormData();
+      form.append('chat_id', chatId);
+      
+      // Handle audio input (file path, URL, or Buffer)
+      if (typeof audio === 'string') {
+        if (audio.startsWith('http')) {
+          // URL
+          form.append('audio', audio);
+        } else {
+          // File path
+          if (fs.existsSync(audio)) {
+            const filename = path.basename(audio);
+            form.append('audio', fs.createReadStream(audio), filename);
+          } else {
+            throw new Error(`File not found: ${audio}`);
+          }
+        }
+      } else if (Buffer.isBuffer(audio)) {
+        const filename = options.filename || 'audio.mp3';
+        form.append('audio', audio, filename);
+      } else {
+        throw new Error('Invalid audio format. Use file path, URL, or Buffer.');
+      }
+
+      // Add optional parameters
+      if (options.caption) form.append('caption', options.caption);
+      if (options.parse_mode) form.append('parse_mode', options.parse_mode);
+      if (options.duration) form.append('duration', options.duration);
+      if (options.performer) form.append('performer', options.performer);
+      if (options.title) form.append('title', options.title);
+      if (options.disable_notification) form.append('disable_notification', options.disable_notification);
+      if (options.reply_to_message_id) form.append('reply_to_message_id', options.reply_to_message_id);
+
+      logger.debug('Sending Telegram audio', {
+        chatId: chatId,
+        audioType: typeof audio,
+        title: options.title || 'none'
+      });
+
+      const response = await axios.post(`${this.baseURL}/sendAudio`, form, {
+        headers: form.getHeaders(),
+        timeout: 60000  // Longer timeout for audio files
+      });
+
+      if (response.data && response.data.ok) {
+        logger.info('Audio sent successfully', {
+          chatId: chatId,
+          messageId: response.data.result.message_id
+        });
+        return {
+          success: true,
+          data: response.data
+        };
+      } else {
+        return {
+          success: false,
+          error: { message: response.data?.description || 'Failed to send audio' }
+        };
+      }
+    } catch (error) {
+      logger.logError(error, {
+        context: 'sendAudio',
+        chatId: chatId
+      });
+      return {
+        success: false,
+        error: { 
+          message: error.response?.data?.description || error.message || 'Audio sending failed'
+        }
+      };
+    }
+  }
 }
 
 class TemplateProcessor {
