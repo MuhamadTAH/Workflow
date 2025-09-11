@@ -29,7 +29,7 @@ const telegramListenerRoutes = require('./routes/telegramListener');
 // CLAUDE API ROUTES
 const claudeRoutes = require('./routes/claude');
 // INSTAGRAM COMMENT ROUTES
-const instagramCommentRoutes = require('./routes/instagram-comments');
+const { router: instagramCommentRoutes } = require('./routes/instagram-comments');
 // INSTAGRAM AI ROUTES
 const { router: instagramAIRoutes } = require('./routes/instagram-ai');
 // MESSENGER COMMENT ROUTES

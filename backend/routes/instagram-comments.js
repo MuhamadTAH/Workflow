@@ -590,4 +590,7 @@ router.get('/instagram-comments/user-ai/status', (req, res) => {
   });
 });
 
-module.exports = router;
+module.exports = {
+  router,
+  sendInstagramReply
+};

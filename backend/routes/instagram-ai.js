@@ -4,6 +4,7 @@ const logger = require('../services/logger');
 const claudeAI = require('../services/claudeAI');
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
+const { detectAgreementFromConversation, quickAgreementCheck } = require('../services/agreementDetection');
 
 // Instagram AI Configuration Storage
 let aiConfig = {
@@ -74,6 +75,10 @@ function handleMessageBatch(senderId, messageText, generateAIReply, sendInstagra
           originalMessages: batch.messages.length,
           replyLength: aiReply.length
         });
+
+        // 🤝 AGREEMENT DETECTION - Check if client agreed to something
+        console.log('🤝 Checking for Instagram client agreement...');
+        await checkForInstagramAgreement(senderId, combinedMessage, aiReply);
       }
       
     } catch (error) {
@@ -436,6 +441,107 @@ async function generateAIReply(message, senderId) {
   } catch (error) {
     logger.error('💥 AI reply error:', error.message);
     return null;
+  }
+}
+
+// =================================================================
+// INSTAGRAM AGREEMENT DETECTION FUNCTIONS
+// =================================================================
+
+/**
+ * Check for client agreement in Instagram conversation and process if found
+ * @param {string} senderId - Instagram sender ID
+ * @param {string} customerMessage - Customer's message
+ * @param {string} aiResponse - AI's response
+ */
+async function checkForInstagramAgreement(senderId, customerMessage, aiResponse) {
+  try {
+    console.log('🔍 Running Instagram agreement detection...', {
+      senderId,
+      messageLength: customerMessage.length
+    });
+
+    // Quick check for agreement in customer's message
+    const quickCheck = quickAgreementCheck(customerMessage);
+    
+    if (quickCheck.hasAgreement) {
+      console.log('✅ Quick agreement check passed, running full analysis...', {
+        confidence: quickCheck.confidence,
+        keywords: quickCheck.keywords
+      });
+
+      // Get recent conversation history for context (we'll use a simple approach for now)
+      const conversationMessages = [
+        {
+          message_text: customerMessage,
+          sender_type: 'customer',
+          sender_name: 'Instagram User',
+          message_timestamp: new Date().toISOString()
+        },
+        {
+          message_text: aiResponse,
+          sender_type: 'ai',
+          sender_name: 'AI Assistant',
+          message_timestamp: new Date().toISOString()
+        }
+      ];
+
+      // Build customer info for Instagram
+      const customerInfo = {
+        customer_id: senderId,
+        customer_name: 'Instagram User', // We could enhance this with stored user data
+        customer_username: senderId.substring(0, 8),
+        platform: 'instagram',
+        user_id: 1 // Default user ID - you might want to get this from somewhere
+      };
+      
+      // Run full agreement detection
+      const detectionResult = await detectAgreementFromConversation(
+        conversationMessages,
+        customerMessage,
+        customerInfo
+      );
+
+      if (detectionResult.agreementDetected) {
+        console.log('🎉 INSTAGRAM AGREEMENT DETECTED!', {
+          agreementId: detectionResult.agreementId,
+          confidence: detectionResult.confidence,
+          customerId: senderId
+        });
+
+        // Send confirmation message to customer
+        const confirmationMessage = `🎉 Great! I've recorded your agreement. You'll receive a summary of our discussion shortly. Your reference ID is: AGR-${detectionResult.agreementId}`;
+
+        // Import the sendInstagramReply function from instagram-comments
+        const instagramComments = require('./instagram-comments');
+        if (instagramComments.sendInstagramReply) {
+          await instagramComments.sendInstagramReply(senderId, confirmationMessage, true);
+        }
+
+        // Log the agreement detection
+        logger.info('Instagram client agreement detected and processed', {
+          agreementId: detectionResult.agreementId,
+          customerId: senderId,
+          platform: 'instagram',
+          confidence: detectionResult.confidence
+        });
+
+      } else {
+        console.log('❌ Full agreement analysis: No agreement detected', {
+          confidence: detectionResult.confidence
+        });
+      }
+    } else {
+      console.log('❌ Quick agreement check: No strong agreement indicators found');
+    }
+
+  } catch (error) {
+    console.error('❌ Error in Instagram agreement detection:', error.message);
+    logger.error('Instagram agreement detection error', {
+      context: 'agreement-detection-instagram',
+      senderId,
+      error: error.message
+    });
   }
 }
 
