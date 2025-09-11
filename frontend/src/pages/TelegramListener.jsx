@@ -893,7 +893,6 @@ const TelegramListener = () => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          botToken: botToken,
           chatId: selectedUser.chatId,
           text: sendMessage
         })

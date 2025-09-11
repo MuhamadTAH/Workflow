@@ -1096,26 +1096,40 @@ router.post('/send-image', verifyToken, imageUpload.single('image'), asyncHandle
 }));
 
 // Send message endpoint
-router.post('/send-message', asyncHandler(async (req, res) => {
-  const { botToken, chatId, text } = req.body;
+router.post('/send-message', verifyToken, asyncHandler(async (req, res) => {
+  const { chatId, text } = req.body;
   
-  if (!botToken || !chatId || !text) {
-    return res.status(400).json({
-      success: false,
-      error: 'botToken, chatId, and text are required'
-    });
-  }
-
-  console.log('📤 Sending message via Telegram API:', {
-    botTokenPrefix: botToken.substring(0, 10) + '...',
-    chatId: chatId,
-    textLength: text.length
-  });
-
   try {
+    // Get user ID from verified token
+    const userId = req.user?.userId || req.user?.id;
+    console.log('🚀 [SEND-MESSAGE] User ID:', userId);
+
+    // Get user's active bot configuration
+    const userBot = await getUserActiveBotFromDatabase(userId);
+    
+    if (!userBot) {
+      return res.status(400).json({
+        success: false,
+        error: 'No active bot configuration found. Please setup a bot first.'
+      });
+    }
+
+    if (!chatId || !text) {
+      return res.status(400).json({
+        success: false,
+        error: 'chatId and text are required'
+      });
+    }
+
+    console.log('📤 Sending message via Telegram API:', {
+      botTokenPrefix: userBot.bot_token.substring(0, 10) + '...',
+      chatId: chatId,
+      textLength: text.length
+    });
+
     // Send message using Telegram Bot API
     const axios = require('axios');
-    const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+    const telegramApiUrl = `https://api.telegram.org/bot${userBot.bot_token}/sendMessage`;
     
     const response = await axios.post(telegramApiUrl, {
       chat_id: chatId,
@@ -1128,54 +1142,31 @@ router.post('/send-message', asyncHandler(async (req, res) => {
         chatId: response.data.result.chat.id
       });
 
-      // Find the listener ID for this bot token
-      let targetListenerId = null;
-      console.log('🔍 Looking for listener with bot token:', botToken.substring(0, 10) + '...');
+      // Store the sent message in database
+      const sentMessageData = {
+        updateId: 'sent_' + Date.now(),
+        messageId: response.data.result.message_id,
+        chatId: response.data.result.chat.id,
+        text: text,
+        fromUserId: 'bot',
+        fromName: 'You',
+        fromUsername: 'bot',
+        date: new Date().toISOString(),
+        type: 'text',
+        isBotMessage: true
+      };
       
-      // Query database for active bot with this token
-      const botConfig = await new Promise((resolve, reject) => {
-        db.get(`
-          SELECT * FROM telegram_listener_bots 
-          WHERE bot_token = ? AND is_active = 1
-        `, [botToken], (err, row) => {
-          if (err) reject(err);
-          else resolve(row);
-        });
-      });
-      
-      if (botConfig) {
-        targetListenerId = botConfig.listener_id;
-        console.log('✅ Found matching listener:', targetListenerId);
-      }
-
-      // Store the sent message as a bot message
-      if (targetListenerId) {
-        console.log('💾 Storing sent message for listener:', targetListenerId);
-        
-        const sentMessageData = {
-          updateId: 'sent_' + Date.now(),
-          messageId: response.data.result.message_id,
-          chatId: response.data.result.chat.id,
-          text: text,
-          fromUserId: 'bot',
-          fromName: 'Bot',
-          fromUsername: 'workflow_bot',
-          date: new Date().toISOString(),
-          type: 'bot_message',
-          isBotMessage: true
-        };
-        
-        await saveMessageToDatabase(targetListenerId, sentMessageData);
-        
-        console.log('💾 Stored sent message as bot message for listener:', targetListenerId);
-      } else {
-        console.log('❌ No matching listener found for bot token:', botToken.substring(0, 10) + '...');
+      try {
+        await saveMessageToDatabase(userBot.listener_id, sentMessageData);
+        console.log('✅ Sent message stored in database');
+      } catch (dbError) {
+        console.error('❌ Failed to store sent message:', dbError.message);
       }
 
       logger.info(`Telegram message sent successfully`, {
         chatId: chatId,
         messageId: response.data.result.message_id,
-        botTokenPrefix: botToken.substring(0, 10) + '...'
+        botTokenPrefix: userBot.bot_token.substring(0, 10) + '...'
       });
 
       res.json({
