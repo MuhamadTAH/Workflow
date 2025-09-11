@@ -441,7 +441,7 @@ const server = http.createServer(app);
 // WebSocket server initialization removed with AI Assistant system
 
 server.listen(PORT, async () => {
-  console.log(`🚀 Backend server started on port ${PORT}`);
+  console.log(`🚀 Backend server started on port ${PORT} - v2.0`);
   logger.info(`Backend server started on port ${PORT}`, { port: PORT });
   
   // Initialize critical database data after startup
