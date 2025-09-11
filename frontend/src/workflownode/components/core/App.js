@@ -147,6 +147,16 @@ const App = ({ botContext }) => {
       localStorage.setItem('savedWorkflows', JSON.stringify(savedWorkflows));
       
       console.log('🤖 Auto-created empty Telegram Workflow - ready for real virtual workflow');
+    } else {
+      // Clean up any old fake nodes from existing Telegram Workflow
+      const existingIndex = savedWorkflows.findIndex(w => w.name === 'Telegram Workflow');
+      if (existingIndex >= 0) {
+        savedWorkflows[existingIndex].nodes = []; // Clear old fake nodes
+        savedWorkflows[existingIndex].edges = []; // Clear old fake edges
+        savedWorkflows[existingIndex].isTelegramWorkflow = true;
+        localStorage.setItem('savedWorkflows', JSON.stringify(savedWorkflows));
+        console.log('🧹 Cleaned up existing Telegram Workflow - removed fake nodes');
+      }
     }
     
     if (loadWorkflowId && currentWorkflowId !== loadWorkflowId) {
@@ -192,24 +202,25 @@ const App = ({ botContext }) => {
       const telegramWorkflowToLoad = updatedWorkflows.find(w => w.name === 'Telegram Workflow');
       
       if (telegramWorkflowToLoad) {
-        setNodes(telegramWorkflowToLoad.nodes || []);
-        setEdges(telegramWorkflowToLoad.edges || []);
+        // Clear any old fake nodes first
+        setNodes([]);
+        setEdges([]);
         setWorkflowName('Telegram Workflow');
         setCurrentWorkflowId(telegramWorkflowToLoad.id);
         setLastSaved(`Loaded: ${new Date(telegramWorkflowToLoad.updatedAt).toLocaleTimeString()}`);
         
-        // Set initial saved state
+        console.log('🤖 Auto-loaded Telegram Workflow - will load real workflow via API');
+        
+        // Don't set nodes/edges here - let loadTelegramVirtualWorkflow handle it
         setTimeout(() => {
           const initialState = JSON.stringify({
             name: 'Telegram Workflow',
-            nodes: (telegramWorkflowToLoad.nodes || []).map(node => ({ id: node.id, position: node.position, data: node.data })),
-            edges: (telegramWorkflowToLoad.edges || []).map(edge => ({ id: edge.id, source: edge.source, target: edge.target }))
+            nodes: [],
+            edges: []
           });
           setLastSavedState(initialState);
           setHasUnsavedChanges(false);
         }, 100);
-        
-        console.log('🤖 Auto-loaded Telegram Workflow');
       } else {
         // Fallback to default empty workflow
         setTimeout(() => {
@@ -234,6 +245,7 @@ const App = ({ botContext }) => {
       
       if (currentWorkflow?.name === 'Telegram Workflow' || currentWorkflow?.isTelegramWorkflow) {
         console.log('🔄 Loading real Telegram virtual workflow...');
+        console.log('🔍 API call to:', `${API_BASE_URL}/api/workflows/telegram-workflow`);
         
         // Fetch actual Telegram workflow from backend
         const response = await fetch(`${API_BASE_URL}/api/workflows/telegram-workflow`, {
@@ -242,10 +254,14 @@ const App = ({ botContext }) => {
           }
         });
         
+        console.log('📡 API Response status:', response.status, response.statusText);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log('📦 API Response data:', data);
+          
           if (data.success && data.workflow) {
-            console.log('✅ Loaded real Telegram workflow:', data.workflow);
+            console.log('✅ Loaded real Telegram workflow with nodes:', data.workflow.nodes.length);
             
             // Update nodes and edges with real workflow data
             setNodes(data.workflow.nodes || []);
@@ -265,11 +281,20 @@ const App = ({ botContext }) => {
             return true;
           }
         } else {
-          console.log('ℹ️ No existing Telegram workflow found, creating new one');
+          const errorText = await response.text();
+          console.log('❌ API Error response:', errorText);
+          console.log('ℹ️ Using fallback - loading empty workflow');
+          
+          // Load empty workflow as fallback
+          setNodes([]);
+          setEdges([]);
         }
       }
     } catch (error) {
       console.error('❌ Error loading Telegram virtual workflow:', error);
+      // Load empty workflow as fallback
+      setNodes([]);
+      setEdges([]);
     }
     return false;
   }, [currentWorkflowId, setNodes, setEdges, setLastSavedState, setHasUnsavedChanges]);
