@@ -28,9 +28,11 @@ const TelegramListener = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showImageModal, setShowImageModal] = useState(false);
   
-  // Image upload states
-  const [selectedImageFile, setSelectedImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  // Media upload states (enhanced to support multiple file types)
+  const [selectedMediaFile, setSelectedMediaFile] = useState(null);
+  const [mediaPreview, setMediaPreview] = useState(null);
+  const [mediaType, setMediaType] = useState(null);
+  const [mediaCaption, setMediaCaption] = useState('');
   
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -910,30 +912,47 @@ const TelegramListener = () => {
     setShowImageModal(false);
   };
 
-  // Image upload functions
-  const handleImageSelect = (event) => {
+  // Enhanced media upload functions
+  const handleMediaSelect = (event) => {
     const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      setSelectedImageFile(file);
-      
-      // Create preview URL
+    if (!file) return;
+
+    // Determine media type
+    let detectedType = 'document'; // Default
+    if (file.type.startsWith('image/')) {
+      detectedType = 'photo';
+    } else if (file.type.startsWith('audio/')) {
+      if (file.type === 'audio/ogg' || file.name.endsWith('.ogg')) {
+        detectedType = 'voice';
+      } else {
+        detectedType = 'audio';
+      }
+    }
+
+    setSelectedMediaFile(file);
+    setMediaType(detectedType);
+    
+    // Create preview for images
+    if (detectedType === 'photo') {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImagePreview(e.target.result);
+        setMediaPreview(e.target.result);
       };
       reader.readAsDataURL(file);
     } else {
-      alert('Please select a valid image file');
+      setMediaPreview(null);
     }
   };
 
-  const cancelImageUpload = () => {
-    setSelectedImageFile(null);
-    setImagePreview(null);
+  const cancelMediaUpload = () => {
+    setSelectedMediaFile(null);
+    setMediaPreview(null);
+    setMediaType(null);
+    setMediaCaption('');
   };
 
-  const sendImageMessage = async () => {
-    if (!selectedUser || !selectedImageFile) {
+  const sendMediaMessage = async () => {
+    if (!selectedUser || !selectedMediaFile) {
       return;
     }
 
@@ -941,8 +960,11 @@ const TelegramListener = () => {
 
     try {
       const formData = new FormData();
-      formData.append('image', selectedImageFile);
+      formData.append('image', selectedMediaFile); // Backend still expects 'image' field name
       formData.append('chatId', selectedUser.chatId);
+      if (mediaCaption.trim()) {
+        formData.append('caption', mediaCaption.trim());
+      }
 
       const response = await fetch(`${API_BASE_URL}/api/telegram-listener/send-image`, {
         method: 'POST',
@@ -955,12 +977,12 @@ const TelegramListener = () => {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        setSelectedImageFile(null);
-        setImagePreview(null);
-        // Refresh messages immediately to show the sent image
+        console.log(`✅ ${result.messageType} sent successfully`);
+        cancelMediaUpload();
+        // Refresh messages immediately to show the sent media
         fetchMessages();
       } else {
-        alert(`❌ Failed to send image: ${result.error || 'Unknown error'}`);
+        alert(`❌ Failed to send ${mediaType}: ${result.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Send image error:', error);
@@ -1696,8 +1718,8 @@ const TelegramListener = () => {
                         </div>
                       )}
                       
-                      {/* Image Upload Preview */}
-                      {selectedImageFile && imagePreview && (
+                      {/* Media Upload Preview */}
+                      {selectedMediaFile && (
                         <div style={{ 
                           backgroundColor: 'rgba(59, 130, 246, 0.1)',
                           border: '1px solid rgba(59, 130, 246, 0.3)',
@@ -1708,29 +1730,49 @@ const TelegramListener = () => {
                           justifyContent: 'space-between'
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <img 
-                              src={imagePreview}
-                              alt="Image preview"
-                              style={{
+                            {/* Preview thumbnail for images */}
+                            {mediaType === 'photo' && mediaPreview ? (
+                              <img 
+                                src={mediaPreview}
+                                alt="Media preview"
+                                style={{
+                                  width: '60px',
+                                  height: '60px',
+                                  borderRadius: '6px',
+                                  objectFit: 'cover',
+                                  border: '1px solid rgba(0,0,0,0.1)'
+                                }}
+                              />
+                            ) : (
+                              // File icon for non-image files
+                              <div style={{ 
                                 width: '60px',
                                 height: '60px',
+                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
                                 borderRadius: '6px',
-                                objectFit: 'cover',
-                                border: '1px solid rgba(0,0,0,0.1)'
-                              }}
-                            />
+                                border: '1px solid rgba(0,0,0,0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '2rem'
+                              }}>
+                                {mediaType === 'voice' ? '🎤' : mediaType === 'audio' ? '🎵' : '📄'}
+                              </div>
+                            )}
                             <div>
                               <div style={{ fontSize: '0.875rem', fontWeight: '500', color: colors.primaryText }}>
-                                📷 Image selected
+                                {mediaType === 'photo' ? '📷 Image' : 
+                                 mediaType === 'voice' ? '🎤 Voice' :
+                                 mediaType === 'audio' ? '🎵 Audio' : '📄 Document'} selected
                               </div>
                               <div style={{ fontSize: '0.75rem', color: colors.mutedText }}>
-                                {selectedImageFile.name} • {(selectedImageFile.size / 1024).toFixed(1)} KB
+                                {selectedMediaFile.name} • {(selectedMediaFile.size / 1024).toFixed(1)} KB
                               </div>
                             </div>
                           </div>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <button
-                              onClick={cancelImageUpload}
+                              onClick={cancelMediaUpload}
                               style={{
                                 backgroundColor: colors.error,
                                 color: 'white',
@@ -1740,7 +1782,7 @@ const TelegramListener = () => {
                                 fontSize: '0.75rem',
                                 cursor: 'pointer'
                               }}
-                              title="Remove selected image"
+                              title="Remove selected media"
                             >
                               ✕ Remove
                             </button>

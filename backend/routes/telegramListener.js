@@ -919,44 +919,28 @@ router.post('/send-voice', verifyToken, voiceUpload.single('voice'), asyncHandle
   }
 }));
 
-// Send image message endpoint
+// Enhanced media sending endpoint (supports images, documents, voice, audio)
 router.post('/send-image', verifyToken, imageUpload.single('image'), asyncHandler(async (req, res) => {
-  console.log('🚀 [DEBUG] Send image endpoint hit');
-  console.log('🚀 [DEBUG] Request headers:', {
-    'content-type': req.headers['content-type'],
-    'authorization': req.headers.authorization ? 'Bearer token present' : 'No token',
-    'user-agent': req.headers['user-agent']?.substring(0, 50)
-  });
-  console.log('🚀 [DEBUG] Request body keys:', Object.keys(req.body));
-  console.log('🚀 [DEBUG] Request file:', req.file ? {
+  console.log('🚀 [ENHANCED] Media send endpoint hit');
+  console.log('🚀 [ENHANCED] Request file:', req.file ? {
     fieldname: req.file.fieldname,
     originalname: req.file.originalname,
     mimetype: req.file.mimetype,
     size: req.file.size
   } : 'No file uploaded');
   
-  const { chatId } = req.body;
-  console.log('🚀 [DEBUG] Chat ID from body:', chatId);
-  console.log('🚀 [DEBUG] Full request body:', req.body);
+  const { chatId, caption } = req.body;
+  console.log('🚀 [ENHANCED] Chat ID:', chatId, 'Caption:', caption);
   
   try {
-    // Get user ID from verified token (handled by verifyToken middleware)
+    // Get user ID from verified token
     const userId = req.user?.userId || req.user?.id;
-    console.log('🚀 [DEBUG] Using userId from middleware:', userId);
-    console.log('🚀 [DEBUG] User object from middleware:', req.user);
+    console.log('🚀 [ENHANCED] User ID:', userId);
 
     // Get user's active bot configuration
-    console.log('🚀 [DEBUG] Looking up bot for userId:', userId);
     const userBot = await getUserActiveBotFromDatabase(userId);
-    console.log('🚀 [DEBUG] Bot lookup result:', userBot ? {
-      listener_id: userBot.listener_id,
-      bot_token: userBot.bot_token ? userBot.bot_token.substring(0, 10) + '...' : 'No token',
-      is_active: userBot.is_active,
-      setup_at: userBot.setup_at
-    } : 'No bot found');
     
     if (!userBot) {
-      console.log('🚀 [DEBUG] No bot found, returning 400');
       return res.status(400).json({
         success: false,
         error: 'No active bot configuration found. Please setup a bot first.'
@@ -970,92 +954,129 @@ router.post('/send-image', verifyToken, imageUpload.single('image'), asyncHandle
       });
     }
 
-    // Check if image file was uploaded
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        error: 'Image file is required'
+        error: 'Media file is required'
       });
     }
 
-    const imageFile = req.file;
-    console.log('📷 Sending image message to chat:', chatId);
-    console.log('📷 Image file info:', {
-      originalname: imageFile.originalname,
-      mimetype: imageFile.mimetype,
-      size: imageFile.size
-    });
+    const mediaFile = req.file;
+    console.log('📷 [ENHANCED] Sending media to chat:', chatId);
 
-    // Send image message to Telegram using FormData
-    const FormData = require('form-data');
-    const form = new FormData();
-    form.append('chat_id', chatId);
-    form.append('photo', imageFile.buffer, {
-      filename: imageFile.originalname,
-      contentType: imageFile.mimetype
-    });
+    // Use enhanced TelegramAPI service
+    const { TelegramAPI } = require('../services/telegramAPI');
+    const telegramAPI = new TelegramAPI(userBot.bot_token);
 
-    const response = await axios.post(
-      `https://api.telegram.org/bot${userBot.bot_token}/sendPhoto`,
-      form,
-      {
-        headers: {
-          ...form.getHeaders()
-        }
+    // Determine media type based on file mimetype
+    let messageType = 'document'; // Default fallback
+    let sendMethod = 'sendDocument';
+    
+    if (mediaFile.mimetype.startsWith('image/')) {
+      messageType = 'photo';
+      sendMethod = 'sendPhoto';
+    } else if (mediaFile.mimetype.startsWith('audio/')) {
+      if (mediaFile.mimetype === 'audio/ogg' || mediaFile.originalname.endsWith('.ogg')) {
+        messageType = 'voice';
+        sendMethod = 'sendVoice';
+      } else {
+        messageType = 'audio';
+        sendMethod = 'sendAudio';
       }
-    );
-
-    if (response.data.ok) {
-      console.log('✅ Image message sent successfully');
-      
-      // Get the largest photo size from response
-      const photos = response.data.result.photo;
-      const largestPhoto = photos[photos.length - 1];
-      
-      // Store the sent image message in database
-      const sentMessageData = {
-        updateId: 'sent_' + Date.now(),
-        messageId: response.data.result.message_id,
-        chatId: chatId,
-        text: '[Image sent]',
-        fromUserId: 'bot',
-        fromName: 'You',
-        fromUsername: 'bot',
-        date: new Date().toISOString(),
-        type: 'image',
-        isBotMessage: true,
-        imageFileId: largestPhoto?.file_id,
-        imageWidth: largestPhoto?.width,
-        imageHeight: largestPhoto?.height,
-        imageFileSize: largestPhoto?.file_size,
-        caption: req.body.caption || null
-      };
-
-      await saveMessageToDatabase(userBot.listener_id, sentMessageData);
-
-      res.json({
-        success: true,
-        message: 'Image message sent successfully',
-        telegramResponse: response.data.result
-      });
-    } else {
-      console.error('❌ Telegram API error:', response.data);
-      res.status(400).json({
-        success: false,
-        error: 'Failed to send image message via Telegram',
-        details: response.data.description
-      });
     }
+
+    console.log('📷 [ENHANCED] Detected media type:', messageType);
+
+    // Prepare options
+    const options = {};
+    if (caption && caption.trim()) {
+      options.caption = caption.trim();
+    }
+
+    // Send media using enhanced API
+    let result;
+    switch (sendMethod) {
+      case 'sendPhoto':
+        result = await telegramAPI.sendPhoto(chatId, mediaFile.buffer, options);
+        break;
+      case 'sendDocument':
+        options.filename = mediaFile.originalname;
+        result = await telegramAPI.sendDocument(chatId, mediaFile.buffer, options);
+        break;
+      case 'sendVoice':
+        result = await telegramAPI.sendVoice(chatId, mediaFile.buffer, options);
+        break;
+      case 'sendAudio':
+        options.filename = mediaFile.originalname;
+        result = await telegramAPI.sendAudio(chatId, mediaFile.buffer, options);
+        break;
+      default:
+        throw new Error('Unsupported media type');
+    }
+
+    if (!result.success) {
+      throw new Error(result.error?.message || 'Failed to send media');
+    }
+
+    const telegramResult = result.data.result;
+    console.log('✅ [ENHANCED] Media sent successfully:', telegramResult.message_id);
+
+    // Store the sent message in database
+    const sentMessageData = {
+      updateId: 'sent_' + Date.now(),
+      messageId: telegramResult.message_id,
+      chatId: chatId,
+      text: caption || `[${messageType.charAt(0).toUpperCase() + messageType.slice(1)} sent]`,
+      fromUserId: 'bot',
+      fromName: 'You',
+      fromUsername: 'bot',
+      date: new Date().toISOString(),
+      type: messageType,
+      isBotMessage: true,
+      caption: caption || null
+    };
+
+    // Add media-specific metadata
+    if (messageType === 'photo' && telegramResult.photo) {
+      const largestPhoto = telegramResult.photo[telegramResult.photo.length - 1];
+      sentMessageData.imageFileId = largestPhoto.file_id;
+      sentMessageData.imageWidth = largestPhoto.width;
+      sentMessageData.imageHeight = largestPhoto.height;
+      sentMessageData.imageFileSize = largestPhoto.file_size;
+    } else if (messageType === 'document' && telegramResult.document) {
+      sentMessageData.documentFileId = telegramResult.document.file_id;
+      sentMessageData.documentFileName = telegramResult.document.file_name;
+      sentMessageData.documentFileSize = telegramResult.document.file_size;
+    } else if (messageType === 'voice' && telegramResult.voice) {
+      sentMessageData.voiceFileId = telegramResult.voice.file_id;
+      sentMessageData.voiceDuration = telegramResult.voice.duration;
+      sentMessageData.voiceFileSize = telegramResult.voice.file_size;
+    } else if (messageType === 'audio' && telegramResult.audio) {
+      sentMessageData.audioFileId = telegramResult.audio.file_id;
+      sentMessageData.audioDuration = telegramResult.audio.duration;
+      sentMessageData.audioFileSize = telegramResult.audio.file_size;
+      sentMessageData.audioTitle = telegramResult.audio.title;
+      sentMessageData.audioPerformer = telegramResult.audio.performer;
+    }
+
+    await saveMessageToDatabase(userBot.listener_id, sentMessageData);
+
+    res.json({
+      success: true,
+      message: `${messageType.charAt(0).toUpperCase() + messageType.slice(1)} sent successfully`,
+      messageType: messageType,
+      telegramResponse: telegramResult
+    });
+
   } catch (error) {
-    console.error('🚀 [DEBUG] ❌ Send image message error:', {
+    console.error('🚀 [ENHANCED] ❌ Send media error:', {
       message: error.message,
       stack: error.stack,
-      name: error.name,
-      response: error.response?.data
+      name: error.name
     });
     res.status(500).json({
       success: false,
-      error: 'Failed to send image message',
+      error: 'Failed to send media message',
       message: error.message,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });

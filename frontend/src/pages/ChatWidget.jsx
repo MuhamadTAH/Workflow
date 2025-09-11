@@ -42,6 +42,11 @@ const ChatWidget = () => {
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [aiError, setAiError] = useState('');
 
+  // Per-user AI Management State
+  const [userAIStatus, setUserAIStatus] = useState({});
+  const [isTogglingAI, setIsTogglingAI] = useState(false);
+  const [aiActivatingUsers, setAiActivatingUsers] = useState({});
+
   // Set fixed widget ID on component mount
   useEffect(() => {
     if (!widgetId) {
@@ -708,8 +713,68 @@ if (document.readyState === 'loading') {
     loadAIConfig();
   }, []);
 
+  // Toggle AI for specific user/session
+  const toggleUserAI = async (sessionId) => {
+    if (!sessionId || isTogglingAI) return;
+    
+    setIsTogglingAI(true);
+    setAiError('');
+    
+    // Check if session has explicit status set, otherwise default to true (active)
+    const currentStatus = userAIStatus.hasOwnProperty(sessionId) ? userAIStatus[sessionId] : true;
+    const newStatus = !currentStatus;
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/chat-widget/user-ai/toggle`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: sessionId,
+          isActive: newStatus
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        // If activating AI, mark session as "activating" for 5 seconds
+        if (newStatus) {
+          setAiActivatingUsers(prev => ({ ...prev, [sessionId]: true }));
+          
+          // Clear activating status after 5 seconds
+          setTimeout(() => {
+            setAiActivatingUsers(prev => {
+              const updated = { ...prev };
+              delete updated[sessionId];
+              return updated;
+            });
+          }, 5000);
+        }
+        
+        setUserAIStatus(prev => ({
+          ...prev,
+          [sessionId]: newStatus
+        }));
+      } else {
+        setAiError(data.error || 'Failed to toggle AI status for session');
+      }
+    } catch (error) {
+      setAiError('Network error: ' + error.message);
+    } finally {
+      setIsTogglingAI(false);
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: colors.primaryBg, padding: '0' }}>
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
       <div style={{ width: '100%', margin: '0 auto', padding: '0' }}>
         
         {/* Fixed Toggle Buttons */}
@@ -1337,6 +1402,153 @@ if (document.readyState === 'loading') {
                           })}
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {/* Per-User AI Control */}
+                  {selectedConversation && aiConfig.aiEnabled && (
+                    <div style={{ 
+                      padding: '1rem',
+                      backgroundColor: colors.cardBg,
+                      borderTop: `1px solid ${colors.border}`,
+                      borderBottom: `1px solid ${colors.border}`
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '0.75rem'
+                      }}>
+                        <div>
+                          <div style={{ fontSize: '0.875rem', fontWeight: '600', color: colors.primaryText, marginBottom: '0.25rem' }}>
+                            AI Assistant for this Visitor
+                          </div>
+                          <div style={{ 
+                            fontSize: '0.75rem',
+                            fontWeight: '500',
+                            color: userAIStatus[selectedConversation.sessionId] !== false ? '#15803d' : '#dc2626',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem'
+                          }}>
+                            <span style={{
+                              width: '8px',
+                              height: '8px',
+                              borderRadius: '50%',
+                              backgroundColor: userAIStatus[selectedConversation.sessionId] !== false ? '#10b981' : '#ef4444'
+                            }}></span>
+                            {userAIStatus[selectedConversation.sessionId] !== false ? '🤖 Active' : '🚫 Inactive'}
+                          </div>
+                        </div>
+                        
+                        <div style={{
+                          fontSize: '0.75rem',
+                          color: colors.mutedText,
+                          textAlign: 'center',
+                          padding: '0.5rem',
+                          backgroundColor: colors.inputBg,
+                          borderRadius: '6px',
+                          border: `1px solid ${colors.border}`,
+                          minWidth: '80px'
+                        }}>
+                          <div style={{ 
+                            fontSize: '1rem',
+                            marginBottom: '0.25rem',
+                            color: (userAIStatus.hasOwnProperty(selectedConversation.sessionId) ? 
+                              (userAIStatus[selectedConversation.sessionId] ? '#10b981' : '#ef4444') : '#10b981')
+                          }}>
+                            {(userAIStatus.hasOwnProperty(selectedConversation.sessionId) ? 
+                              (userAIStatus[selectedConversation.sessionId] ? '🤖' : '🚫') : '🤖')}
+                          </div>
+                          <span style={{ 
+                            color: (userAIStatus.hasOwnProperty(selectedConversation.sessionId) ? 
+                              (userAIStatus[selectedConversation.sessionId] ? '#10b981' : '#ef4444') : '#10b981'),
+                            fontSize: '0.65rem',
+                            fontWeight: '500'
+                          }}>
+                            {(userAIStatus.hasOwnProperty(selectedConversation.sessionId) ? 
+                              (userAIStatus[selectedConversation.sessionId] ? 'AI Active' : 'AI Inactive') : 'AI Active')}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <button
+                        onClick={() => toggleUserAI(selectedConversation.sessionId)}
+                        disabled={isTogglingAI || !selectedConversation.sessionId || aiActivatingUsers[selectedConversation.sessionId]}
+                        style={{
+                          width: '100%',
+                          backgroundColor: isTogglingAI ? '#9ca3af' : 
+                            aiActivatingUsers[selectedConversation.sessionId] ? '#f59e0b' :
+                            (userAIStatus.hasOwnProperty(selectedConversation.sessionId) ? 
+                              (userAIStatus[selectedConversation.sessionId] ? '#ef4444' : '#10b981') : '#ef4444'),
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '0.75rem',
+                          fontSize: '0.875rem',
+                          fontWeight: '600',
+                          cursor: (isTogglingAI || aiActivatingUsers[selectedConversation.sessionId]) ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.5rem',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {isTogglingAI ? (
+                          <>
+                            <div style={{
+                              width: '16px',
+                              height: '16px',
+                              border: '2px solid transparent',
+                              borderTop: '2px solid white',
+                              borderRadius: '50%',
+                              animation: 'spin 1s linear infinite'
+                            }}></div>
+                            Updating...
+                          </>
+                        ) : aiActivatingUsers[selectedConversation.sessionId] ? (
+                          <>
+                            ⏳
+                            <span>AI Starting... (Please wait)</span>
+                          </>
+                        ) : (userAIStatus.hasOwnProperty(selectedConversation.sessionId) ? 
+                            (userAIStatus[selectedConversation.sessionId] ? (
+                              <>
+                                🚫
+                                <span>Deactivate AI</span>
+                              </>
+                            ) : (
+                              <>
+                                🤖
+                                <span>Activate AI</span>
+                              </>
+                            )) : (
+                              <>
+                                🚫
+                                <span>Deactivate AI</span>
+                              </>
+                            )
+                        )}
+                      </button>
+                      
+                      <p style={{ 
+                        fontSize: '0.75rem', 
+                        color: colors.mutedText, 
+                        textAlign: 'center', 
+                        marginTop: '0.75rem',
+                        margin: '0.75rem 0 0 0',
+                        lineHeight: '1.4'
+                      }}>
+                        {aiActivatingUsers[selectedConversation.sessionId] 
+                          ? 'AI is starting up for this visitor. Please wait 5 seconds before new messages.'
+                          : userAIStatus.hasOwnProperty(selectedConversation.sessionId) 
+                          ? (userAIStatus[selectedConversation.sessionId] 
+                            ? 'AI will automatically respond to this visitor\'s messages'
+                            : 'AI responses are disabled for this visitor')
+                          : 'AI will automatically respond to this visitor\'s messages'
+                        }
+                      </p>
                     </div>
                   )}
 

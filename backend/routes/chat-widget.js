@@ -355,6 +355,9 @@ let aiConfigCache = {
   model: 'claude-3-5-sonnet-20241022'
 };
 
+// Store per-user AI status in memory (in production, use database)
+let userAIStatus = {};
+
 // Get AI configuration
 router.get('/ai-config', async (req, res) => {
   try {
@@ -490,6 +493,13 @@ async function processAIReply(messageData) {
 
     if (!aiConfigCache.apiKey && !process.env.ANTHROPIC_API_KEY && !process.env.CLAUDE_API_KEY) {
       console.log('🤖 AI auto-reply skipped: No API key configured');
+      return;
+    }
+
+    // Check if AI is enabled for this specific session
+    const sessionId = messageData.sessionId;
+    if (userAIStatus.hasOwnProperty(sessionId) && !userAIStatus[sessionId]) {
+      console.log('🤖 AI auto-reply skipped: AI disabled for session', sessionId);
       return;
     }
 
@@ -661,6 +671,49 @@ router.post('/ai-test', async (req, res) => {
       success: false, 
       error: 'Failed to test AI',
       details: error.message
+    });
+  }
+});
+
+// Toggle AI status for specific user/session
+router.post('/user-ai/toggle', async (req, res) => {
+  const { sessionId, isActive } = req.body;
+
+  logger.info('🤖 Chat Widget User AI toggle requested', {
+    sessionId,
+    isActive,
+    currentStatus: userAIStatus[sessionId]
+  });
+
+  if (!sessionId) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing sessionId'
+    });
+  }
+
+  try {
+    // Store the new AI status for this session
+    userAIStatus[sessionId] = isActive;
+    
+    logger.info('✅ Chat Widget AI status updated', {
+      sessionId,
+      newStatus: isActive,
+      allStatuses: Object.keys(userAIStatus).length
+    });
+
+    res.json({
+      success: true,
+      sessionId,
+      isActive,
+      message: `AI ${isActive ? 'enabled' : 'disabled'} for session ${sessionId}`
+    });
+
+  } catch (error) {
+    logger.error('❌ Error toggling AI status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to toggle AI status'
     });
   }
 });
