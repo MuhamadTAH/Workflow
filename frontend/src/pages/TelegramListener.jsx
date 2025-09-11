@@ -128,6 +128,11 @@ const TelegramListener = () => {
   // Per-user AI Management State
   const [userAIStatus, setUserAIStatus] = useState({});
   const [isTogglingAI, setIsTogglingAI] = useState(false);
+  
+  // Client Agreements state
+  const [clientAgreements, setClientAgreements] = useState([]);
+  const [isAgreementsCollapsed, setIsAgreementsCollapsed] = useState(false);
+  const [agreementsLoading, setAgreementsLoading] = useState(false);
   const [aiActivatingUsers, setAiActivatingUsers] = useState({}); // Track which users are still activating
   
   // Configuration panel collapse states
@@ -262,6 +267,37 @@ const TelegramListener = () => {
       console.error('Error fetching messages:', error);
     }
   };
+
+  // Fetch client agreements
+  const fetchAgreements = async () => {
+    setAgreementsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${API_BASE_URL}/api/client-agreements`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setClientAgreements(data.agreements || []);
+      } else {
+        console.error('Failed to fetch agreements');
+      }
+    } catch (error) {
+      console.error('Error fetching agreements:', error);
+    } finally {
+      setAgreementsLoading(false);
+    }
+  };
+
+  // Load agreements on component mount
+  useEffect(() => {
+    fetchAgreements();
+  }, []);
 
   // Polling for new messages
   useEffect(() => {
@@ -1348,6 +1384,182 @@ const TelegramListener = () => {
                     AI Auto-reply is Active - Click the AI button above to configure settings
                   </div>
                 )}
+
+                {/* Client Agreements Section */}
+                <div style={{ marginBottom: '2rem' }}>
+                  <h3 
+                    onClick={() => setIsAgreementsCollapsed(!isAgreementsCollapsed)}
+                    style={{ 
+                      fontSize: '1rem', 
+                      fontWeight: '600', 
+                      color: colors.primaryText, 
+                      marginBottom: '1rem', 
+                      borderBottom: `2px solid ${colors.border}`, 
+                      paddingBottom: '0.5rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      userSelect: 'none'
+                    }}
+                  >
+                    <span>🤝 Client Agreements ({clientAgreements.length})</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          fetchAgreements();
+                        }}
+                        style={{
+                          backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                          color: '#2563eb',
+                          border: '1px solid rgba(59, 130, 246, 0.3)',
+                          borderRadius: '4px',
+                          padding: '0.25rem 0.5rem',
+                          fontSize: '0.7rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                        disabled={agreementsLoading}
+                        title="Refresh agreements"
+                      >
+                        {agreementsLoading ? '⏳' : '🔄'}
+                      </button>
+                      <span style={{ 
+                        transform: isAgreementsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease',
+                        fontSize: '0.8rem',
+                        color: colors.mutedText
+                      }}>
+                        ▼
+                      </span>
+                    </div>
+                  </h3>
+                  
+                  {/* Collapsible Content */}
+                  <div style={{
+                    maxHeight: isAgreementsCollapsed ? '0' : '400px',
+                    overflow: 'hidden',
+                    transition: 'max-height 0.3s ease-in-out',
+                    opacity: isAgreementsCollapsed ? 0 : 1
+                  }}>
+                    <div style={{
+                      maxHeight: '350px',
+                      overflowY: 'auto',
+                      padding: '0.5rem',
+                      backgroundColor: colors.overlay,
+                      borderRadius: '6px'
+                    }}>
+                      {agreementsLoading ? (
+                        <div style={{ textAlign: 'center', padding: '2rem' }}>
+                          <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>⏳</div>
+                          <div style={{ fontSize: '0.875rem', color: colors.mutedText }}>Loading agreements...</div>
+                        </div>
+                      ) : clientAgreements.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '2rem' }}>
+                          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🤝</div>
+                          <div style={{ fontSize: '0.875rem', color: colors.mutedText }}>No agreements detected yet</div>
+                          <div style={{ fontSize: '0.75rem', color: colors.mutedText, marginTop: '0.25rem' }}>
+                            Agreements will appear here when clients agree in conversations
+                          </div>
+                        </div>
+                      ) : (
+                        clientAgreements.slice(0, 10).map((agreement) => (
+                          <div
+                            key={agreement.id}
+                            onClick={() => window.open(`/client-agreements`, '_blank')}
+                            style={{
+                              backgroundColor: colors.cardBg,
+                              border: `1px solid ${colors.border}`,
+                              borderRadius: '6px',
+                              padding: '0.75rem',
+                              marginBottom: '0.5rem',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease',
+                              ':hover': {
+                                backgroundColor: colors.primaryBg,
+                                borderColor: colors.brandBlue
+                              }
+                            }}
+                            onMouseEnter={(e) => {
+                              e.target.style.backgroundColor = colors.primaryBg;
+                              e.target.style.borderColor = colors.brandBlue;
+                            }}
+                            onMouseLeave={(e) => {
+                              e.target.style.backgroundColor = colors.cardBg;
+                              e.target.style.borderColor = colors.border;
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'start', marginBottom: '0.5rem' }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ 
+                                  fontSize: '0.875rem', 
+                                  fontWeight: '600', 
+                                  color: colors.primaryText,
+                                  marginBottom: '0.25rem'
+                                }}>
+                                  {agreement.customer_name || 'Unknown Client'}
+                                </div>
+                                <div style={{ 
+                                  fontSize: '0.75rem', 
+                                  color: colors.mutedText 
+                                }}>
+                                  @{agreement.customer_username || 'N/A'}
+                                </div>
+                              </div>
+                              <div style={{ 
+                                fontSize: '0.7rem',
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '12px',
+                                backgroundColor: 
+                                  agreement.status === 'pending' ? 'rgba(251, 191, 36, 0.2)' :
+                                  agreement.status === 'confirmed' ? 'rgba(34, 197, 94, 0.2)' :
+                                  agreement.status === 'completed' ? 'rgba(59, 130, 246, 0.2)' :
+                                  'rgba(156, 163, 175, 0.2)',
+                                color:
+                                  agreement.status === 'pending' ? '#d97706' :
+                                  agreement.status === 'confirmed' ? '#15803d' :
+                                  agreement.status === 'completed' ? '#2563eb' :
+                                  '#6b7280',
+                                fontWeight: '600',
+                                textTransform: 'capitalize'
+                              }}>
+                                {agreement.status}
+                              </div>
+                            </div>
+                            
+                            <div style={{ fontSize: '0.75rem', color: colors.secondaryText, marginBottom: '0.5rem' }}>
+                              {agreement.service_requested || 'Service not specified'}
+                            </div>
+                            
+                            <div style={{ display: 'flex', justifyContent: 'between', fontSize: '0.7rem', color: colors.mutedText }}>
+                              <span>{agreement.price_agreed || 'Price TBD'}</span>
+                              <span>{Math.round((agreement.agreement_confidence || 0) * 100)}% confidence</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                      
+                      {clientAgreements.length > 10 && (
+                        <div 
+                          onClick={() => window.open('/client-agreements', '_blank')}
+                          style={{
+                            textAlign: 'center',
+                            padding: '0.75rem',
+                            fontSize: '0.875rem',
+                            color: colors.brandBlue,
+                            cursor: 'pointer',
+                            fontWeight: '600'
+                          }}
+                        >
+                          View all {clientAgreements.length} agreements →
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
                 
               </div>
             </div>

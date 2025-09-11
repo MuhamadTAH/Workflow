@@ -79,7 +79,8 @@
       "Bash(start:*)",
       "Bash(python:*)",
       "Bash(del:*)",
-      "Bash(git revert:*)"
+      "Bash(git revert:*)",
+      "Bash(netstat:*)"
     ],
     "deny": []
   }
