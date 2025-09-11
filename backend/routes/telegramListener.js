@@ -919,7 +919,7 @@ router.post('/send-voice', verifyToken, voiceUpload.single('voice'), asyncHandle
   }
 }));
 
-// Enhanced media sending endpoint (supports images, documents, voice, audio)
+// Enhanced media sending endpoint (supports images, documents, voice, audio) - Updated
 router.post('/send-image', verifyToken, imageUpload.single('image'), asyncHandler(async (req, res) => {
   console.log('🚀 [ENHANCED] Media send endpoint hit');
   console.log('🚀 [ENHANCED] Request file:', req.file ? {

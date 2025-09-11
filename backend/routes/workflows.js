@@ -46,7 +46,9 @@ const verifyToken = (req, res, next) => {
   try {
     // Allow mock token for testing/development
     if (token.startsWith('MOCK_TOKEN_FOR_TESTING_')) {
-      req.user = { userId: 'test-user-1', email: 'mhamadtah548@gmail.com', mock: true };
+      const userIdFromToken = token.replace('MOCK_TOKEN_FOR_TESTING_', '');
+      req.user = { userId: userIdFromToken, email: 'mhamadtah548@gmail.com', mock: true };
+      console.log('🔑 Mock token verified, userId:', userIdFromToken);
       return next();
     }
     
@@ -86,6 +88,202 @@ router.get('/', verifyToken, (req, res) => {
       });
     }
   );
+});
+
+// Get real Telegram virtual workflow - connects to actual running Telegram system
+console.log('📝 Registering /telegram-workflow route');
+router.get('/telegram-workflow', verifyToken, async (req, res) => {
+  try {
+    console.log('🔄 Loading actual Telegram workflow for user:', req.user.userId);
+    
+    // Connect to actual Telegram listener system - no mock data
+    // Use the existing db connection already established at the top
+    
+    // Get user's actual active Telegram bot
+    console.log('🔍 Searching for Telegram bot with userId:', req.user.userId, 'type:', typeof req.user.userId);
+    const userId = parseInt(req.user.userId); // Convert to integer for database consistency
+    const userBot = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT * FROM telegram_listener_bots 
+        WHERE user_id = ? 
+        ORDER BY setup_at DESC 
+        LIMIT 1
+      `, [userId], (err, row) => {
+        if (err) reject(err);
+        else {
+          console.log('🔍 Query result:', row);
+          resolve(row);
+        }
+      });
+    });
+    
+    if (!userBot) {
+      return res.status(404).json({
+        success: false,
+        error: 'No active Telegram bot found. Please setup a Telegram bot first.'
+      });
+    }
+    
+    // Get actual message processing stats
+    const messageStats = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT COUNT(*) as total_messages, 
+               MAX(timestamp) as last_message 
+        FROM telegram_listener_messages 
+        WHERE listener_id = ?
+      `, [userBot.listener_id], (err, row) => {
+        if (err) reject(err);
+        else resolve(row || { total_messages: 0, last_message: null });
+      });
+    });
+    
+    // Get user's actual Claude configuration
+    const claudeConfig = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT * FROM telegram_claude_configs 
+        WHERE user_id = ?
+      `, [userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    // Get user's actual system prompt
+    const systemPromptData = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT * FROM telegram_system_prompts 
+        WHERE user_id = ?
+      `, [userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    // Get user's actual knowledge base
+    const knowledgeBase = await new Promise((resolve, reject) => {
+      db.get(`
+        SELECT * FROM telegram_knowledge_base 
+        WHERE user_id = ?
+      `, [userId], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    // Create real virtual workflow nodes representing actual Telegram components
+    const virtualWorkflowNodes = [
+      {
+        id: 'telegram-message-receiver',
+        type: 'custom',
+        position: { x: 100, y: 100 },
+        data: {
+          label: 'Message Receiver',
+          type: 'telegram-message-receiver',
+          description: 'Receives messages from your Telegram bot',
+          config: {
+            botToken: userBot.bot_token.substring(0, 10) + '...',
+            listenerId: userBot.listener_id,
+            isActive: userBot.is_active,
+            messageCount: messageStats.total_messages
+          },
+          isVirtualNode: true,
+          isProtected: true
+        }
+      },
+      {
+        id: 'claude-ai-processor',
+        type: 'custom',
+        position: { x: 400, y: 100 },
+        data: {
+          label: 'Claude AI',
+          type: 'claude-ai-processor',
+          description: 'AI processing with your Claude configuration',
+          config: {
+            hasApiKey: !!claudeConfig?.api_key,
+            model: claudeConfig?.model || 'claude-3-5-sonnet-20241022',
+            systemPrompt: systemPromptData?.prompt || 'You are a helpful and friendly AI assistant.',
+            hasKnowledgeBase: !!knowledgeBase,
+            knowledgeBaseFile: knowledgeBase?.filename || null
+          },
+          isVirtualNode: true,
+          realSettings: {
+            userId: userId,
+            claudeConfigId: claudeConfig?.id || null,
+            systemPromptId: systemPromptData?.id || null,
+            knowledgeBaseId: knowledgeBase?.id || null
+          }
+        }
+      },
+      {
+        id: 'telegram-message-sender',
+        type: 'custom',
+        position: { x: 700, y: 100 },
+        data: {
+          label: 'Message Sender',
+          type: 'telegram-message-sender',
+          description: 'Sends responses back to Telegram users',
+          config: {
+            botToken: userBot.bot_token.substring(0, 10) + '...',
+            autoReply: true,
+            connectedToClaude: !!claudeConfig?.api_key
+          },
+          isVirtualNode: true,
+          isProtected: true
+        }
+      }
+    ];
+
+    const virtualWorkflowEdges = [
+      {
+        id: 'receiver-to-claude',
+        source: 'telegram-message-receiver',
+        target: 'claude-ai-processor',
+        type: 'default'
+      },
+      {
+        id: 'claude-to-sender',
+        source: 'claude-ai-processor',
+        target: 'telegram-message-sender',
+        type: 'default'
+      }
+    ];
+
+    // Return the actual workflow structure based on real data
+    const actualWorkflow = {
+      id: `telegram-workflow-${userBot.listener_id}`,
+      name: 'Telegram Workflow',
+      description: `Virtual workflow for bot: ${userBot.bot_token.substring(0, 10)}...`,
+      botConfig: {
+        listenerId: userBot.listener_id,
+        isActive: userBot.is_active,
+        setupAt: userBot.setup_at,
+        messageCount: messageStats.total_messages,
+        lastActivity: messageStats.last_message
+      },
+      nodes: virtualWorkflowNodes,
+      edges: virtualWorkflowEdges,
+      isLiveWorkflow: true,
+      connectedToTelegram: true
+    };
+    
+    console.log('✅ Serving actual Telegram workflow data:', {
+      listenerId: userBot.listener_id,
+      messageCount: messageStats.total_messages
+    });
+    
+    res.json({
+      success: true,
+      workflow: actualWorkflow,
+      message: 'Connected to actual running Telegram workflow'
+    });
+    
+  } catch (error) {
+    console.error('❌ Error loading actual Telegram workflow:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to connect to Telegram workflow'
+    });
+  }
 });
 
 // GET /api/workflows/:id - Get specific workflow with full data
@@ -483,196 +681,6 @@ router.get('/workflows/:id/simple-status', async (req, res) => {
   }
 });
 
-// Get real Telegram virtual workflow - connects to actual running Telegram system
-router.get('/telegram-workflow', verifyToken, async (req, res) => {
-  try {
-    console.log('🔄 Loading actual Telegram workflow for user:', req.user.userId);
-    
-    // Connect to actual Telegram listener system - no mock data
-    const db = require('../db');
-    
-    // Get user's actual active Telegram bot
-    const userBot = await new Promise((resolve, reject) => {
-      db.get(`
-        SELECT * FROM telegram_listener_bots 
-        WHERE user_id = ? AND is_active = 1 
-        ORDER BY setup_at DESC 
-        LIMIT 1
-      `, [req.user.userId], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
-    
-    if (!userBot) {
-      return res.status(404).json({
-        success: false,
-        error: 'No active Telegram bot found. Please setup a Telegram bot first.'
-      });
-    }
-    
-    // Get actual message processing stats
-    const messageStats = await new Promise((resolve, reject) => {
-      db.get(`
-        SELECT COUNT(*) as total_messages, 
-               MAX(timestamp) as last_message 
-        FROM telegram_listener_messages 
-        WHERE listener_id = ?
-      `, [userBot.listener_id], (err, row) => {
-        if (err) reject(err);
-        else resolve(row || { total_messages: 0, last_message: null });
-      });
-    });
-    
-    // Get user's actual Claude configuration
-    const claudeConfig = await new Promise((resolve, reject) => {
-      db.get(`
-        SELECT * FROM telegram_claude_configs 
-        WHERE user_id = ?
-      `, [req.user.userId], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
-
-    // Get user's actual system prompt
-    const systemPromptData = await new Promise((resolve, reject) => {
-      db.get(`
-        SELECT * FROM telegram_system_prompts 
-        WHERE user_id = ?
-      `, [req.user.userId], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
-
-    // Get user's actual knowledge base
-    const knowledgeBase = await new Promise((resolve, reject) => {
-      db.get(`
-        SELECT * FROM telegram_knowledge_base 
-        WHERE user_id = ?
-      `, [req.user.userId], (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
-      });
-    });
-
-    // Create real virtual workflow nodes representing actual Telegram components
-    const virtualWorkflowNodes = [
-      {
-        id: 'telegram-message-receiver',
-        type: 'custom',
-        position: { x: 100, y: 100 },
-        data: {
-          label: 'Message Receiver',
-          type: 'telegram-message-receiver',
-          description: 'Receives messages from your Telegram bot',
-          config: {
-            botToken: userBot.bot_token.substring(0, 10) + '...',
-            listenerId: userBot.listener_id,
-            isActive: userBot.is_active,
-            messageCount: messageStats.total_messages
-          },
-          isVirtualNode: true,
-          isProtected: true
-        }
-      },
-      {
-        id: 'claude-ai-processor',
-        type: 'custom',
-        position: { x: 400, y: 100 },
-        data: {
-          label: 'Claude AI',
-          type: 'claude-ai-processor',
-          description: 'AI processing with your Claude configuration',
-          config: {
-            hasApiKey: !!claudeConfig?.api_key,
-            model: claudeConfig?.model || 'claude-3-5-sonnet-20241022',
-            systemPrompt: systemPromptData?.prompt || 'You are a helpful and friendly AI assistant.',
-            hasKnowledgeBase: !!knowledgeBase,
-            knowledgeBaseFile: knowledgeBase?.filename || null
-          },
-          isVirtualNode: true,
-          realSettings: {
-            userId: req.user.userId,
-            claudeConfigId: claudeConfig?.id || null,
-            systemPromptId: systemPromptData?.id || null,
-            knowledgeBaseId: knowledgeBase?.id || null
-          }
-        }
-      },
-      {
-        id: 'telegram-message-sender',
-        type: 'custom',
-        position: { x: 700, y: 100 },
-        data: {
-          label: 'Message Sender',
-          type: 'telegram-message-sender',
-          description: 'Sends responses back to Telegram users',
-          config: {
-            botToken: userBot.bot_token.substring(0, 10) + '...',
-            autoReply: true,
-            connectedToClaude: !!claudeConfig?.api_key
-          },
-          isVirtualNode: true,
-          isProtected: true
-        }
-      }
-    ];
-
-    const virtualWorkflowEdges = [
-      {
-        id: 'receiver-to-claude',
-        source: 'telegram-message-receiver',
-        target: 'claude-ai-processor',
-        type: 'default'
-      },
-      {
-        id: 'claude-to-sender',
-        source: 'claude-ai-processor',
-        target: 'telegram-message-sender',
-        type: 'default'
-      }
-    ];
-
-    // Return the actual workflow structure based on real data
-    const actualWorkflow = {
-      id: `telegram-workflow-${userBot.listener_id}`,
-      name: 'Telegram Workflow',
-      description: `Virtual workflow for bot: ${userBot.bot_token.substring(0, 10)}...`,
-      botConfig: {
-        listenerId: userBot.listener_id,
-        isActive: userBot.is_active,
-        setupAt: userBot.setup_at,
-        messageCount: messageStats.total_messages,
-        lastActivity: messageStats.last_message
-      },
-      nodes: virtualWorkflowNodes,
-      edges: virtualWorkflowEdges,
-      isLiveWorkflow: true,
-      connectedToTelegram: true
-    };
-    
-    console.log('✅ Serving actual Telegram workflow data:', {
-      listenerId: userBot.listener_id,
-      messageCount: messageStats.total_messages
-    });
-    
-    res.json({
-      success: true,
-      workflow: actualWorkflow,
-      message: 'Connected to actual running Telegram workflow'
-    });
-    
-  } catch (error) {
-    console.error('❌ Error loading actual Telegram workflow:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to connect to Telegram workflow'
-    });
-  }
-});
-
 // Update Telegram virtual workflow settings - syncs changes back to actual Telegram page
 router.put('/telegram-workflow/update', verifyToken, async (req, res) => {
   try {
@@ -681,7 +689,7 @@ router.put('/telegram-workflow/update', verifyToken, async (req, res) => {
     
     console.log('🔄 Updating Telegram virtual workflow:', { nodeId, nodeType, userId });
     
-    const db = require('../db');
+    // Use the existing db connection already established at the top
     
     switch (nodeType) {
       case 'claude-ai-processor':

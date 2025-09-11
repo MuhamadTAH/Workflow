@@ -293,7 +293,7 @@ class TelegramAPI {
     }
   }
 
-  async sendPhoto(chatId, photo, options = {}) {
+  async sendPhoto(chatId, photo, options = {}) { // Enhanced media support
     try {
       const FormData = require('form-data');
       const fs = require('fs');
@@ -658,4 +658,4 @@ module.exports = {
   setTelegramWebhook,
   getWebhookInfo,
   deleteWebhook
-};
+};// Enhanced media support update

@@ -12,7 +12,7 @@ class TelegramSendMessageNode {
         this.name = 'Telegram Send Message';
         this.type = 'telegramSendMessage';
         this.icon = 'fab fa-telegram';
-        this.description = 'Send text messages, photos, documents, voice messages, and audio files via Telegram Bot API';
+        this.description = 'Send text messages, photos, documents, voice messages, and audio files via Telegram Bot API - Enhanced';
     }
 
     /**
