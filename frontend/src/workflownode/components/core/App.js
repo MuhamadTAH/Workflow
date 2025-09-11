@@ -40,6 +40,18 @@ const App = ({ botContext }) => {
   const reactFlowWrapper = useRef(null);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [reactFlowInstance, setReactFlowInstance] = useState(null);
+  const [selectedNode, setSelectedNode] = useState(null);
+  const [workflowName, setWorkflowName] = useState('Untitled Workflow');
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [lastSaved, setLastSaved] = useState(null);
+  const [currentWorkflowId, setCurrentWorkflowId] = useState(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [lastSavedState, setLastSavedState] = useState(null);
+  const [isActivated, setIsActivated] = useState(false);
+  const [executionProgress, setExecutionProgress] = useState('');
+  const [workflowExecutor, setWorkflowExecutor] = useState(null);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
   
   // Custom nodes change handler that protects certain nodes from deletion
   const handleNodesChange = useCallback((changes) => {
@@ -71,18 +83,6 @@ const App = ({ botContext }) => {
     
     setWorkflowName(newName);
   }, [currentWorkflowId]);
-  const [reactFlowInstance, setReactFlowInstance] = useState(null);
-  const [selectedNode, setSelectedNode] = useState(null);
-  const [workflowName, setWorkflowName] = useState('Untitled Workflow');
-  const [isExecuting, setIsExecuting] = useState(false);
-  const [lastSaved, setLastSaved] = useState(null);
-  const [currentWorkflowId, setCurrentWorkflowId] = useState(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [lastSavedState, setLastSavedState] = useState(null);
-  const [isActivated, setIsActivated] = useState(false);
-  const [executionProgress, setExecutionProgress] = useState('');
-  const [workflowExecutor, setWorkflowExecutor] = useState(null);
-  const [sidebarVisible, setSidebarVisible] = useState(true);
   
   // Floating Chatbot state
   const [activeChatbots, setActiveChatbots] = useState([]);
