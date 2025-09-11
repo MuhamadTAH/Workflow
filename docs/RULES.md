@@ -16,7 +16,7 @@
 
 ### **Rule 3: GitHub Integration**
 - 📦 **Repository**: https://github.com/MuhamadTAH/Workflow.git
-- 🌳 **Branch**: `main` (always push to main branch)
+- 🌳 **Branch**: `mains` (always push to mains branch)
 - 💾 **Auto-deployment**: Code pushed to GitHub automatically deploys to Render
 - 📝 **Always commit changes with descriptive messages**
 
@@ -30,7 +30,7 @@
 ### **Step 2: Deployment Process**
 1. Create/update code files
 2. Update URLs from localhost to Render URLs
-3. Commit to GitHub main branch
+3. Commit to GitHub mains branch
 4. Render automatically deploys changes
 
 ### **Step 3: Testing**
@@ -110,8 +110,8 @@ git add .
 # Commit changes
 git commit -m "Add Instagram Response Node functionality"
 
-# Push to main branch
-git push origin main
+# Push to mains branch
+git push origin mains
 ```
 
 ### **Repository Setup**
@@ -144,7 +144,7 @@ git remote set-url origin https://github.com/MuhamadTAH/Workflow.git
 ## 🎯 **Success Criteria**
 
 A successful deployment means:
-- ✅ Code pushed to GitHub main branch
+- ✅ Code pushed to GitHub mains branch
 - ✅ Render automatically deploys changes
 - ✅ Frontend works at https://frontend-dpcg.onrender.com
 - ✅ Custom domain works at https://fixdai.com
