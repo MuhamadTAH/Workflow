@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
 import { useTheme } from '../contexts/ThemeContext';
+import ChatWidgetAISettings from '../components/ChatWidgetAISettings.jsx';
 
 const ChatWidget = () => {
   const { theme, colors } = useTheme();
@@ -27,7 +28,6 @@ const ChatWidget = () => {
   const [isWidgetSettingsCollapsed, setIsWidgetSettingsCollapsed] = useState(false);
   const [isWebsiteInfoCollapsed, setIsWebsiteInfoCollapsed] = useState(false);
   const [isStatsCollapsed, setIsStatsCollapsed] = useState(false);
-  const [isAISettingsCollapsed, setIsAISettingsCollapsed] = useState(false);
 
   // AI Configuration State
   const [aiConfig, setAiConfig] = useState({
@@ -46,6 +46,9 @@ const ChatWidget = () => {
   const [userAIStatus, setUserAIStatus] = useState({});
   const [isTogglingAI, setIsTogglingAI] = useState(false);
   const [aiActivatingUsers, setAiActivatingUsers] = useState({});
+
+  // AI Settings Modal state
+  const [showAISettings, setShowAISettings] = useState(false);
 
   // Set fixed widget ID on component mount
   useEffect(() => {
@@ -640,73 +643,6 @@ if (document.readyState === 'loading') {
     }
   };
 
-  // Connect Claude API (same pattern as WhatsApp)
-  const connectClaudeAPI = async () => {
-    setIsLoadingAI(true);
-    setAiError('');
-    
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/chat-widget/claude/connect`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          claudeApiKey: aiConfig.apiKey,
-          systemPrompt: aiConfig.systemPrompt
-        })
-      });
-
-      const data = await response.json();
-      
-      if (response.ok && data.success) {
-        console.log('✅ Claude API connected successfully');
-        setAiError('');
-        // Show success message
-        alert(`🎉 Claude API Connected!\n\nTest Response: ${data.testResponse}\n\nYour AI assistant is now ready for auto-replies!`);
-      } else {
-        setAiError(data.error || 'Failed to connect Claude API');
-        console.error('❌ Claude connection failed:', data.error);
-      }
-    } catch (error) {
-      console.error('Error connecting Claude:', error);
-      setAiError('Network error while connecting to Claude API');
-    } finally {
-      setIsLoadingAI(false);
-    }
-  };
-
-  // Save AI configuration
-  const saveAIConfig = async () => {
-    setIsLoadingAI(true);
-    setAiError('');
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/chat-widget/ai-config`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(aiConfig)
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        console.log('✅ AI configuration saved');
-        alert('AI configuration saved successfully!');
-      } else {
-        setAiError('Failed to save AI configuration');
-        console.error('Failed to save AI config:', data.error);
-        alert('Failed to save AI configuration: ' + (data.error || 'Unknown error'));
-      }
-    } catch (error) {
-      setAiError('Network error saving AI configuration');
-      console.error('Error saving AI config:', error);
-      alert('Network error while saving AI configuration');
-    } finally {
-      setIsLoadingAI(false);
-    }
-  };
 
   // Load AI configuration on component mount
   useEffect(() => {
@@ -860,6 +796,26 @@ if (document.readyState === 'loading') {
                 <i className="fas fa-comments" style={{ marginRight: '0.5rem' }}></i>
                 Chat Widget
               </h2>
+              
+              <button
+                onClick={() => setShowAISettings(true)}
+                style={{
+                  backgroundColor: aiConfig.aiEnabled ? 'rgba(34, 197, 94, 0.2)' : 'rgba(156, 163, 175, 0.2)',
+                  color: aiConfig.aiEnabled ? '#15803d' : '#6b7280',
+                  border: `1px solid ${aiConfig.aiEnabled ? 'rgba(34, 197, 94, 0.5)' : 'rgba(156, 163, 175, 0.3)'}`,
+                  borderRadius: '6px',
+                  padding: '0.4rem 0.6rem',
+                  fontSize: '0.7rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}
+                title="AI Assistant Settings"
+              >
+                🤖 AI {aiConfig.aiEnabled ? 'ON' : 'OFF'}
+              </button>
             </div>
             
             {/* Sidebar Content */}
@@ -1938,316 +1894,6 @@ if (document.readyState === 'loading') {
                 </div>
               </div>
 
-              {/* AI Settings Section */}
-              <div style={{ marginBottom: isAISettingsCollapsed ? '0' : '2rem' }}>
-                <h3 
-                  onClick={() => setIsAISettingsCollapsed(!isAISettingsCollapsed)}
-                  style={{ 
-                    fontSize: '1rem', 
-                    fontWeight: '600', 
-                    color: colors.primaryText, 
-                    marginBottom: '1rem', 
-                    borderBottom: `2px solid ${colors.border}`, 
-                    paddingBottom: '0.5rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    userSelect: 'none'
-                  }}
-                >
-                  <span>🤖 AI Assistant Settings</span>
-                  <span style={{ 
-                    transform: isAISettingsCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.2s ease',
-                    fontSize: '0.8rem',
-                    color: colors.mutedText
-                  }}>
-                    ▼
-                  </span>
-                </h3>
-
-                {/* Collapsible Content */}
-                <div style={{
-                  maxHeight: isAISettingsCollapsed ? '0' : '2000px',
-                  overflow: 'hidden',
-                  transition: 'max-height 0.3s ease-in-out, opacity 0.3s ease-in-out',
-                  opacity: isAISettingsCollapsed ? 0 : 1
-                }}>
-                
-                  <div style={{ backgroundColor: colors.inputBg, borderRadius: '8px', padding: '1rem', border: `1px solid ${colors.border}` }}>
-                    {aiError && (
-                      <div style={{ 
-                        backgroundColor: colors.error + '20', 
-                        color: colors.error, 
-                        padding: '0.5rem', 
-                        borderRadius: '4px', 
-                        marginBottom: '1rem',
-                        fontSize: '0.875rem'
-                      }}>
-                        {aiError}
-                      </div>
-                    )}
-
-                    {/* AI Enable Toggle */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '0.5rem',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        color: colors.primaryText
-                      }}>
-                        <input
-                          type="checkbox"
-                          checked={aiConfig.aiEnabled}
-                          onChange={(e) => setAiConfig({...aiConfig, aiEnabled: e.target.checked})}
-                          style={{ transform: 'scale(1.2)' }}
-                        />
-                        Enable AI Assistant
-                      </label>
-                    </div>
-
-                    {/* Auto Reply Toggle */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '0.5rem',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        color: colors.primaryText
-                      }}>
-                        <input
-                          type="checkbox"
-                          checked={aiConfig.autoReply}
-                          onChange={(e) => setAiConfig({...aiConfig, autoReply: e.target.checked})}
-                          disabled={!aiConfig.aiEnabled}
-                          style={{ transform: 'scale(1.2)' }}
-                        />
-                        Auto Reply to Messages
-                      </label>
-                    </div>
-
-                    {/* Claude API Key */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ 
-                        display: 'block',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        color: colors.primaryText,
-                        marginBottom: '0.5rem'
-                      }}>
-                        Claude API Key:
-                      </label>
-                      <div style={{ position: 'relative' }}>
-                        <input
-                          type="password"
-                          value={aiConfig.apiKey}
-                          onChange={(e) => setAiConfig({...aiConfig, apiKey: e.target.value})}
-                          style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            borderRadius: '4px',
-                            border: `1px solid ${colors.border}`,
-                            backgroundColor: colors.cardBg,
-                            color: colors.primaryText,
-                            fontSize: '0.875rem',
-                            fontFamily: 'monospace'
-                          }}
-                          placeholder="sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxx..."
-                        />
-                        {aiConfig.apiKey && (
-                          <div style={{
-                            position: 'absolute',
-                            right: '0.5rem',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            fontSize: '0.75rem',
-                            color: colors.success
-                          }}>
-                            🔐
-                          </div>
-                        )}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: colors.mutedText, marginTop: '0.25rem' }}>
-                        Get your API key from <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" style={{ color: colors.brandBlue }}>console.anthropic.com</a>
-                      </div>
-                    </div>
-
-                    {/* System Prompt */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ 
-                        display: 'block',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        color: colors.primaryText,
-                        marginBottom: '0.5rem'
-                      }}>
-                        System Prompt:
-                      </label>
-                      <textarea
-                        value={aiConfig.systemPrompt}
-                        onChange={(e) => setAiConfig({...aiConfig, systemPrompt: e.target.value})}
-                        rows={3}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem',
-                          borderRadius: '4px',
-                          border: `1px solid ${colors.border}`,
-                          backgroundColor: colors.cardBg,
-                          color: colors.primaryText,
-                          fontSize: '0.875rem',
-                          resize: 'vertical'
-                        }}
-                        placeholder="Define how the AI should respond to visitors..."
-                      />
-                    </div>
-
-                    {/* Knowledge Base */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ 
-                        display: 'block',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        color: colors.primaryText,
-                        marginBottom: '0.5rem'
-                      }}>
-                        Knowledge Base:
-                      </label>
-                      <textarea
-                        value={aiConfig.knowledgeBase}
-                        onChange={(e) => setAiConfig({...aiConfig, knowledgeBase: e.target.value})}
-                        rows={4}
-                        style={{
-                          width: '100%',
-                          padding: '0.5rem',
-                          borderRadius: '4px',
-                          border: `1px solid ${colors.border}`,
-                          backgroundColor: colors.cardBg,
-                          color: colors.primaryText,
-                          fontSize: '0.875rem',
-                          resize: 'vertical'
-                        }}
-                        placeholder="Add company information, FAQs, policies, etc..."
-                      />
-                    </div>
-
-                    {/* Response Delay */}
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label style={{ 
-                        display: 'block',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        color: colors.primaryText,
-                        marginBottom: '0.5rem'
-                      }}>
-                        Response Delay: {aiConfig.responseDelay / 1000}s
-                      </label>
-                      <input
-                        type="range"
-                        min="1000"
-                        max="10000"
-                        step="500"
-                        value={aiConfig.responseDelay}
-                        onChange={(e) => setAiConfig({...aiConfig, responseDelay: parseInt(e.target.value)})}
-                        style={{
-                          width: '100%',
-                          margin: '0.5rem 0'
-                        }}
-                      />
-                      <div style={{ fontSize: '0.75rem', color: colors.mutedText }}>
-                        How long to wait before AI responds (1-10 seconds)
-                      </div>
-                    </div>
-
-                    {/* Connect Claude Button */}
-                    <button
-                      onClick={connectClaudeAPI}
-                      disabled={isLoadingAI || !aiConfig.apiKey}
-                      style={{
-                        width: '100%',
-                        backgroundColor: aiConfig.apiKey ? colors.brandBlue : colors.mutedText,
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        padding: '0.75rem',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        cursor: (isLoadingAI || !aiConfig.apiKey) ? 'not-allowed' : 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem',
-                        marginBottom: '0.5rem'
-                      }}
-                    >
-                      {isLoadingAI ? '⏳ Connecting...' : '🔗 Connect Claude API'}
-                    </button>
-
-                    {/* Save Button */}
-                    <button
-                      onClick={saveAIConfig}
-                      disabled={isLoadingAI || !aiConfig.aiEnabled}
-                      style={{
-                        width: '100%',
-                        backgroundColor: aiConfig.aiEnabled ? colors.success : colors.mutedText,
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        padding: '0.75rem',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        cursor: aiConfig.aiEnabled ? 'pointer' : 'not-allowed',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem'
-                      }}
-                    >
-                      {isLoadingAI ? '⏳ Saving...' : '💾 Save AI Settings'}
-                    </button>
-
-                    {/* API Key Warning */}
-                    {aiConfig.aiEnabled && aiConfig.autoReply && !aiConfig.apiKey && (
-                      <div style={{
-                        marginTop: '0.5rem',
-                        padding: '0.5rem',
-                        backgroundColor: colors.error + '20',
-                        borderRadius: '4px',
-                        textAlign: 'center',
-                        fontSize: '0.875rem',
-                        color: colors.error
-                      }}>
-                        ⚠️ API Key required for auto-reply functionality
-                      </div>
-                    )}
-
-                    {/* AI Status */}
-                    <div style={{ 
-                      marginTop: '1rem',
-                      padding: '0.5rem',
-                      backgroundColor: aiConfig.aiEnabled && aiConfig.autoReply && aiConfig.apiKey ? colors.success + '20' : 
-                                      aiConfig.aiEnabled && aiConfig.autoReply && !aiConfig.apiKey ? colors.error + '20' :
-                                      aiConfig.aiEnabled ? colors.warning + '20' : colors.mutedText + '20',
-                      borderRadius: '4px',
-                      textAlign: 'center',
-                      fontSize: '0.875rem',
-                      color: aiConfig.aiEnabled && aiConfig.autoReply && aiConfig.apiKey ? colors.success : 
-                             aiConfig.aiEnabled && aiConfig.autoReply && !aiConfig.apiKey ? colors.error :
-                             aiConfig.aiEnabled ? colors.warning : colors.mutedText
-                    }}>
-                      Status: {
-                        !aiConfig.aiEnabled ? '🔴 AI Disabled' :
-                        !aiConfig.autoReply ? '🟡 AI Enabled (Manual Only)' :
-                        !aiConfig.apiKey ? '🔴 API Key Required' :
-                        '🟢 AI Auto-Reply Active'
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {/* Quick Actions */}
               <div style={{ marginBottom: '2rem' }}>
@@ -2313,6 +1959,16 @@ if (document.readyState === 'loading') {
             </div>
           </div>
         </div>
+
+        {/* AI Settings Modal */}
+        <ChatWidgetAISettings
+          isVisible={showAISettings}
+          onClose={() => {
+            setShowAISettings(false);
+            loadAIConfig(); // Reload config after closing settings
+          }}
+        />
+
       </div>
     </div>
   );
