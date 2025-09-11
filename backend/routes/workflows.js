@@ -102,9 +102,6 @@ router.get('/telegram-workflow', verifyToken, async (req, res) => {
     // Get user's actual active Telegram bot
     console.log('🔍 Searching for Telegram bot with userId:', req.user.userId, 'type:', typeof req.user.userId);
     const userId = parseInt(req.user.userId); // Convert to integer for database consistency
-    
-    // Debug: Check what's in the database
-    console.log('🔍 DEBUG: Checking telegram_listener_bots table for userId:', userId);
     const userBot = await new Promise((resolve, reject) => {
       db.get(`
         SELECT * FROM telegram_listener_bots 
@@ -121,54 +118,9 @@ router.get('/telegram-workflow', verifyToken, async (req, res) => {
     });
     
     if (!userBot) {
-      console.log('🔍 No bot found in telegram_listener_bots table, creating mock workflow');
-      // Instead of returning 404, create a basic workflow structure
-      // This handles cases where bot exists but isn't in the expected table
-      return res.json({
-        success: true,
-        workflow: {
-          id: `telegram-workflow-mock-${userId}`,
-          name: 'Telegram AI Bot',
-          type: 'telegram',
-          status: 'active',
-          created_at: new Date().toISOString(),
-          nodes: [
-            {
-              id: 'trigger-1',
-              type: 'telegram_trigger',
-              position: { x: 100, y: 100 },
-              data: {
-                label: 'Telegram Message Received',
-                description: 'Triggers when a message is received on Telegram',
-                config: {
-                  event_type: 'message_received'
-                }
-              }
-            },
-            {
-              id: 'ai-1',
-              type: 'ai_response',
-              position: { x: 300, y: 100 },
-              data: {
-                label: 'AI Response',
-                description: 'Generate AI response using configured AI model',
-                config: {
-                  model: 'claude',
-                  auto_response: true
-                }
-              }
-            }
-          ],
-          edges: [
-            {
-              id: 'trigger-to-ai',
-              source: 'trigger-1',
-              target: 'ai-1',
-              type: 'default'
-            }
-          ]
-        },
-        message: 'Mock workflow created - no bot record found in telegram_listener_bots table'
+      return res.status(404).json({
+        success: false,
+        error: 'Workflow not found'
       });
     }
     
