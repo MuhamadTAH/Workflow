@@ -254,7 +254,7 @@ const TelegramAISettings = ({ isVisible, onClose }) => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          systemPrompt: systemPrompt.trim()
+          prompt: systemPrompt.trim()
         })
       });
 
@@ -343,15 +343,22 @@ const TelegramAISettings = ({ isVisible, onClose }) => {
       const result = await response.json();
       
       if (response.ok && result.success) {
+        const knowledgeInfo = {
+          filename: result.filename,
+          textLength: result.textLength,
+          pageCount: result.pageCount,
+          size: 0, // Backend doesn't return size, set default
+          uploadedAt: new Date().toISOString()
+        };
         setHasKnowledgeBase(true);
-        setKnowledgeBaseInfo(result.info);
-        setUploadStatus(`✅ PDF processed successfully! Extracted ${result.info.textLength} characters from ${result.info.pageCount} pages.`);
+        setKnowledgeBaseInfo(knowledgeInfo);
+        setUploadStatus(`✅ PDF processed successfully! Extracted ${result.textLength} characters from ${result.pageCount} pages.`);
         setTimeout(() => setUploadStatus(''), 5000);
         
         console.log('✅ PDF processed:', {
-          filename: result.info.filename,
-          textLength: result.info.textLength,
-          pageCount: result.info.pageCount
+          filename: result.filename,
+          textLength: result.textLength,
+          pageCount: result.pageCount
         });
       } else {
         setUploadStatus(`❌ Upload failed: ${result.error || 'Unknown error'}`);
