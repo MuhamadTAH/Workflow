@@ -1,5 +1,8 @@
 const axios = require('axios');
 const logger = require('./logger');
+const FormData = require('form-data');
+const fs = require('fs');
+const path = require('path');
 
 // Bot configuration - No default token, must be provided dynamically
 // REMOVED: Hardcoded webhook URL that was overriding workflow-specific webhooks
@@ -295,8 +298,6 @@ class TelegramAPI {
 
   async sendPhoto(chatId, photo, options = {}) { // Enhanced media support
     try {
-      const FormData = require('form-data');
-      const fs = require('fs');
       
       const form = new FormData();
       form.append('chat_id', chatId);
@@ -368,9 +369,6 @@ class TelegramAPI {
 
   async sendDocument(chatId, document, options = {}) {
     try {
-      const FormData = require('form-data');
-      const fs = require('fs');
-      const path = require('path');
       
       const form = new FormData();
       form.append('chat_id', chatId);
@@ -444,8 +442,6 @@ class TelegramAPI {
 
   async sendVoice(chatId, voice, options = {}) {
     try {
-      const FormData = require('form-data');
-      const fs = require('fs');
       
       const form = new FormData();
       form.append('chat_id', chatId);
@@ -518,9 +514,6 @@ class TelegramAPI {
 
   async sendAudio(chatId, audio, options = {}) {
     try {
-      const FormData = require('form-data');
-      const fs = require('fs');
-      const path = require('path');
       
       const form = new FormData();
       form.append('chat_id', chatId);

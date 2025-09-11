@@ -6,7 +6,8 @@ const router = express.Router();
 const { asyncHandler } = require('../middleware/errorHandler');
 const logger = require('../services/logger');
 const db = require('../db');
-const { detectAgreementFromConversation, quickAgreementCheck } = require('../services/agreementDetection');
+// Temporarily commented out for debugging
+// const { detectAgreementFromConversation, quickAgreementCheck } = require('../services/agreementDetection');
 
 // Configure multer for voice file uploads
 const voiceUpload = multer({ 
@@ -678,14 +679,14 @@ router.post('/webhook/:listenerId', asyncHandler(async (req, res) => {
           
           console.log('✅ Claude response stored in conversation panel');
 
-          // 🤝 AGREEMENT DETECTION - Check if client agreed to something
-          console.log('🤝 Checking for client agreement...');
-          await checkForAgreementAndProcess(listenerId, botConfig.user_id, {
-            customer_id: chatId,
-            customer_name: fromName,
-            customer_username: fromUser.username,
-            platform: 'telegram'
-          }, messageText, claudeResponse);
+          // 🤝 AGREEMENT DETECTION - Temporarily disabled for debugging
+          // console.log('🤝 Checking for client agreement...');
+          // await checkForAgreementAndProcess(listenerId, botConfig.user_id, {
+          //   customer_id: chatId,
+          //   customer_name: fromName,
+          //   customer_username: fromUser.username,
+          //   platform: 'telegram'
+          // }, messageText, claudeResponse);
 
         } else {
           console.log('❌ Failed to send auto-response to Telegram');
@@ -1611,6 +1612,11 @@ router.get('/test', (req, res) => {
  */
 const checkForAgreementAndProcess = async (listenerId, userId, customerInfo, customerMessage, aiResponse) => {
   try {
+    console.log('🔍 Agreement detection temporarily disabled');
+    return;
+    
+    // Temporarily commented out for debugging
+    /*
     console.log('🔍 Running agreement detection...', {
       listenerId,
       userId,
@@ -1682,6 +1688,9 @@ const checkForAgreementAndProcess = async (listenerId, userId, customerInfo, cus
       userId,
       customerId: customerInfo.customer_id
     });
+    */
+  } catch (error) {
+    console.error('❌ Agreement detection error (disabled):', error.message);
   }
 };
 
