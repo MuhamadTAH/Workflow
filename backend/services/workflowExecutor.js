@@ -1137,17 +1137,6 @@ class WorkflowExecutor {
                     }
                 };
                 
-                return {
-                    success: true,
-                    message: 'DRY RUN: Chat response would be sent',
-                    outputData: {
-                        sessionId: node.data.sessionId || 'dry_run_session',
-                        message: node.data.message || 'DRY RUN: Chat response',
-                        sentAt: new Date().toISOString(),
-                        dryRun: true
-                    }
-                };
-                
             case 'multiLanguageChatResponse':
                 // Removed: MultiLanguageChatResponseNode (old system deleted)
                 return {
