@@ -295,7 +295,9 @@ const App = ({ botContext }) => {
       }
     } catch (error) {
       console.error('❌ Error loading Telegram virtual workflow:', error);
-      // Load empty workflow as fallback
+      console.log('ℹ️ Network error - showing empty workflow');
+      
+      // Show empty workflow on error
       setNodes([]);
       setEdges([]);
     }
