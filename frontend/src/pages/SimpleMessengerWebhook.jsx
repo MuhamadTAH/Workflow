@@ -835,7 +835,15 @@ const SimpleMessengerWebhook = () => {
                                 whiteSpace: 'nowrap',
                                 textOverflow: 'ellipsis'
                               }}>
-                                {conversation.lastMessage?.text || 'No messages'}
+                                {(() => {
+                                  if (conversation.lastMessage?.voice_file_url) {
+                                    return '🎤 Voice message';
+                                  }
+                                  if (conversation.lastMessage?.image_file_url) {
+                                    return '🖼️ Image';
+                                  }
+                                  return conversation.lastMessage?.text || 'No messages';
+                                })()}
                               </div>
                             </div>
                             <div style={{ 
@@ -990,7 +998,65 @@ const SimpleMessengerWebhook = () => {
                                   
                                   {/* Message Content */}
                                   <div style={{ marginBottom: '0.25rem' }}>
-                                    {message.text || (isOutgoing ? 'Message sent' : 'No text content')}
+                                    {(() => {
+                                      // Voice message display
+                                      if (message.voice_file_url) {
+                                        return (
+                                          <div>
+                                            <div style={{ marginBottom: '0.5rem', fontSize: '0.75rem', opacity: 0.8 }}>
+                                              🎤 Voice message
+                                            </div>
+                                            <audio 
+                                              controls 
+                                              style={{ 
+                                                width: '100%', 
+                                                maxWidth: '200px',
+                                                height: '30px'
+                                              }}
+                                            >
+                                              <source src={message.voice_file_url} type={message.voice_mime_type || 'audio/mp4'} />
+                                              Your browser does not support the audio element.
+                                            </audio>
+                                          </div>
+                                        );
+                                      }
+                                      
+                                      // Image message display
+                                      if (message.image_file_url) {
+                                        return (
+                                          <div>
+                                            <div style={{ marginBottom: '0.5rem', fontSize: '0.75rem', opacity: 0.8 }}>
+                                              🖼️ Image
+                                            </div>
+                                            <img 
+                                              src={message.image_file_url}
+                                              alt={message.image_caption || 'Image'}
+                                              style={{ 
+                                                maxWidth: '200px', 
+                                                maxHeight: '200px',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                border: `1px solid ${colors.border}`
+                                              }}
+                                              onClick={() => window.open(message.image_file_url, '_blank')}
+                                            />
+                                            {message.image_caption && (
+                                              <div style={{ 
+                                                marginTop: '0.5rem', 
+                                                fontSize: '0.75rem', 
+                                                fontStyle: 'italic', 
+                                                opacity: 0.8 
+                                              }}>
+                                                {message.image_caption}
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      }
+                                      
+                                      // Regular text message
+                                      return message.text || (isOutgoing ? 'Message sent' : 'No text content');
+                                    })()}
                                   </div>
 
                                   {/* Timestamp */}

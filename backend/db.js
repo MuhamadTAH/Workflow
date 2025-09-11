@@ -1234,6 +1234,15 @@ Be enthusiastic and helpful while staying accurate.`,
       is_replied BOOLEAN DEFAULT 0,
       reply_text TEXT,
       replied_at DATETIME,
+      voice_file_url TEXT,
+      voice_mime_type TEXT,
+      voice_file_size INTEGER,
+      voice_duration INTEGER,
+      image_file_url TEXT,
+      image_width INTEGER,
+      image_height INTEGER,
+      image_file_size INTEGER,
+      image_caption TEXT,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `, (err) => {
@@ -1241,6 +1250,41 @@ Be enthusiastic and helpful while staying accurate.`,
       console.error('❌ Error creating messenger_comment_messages table:', err);
     } else {
       console.log('✅ Messenger Comment Messages table ready');
+      
+      // Add voice and image columns to existing table if they don't exist
+      const voiceColumns = [
+        'voice_file_url TEXT',
+        'voice_mime_type TEXT',
+        'voice_file_size INTEGER',
+        'voice_duration INTEGER'
+      ];
+      
+      voiceColumns.forEach(column => {
+        const columnName = column.split(' ')[0];
+        db.run(`ALTER TABLE messenger_comment_messages ADD COLUMN ${column}`, (alterErr) => {
+          if (alterErr && !alterErr.message.includes('duplicate column')) {
+            console.error(`❌ Error adding ${columnName} column to messenger_comment_messages:`, alterErr);
+          }
+        });
+      });
+      
+      // Add image columns to existing table if they don't exist
+      const imageColumns = [
+        'image_file_url TEXT',
+        'image_width INTEGER',
+        'image_height INTEGER',
+        'image_file_size INTEGER',
+        'image_caption TEXT'
+      ];
+      
+      imageColumns.forEach(column => {
+        const columnName = column.split(' ')[0];
+        db.run(`ALTER TABLE messenger_comment_messages ADD COLUMN ${column}`, (alterErr) => {
+          if (alterErr && !alterErr.message.includes('duplicate column')) {
+            console.error(`❌ Error adding ${columnName} column to messenger_comment_messages:`, alterErr);
+          }
+        });
+      });
     }
   });
 

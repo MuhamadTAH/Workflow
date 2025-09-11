@@ -513,7 +513,7 @@ async function processAIReply(messageData) {
           // Create AI reply message
           const aiReplyData = {
             id: `msg_${Date.now()}_${Math.random().toString(36).substring(2)}`,
-            sessionId: `ai_reply_${Date.now()}`,
+            sessionId: messageData.sessionId,
             widgetId: messageData.widgetId,
             message: claudeResult.response,
             senderName: 'AI Assistant',

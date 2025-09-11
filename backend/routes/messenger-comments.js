@@ -47,13 +47,15 @@ const getBotFromDatabase = async (userId) => {
 };
 
 // Save Messenger message to database
-const saveMessageToDatabase = async (userId, messageData) => {
+const saveMessageToDatabase = async (userId, messageData, voiceData = null, imageData = null) => {
   return new Promise((resolve, reject) => {
     db.run(`
       INSERT INTO messenger_comment_messages 
       (user_id, messenger_message_id, messenger_user_id, messenger_name, messenger_first_name, 
-       messenger_last_name, profile_pic, message_text, message_type, post_id, comment_id, timestamp)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       messenger_last_name, profile_pic, message_text, message_type, post_id, comment_id, timestamp,
+       voice_file_url, voice_mime_type, voice_file_size, voice_duration,
+       image_file_url, image_width, image_height, image_file_size, image_caption)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       userId,
       messageData.id,
@@ -66,7 +68,16 @@ const saveMessageToDatabase = async (userId, messageData) => {
       messageData.type || 'message',
       messageData.post_id,
       messageData.comment_id,
-      new Date().toISOString()
+      new Date().toISOString(),
+      voiceData?.voiceFileUrl || null,
+      voiceData?.voiceMimeType || null,
+      voiceData?.voiceFileSize || null,
+      voiceData?.voiceDuration || null,
+      imageData?.imageFileUrl || null,
+      imageData?.imageWidth || null,
+      imageData?.imageHeight || null,
+      imageData?.imageFileSize || null,
+      imageData?.imageCaption || null
     ], function(err) {
       if (err) reject(err);
       else resolve(this.lastID);
@@ -332,6 +343,42 @@ router.all('/webhooks/messenger/comments', async (req, res) => {
               isEcho: messaging.message?.is_echo
             };
 
+            // Handle voice and image attachments
+            let voiceData = null;
+            let imageData = null;
+
+            if (messaging.message?.attachments && messaging.message.attachments.length > 0) {
+              const attachment = messaging.message.attachments[0];
+              
+              if (attachment.type === 'audio') {
+                messageData.text = '[Voice message]';
+                voiceData = {
+                  voiceFileUrl: attachment.payload?.url,
+                  voiceMimeType: 'audio/mp4',
+                  voiceFileSize: null,
+                  voiceDuration: null
+                };
+                logger.info('📢 Voice attachment detected:', {
+                  senderId: messaging.sender?.id,
+                  voiceUrl: attachment.payload?.url
+                });
+              } else if (attachment.type === 'image') {
+                messageData.text = '[Image]';
+                imageData = {
+                  imageFileUrl: attachment.payload?.url,
+                  imageWidth: null,
+                  imageHeight: null,
+                  imageFileSize: null,
+                  imageCaption: messaging.message?.text || null
+                };
+                logger.info('🖼️ Image attachment detected:', {
+                  senderId: messaging.sender?.id,
+                  imageUrl: attachment.payload?.url,
+                  caption: messaging.message?.text
+                });
+              }
+            }
+
             // Save message to database instead of memory array
             try {
               const userId = 1; // Default user ID for development
@@ -342,7 +389,7 @@ router.all('/webhooks/messenger/comments', async (req, res) => {
                 type: 'messenger_dm',
                 post_id: null,
                 comment_id: null
-              });
+              }, voiceData, imageData);
               
               // Update bot activity
               await updateBotActivity(userId);
@@ -558,7 +605,18 @@ router.get('/messenger/messages', authenticateUser, async (req, res) => {
         comment_id: msg.comment_id,
         is_replied: msg.is_replied,
         reply_text: msg.reply_text,
-        replied_at: msg.replied_at
+        replied_at: msg.replied_at,
+        // Voice message data
+        voice_file_url: msg.voice_file_url,
+        voice_mime_type: msg.voice_mime_type,
+        voice_file_size: msg.voice_file_size,
+        voice_duration: msg.voice_duration,
+        // Image message data
+        image_file_url: msg.image_file_url,
+        image_width: msg.image_width,
+        image_height: msg.image_height,
+        image_file_size: msg.image_file_size,
+        image_caption: msg.image_caption
       })),
       totalCount: messages.length
     });

@@ -814,6 +814,55 @@ const InstagramCommentManager = () => {
                             borderRadius: '8px',
                             marginBottom: '1rem'
                           }}>
+                            {/* Voice Message */}
+                            {selectedMessage.voiceFileUrl && (
+                              <div style={{ marginBottom: selectedMessage.text ? '0.75rem' : '0' }}>
+                                <div style={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: '0.5rem',
+                                  marginBottom: '0.5rem'
+                                }}>
+                                  <span style={{ fontSize: '1rem' }}>🎤</span>
+                                  <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>Voice message</span>
+                                </div>
+                                <audio 
+                                  controls 
+                                  style={{ 
+                                    width: '100%', 
+                                    maxWidth: '300px',
+                                    height: '40px'
+                                  }}
+                                  preload="metadata"
+                                >
+                                  <source src={selectedMessage.voiceFileUrl} type={selectedMessage.voiceMimeType || 'audio/mp4'} />
+                                  Your browser does not support the audio element.
+                                </audio>
+                              </div>
+                            )}
+
+                            {/* Image Message */}
+                            {selectedMessage.imageFileUrl && (
+                              <div style={{ marginBottom: selectedMessage.text ? '0.75rem' : '0' }}>
+                                <img 
+                                  src={selectedMessage.imageFileUrl}
+                                  alt="Instagram image"
+                                  style={{
+                                    maxWidth: '100%',
+                                    maxHeight: '300px',
+                                    borderRadius: '0.5rem',
+                                    cursor: 'pointer',
+                                    objectFit: 'cover'
+                                  }}
+                                  onClick={() => {
+                                    // Open image in modal/new tab
+                                    window.open(selectedMessage.imageFileUrl, '_blank');
+                                  }}
+                                />
+                              </div>
+                            )}
+
+                            {/* Text Message */}
                             <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: '1.4' }}>
                               {selectedMessage.text || 'No text content'}
                             </p>
