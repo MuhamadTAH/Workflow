@@ -1674,14 +1674,6 @@ const checkForAgreementAndProcess = async (listenerId, userId, customerInfo, cus
       userId,
       customerId: customerInfo.customer_id
     });
-  } catch (error) {
-    console.error('❌ Error in agreement detection:', error.message);
-    logger.logError(error, {
-      context: 'agreement-detection-telegram',
-      listenerId,
-      userId,
-      customerId: customerInfo.customer_id
-    });
   }
 };
 
