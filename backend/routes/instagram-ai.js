@@ -188,7 +188,7 @@ router.post('/instagram-ai/test', async (req, res) => {
 
 // Validate Claude API key
 router.get('/instagram-ai/validate', async (req, res) => {
-  logger.info('🔑 Validating Claude API key');
+  logger.info('🔑 Validating Claude API key for Instagram AI');
 
   try {
     const result = await claudeAI.validateApiKey();
@@ -200,6 +200,7 @@ router.get('/instagram-ai/validate', async (req, res) => {
     });
 
   } catch (error) {
+    logger.error('💥 Claude API validation error:', error.message);
     res.json({
       success: false,
       valid: false,
