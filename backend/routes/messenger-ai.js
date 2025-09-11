@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const logger = require('../services/logger');
-const claudeAI = require('../services/claudeAI');
+const ClaudeAI = require('../services/claudeAI');
+const claudeAI = new ClaudeAI();
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
 
