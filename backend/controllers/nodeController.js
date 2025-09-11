@@ -11,7 +11,6 @@ const aiAgentNode = require('../nodes/actions/aiAgentNode');
 const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
-const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
 const whatsappTriggerNode = require('../nodes/actions/whatsappTriggerNode');
 const whatsappSendMessageNode = require('../nodes/actions/whatsappSendMessageNode');
 const instagramResponseNode = require('../nodes/actions/instagramResponseNode');
@@ -127,7 +126,7 @@ const runNode = async (req, res) => {
         
         // Check if this is an output node that should execute once regardless of input items
         const outputNodes = [
-            'telegramSendMessage', 'instagramResponse', 'instagramSendDM', 'instagramPostImage', 'instagramReplyComment',
+            'instagramResponse', 'instagramSendDM', 'instagramPostImage', 'instagramReplyComment',
             'facebookPostToPage', 'facebookSendMessage', 'facebookReplyMessage', 'facebookReplyComment',
             'linkedinCreatePost', 'linkedinSendMessage'
         ];
@@ -142,11 +141,6 @@ const runNode = async (req, res) => {
             
             // Execute output nodes once with all input data
             switch (node.type) {
-                case 'telegramSendMessage':
-                    // Use first item or combined data for context
-                    const contextItem = allInputData[0] || {};
-                    itemResult = await telegramSendMessageNode.execute(processedConfig, contextItem, connectedNodes, executionContext);
-                    break;
                 
                 case 'instagramResponse':
                     // Use first item or combined data for context
@@ -202,7 +196,7 @@ const runNode = async (req, res) => {
                 default:
                     return res.status(400).json({ 
                         message: `Unsupported output node type: ${node.type}`,
-                        supportedOutputTypes: ['telegramSendMessage', 'instagramResponse', 'facebookPostToPage', 'facebookSendMessage', 'linkedinCreatePost', 'linkedinSendMessage']
+                        supportedOutputTypes: ['instagramResponse', 'facebookPostToPage', 'facebookSendMessage', 'linkedinCreatePost', 'linkedinSendMessage']
                     });
             }
             

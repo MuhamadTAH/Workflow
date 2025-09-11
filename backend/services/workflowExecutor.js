@@ -10,7 +10,6 @@ const aiAgentNode = require('../nodes/actions/aiAgentNode');
 const modelNode = require('../nodes/actions/modelNode');
 const googleDocsNode = require('../nodes/actions/googleDocsNode');
 const DataStorageNode = require('../nodes/actions/dataStorageNode');
-const telegramSendMessageNode = require('../nodes/actions/telegramSendMessageNode');
 const whatsappSendMessageNode = require('../nodes/actions/whatsappSendMessageNode');
 // Removed: MultiLanguageChatResponseNode (old system deleted)
 
@@ -218,8 +217,6 @@ class WorkflowExecutor {
                         if (node.data.type === 'aiAgent') {
                             stepData['ai'] = result;
                             stepData['response'] = result.response || result;
-                        } else if (node.data.type === 'telegramSendMessage') {
-                            stepData['sentMessage'] = result;
                         } else if (node.data.type === 'dataStorage') {
                             stepData['storage'] = result;
                             stepData['data'] = result;
@@ -452,8 +449,6 @@ class WorkflowExecutor {
                 const dataStorageInstance = new DataStorageNode(resolvedConfig);
                 return await dataStorageInstance.process(inputData);
             
-            case 'telegramSendMessage':
-                return await telegramSendMessageNode.execute(resolvedConfig, inputData, connectedNodes);
             
             case 'whatsappSendMessage':
                 return await whatsappSendMessageNode.execute(resolvedConfig, inputData, connectedNodes);
@@ -878,7 +873,6 @@ class WorkflowExecutor {
             'modelNode': 'model',
             'googleDocs': 'googleDocs',
             'dataStorage': 'storage',
-            'telegramSendMessage': 'telegramSendMessage',
         };
         return prefixMap[nodeType] || null;
     }
@@ -1086,7 +1080,6 @@ class WorkflowExecutor {
     shouldSimulateInDryRun(nodeType) {
         // External action nodes that should be simulated
         const externalActionNodes = [
-            'telegramSendMessage',
             // Removed: 'multiLanguageChatResponse' (old system deleted)
             'googleDocs',
             'dataStorage' // Can still simulate data storage
@@ -1110,10 +1103,6 @@ class WorkflowExecutor {
         console.log(`🧪 Creating dry run result for ${nodeType}`);
         
         switch (nodeType) {
-            case 'telegramSendMessage':
-                return {
-                    success: true,
-                    message: 'DRY RUN: Telegram message would be sent',
                     outputData: {
                         messageId: 'dry_run_message_' + Date.now(),
                         chatId: node.data.chatId || 'dry_run_chat',
