@@ -590,7 +590,13 @@ router.get('/instagram-comments/user-ai/status', (req, res) => {
   });
 });
 
+// Function to get Instagram messages array (used by AI system for conversation history)
+function getInstagramMessages() {
+  return instagramMessages;
+}
+
 module.exports = {
   router,
-  sendInstagramReply
+  sendInstagramReply,
+  getInstagramMessages
 };

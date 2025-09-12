@@ -410,29 +410,52 @@ async function generateAIReply(message, senderId) {
       autoReply: aiConfig.autoReply
     });
 
+    // Get conversation history for context
+    const conversationHistory = getInstagramConversationHistory(senderId, 8);
+    
     // Use the current system prompt from aiConfig (updated by the new interface)
     const systemPromptToUse = aiConfig.systemPrompt;
     
     // Use PDF knowledge base if available, otherwise use text knowledge base
     const knowledgeBaseToUse = knowledgeBaseInfo ? knowledgeBaseInfo.textContent : aiConfig.knowledgeBase;
     
+    // Build conversation context for AI
+    let conversationContext = '';
+    if (conversationHistory.length > 0) {
+      conversationContext = '\n\nPrevious conversation context:\n' + 
+        conversationHistory.map(msg => 
+          `${msg.role === 'customer' ? 'Customer' : 'You'}: ${msg.content}`
+        ).join('\n');
+      
+      logger.info('📚 Including conversation history', {
+        senderId,
+        historyMessageCount: conversationHistory.length,
+        contextLength: conversationContext.length
+      });
+    }
+    
     logger.info('📝 Using system prompt and knowledge base', {
       systemPromptLength: systemPromptToUse?.length || 0,
       knowledgeBaseLength: knowledgeBaseToUse?.length || 0,
+      conversationContextLength: conversationContext.length,
       hasPdfKnowledge: !!knowledgeBaseInfo
     });
 
+    // Combine current message with conversation context
+    const messageWithContext = message + conversationContext;
+
     const result = await claudeAI.sendMessage(
-      message,
+      messageWithContext,
       systemPromptToUse,
       knowledgeBaseToUse
     );
 
     if (result.success) {
-      logger.info('✅ AI reply generated', {
+      logger.info('✅ AI reply generated with context', {
         senderId,
         replyLength: result.reply.length,
-        usage: result.usage
+        usage: result.usage,
+        usedHistory: conversationHistory.length > 0
       });
       return result.reply;
     } else {
@@ -547,6 +570,49 @@ async function checkForInstagramAgreement(senderId, customerMessage, aiResponse)
   }
 }
 
+// Function to get recent conversation history for a specific sender
+function getInstagramConversationHistory(senderId, limit = 10) {
+  try {
+    // Import messages from instagram-comments.js
+    const instagramComments = require('./instagram-comments');
+    const instagramMessages = instagramComments.getInstagramMessages?.() || [];
+    
+    // Filter messages for this specific conversation and sort by timestamp
+    const conversationMessages = instagramMessages
+      .filter(msg => 
+        (msg.sender?.id === senderId) || 
+        (msg.recipient?.id === senderId)
+      )
+      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+      .slice(-limit); // Get the most recent messages
+    
+    // Format messages for AI context
+    const formattedHistory = conversationMessages.map(msg => {
+      const isFromCustomer = msg.sender?.id === senderId;
+      return {
+        role: isFromCustomer ? 'customer' : 'assistant',
+        content: msg.text || '',
+        timestamp: msg.timestamp
+      };
+    });
+    
+    logger.info('📚 Retrieved conversation history', {
+      senderId,
+      messageCount: formattedHistory.length,
+      historySpan: formattedHistory.length > 0 ? {
+        from: formattedHistory[0]?.timestamp,
+        to: formattedHistory[formattedHistory.length - 1]?.timestamp
+      } : null
+    });
+    
+    return formattedHistory;
+    
+  } catch (error) {
+    logger.error('💥 Error retrieving conversation history:', error.message);
+    return [];
+  }
+}
+
 // Export both router and function
 module.exports = {
   router,
@@ -554,5 +620,6 @@ module.exports = {
   getAIConfig: () => aiConfig,
   isConnected: () => isConnected,
   getKnowledgeBase: () => knowledgeBaseInfo,
-  handleMessageBatch
+  handleMessageBatch,
+  getInstagramConversationHistory
 };
