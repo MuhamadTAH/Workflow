@@ -103,11 +103,6 @@ const TelegramListener = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showImageModal, setShowImageModal] = useState(false);
   
-  // Media upload states (enhanced to support multiple file types)
-  const [selectedMediaFile, setSelectedMediaFile] = useState(null);
-  const [mediaPreview, setMediaPreview] = useState(null);
-  const [mediaType, setMediaType] = useState(null);
-  const [mediaCaption, setMediaCaption] = useState('');
   
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -888,44 +883,6 @@ const TelegramListener = () => {
     setShowImageModal(false);
   };
 
-  // Enhanced media upload functions
-  const handleMediaSelect = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    // Determine media type
-    let detectedType = 'document'; // Default
-    if (file.type.startsWith('image/')) {
-      detectedType = 'photo';
-    } else if (file.type.startsWith('audio/')) {
-      if (file.type === 'audio/ogg' || file.name.endsWith('.ogg')) {
-        detectedType = 'voice';
-      } else {
-        detectedType = 'audio';
-      }
-    }
-
-    setSelectedMediaFile(file);
-    setMediaType(detectedType);
-    
-    // Create preview for images
-    if (detectedType === 'photo') {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setMediaPreview(e.target.result);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setMediaPreview(null);
-    }
-  };
-
-  const cancelMediaUpload = () => {
-    setSelectedMediaFile(null);
-    setMediaPreview(null);
-    setMediaType(null);
-    setMediaCaption('');
-  };
 
 
   return (
