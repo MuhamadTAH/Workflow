@@ -74,7 +74,7 @@ function Sidebar({ isOpen, onToggle }) {
         <div className="sidebar-header">
           <div className="sidebar-brand">
             <i className="fas fa-bolt brand-icon"></i>
-            <span className="brand-text">WorkflowPro</span>
+            <span className="brand-text">FIXDAI LLC</span>
           </div>
           <button 
             className="sidebar-toggle desktop-only"

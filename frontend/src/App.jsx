@@ -136,7 +136,7 @@ function Home() {
       <nav className="dashboard-nav" style={{ backgroundColor: colors.secondaryBg, borderBottomColor: colors.border }}>
         <div className="nav-container">
           <div className="nav-brand">
-            <h2 style={{ color: colors.primaryText }}>⚡ WorkflowPro</h2>
+            <h2 style={{ color: colors.primaryText }}>⚡ FIXDAI LLC</h2>
             <p style={{ color: colors.secondaryText, fontSize: '12px', margin: '0' }}>by FIXDAI LLC</p>
           </div>
           <div className="nav-user">
@@ -261,7 +261,7 @@ function Home() {
               </Link>
             </div>
             <p className="footer-text">
-              &copy; 2025 WorkflowPro by FIXDAI LLC. Built for professionals who automate.
+              &copy; 2025 FIXDAI LLC. Built for professionals who automate.
             </p>
           </div>
         </footer>

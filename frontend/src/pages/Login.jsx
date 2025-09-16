@@ -93,6 +93,10 @@ function Login() {
       <main className="auth-container">
         <PhoneMockup conversation={conversation} view="login" />
         <div className="auth-form">
+          <div className="brand-header">
+            <h2 className="brand-name">⚡ FIXDAI LLC</h2>
+            <p className="brand-subtitle">AI-Powered Business Solutions</p>
+          </div>
           <h1 className="auth-form__title">Login</h1>
           
           {error && (
