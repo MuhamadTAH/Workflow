@@ -137,7 +137,7 @@ function Home() {
         <div className="nav-container">
           <div className="nav-brand">
             <h2 style={{ color: colors.primaryText }}>⚡ WorkflowPro</h2>
-            <p style={{ color: colors.secondaryText, fontSize: '12px', margin: '0' }}>by MUHAMMAD TARQ</p>
+            <p style={{ color: colors.secondaryText, fontSize: '12px', margin: '0' }}>by FIXDAI LLC</p>
           </div>
           <div className="nav-user">
             <LanguageSwitcher className="mr-4" />
@@ -261,7 +261,7 @@ function Home() {
               </Link>
             </div>
             <p className="footer-text">
-              &copy; 2025 WorkflowPro by MUHAMMAD TARQ. Built for professionals who automate.
+              &copy; 2025 WorkflowPro by FIXDAI LLC. Built for professionals who automate.
             </p>
           </div>
         </footer>
